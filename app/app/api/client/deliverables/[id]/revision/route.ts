@@ -1,13 +1,25 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { notifyAdminClientFeedback } from '@/lib/telegram/service'
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Patch skill_outputs with service-role client to bypass the SELECT-only RLS policy
+ * (`so_client_own`). We still validate ownership first via `users` table so the
+ * service-role write is gated behind an auth check, not open to any caller.
+ */
+async function patchSkillOutputsByDeliverable(id: string, body: { status: string }) {
+  const srv = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+  await srv.from('skill_outputs').update(body).eq('deliverable_id', id)
+}
 
 export async function POST(
   request: Request,
@@ -56,7 +68,9 @@ export async function POST(
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
   // the linked skill output mirrors the deliverable — revision means the work goes back for edits
-  await supabase.from('skill_outputs').update({ status: 'revision_requested' }).eq('deliverable_id', params.id)
+  // Use service-role client because `so_client_own` RLS policy on skill_outputs is FOR
+  // SELECT only; a direct client JWT call would silently update 0 rows.
+  await patchSkillOutputsByDeliverable(params.id, { status: 'revision_requested' })
 
   // log the reason as a comment on the thread
   await supabase.from('deliverable_comments').insert({
