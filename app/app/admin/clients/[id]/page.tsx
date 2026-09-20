@@ -38,11 +38,27 @@ function parseDeclaredChannels(brandProfile: string | undefined): string[] {
   const found = BRIDGE_PLATFORMS.filter((p) =>
     p === 'x'
       // "x" alone is too noisy to match; require it as a word like "x/twitter"
-      ? /\bx(\/twitter)?\b/.test(section)
+      ? /\b(\/twitter)?\b/.test(section)
       : new RegExp(`\\b${p}\\b`).test(section)
   )
   // X and Twitter are one platform; keep only "x" when both matched.
   return found.filter((p) => !(p === 'twitter' && found.includes('x')))
+}
+
+/** Safe query wrapper — returns data on success, null + error string on failure */
+async function safeQuery<T = any>(
+  supabase: Record<string, any>,
+  queryFn: (s: Record<string, any>) => PromiseLike<{ data: T | null; error: any }>
+): Promise<{ data: T; errors: string[] }> {
+  try {
+    const { data, error } = await queryFn(supabase)
+    if (error) {
+      return { data: null as unknown as T, errors: [error.message] }
+    }
+    return { data: data as T, errors: [] }
+  } catch (e: any) {
+    return { data: null as unknown as T, errors: [e?.message ?? 'Query failed'] }
+  }
 }
 
 export default async function ClientWorkspacePage({
@@ -61,29 +77,72 @@ export default async function ClientWorkspacePage({
 
   if (!client) notFound()
 
-  const [{ data: deliverables }, { data: packs }, { data: skills }, { data: links }, { data: clientSkills }, { data: files }, { data: stages }, { data: pSkills }, { data: guards }, { data: truths }, { data: channels }, { data: outputs }] =
-    await Promise.all([
-      supabase
-        .from('deliverables')
-        .select('id, title, type, status, updated_at')
-        .eq('client_id', id)
-        .order('updated_at', { ascending: false }),
-      supabase.from('skill_packs').select('id, name, description, icon, sort_order').order('sort_order'),
-      supabase.from('skills').select('id, name, description, category'),
-      supabase.from('pack_skills').select('pack_id, skill_id'),
-      supabase.from('client_skills').select('skill_id, status, notes').eq('client_id', id),
-      supabase.from('client_files').select('path, content').eq('client_id', id),
-      supabase.from('pipeline_stages').select('key, label, description, sort_order, chain, skill_order, publishes').order('sort_order'),
-      supabase.from('skills').select('id, name, description, stage, reads_files, writes_files').order('name'),
-      supabase.from('skill_guardrails').select('skill_id, kind, heading, body'),
-      supabase.from('repo_ground_truths').select('source, rule').order('sort_order'),
-      supabase.from('client_channels').select('platform, handle, status, note, confirmed_at').eq('client_id', id).order('platform'),
-      supabase.from('skill_outputs').select('id, client_id, skill_id, stage, title, status, content, deliverable_id, created_at').eq('client_id', id).order('created_at', { ascending: false }),
-    ])
+  // Group A: Core content data (deliverables, skills, packs)
+  const [aDeliverables, aPacks, aSkills, aLinks, aClientSkills] = await Promise.all([
+    safeQuery(supabase, (s) => s
+      .from('deliverables')
+      .select('id, title, type, status, updated_at')
+      .eq('client_id', id)
+      .order('updated_at', { ascending: false })),
+    safeQuery(supabase, (s) => s
+      .from('skill_packs').select('id, name, description, icon, sort_order').order('sort_order')),
+    safeQuery(supabase, (s) => s
+      .from('skills').select('id, name, description, category')),
+    safeQuery(supabase, (s) => s
+      .from('pack_skills').select('pack_id, skill_id')),
+    safeQuery(supabase, (s) => s
+      .from('client_skills').select('skill_id, status, notes').eq('client_id', id)),
+  ])
+
+  // Group B: Files + pipeline
+  const [aFiles, aStages, aPSkills] = await Promise.all([
+    safeQuery(supabase, (s) => s
+      .from('client_files').select('path, content').eq('client_id', id)),
+    safeQuery(supabase, (s) => s
+      .from('pipeline_stages').select('key, label, description, sort_order, chain, skill_order, publishes').order('sort_order')),
+    safeQuery(supabase, (s) => s
+      .from('skills').select('id, name, description, stage, reads_files, writes_files').order('name')),
+  ])
+
+  // Group C: Config + outputs
+  const [aGuards, aTruths, aChannels, aOutputs, aDflt] = await Promise.all([
+    safeQuery(supabase, (s) => s
+      .from('skill_guardrails').select('skill_id, kind, heading, body')),
+    safeQuery(supabase, (s) => s
+      .from('repo_ground_truths').select('source, rule').order('sort_order')),
+    safeQuery(supabase, (s) => s
+      .from('client_channels').select('platform, handle, status, note, confirmed_at').eq('client_id', id).order('platform')),
+    safeQuery(supabase, (s) => s
+      .from('skill_outputs').select('id, client_id, skill_id, stage, title, status, content, deliverable_id, created_at').eq('client_id', id).order('created_at', { ascending: false })),
+    safeQuery(supabase, (s) => s
+      .from('ai_providers').select('id, name, model').eq('is_default', true).maybeSingle()),
+  ])
+
+  // Collect all errors for inline display
+  const allErrors: string[] = [
+    ...aDeliverables.errors, ...aPacks.errors, ...aSkills.errors, ...aLinks.errors,
+    ...aClientSkills.errors, ...aFiles.errors, ...aStages.errors, ...aPSkills.errors,
+    ...aGuards.errors, ...aTruths.errors, ...aChannels.errors, ...aOutputs.errors,
+    ...aDflt.errors,
+  ]
+
+  const deliverables: { id: string; title: string; type: 'brief' | 'content' | 'report'; status: 'draft' | 'sent' | 'approved' | 'revision_requested'; updated_at: string }[] = aDeliverables.data ?? []
+  const packs: { id: string; name: string; description: string | null; icon: string | null; sort_order: number }[] = aPacks.data ?? []
+  const skills: { id: string; name: string; description: string | null; category: string | null }[] = aSkills.data ?? []
+  const links: { pack_id: string; skill_id: string }[] = aLinks.data ?? []
+  const clientSkills: { skill_id: string; status: string; notes: string | null }[] = aClientSkills.data ?? []
+  const files: { path: string; content: string }[] = aFiles.data ?? []
+  const stages: { key: string; label: string; description: string | null; sort_order: number; chain?: string | null; skill_order?: string[] | null; publishes?: boolean | null }[] = aStages.data ?? []
+  const pSkills: { id: string; name: string; description: string | null; stage: string; reads_files: boolean; writes_files: boolean }[] = aPSkills.data ?? []
+  const guards: { skill_id: string; kind: string; heading: string; body: string }[] = aGuards.data ?? []
+  const truths: { source: string; rule: string }[] = aTruths.data ?? []
+  const channels: { platform: string | null; handle: string | null; status: string | null; note: string | null; confirmed_at: string | null }[] = aChannels.data ?? []
+  const outputs: { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[] = aOutputs.data ?? []
+  const dflt: { id: string; name: string; model: string } | null = aDflt.data ?? null
 
   // the whole client folder as { path: content } so setup.tsx can show any artifact
   const fileMap: Record<string, string> = {}
-  for (const f of files ?? []) fileMap[f.path] = f.content
+  for (const f of files) fileMap[f.path] = f.content
 
   // Channels the repo already declared: brand-profile.md's "## Channels" section (its template
   // names "Active platforms", "Handles / links"). That document is the source of truth, so we
@@ -92,7 +151,7 @@ export default async function ClientWorkspacePage({
 
   // Merge: every declared platform is a row; a client_channels row supplies connection state.
   const channelRows = declaredChannels.map((platform) => {
-    const row = (channels ?? []).find(
+    const row = channels.find(
       (c) => String(c.platform).toLowerCase() === platform.toLowerCase()
     )
     return {
@@ -104,7 +163,7 @@ export default async function ClientWorkspacePage({
     }
   })
   // ...plus any channel row the admin added for a platform the profile doesn't name yet.
-  for (const c of channels ?? []) {
+  for (const c of channels) {
     if (!channelRows.some((r) => r.platform.toLowerCase() === String(c.platform).toLowerCase())) {
       channelRows.push({
         platform: String(c.platform),
@@ -117,16 +176,14 @@ export default async function ClientWorkspacePage({
   }
 
   // the default AI provider, so the runner doesn't have to ask every time
-  const { data: dflt } = await supabase
-    .from('ai_providers').select('id, name, model').eq('is_default', true).maybeSingle()
   const defaultProvider = dflt ? { id: dflt.id, name: dflt.name, model: dflt.model } : null
 
   // group every skill under its pack so the UI can render a workspace per pack.
   // client_skills is the source of truth: a skill with no pack link must still show
   // (under "Tanpa Paket"), otherwise it becomes invisible and unrunnable.
-  const skillById = new Map((skills ?? []).map((s) => [s.id, s]))
+  const skillById = new Map(skills.map((s) => [s.id, s]))
   const skillsByPack: Record<string, { id: string; name: string; description: string | null; category: string | null }[]> = {}
-  for (const l of links ?? []) {
+  for (const l of links) {
     const s = skillById.get(l.skill_id)
     if (!s) continue
     ;(skillsByPack[l.pack_id] ??= []).push({
@@ -134,8 +191,8 @@ export default async function ClientWorkspacePage({
     })
   }
   // packless skills the client owns — surface them so nothing is hidden
-  const linkedSkillIds = new Set((links ?? []).map((l) => l.skill_id))
-  const orphans = (clientSkills ?? [])
+  const linkedSkillIds = new Set(links.map((l) => l.skill_id))
+  const orphans = clientSkills
     .filter((c) => !linkedSkillIds.has(c.skill_id))
     .map((c) => skillById.get(c.skill_id))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
@@ -146,7 +203,7 @@ export default async function ClientWorkspacePage({
   }
 
   const packList = [
-    ...(packs ?? []).map((p) => ({
+    ...packs.map((p) => ({
       id: p.id,
       name: p.name,
       description: p.description ?? null,
@@ -168,20 +225,20 @@ export default async function ClientWorkspacePage({
         brand_profile: (client.brand_profile ?? {}) as Record<string, unknown>,
         created_at: client.created_at,
       }}
-      deliverables={deliverables ?? []}
+      deliverables={deliverables}
       packs={packList}
       skillsByPack={skillsByPack}
-      clientSkills={(clientSkills ?? []) as { skill_id: string; status: 'belum' | 'jalan' | 'selesai'; notes: string | null }[]}
-      pipelineStages={stages ?? []}
-      pipelineSkills={pSkills ?? []}
-      haveFiles={(files ?? []).map((f) => f.path)}
+      clientSkills={clientSkills as { skill_id: string; status: 'belum' | 'jalan' | 'selesai'; notes: string | null }[]}
+      pipelineStages={stages}
+      pipelineSkills={pSkills}
+      haveFiles={files.map((f) => f.path)}
       providerId={defaultProvider?.id ?? undefined}
       allFiles={fileMap}
       provider={defaultProvider}
-      guardrails={guards ?? []}
-      groundTruths={truths ?? []}
+      guardrails={guards}
+      groundTruths={truths}
       channels={channelRows}
-      outputs={(outputs ?? []) as { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[]}
+      outputs={outputs as { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[]}
     />
   )
 }
