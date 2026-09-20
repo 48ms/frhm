@@ -13,8 +13,8 @@
 - [x] Remove the current inverted `getUser()` guard (or keep as defense-in-depth AFTER secret check)
 
 ## Phase 3: Wire PostDialog in hasil.tsx (MEDIUM) — 0.5 hr
-- [ ] Change `hasil.tsx` PostDialog `onSave` to refetch scheduled posts for that client
-- [ ] Or call a refresh callback prop if parent exposes one
+- [x] Change `hasil.tsx` PostDialog `onSave` to refetch scheduled posts for that client
+- [x] Or call a refresh callback prop if parent exposes one
 
 ## Phase 4: Verify Automation Chain — 1 hr
 - [ ] Confirm `vercel.json` lists all 3 crons
