@@ -1,10 +1,10 @@
 # Tasks: Performance & N+1 Query Resolution
 
 ## Phase 1: Parallelize generate-insight — 2 hrs
-- [ ] Refactor `generate-insight/route.ts`: wrap all independent `.from()` calls in `Promise.all`
-- [ ] Identify queries that can be JOINed into a single `.select('*, relation(*)')`
-- [ ] Move `users` + `ai_providers` into a separate parallel batch
-- [ ] Verify: `npx tsc --noEmit` passes
+- [x] Refactor `generate-insight/route.ts`: wrap all independent `.from()` calls in `Promise.all`
+- [x] Identify queries that can be JOINed into a single `.select('*, relation(*)')`
+- [x] Move `users` + `ai_providers` into a separate parallel batch
+- [x] Verify: `npx tsc --noEmit` passes
 
 ## Phase 2: Batch metrics/bulk — 2 hrs
 - [ ] Pre-validate all `post_id`s with single `.in('id', postIds)` query

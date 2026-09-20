@@ -130,24 +130,37 @@ export async function POST(
     .map(p => `- "${p.title}" (${p.platform}) | ER ${p.er.toFixed(1)}% | Reach ${p.reach.toLocaleString()}`)
     .join('\n')
 
-  // Week-over-week delta (compare with previous 7 days)
+  // Week-over-week + Month-over-month deltas (parallel queries)
   const periodStart = new Date(period_start)
   const prevWeekStart = new Date(periodStart)
   prevWeekStart.setDate(prevWeekStart.getDate() - 7)
   const prevWeekEnd = new Date(periodStart)
   prevWeekEnd.setDate(prevWeekEnd.getDate() - 1)
+  const prevMonthStart = new Date(periodStart)
+  prevMonthStart.setMonth(prevMonthStart.getMonth() - 1)
+  const prevMonthEnd = new Date(periodStart)
+  prevMonthEnd.setDate(0)
 
-  const { data: prevPosts } = await supabase
-    .from('scheduled_posts')
-    .select('id, post_metrics (reach, likes, comments, shares, saves)')
-    .eq('client_id', clientId)
-    .gte('scheduled_at', prevWeekStart.toISOString().split('T')[0])
-    .lte('scheduled_at', prevWeekEnd.toISOString().split('T')[0])
-    .eq('status', 'published')
+  const [prevPostsResult, prevMonthPostsResult] = await Promise.all([
+    supabase
+      .from('scheduled_posts')
+      .select('id, post_metrics (reach, likes, comments, shares, saves)')
+      .eq('client_id', clientId)
+      .gte('scheduled_at', prevWeekStart.toISOString().split('T')[0])
+      .lte('scheduled_at', prevWeekEnd.toISOString().split('T')[0])
+      .eq('status', 'published'),
+    supabase
+      .from('scheduled_posts')
+      .select('id, post_metrics (reach, likes, comments, shares, saves)')
+      .eq('client_id', clientId)
+      .gte('scheduled_at', prevMonthStart.toISOString().split('T')[0])
+      .lte('scheduled_at', prevMonthEnd.toISOString().split('T')[0])
+      .eq('status', 'published'),
+  ])
 
   let prevReach = 0, prevEngagement = 0
-  if (prevPosts) {
-    for (const p of prevPosts) {
+  if (prevPostsResult.data) {
+    for (const p of prevPostsResult.data) {
       const m = p.post_metrics?.[0]
       if (m) {
         prevReach += m.reach || 0
@@ -159,23 +172,9 @@ export async function POST(
   const wowEngDelta = prevEngagement > 0 ? ((totalEngagement - prevEngagement) / prevEngagement * 100).toFixed(1) : 'N/A'
   const wow_delta = `Reach: ${wowReachDelta}% | Engagement: ${wowEngDelta}%`
 
-  // Month-over-month delta (compare with previous month)
-  const prevMonthStart = new Date(periodStart)
-  prevMonthStart.setMonth(prevMonthStart.getMonth() - 1)
-  const prevMonthEnd = new Date(periodStart)
-  prevMonthEnd.setDate(0) // last day of previous month
-
-  const { data: prevMonthPosts } = await supabase
-    .from('scheduled_posts')
-    .select('id, post_metrics (reach, likes, comments, shares, saves)')
-    .eq('client_id', clientId)
-    .gte('scheduled_at', prevMonthStart.toISOString().split('T')[0])
-    .lte('scheduled_at', prevMonthEnd.toISOString().split('T')[0])
-    .eq('status', 'published')
-
   let prevMonthReach = 0, prevMonthEngagement = 0
-  if (prevMonthPosts) {
-    for (const p of prevMonthPosts) {
+  if (prevMonthPostsResult.data) {
+    for (const p of prevMonthPostsResult.data) {
       const m = p.post_metrics?.[0]
       if (m) {
         prevMonthReach += m.reach || 0
@@ -222,58 +221,52 @@ export async function POST(
   if (consecutive >= 3) fatigueFlags.push(`${formatSequence[formatSequence.length - 1]} diproduksi ${consecutive}x berturut-turut`)
   const creativeFatigueFlags = fatigueFlags.length > 0 ? fatigueFlags.join(', ') : 'Tidak terdeteksi'
 
-  // Competitor benchmarks
-  const { data: competitorData } = await supabase
-    .from('competitor_benchmarks')
-    .select('brand_name, platform, avg_reach, avg_er, weekly_posts')
-    .eq('client_id', clientId)
+  // Competitor, seasonal, prediction, client data (parallel)
+  const [competitorResult, seasonalResult, predictionResult, clientResult] = await Promise.all([
+    supabase
+      .from('competitor_benchmarks')
+      .select('brand_name, platform, avg_reach, avg_er, weekly_posts')
+      .eq('client_id', clientId),
+    supabase
+      .from('seasonal_periods')
+      .select('name, start_date, end_date, impact_multiplier')
+      .gte('end_date', period_start)
+      .lte('start_date', period_end),
+    supabase
+      .from('analytics_predictions')
+      .select('target_month, forecasted_reach, forecasted_er, forecasted_wa_inquiries, forecasted_dm_inquiries, estimated_roi_multiplier, confidence_score')
+      .eq('client_id', clientId)
+      .order('target_month', { ascending: false })
+      .limit(1),
+    supabase
+      .from('clients')
+      .select('name, default_ai_provider')
+      .eq('id', clientId)
+      .single(),
+  ])
 
-  const competitorSummary = competitorData && competitorData.length > 0
-    ? competitorData.map((c: {
-      brand_name: string
-      platform: string
-      avg_reach: number
-      avg_er: number
-      weekly_posts: number
-    }) => `${c.brand_name} (${c.platform}): reach ${c.avg_reach.toLocaleString('id-ID')}, ER ${c.avg_er}%, ${c.weekly_posts} post/minggu`).join('. ')
+  const competitorSummary = competitorResult.data && competitorResult.data.length > 0
+    ? competitorResult.data.map((c: { brand_name: string; platform: string; avg_reach: number; avg_er: number; weekly_posts: number }) =>
+      `${c.brand_name} (${c.platform}): reach ${c.avg_reach.toLocaleString('id-ID')}, ER ${c.avg_er}%, ${c.weekly_posts} post/minggu`).join('. ')
     : 'Tidak ada benchmark kompetitor tersedia'
 
-  // Seasonal periods
-  const { data: seasonalData } = await supabase
-    .from('seasonal_periods')
-    .select('name, start_date, end_date, impact_multiplier')
-    .gte('end_date', period_start)
-    .lte('start_date', period_end)
-
-  const seasonalSummary = seasonalData && seasonalData.length > 0
-    ? seasonalData.map((s: {
-      name: string
-      impact_multiplier: number
-    }) => `${s.name} (multiplier ${s.impact_multiplier}x)`).join(', ')
+  const seasonalSummary = seasonalResult.data && seasonalResult.data.length > 0
+    ? seasonalResult.data.map((s: { name: string; impact_multiplier: number }) =>
+      `${s.name} (multiplier ${s.impact_multiplier}x)`).join(', ')
     : 'Tidak ada periode musiman aktif'
 
-  // Predictive forecast
-  const { data: predictionData } = await supabase
-    .from('analytics_predictions')
-    .select('target_month, forecasted_reach, forecasted_er, forecasted_wa_inquiries, forecasted_dm_inquiries, estimated_roi_multiplier, confidence_score')
-    .eq('client_id', clientId)
-    .order('target_month', { ascending: false })
-    .limit(1)
-
-  const predictiveSummary = predictionData && predictionData.length > 0
-    ? predictionData.map(p =>
+  const predictiveSummary = predictionResult.data && predictionResult.data.length > 0
+    ? predictionResult.data.map(p =>
       'Target ' + new Date(String(p.target_month)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) +
       ': reach ' + p.forecasted_reach.toLocaleString('id-ID') +
       ', ER ' + p.forecasted_er + '%' +
       ', WA inquiry ' + p.forecasted_wa_inquiries +
       ', DM inquiry ' + p.forecasted_dm_inquiries +
       ', ROI multiplier ' + p.estimated_roi_multiplier + 'x' +
-      ' (confidence ' + (p.confidence_score * 100) + '%)'
-    ).join(', ')
+      ' (confidence ' + (p.confidence_score * 100) + '%)').join(', ')
     : 'Tidak ada forecast tersedia'
 
-  // Client name
-  const { data: clientData } = await supabase.from('clients').select('name, default_ai_provider').eq('id', clientId).single()
+  const clientData = clientResult.data
 
   // 3. Build structured prompt
   const context: InsightContext = {
