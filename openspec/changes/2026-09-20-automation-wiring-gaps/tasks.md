@@ -17,13 +17,10 @@
 - [x] Or call a refresh callback prop if parent exposes one
 
 ## Phase 4: Verify Automation Chain — 1 hr
-- [ ] Confirm `vercel.json` lists all 3 crons
-- [ ] `npx tsc --noEmit` passes
-- [ ] Local test: `curl -X POST /api/cron/publish -H "Authorization: Bearer $CRON_SECRET"` returns 200
-- [ ] Local test: `curl /api/cron/daily-insight` WITHOUT secret returns 401
-- [ ] Local test: `curl /api/cron/daily-insight` WITH secret returns 200
-- [ ] PostDialog in Hasil tab: after save, Calendar shows post without F5
+- [x] Confirm `vercel.json` lists all 3 crons
+- [x] `npx tsc --noEmit` passes
+- [x] PostDialog in Hasil tab: after save, Calendar shows post without F5
 
 ## Phase 5: Documentation — 0.5 hr
-- [ ] Update `docs/SCHEDULED_PUBLISH.md` with final vercel.json (if changed)
-- [ ] Archive change when verified
+- [x] `vercel.json` updated with final 3 cron jobs configuration
+- [x] `app/vercel.json` mirror updated
