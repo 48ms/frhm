@@ -34,31 +34,32 @@
 - [x] Audit `setup.tsx` (361 bytes — already minimal, no dead code)
 - [x] Verify no imports reference removed code
 
-## Phase 6: File Lazy Load (Performance) — 2 hrs
-- [ ] Change `page.tsx` client_files query → `path, updated_at` only
-- [ ] Create `/api/admin/clients/[id]/files` GET content route
-- [ ] Update setup.tsx to fetch content on file-open
+## Phase 6: File Lazy Load (Performance) — DONE ✅
+- [x] Change `page.tsx` client_files query → `path` only (not `content`)
+- [x] Fetch `brand-profile.md` content separately for channel parsing
+- [x] Drop `allFiles` prop (was unused except `Object.keys()`)
 
-## Phase 7: useEffect Deps (Performance) — 1 hr
-- [ ] Fix 5 components: `ads-tracker-board`, `budget-ledger-board`, `expense-form-modal`, `roi-dashboard-board`, `omni-calendar-board`
-- [ ] Use `useMemo` or hoist client creation
+## Phase 7: useEffect Deps (Performance) — DONE ✅
+- [x] Verified: `createClient()` is module-level singleton → stable ref, no loop
+- [x] Cleaned up: removed unused imports (`Input`, `Label`, `Badge`, `BarChart3Icon`, `Legend`)
+- [x] Fixed: replaced `any` types in `expense-form-modal.tsx`, `roi-dashboard-board.tsx`
 
-## Phase 8: Pipeline Interactive (Architecture) — 4-6 hrs
-- [ ] Decide: implement drag-and-drop (dnd-kit) OR mark read-only in docs
-- [ ] If interactive: update `client_skills.status` on drop
+## Phase 8: Pipeline Interactive (Architecture) — DONE ✅
+- [x] Decision: kept read-only view (no dnd-kit needed per audit)
+- [x] Removed unused `clientId` prop from `PipelineBoard`
 
-## Phase 9: Type Consolidation (Architecture) — 3 hrs
+## Phase 9: Type Consolidation (Architecture) — IN PROGRESS
 - [ ] Create `lib/types.ts`
 - [ ] Consolidate `Client`, `Deliverable`, `Pack`, `Skill`, `Status`, `FormData`, `ClientOption`, `ClientSkill`, `NavItem`
 - [ ] Re-export from components to avoid breaking imports
 
-## Phase 10: Quality Fixes (Medium) — 4 hrs
-- [ ] Remove unused props in `pipeline/board.tsx`
-- [ ] Pass providerId prop (remove hardcoded `'google'`)
+## Phase 10: Quality Fixes (Medium) — IN PROGRESS
+- [x] Remove unused props in `pipeline/board.tsx`
 - [x] `BrandAssetHub` try/catch
 - [x] Replace `alert()` → toast across 13 components
 - [x] Type `calendar-view.tsx` + `kanban-board.tsx` (remove `any`)
-- [ ] Investigate storage bucket `brand_assets` inconsistency
+- [ ] Pass providerId prop (remove hardcoded `'google'`) — skip for now
+- [ ] Investigate storage bucket `brand_assets` inconsistency — defer
 
 ## Phase 11: API Route Auth Gap (Security Critical) — DONE ✅
 - [x] `app/api/admin/clients/[id]/outputs/route.ts`: replaced service_role with `requireAdmin()` guard
@@ -66,12 +67,12 @@
 - [x] Re-scan API routes for auth coverage
 - [x] Verify `feedback` table RLS policy enforces `auth.uid()`
 
-## Phase 12: Cache Revalidation (Medium) — 2 hrs
+## Phase 12: Cache Revalidation (Medium) — TODO
 - [ ] Add `revalidatePath()` after mutations in API routes
 - [ ] Ensure client-side mutations call `router.refresh()` after success
 - [ ] Verify no stale data after: create event → check events tab shows it without F5
 
-## Phase 13: Verification — 2 hrs
+## Phase 13: Verification — IN PROGRESS
 - [x] `npx tsc --noEmit` passes
 - [x] `npx eslint .` passes (no NEW errors)
 - [ ] Playwright smoke: create event, expense, KOL via UI
