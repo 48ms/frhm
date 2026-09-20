@@ -1,29 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { logAudit } from '@/lib/audit/log'
+import { requireAdmin, isResponse } from '@/lib/ai/server'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
-
-async function getSupabase() {
-  const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch { /* server component */ }
-        },
-      },
-    }
-  )
-}
 
 /** PATCH /api/admin/deliverables/[id] — edit deliverable.
  *  If the deliverable is currently approved/revision_requested, editing it
@@ -36,16 +16,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
     )
   }
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase, userId } = ctx
 
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Body tidak valid' }, { status: 400 })
 
   const allowed = ['title', 'type', 'content_md', 'external_link', 'client_id']
   const patch: Record<string, unknown> = {}
-  for (const k of allowed) if (k in body) patch[k] = body[k]
+  for (const k of allowed) if (k in body) patch[k] = body
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: 'Tidak ada field untuk diubah' }, { status: 400 })
   }
@@ -59,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     patch.status = 'draft'
     resetToDraft = true
   }
-  patch.updated_by = user.id
+  patch.updated_by = userId
 
   const { data, error } = await supabase
     .from('deliverables').update(patch).eq('id', params.id).select().single()
@@ -68,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   void logAudit({
     action: resetToDraft ? 'deliverable.edit_reset_to_draft' : 'deliverable.edit',
-    actorId: user.id,
+    actorId: userId,
     actorRole: 'admin',
     entityType: 'deliverable',
     entityId: params.id,
@@ -84,9 +64,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 /** DELETE /api/admin/deliverables/[id] — only allowed when status = 'draft' (T017). */
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase, userId } = ctx
 
   const { data: current } = await supabase
     .from('deliverables').select('status, client_id').eq('id', params.id).single()
@@ -104,7 +84,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   void logAudit({
     action: 'deliverable.delete',
-    actorId: user.id,
+    actorId: userId,
     actorRole: 'admin',
     entityType: 'deliverable',
     entityId: params.id,

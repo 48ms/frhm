@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { requireAdmin, isResponse } from '@/lib/ai/server'
 
 export const dynamic = 'force-dynamic'
 
 // GET /api/admin/seasonal-periods
+// Returns the seasonal marketing calendar (config data, admin-only).
+// RLS on seasonal_periods only gates writes (is_admin); the public read policy is
+// intentional (client analytics shows seasonal badges), but this endpoint is admin-only
+// because it returns the full unscoped list including future/internal periods.
 export async function GET() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase } = ctx
 
   const { data: periods, error } = await supabase
     .from('seasonal_periods')

@@ -1,36 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { requireAdmin, isResponse } from '@/lib/ai/server'
 import { logAudit } from '@/lib/audit/log'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
-
-async function getSupabase() {
-  const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cs) {
-          try { cs.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {}
-        },
-      },
-    }
-  )
-}
 
 // Never send api_key back to the browser — report only whether one is set.
 function redact<T extends Record<string, unknown>>(row: T) {
   return { ...row, api_key: undefined, has_key: Boolean(row.api_key) }
 }
 
+// GET /api/admin/ai/providers
+// Lists configured AI provider entries (without API keys). Admin-only because
+// the list can reveal infrastructure choices and default provider.
 export async function GET() {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase } = ctx
 
   const { data, error } = await supabase
     .from('ai_providers').select('*').order('created_at', { ascending: false })
@@ -38,10 +23,13 @@ export async function GET() {
   return NextResponse.json({ providers: (data ?? []).map(redact) })
 }
 
+// POST /api/admin/ai/providers
+// Create a new AI provider. RLS policy requires is_admin(), but we also verify
+// at the app layer to log the correct actorRole for audit.
 export async function POST(request: NextRequest) {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase, userId } = ctx
 
   const b = await request.json().catch(() => ({}))
   const { label, kind, model, base_url, api_key, is_default } = b ?? {}
@@ -70,7 +58,7 @@ export async function POST(request: NextRequest) {
 
   void logAudit({
     action: 'ai_provider.create',
-    actorId: user.id,
+    actorId: userId,
     actorRole: 'admin',
     entityType: 'ai_provider',
     entityId: (data as Record<string, unknown>)?.id as string | null,
@@ -82,10 +70,12 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ provider: redact(data as Record<string, unknown>) })
 }
 
+// PATCH /api/admin/ai/providers
+// Update an existing AI provider (without sending/receiving the full api_key).
 export async function PATCH(request: NextRequest) {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase, userId } = ctx
 
   const b = await request.json().catch(() => ({}))
   const { id, is_default, ...rest } = b ?? {}
@@ -106,7 +96,7 @@ export async function PATCH(request: NextRequest) {
 
   void logAudit({
     action: 'ai_provider.update',
-    actorId: user.id,
+    actorId: userId,
     actorRole: 'admin',
     entityType: 'ai_provider',
     entityId: id,
@@ -118,10 +108,12 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ provider: redact(data as Record<string, unknown>) })
 }
 
+// DELETE /api/admin/ai/providers?id=
+// Remove an AI provider. No confirmation gate — just RLS + role check.
 export async function DELETE(request: NextRequest) {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return denyUnauthorized()
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase, userId } = ctx
 
   const id = new URL(request.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id wajib' }, { status: 400 })
@@ -131,7 +123,7 @@ export async function DELETE(request: NextRequest) {
 
   void logAudit({
     action: 'ai_provider.delete',
-    actorId: user.id,
+    actorId: userId,
     actorRole: 'admin',
     entityType: 'ai_provider',
     entityId: id,
