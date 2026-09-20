@@ -18,6 +18,7 @@ The `users`, `clients`, and `skill_outputs` tables have SELECT-only RLS policies
 | `/api/client/deliverables/:id/approve` | client UPDATE `skill_outputs` = 0 rows | use service-role client |
 | `/api/client/deliverables/:id/revision` | client UPDATE `skill_outputs` = 0 rows | use service-role client |
 | `/api/client/me` DELETE | client UPDATE `users` = 0 rows | use service-role client |
+| `/api/telegram/disconnect` | client UPDATE `clients` = 0 rows | use service-role client |
 
 ## Proof (E2E)
 - `skill_outputs` draft → approved persisted (verified via service-role read-back)

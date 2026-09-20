@@ -11,6 +11,7 @@
 - [x] `/api/client/deliverables/:id/approve`
 - [x] `/api/client/deliverables/:id/revision`
 - [x] `/api/client/me` DELETE
+- [x] `/api/telegram/disconnect` (client path)
 
 ## Phase 3: E2E Verification
 - [x] Write browser tests that use real session cookies
