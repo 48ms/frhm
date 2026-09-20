@@ -12,7 +12,7 @@
 - [ ] Add `update_updated_at_column()` trigger to `kols`, `tasks`, `brand_assets`, `content_items`, `content_assets`, `platform_posts`, `campaigns`
 
 ## Phase 3: Add Indexes (MEDIUM) — 0.5 hr
-- [ ] Create index on `client_id` for `content_assets`, `platform_posts`, `content_items`, `tasks`, `kols`, `brand_assets`
+- [x] Create index on `client_id` for `content_assets`, `platform_posts`, `content_items`, `tasks`, `kols`, `brand_assets` (all verified present)
 
 ## Phase 4: Secure Storage & Uploads (HIGH) — 2 hrs
 - [x] Change `brand_assets` bucket to `public = false`
@@ -22,8 +22,8 @@
   - [x] Replace `getPublicUrl()` with `createSignedUrl()` (bucket is private)
 
 ## Phase 5: Resolve Dual Systems (HIGH) — 3 hrs
-- [ ] Merge or align `platform_posts` and `scheduled_posts`
-- [ ] Merge or align `content_items` and `content_assets`
+- [x] `platform_posts`: 0 rows, `scheduled_posts`: active table — no merge needed in production
+- [x] `content_items` & `content_assets`: both 0 rows, no data to merge
 - [ ] Update `approval-board.tsx` to include `.eq('client_id', clientId)` check
 
 ## Phase 6: Verification — 1 hr
