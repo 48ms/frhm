@@ -81,26 +81,41 @@ export default function SettingsClient({
     if (!client?.id) return
     setTelegramLoading(true)
     const newEnabled = !telegramEnabled
+    // Optimistic update (will be reverted on failure below)
     setClient((prev) => prev ? { ...prev, telegram_notifications_enabled: newEnabled } : prev)
-    const { error } = await supabase.rpc('update_client_telegram_prefs', {
-      p_client_id: client.id,
-      p_enabled: newEnabled,
-    })
-    if (error) {
+    try {
+      const res = await fetch('/api/telegram/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newEnabled, type: 'client', id: client.id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal mengupdate preferensi Telegram')
+    } catch (err) {
+      // Revert optimistic update
       setClient((prev) => prev ? { ...prev, telegram_notifications_enabled: !newEnabled } : prev)
-      alert('Gagal: ' + error.message)
+      alert('Gagal: ' + (err instanceof Error ? err.message : String(err)))
+    } finally {
+      setTelegramLoading(false)
     }
-    setTelegramLoading(false)
   }
 
   async function handleDelete() {
     if (deleteConfirm !== 'HAPUS AKUN') return
     setDeleting(true)
-    const { error } = await supabase.auth.updateUser({ data: { deleted_at: new Date().toISOString() } })
-    setDeleting(false)
-    if (error) return alert('Gagal: ' + error.message)
-    await supabase.auth.signOut()
-    router.push('/auth/login')
+    // Call GDPR delete endpoint which properly anonymises PII
+    try {
+      const res = await fetch('/api/client/me', { method: 'DELETE' })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.error || 'Failed to delete account')
+      }
+      await supabase.auth.signOut()
+      router.push('/auth/login')
+    } catch (err) {
+      alert('Gagal: ' + (err instanceof Error ? err.message : String(err)))
+      setDeleting(false)
+    }
   }
 
   return (
