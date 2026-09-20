@@ -64,10 +64,10 @@
 - [x] Verify: mutations show dynamic in build output (13 files patched, tsc clean)
 
 ## Phase 12: Add loading.tsx and error.tsx — 2 hrs
-- [ ] Add `loading.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
-- [ ] Add `error.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
-- [ ] Add to `app/client/dashboard`, `/deliverables`, `/pipeline`
-- [ ] Verify: show spinner/error during fetch
+- [x] Add `loading.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
+- [x] Add `error.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
+- [x] Add to `app/client/dashboard`, `/deliverables`, `/pipeline`
+- [x] Verify: show spinner/error during fetch (root app already has error.tsx, new loading.tsx at root also added)
 
 ## Phase 13: Cache-Control on analytics — 1 hr
 - [x] Add `Cache-Control: public, max-age=60, stale-while-revalidate=300` to `metrics/route.ts`
@@ -96,7 +96,7 @@
 - [ ] Verify: build uses compiler
 
 ## Phase 18: Verification — 2 hrs
-- [ ] `npx tsc --noEmit` passes
+- [x] `npx tsc --noEmit` passes
 - [ ] `npx eslint .` passes
 - [ ] `npm run build` succeeds
 - [ ] E2E: dashboard + analytics load < 2s
