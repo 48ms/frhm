@@ -7,9 +7,9 @@
 - [ ] Remove empty root `supabase/migrations/`
 
 ## Phase 2: Add RLS & Triggers (CRITICAL) — 2 hrs
-- [ ] Add `ENABLE ROW LEVEL SECURITY` to `platform_posts`, `content_items`, `campaigns`
-- [ ] Add tenant-scoped policies (`client_id = current_user_client_id() OR is_admin()`) to all tables
-- [ ] Add `update_updated_at_column()` trigger to `kols`, `tasks`, `brand_assets`, `content_items`, `content_assets`, `platform_posts`, `campaigns`
+- [x] Add `ENABLE ROW LEVEL SECURITY` to `platform_posts`, `content_items`, `campaigns` (verified all RLS=True)
+- [x] Add tenant-scoped policies (`client_id = current_user_client_id() OR is_admin()`) to all tables (verified via pg_policies)
+- [x] Add `update_updated_at_column()` trigger to `kols`, `tasks`, `brand_assets`, `content_items`, `content_assets`, `platform_posts`, `campaigns` (all verified present)
 
 ## Phase 3: Add Indexes (MEDIUM) — 0.5 hr
 - [x] Create index on `client_id` for `content_assets`, `platform_posts`, `content_items`, `tasks`, `kols`, `brand_assets` (all verified present)
