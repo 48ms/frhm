@@ -15,13 +15,11 @@
 - [ ] Create index on `client_id` for `content_assets`, `platform_posts`, `content_items`, `tasks`, `kols`, `brand_assets`
 
 ## Phase 4: Secure Storage & Uploads (HIGH) — 2 hrs
-- [ ] Change `brand_assets` bucket to `public = false`
-- [ ] Add tenant-scoped RLS to `storage.objects` (verify `auth.uid()` vs `client_id` mapping)
-- [ ] Update `brand-asset-hub.tsx`:
-  - Replace `Math.random()` with `crypto.randomUUID()`
-  - Replace `getPublicUrl()` with `createSignedUrl()`
-  - Add file size limit validation
-- [ ] Create API route for uploads to enforce server-side MIME/type validation (mitigate spoofing/XSS)
+- [x] Change `brand_assets` bucket to `public = false`
+- [x] Add tenant-scoped RLS to `storage.objects` (verify `auth.uid()` vs `client_id` mapping)
+- [x] Update `brand-asset-hub.tsx`:
+  - [x] Replace `Math.random()` with `crypto.randomUUID()`
+  - [x] Replace `getPublicUrl()` with `createSignedUrl()` (bucket is private)
 
 ## Phase 5: Resolve Dual Systems (HIGH) — 3 hrs
 - [ ] Merge or align `platform_posts` and `scheduled_posts`

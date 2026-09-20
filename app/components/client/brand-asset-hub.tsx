@@ -45,7 +45,8 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
 
     setUploading(true)
     const fileExt = file.name.split('.').pop()
-    const fileName = `${clientId}/${Math.random()}.${fileExt}`
+    // crypto.randomUUID() instead of Math.random(): collision-safe, crypto-grade entropy
+    const fileName = `${clientId}/${crypto.randomUUID()}.${fileExt}`
     
     const { error: uploadError } = await supabase.storage
       .from('brand_assets')
@@ -89,9 +90,11 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
     fetchAssets()
   }
 
-  const getFileUrl = (path: string) => {
-    const { data } = supabase.storage.from('brand_assets').getPublicUrl(path)
-    return data.publicUrl
+  const getFileUrl = async (path: string): Promise<string | null> => {
+    // Bucket is private — createSignedUrl is required, getPublicUrl returns a 404.
+    const { data, error } = await supabase.storage.from('brand_assets').createSignedUrl(path, 3600)
+    if (error) return null
+    return data.signedUrl
   }
 
   return (
@@ -118,7 +121,10 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
                     <span className="text-sm truncate">{asset.file_path.split('/').pop()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => window.open(getFileUrl(asset.file_path), '_blank')}>
+                    <Button variant="ghost" size="icon" onClick={async () => {
+                      const url = await getFileUrl(asset.file_path)
+                      if (url) window.open(url, '_blank')
+                    }}>
                       <DownloadIcon className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(asset.id, asset.file_path)}>
