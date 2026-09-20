@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -35,7 +36,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Body tidak valid' }, { status: 400 })
@@ -83,7 +84,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: current } = await supabase
     .from('deliverables').select('status, client_id').eq('id', params.id).single()

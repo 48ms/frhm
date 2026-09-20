@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { Provider } from './providers'
+import { logger } from '@/lib/logger'
 
 export async function serverSupabase() {
   const cookieStore = await cookies()
@@ -34,10 +35,21 @@ export async function requireAdmin(): Promise<AdminCtx | NextResponse> {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) {
+    // Security event: unauthenticated attempt to reach an admin route (O-security-events).
+    logger.warn('security.unauthorized', { route: 'requireAdmin', reason: 'no_session' })
+    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  }
 
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
+    // Security event: authenticated but insufficient privilege (privilege escalation attempt).
+    logger.warn('security.forbidden', {
+      route: 'requireAdmin',
+      reason: 'not_admin',
+      userId: user.id,
+      role: profile?.role ?? 'none',
+    })
     return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
   }
   return { supabase, userId: user.id }

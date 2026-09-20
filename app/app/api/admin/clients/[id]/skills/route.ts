@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -28,12 +29,12 @@ export async function POST(
   const supabase = await getSupabase()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const body = await request.json().catch(() => ({}))
@@ -93,12 +94,12 @@ export async function PATCH(
   const supabase = await getSupabase()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const body = await request.json().catch(() => ({}))
@@ -145,12 +146,12 @@ export async function DELETE(
   const supabase = await getSupabase()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const packId = new URL(request.url).searchParams.get('pack_id')

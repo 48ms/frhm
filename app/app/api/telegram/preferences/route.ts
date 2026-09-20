@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,7 @@ export async function PATCH(request: Request) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return denyUnauthorized()
   }
 
   let body: { enabled: boolean; type: 'client' | 'admin'; id: string }
@@ -38,7 +39,7 @@ export async function PATCH(request: Request) {
     const isOwner = userProfile?.client_id === body.id
 
     if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return denyForbidden()
     }
 
     const { error } = await supabase

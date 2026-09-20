@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'admin/deliverables', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()

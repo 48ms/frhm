@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 const TYPE_LABEL: Record<string, string> = {
   brief: 'Brief', content: 'Konten', report: 'Laporan',
@@ -43,12 +44,12 @@ export async function GET(
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const [{ data: client }, { data: deliverables }] = await Promise.all([

@@ -8,6 +8,7 @@ import { resolveProvider } from '@/lib/ai/server'
 import { chatJson } from '@/lib/ai/providers'
 import { NICHE_PACK_MAP, buildBrandProfilePrompt, type NicheId } from '@/lib/onboarding/niche-packs'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -19,9 +20,9 @@ export async function GET(request: Request) {
       { cookies: { getAll() { return cookieStore.getAll() }, setAll() {} } }
     )
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!user) return denyUnauthorized()
     const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (profile?.role !== 'admin') return denyForbidden({ userId: user.id, role: profile?.role })
 
     const { data, error } = await supabase.from('clients').select('id, name').order('name')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -56,12 +57,12 @@ export async function POST(request: Request) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const body = await request.json().catch(() => ({}))

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +25,7 @@ async function getSupabase() {
 export async function POST(req: NextRequest) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const body = await req.json().catch(() => ({}))
   const { client_id, category, guidelines, file_path, file_type } = body
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const id = new URL(req.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })

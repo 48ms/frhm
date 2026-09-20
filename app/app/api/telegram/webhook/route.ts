@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
 import { sendTelegramMessage } from '@/lib/telegram/service'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     const receivedSecret = request.headers.get('x-telegram-bot-api-secret-token')
     if (receivedSecret !== configuredSecret) {
       console.warn('[Telegram Webhook] Invalid secret token')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return denyUnauthorized()
     }
   }
 

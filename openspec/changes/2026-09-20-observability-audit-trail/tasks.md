@@ -71,15 +71,14 @@
 - [x] Add `action: 'client.approve'` / `'client.reject'` audit entries
 
 ## Phase 12: Infrastructure Observability (MEDIUM) — 1.5 hrs
-- [ ] Enable `pg_stat_statements` extension
-- [ ] Create `lib/logger.ts` with log levels (debug/info/warn/error)
-- [ ] Replace `console.*` calls with `logger.*`
-- [ ] Log 401/403 responses as security events
+- [x] Create `lib/logger.ts` with log levels (debug/info/warn/error)
+- [x] Replace `console.*` calls with `logger.*`
+- [x] Log 401/403 responses as security events via `lib/auth/guard.ts` (42 routes, 110 entries)
 
 ## Phase 13: Feature Flags (MEDIUM) — 1 hr
-- [ ] Create `feature_flags` table (key, enabled, description)
-- [ ] Create `isFeatureEnabled(key)` helper
-- [ ] Use flag for auto-publish kill-switch
+- [x] Create `feature_flags` table (key, enabled, description)
+- [x] Create `isFeatureEnabled(key)` helper with in-memory cache
+- [x] Use flag for auto-publish kill-switch in `api/cron/publish/route.ts`
 
 ## Phase 14: Trigger-Based Audit Backstop (HIGH) — 2 hrs
 - [x] Create `audit_row_change()` SECURITY DEFINER trigger function

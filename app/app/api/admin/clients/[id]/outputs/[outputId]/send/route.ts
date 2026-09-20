@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 /**
  * POST /api/admin/clients/[id]/outputs/[outputId]/send
@@ -37,7 +38,7 @@ export async function POST(
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
     return NextResponse.json({ error: 'Hanya admin yang bisa mengirim' }, { status: 403 })

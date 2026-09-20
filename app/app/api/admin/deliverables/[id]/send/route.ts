@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { notifyClientContentReady } from '@/lib/telegram/service'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export async function POST(
   _request: Request,
@@ -26,7 +27,7 @@ export async function POST(
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   // only admin may send
   const { data: profile } = await supabase

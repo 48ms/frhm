@@ -5,6 +5,7 @@ import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 import { buildInsightPrompt, type InsightContext } from '@/lib/analytics/insight-prompt'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,10 +25,10 @@ export async function POST(
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (profile?.role !== 'admin') return denyForbidden({ userId: user.id, role: profile?.role })
 
   const body = await request.json()
   const { campaign_tag, period_start, period_end } = body

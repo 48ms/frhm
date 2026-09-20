@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users')
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
 
   if (profile?.role !== 'admin') {
     if (clientId && clientId !== profile?.client_id)
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return denyForbidden()
   }
 
   let query = supabase
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users')
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     .single()
 
   if (profile?.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return denyForbidden()
 
   const body = await request.json()
   const { client_id, title, platform, stage, priority, assignee, due_date, assets, notes } = body
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users')
@@ -103,7 +104,7 @@ export async function PATCH(request: Request) {
     .single()
 
   if (profile?.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return denyForbidden()
 
   const body = await request.json()
   const { id, title, platform, stage, priority, assignee, due_date, assets, notes } = body
@@ -135,7 +136,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: profile } = await supabase
     .from('users')
@@ -144,7 +145,7 @@ export async function DELETE(request: Request) {
     .single()
 
   if (profile?.role !== 'admin')
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return denyForbidden()
 
   const url = new URL(request.url)
   const id = url.searchParams.get('id')

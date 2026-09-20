@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { logAudit } from '@/lib/audit/log'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -26,7 +27,7 @@ export async function PATCH(
   const { id } = await params
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const body = await req.json().catch(() => ({}))
   const { action } = body // 'approve' or 'reject'

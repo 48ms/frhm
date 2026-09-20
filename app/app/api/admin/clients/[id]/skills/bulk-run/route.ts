@@ -5,6 +5,7 @@ import { chatDetailed, type Provider } from '@/lib/ai/providers'
 import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -83,12 +84,12 @@ export async function POST(
 
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   const { data: adminProfile } = await supabase
     .from('users').select('role').eq('id', user.id).single()
   if (adminProfile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin' }, { status: 403 })
+    return denyForbidden()
   }
 
   const clientId = params.id

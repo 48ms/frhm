@@ -8,6 +8,7 @@ import { notifyClientContentReady } from '@/lib/telegram/service'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'trends/generate', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+    return denyUnauthorized()
   }
 
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()

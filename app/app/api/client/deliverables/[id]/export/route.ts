@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 const TYPE_LABEL: Record<string, string> = {
   brief: 'Brief',
@@ -94,7 +95,7 @@ export async function GET(
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user) return denyUnauthorized()
 
   // deliverables.client_id is clients.id — resolve through users.client_id (same as the page)
   const { data: profile } = await supabase
