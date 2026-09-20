@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server'
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, isResponse } from '@/lib/ai/server'
 
 export const dynamic = 'force-dynamic'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-)
 
 export async function POST(
   req: Request,
   { params }: { params: { id: string } },
 ) {
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase } = ctx
+
   const clientId = params.id
   const { skill_id, title, content } = await req.json()
 
@@ -86,6 +84,10 @@ export async function GET(
   _req: Request,
   { params }: { params: { id: string } },
 ) {
+  const ctx = await requireAdmin()
+  if (isResponse(ctx)) return ctx
+  const { supabase } = ctx
+
   const clientId = params.id
 
   const { data, error } = await supabase
