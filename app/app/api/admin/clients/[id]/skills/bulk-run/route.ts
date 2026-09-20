@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { chatDetailed, type Provider } from '@/lib/ai/providers'
 import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300

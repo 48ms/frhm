@@ -4,6 +4,7 @@ import { chatDetailed, type Provider } from '@/lib/ai/providers'
 import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 import { buildInsightPrompt, type InsightContext } from '@/lib/analytics/insight-prompt'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 

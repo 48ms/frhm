@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { chat, type Provider } from '@/lib/ai/providers'
+import { chatDetailed, type Provider } from '@/lib/ai/providers'
+import { logAiUsage } from '@/lib/ai/usage'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -56,6 +58,15 @@ function buildSystemPrompt(skillMd: string, brand: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request.headers)
+  const rl = checkRateLimit(ip, 'admin/ai/run', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan AI. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const supabase = await getSupabase()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -117,11 +128,27 @@ export async function POST(request: NextRequest) {
   try {
     // Reuse the shared client so this route parses SSE the same way the chat route does
     // (9router answers in SSE even when stream:false). One wire implementation, not two.
-    const out = await chat(provider, system, [{ role: 'user', content: brief }])
+    const startTime = Date.now()
+    const { text: out, usage } = await chatDetailed(provider, system, [{ role: 'user', content: brief }])
+    const durationMs = Date.now() - startTime
 
     if (!out.trim()) {
       return NextResponse.json({ error: 'AI mengembalikan hasil kosong' }, { status: 502 })
     }
+
+    // Record AI usage for cost tracking (O20)
+    await logAiUsage({
+      userId: user.id,
+      clientId: client_id,
+      route: 'api/admin/ai/run',
+      provider: provider.name,
+      model: provider.model,
+      promptTokens: usage?.prompt_tokens ?? 0,
+      completionTokens: usage?.completion_tokens ?? 0,
+      durationMs,
+      status: 'success',
+    })
+
     return NextResponse.json({ success: true, output: out, skill_id, client_id })
   } catch (e) {
     return NextResponse.json(

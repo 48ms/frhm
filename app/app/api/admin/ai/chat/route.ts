@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, isResponse, resolveProvider, loadSkillMd, loadClientFiles } from '@/lib/ai/server'
 import { chat, chatJson, chatWithToolEnvelope, type ChatMessage } from '@/lib/ai/providers'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import {
   PUBLISH_TOOLS, requiresConfirmation, buildPreview, runPublishTool,
   type PublishTool,
@@ -19,6 +20,15 @@ export const maxDuration = 800
  *   3. a strict JSON output contract so we can capture that artifact.
  */
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request.headers)
+  const rl = checkRateLimit(ip, 'admin/ai/chat', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan AI. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
