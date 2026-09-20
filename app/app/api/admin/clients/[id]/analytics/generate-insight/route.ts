@@ -359,8 +359,7 @@ export async function POST(
       total_reach: totalReach,
       total_engagement: totalEngagement,
       total_wa_inquiries: totalWa,
-      total_dm_inquiries: totalDm,
-      operator_notes: null
+      total_dm_inquiries: totalDm
     })
     .select()
     .single()

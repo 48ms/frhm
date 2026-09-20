@@ -350,7 +350,6 @@ async function generateDailyInsightForClient(
       total_engagement: totalEngagement,
       total_wa_inquiries: totalWa,
       total_dm_inquiries: totalDm,
-      operator_notes: null,
     })
     .select()
     .single()

@@ -121,7 +121,6 @@ export async function POST(request: Request) {
       title: `[Tren] ${generated.title}`,
       content_md: generated.markdownContent,
       status: 'sent',
-      campaign_tag: campaignTag || null,
       created_by: user.id,
       updated_by: user.id,
     })

@@ -99,11 +99,13 @@ export async function DELETE() {
     return NextResponse.json({ error: 'No client account found' }, { status: 404 })
   }
 
-  // Soft-delete: mark user as deleted and nullify client association
+  // Soft-delete: the users table has no deleted_at column (verified against
+  // the live schema), so anonymise the PII instead and drop the client link.
   const { error: updateError } = await supabase
     .from('users')
     .update({
-      deleted_at: new Date().toISOString(),
+      full_name: null,
+      avatar_url: null,
       client_id: null,
     })
     .eq('id', user.id)

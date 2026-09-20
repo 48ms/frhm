@@ -9,9 +9,12 @@ type GeneratedCampaign = {
   campaign: {
     title: string
     description: string
-    objective: string
-    target_audience: string
-    status: string
+    objective?: string
+    target_audience?: string
+    status?: string
+    start_date?: string
+    end_date?: string
+    color?: string
   }
   assets: {
     title: string
@@ -25,6 +28,36 @@ type GeneratedCampaign = {
       post_type: string
     }[]
   }[]
+}
+
+// DB enums (migration 036): content_pillar_enum, funnel_stage_enum,
+// platform_enum, post_format_enum, asset_status_enum
+const PILLARS = ['Educational', 'Promotional', 'BehindTheScenes', 'IndustryInsights', 'Entertainment'] as const
+const PLATFORMS = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter', 'Facebook'] as const
+const FORMATS = ['Reel', 'Carousel', 'SingleImage', 'Thread', 'TextPost', 'Story'] as const
+
+function normalizePillar(v: string): string {
+  const s = String(v || '').toLowerCase()
+  return PILLARS.find((p) => p.toLowerCase() === s)
+    || PILLARS.find((p) => s.includes(p.toLowerCase()))
+    || 'Educational'
+}
+
+function normalizePlatform(v: string): string {
+  const s = String(v || '').toLowerCase().replace(/[^a-z]/g, '')
+  return PLATFORMS.find((p) => p.toLowerCase() === s)
+    || PLATFORMS.find((p) => s.includes(p.toLowerCase()))
+    || 'Instagram'
+}
+
+function normalizeFormat(v: string): string {
+  const s = String(v || '').toLowerCase().replace(/[^a-z]/g, '')
+  if (s.includes('reel') || s.includes('video')) return 'Reel'
+  if (s.includes('carousel')) return 'Carousel'
+  if (s.includes('thread')) return 'Thread'
+  if (s.includes('story')) return 'Story'
+  if (s.includes('text')) return 'TextPost'
+  return 'SingleImage'
 }
 
 export async function POST(
@@ -122,16 +155,17 @@ CRITICAL INSTRUCTIONS:
     }
 
     // 5. Insert ke Database secara berurutan
-    // A. Insert Campaign
+    // A. Insert Campaign (use content_campaigns, the real table)
     const { data: campaignData, error: campaignError } = await supabase
-      .from('campaigns')
+      .from('content_campaigns')
       .insert({
         client_id: clientId,
-        title: aiResult.campaign.title,
-        description: aiResult.campaign.description,
-        objective: aiResult.campaign.objective,
-        target_audience: aiResult.campaign.target_audience,
-        status: aiResult.campaign.status,
+        name: aiResult.campaign.title,
+        type: 'campaign',
+        start_date: aiResult.campaign.start_date ?? null,
+        end_date: aiResult.campaign.end_date ?? null,
+        color: aiResult.campaign.color ?? '#3b82f6',
+        notes: aiResult.campaign.description ?? null,
       })
       .select('id')
       .single()
@@ -147,12 +181,13 @@ CRITICAL INSTRUCTIONS:
       const { data: assetData, error: assetError } = await supabase
         .from('content_assets')
         .insert({
+          client_id: clientId,
           campaign_id: campaignId,
           title: asset.title,
-          description: asset.description,
-          format: asset.format,
-          asset_type: asset.asset_type,
-          status: 'Draft',
+          description: asset.description ?? null,
+          content_pillar: normalizePillar(asset.asset_type),
+          funnel_stage: 'TOFU',
+          status: 'Idea',
         })
         .select('id')
         .single()
@@ -168,11 +203,12 @@ CRITICAL INSTRUCTIONS:
         const { error: postError } = await supabase
           .from('platform_posts')
           .insert({
+            client_id: clientId,
             asset_id: assetId,
-            platform: post.platform,
-            visual_hook: post.visual_hook,
-            body_content: post.body_content,
-            post_type: post.post_type,
+            platform: normalizePlatform(post.platform),
+            format: normalizeFormat(asset.format),
+            visual_hook: post.visual_hook ?? null,
+            body_content: post.body_content ?? null,
             status: 'Draft',
           })
 

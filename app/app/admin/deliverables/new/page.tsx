@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +14,13 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   FileTextIcon,
   PenLineIcon,
@@ -29,24 +36,41 @@ import {
   TabsTrigger,
 } from "@/components/animate-ui/components/radix/tabs"
 
+type ClientOption = { id: string; name: string }
+
 export default function NewDeliverablePage() {
   const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
   const [content, setContent] = useState("")
+  const [clientId, setClientId] = useState("")
+  const [type, setType] = useState("content")
+  const [clients, setClients] = useState<ClientOption[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
 
+  useEffect(() => {
+    fetch('/api/admin/clients?all=true&limit=100')
+      .then((r) => r.json())
+      .then((j) => setClients(j.clients ?? []))
+      .catch(() => setClients([]))
+  }, [])
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     if (!title.trim()) return
+    if (!clientId) {
+      setError('Pilih klien terlebih dahulu.')
+      return
+    }
 
     setLoading(true)
     try {
       const res = await fetch('/api/admin/deliverables', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, content }),
+        body: JSON.stringify({ title: title.trim(), content, client_id: clientId, type }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Gagal membuat deliverable')
@@ -54,10 +78,11 @@ export default function NewDeliverablePage() {
       router.push(`/admin/deliverables/${json.deliverable.id}`)
     } catch (err) {
       console.error("Error creating deliverable:", err)
+      setError(err instanceof Error ? err.message : 'Gagal membuat deliverable')
     } finally {
       setLoading(false)
     }
-  }, [title, description, content, router])
+  }, [title, content, clientId, type, router])
 
   const handleCancel = () => {
     router.push("/admin/deliverables")
@@ -111,17 +136,38 @@ export default function NewDeliverablePage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-medium text-foreground">
-                    Deskripsi Singkat
-                  </Label>
-                  <Input
-                    id="description"
-                    placeholder="Berikan deskripsi singkat tentang deliverable ini..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full rounded-xl h-11"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="client" className="text-sm font-medium text-foreground">
+                      Klien *
+                    </Label>
+                    <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
+                      <SelectTrigger id="client" className="w-full rounded-xl h-11">
+                        <SelectValue placeholder="Pilih klien..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="type" className="text-sm font-medium text-foreground">
+                      Tipe
+                    </Label>
+                    <Select value={type} onValueChange={(v) => setType(v ?? "content")}>
+                      <SelectTrigger id="type" className="w-full rounded-xl h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="content">Konten</SelectItem>
+                        <SelectItem value="brief">Brief</SelectItem>
+                        <SelectItem value="report">Laporan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -139,7 +185,11 @@ export default function NewDeliverablePage() {
                 </div>
               </CardContent>
 
-              <CardFooter className="flex justify-between border-t px-6 py-4">
+              <CardFooter className="flex flex-col gap-3 border-t px-6 py-4">
+                {error && (
+                  <p className="w-full text-sm text-destructive">{error}</p>
+                )}
+                <div className="flex w-full justify-between">
                 <Button variant="outline" type="button" onClick={handleCancel} className="h-11">
                   Batal
                 </Button>
@@ -153,6 +203,7 @@ export default function NewDeliverablePage() {
                     "Buat Deliverable"
                   )}
                 </RippleButton>
+                </div>
               </CardFooter>
             </Card>
           </form>
