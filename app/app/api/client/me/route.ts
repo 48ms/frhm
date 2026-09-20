@@ -124,8 +124,11 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
   }
 
-  // Log the deletion for audit trail
-  await supabase.from('audit_log').insert({
+  // Log the deletion for audit trail.
+  // Uses the service-role client: `audit_log` has no client INSERT policy, so a
+  // user-JWT insert fails with 403 (new row violates row-level security policy).
+  // Ownership was already verified above via the same user's auth session.
+  const { error: auditError } = await srv.from('audit_log').insert({
     actor_id: user.id,
     actor_role: profile.role ?? 'client',
     action: 'gdpr.account_deleted',
@@ -133,6 +136,9 @@ export async function DELETE() {
     entity_id: user.id,
     summary: 'Account deleted via GDPR right-to-erasure request',
   })
+  if (auditError) {
+    logger.error('gdpr.delete.audit_failed', { userId: user.id, error: auditError })
+  }
 
   // Sign out user
   await supabase.auth.signOut()
