@@ -326,7 +326,6 @@ export function ClientWorkspace({
 
                 <TabsContent value="pipeline" className="mt-4">
           <PipelineBoard
-            clientId={client.id}
             stages={pipelineStages}
             skills={pipelineSkills as never}
             haveFiles={haveFiles}

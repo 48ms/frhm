@@ -23,7 +23,7 @@ const STATUS_META: Record<Status, { icon: React.ReactNode; label: string; color:
 export function PipelineBoard({
   stages, skills, statusBySkill,
 }: {
-  clientId: string; stages: Stage[]; skills: Skill[]
+  stages: Stage[]; skills: Skill[]
   statusBySkill: Record<string, Status>; providerId?: string; haveFiles?: string[]
 }) {
   const sorted = [...stages].sort((a, b) => a.sort_order - b.sort_order)
