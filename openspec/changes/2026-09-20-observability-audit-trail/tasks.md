@@ -45,8 +45,8 @@
 - [ ] Add Sentry initialization to `app/layout.tsx`
 
 ## Phase 6: GDPR Compliance — 1.5 hr
-- [ ] Create `GET /api/client/me/export` → returns `{ client: ..., users: ..., deliverables: ..., skills: ... }` as JSON
-- [ ] Create `DELETE /api/client/me` → soft-delete user (keep audit)
+- [x] Create `GET /api/client/me` → returns `{ client: ..., users: ..., deliverables: ..., skills: ... }` as JSON
+- [x] Create `DELETE /api/client/me` → soft-delete user (keep audit)
 
 ## Phase 7: Session Revocation — 0.5 hr
 - [ ] Add `POST /api/admin/clients/[id]/revoke-sessions` (calls `supabase.admin.users.deleteById` or similar)

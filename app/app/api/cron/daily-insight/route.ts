@@ -11,11 +11,18 @@ import { analyzeSentiment, aggregateSentiments, type SentimentSummary } from '@/
 export const dynamic = 'force-dynamic'
 
 // Vercel Cron Job: GET /api/cron/daily-insight (scheduled harian via cron.yaml atau external)
-export async function GET() {
+export async function GET(request: Request) {
+  // Security: require Bearer token for cron-triggered requests (not manual browser access)
+  const secret = process.env.CRON_SECRET
+  if (secret) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  // Basic protection: allow internal cron only
-  if (user) return NextResponse.json({ error: 'Internal endpoint only' }, { status: 403 })
 
   // 1. Fetch all active clients with Telegram notifications enabled
   const { data: clients } = await supabase

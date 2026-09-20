@@ -1,8 +1,22 @@
 {
   "crons": [
     {
+      "path": "/api/cron/publish",
+      "schedule": "* * * * *",
+      "method": "POST",
+      "timezone": "Asia/Jakarta"
+    },
+    {
+      "path": "/api/cron/check-zero-metrics",
+      "schedule": "0 7 * * *",
+      "method": "GET",
+      "timezone": "Asia/Jakarta"
+    },
+    {
       "path": "/api/cron/daily-insight",
-      "schedule": "0 1 * * *"
+      "schedule": "0 1 * * *",
+      "method": "GET",
+      "timezone": "Asia/Jakarta"
     }
   ]
 }
