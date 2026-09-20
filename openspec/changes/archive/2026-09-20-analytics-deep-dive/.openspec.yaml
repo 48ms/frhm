@@ -1,0 +1,16 @@
+title: Analytics Deep Dive
+description: >
+  Implementasi lengkap fitur analitik preskogativ untuk dashboard klien Frhm SaaS,
+  termasuk tracking attribution WA/DM inquiry, content mix ratio, creative fatigue
+  detection, daily cron automation, Telegram alert dual-dispatch, dan ekspor PDF/MD.
+status: completed
+author: hermes-agent (frahma)
+created_at: 2026-09-18
+updated_at: 2026-09-20
+phase: Phase 1 & 2 (Attribution Funnel + Competitor Benchmark + Predictive Forecasting)
+migration: 030_analytics_deep_dive.sql, 031_competitor_seasonal.sql, 032_predictive_roi.sql, 033_client_telegram_routing.sql
+tasks_completed: 100%
+tests_passed: true
+build_passed: true
+tsc_clean: true
+eslint_clean: true

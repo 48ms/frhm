@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-09-14
+archived: 2026-09-18
+status: completed
+summary: |
+  Analytics board rewrite v2 — inline edit, CSV paste import, structured AI insight prompt,
+  PDF+MD export with Geist font, weekly briefing dashboard widget, Telegram alert enrichment.
+  All 9.8.1-9.8.10 tasks complete; TypeScript+ESLint+build clean; E2E smoke test Taraju + Pawon Sengon PASS.
