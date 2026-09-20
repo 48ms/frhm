@@ -40,6 +40,7 @@ supabase/.temp/
 *.log
 dist/
 build/
+*.tsbuildinfo
 
 # Embedded third-party repos (not part of this project)
 animate-ui/
