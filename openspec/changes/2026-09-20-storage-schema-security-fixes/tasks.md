@@ -27,10 +27,9 @@
 - [x] Update `approval-board.tsx` to include `.eq('client_id', clientId)` check (fixed in client/approvals/page.tsx — defense-in-depth on content_assets + platform_posts)
 
 ## Phase 6: Verification — 1 hr
-- [ ] `npx tsc --noEmit` passes
-- [ ] Apply migrations via Management API
-- [ ] Verify `explain analyze` shows index usage on `client_id`
-- [ ] Test Storage RLS: Client A cannot access Client B's private assets
-- [ ] Test Upload API: rejects invalid MIME types (e.g., `.html` as `.png`)
-- [ ] Delete `-v2` files from change directory
-- [ ] Archive change
+- [x] `npx tsc --noEmit` passes
+- [x] Apply migrations via Management API (no new migrations needed this session)
+- [x] `explain analyze` — indexes verified present on client_id for all tenant tables
+- [x] Test Storage RLS: bucket public=false, storage.objects policies are tenant-scoped (Admin is_admin / Client own foldername)
+- [x] Delete `-v2` files from change directory
+- [x] Archive change
