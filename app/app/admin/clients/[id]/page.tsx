@@ -120,7 +120,7 @@ export default async function ClientWorkspacePage({
     safeQuery(supabase, (s) => s
       .from('skill_outputs').select('id, client_id, skill_id, stage, title, status, content, deliverable_id, created_at').eq('client_id', id).order('created_at', { ascending: false })),
     safeQuery(supabase, (s) => s
-      .from('ai_providers').select('id, name, model').eq('is_default', true).maybeSingle()),
+      .from('ai_providers').select('id, label, model').eq('is_default', true).maybeSingle()),
   ])
 
 
@@ -136,7 +136,7 @@ export default async function ClientWorkspacePage({
   const truths: { source: string; rule: string }[] = aTruths.data ?? []
   const channels: { platform: string | null; handle: string | null; status: string | null; note: string | null; confirmed_at: string | null }[] = aChannels.data ?? []
   const outputs: { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[] = aOutputs.data ?? []
-  const dflt: { id: string; name: string; model: string } | null = aDflt.data ?? null
+  const dflt: { id: string; label: string; model: string } | null = aDflt.data ?? null
 
   // Extract profile content for channel parsing (lightweight: only brand-profile.md, not full folder)
   const profileContent: string | undefined = aProfileDoc.data?.content ?? undefined
@@ -173,7 +173,7 @@ export default async function ClientWorkspacePage({
   }
 
   // the default AI provider, so the runner doesn't have to ask every time
-  const defaultProvider = dflt ? { id: dflt.id, name: dflt.name, model: dflt.model } : null
+  const defaultProvider = dflt ? { id: dflt.id, name: dflt.label, model: dflt.model } : null
 
   // group every skill under its pack so the UI can render a workspace per pack.
   // client_skills is the source of truth: a skill with no pack link must still show

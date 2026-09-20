@@ -309,8 +309,8 @@ async function generateDailyInsightForClient(
   const { data: providerData } = await supabase
     .from('ai_providers')
     .select('*')
-    .eq('id', null)
-    .single()
+    .eq('is_default', true)
+    .maybeSingle()
 
   if (!providerData) throw new Error('Provider AI belum dikonfigurasi')
 

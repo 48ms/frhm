@@ -69,12 +69,7 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
         const res = await fetch(`/api/admin/clients/${clientId}/generate-campaign`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            provider_id: 'google',
-            topic,
-            assetCount,
-            platforms
-          })
+          body: JSON.stringify({ topic, assetCount, platforms })
         })
         const json = await res.json()
         

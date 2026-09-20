@@ -63,8 +63,19 @@
 - [x] Replace `alert()` → toast across 13 components
 - [x] Type `calendar-view.tsx` + `kanban-board.tsx` (remove `any`)
 - [x] Cleaned up unused imports + any types (expense-form-modal, roi-dashboard-board)
-- [ ] Pass providerId prop (remove hardcoded `'google'`) — skip (low value)
-- [ ] Investigate storage bucket `brand_assets` inconsistency — defer to observability phase
+- [x] Pass providerId prop — **FIXED (was a real bug, not "low value")**
+  - `global-automations-board.tsx` + `content-production-board.tsx` sent `provider_id: 'google'`
+  - DB has 3 providers, all UUID; `'google'` matched nothing → `resolveProvider` returned null
+  - API returned 400 "Belum ada provider AI" on every AI campaign generation
+  - Fixed: omit `provider_id` so API falls back to the `is_default` provider
+- [x] Fixed `app/admin/clients/[id]/page.tsx:123` — queried `ai_providers.name`, which does not
+  exist (schema column is `label`); PostgREST returned HTTP 400 "column ai_providers.name does
+  not exist", so the default-provider lookup silently failed. Fixed to `id, label, model`
+- [x] Fixed `app/api/cron/daily-insight/route.ts:310` — queried `.eq('id', null)` (always 0 rows),
+  so the daily insight cron always threw "Provider AI belum dikonfigurasi". Fixed to
+  `.eq('is_default', true).maybeSingle()`
+- [x] Investigate storage bucket `brand_assets` — **NOT A BUG**: bucket exists (migration 036),
+  private, RLS = admin-all + client-own (verified via `storage.buckets` + `pg_policies`)
 
 ## Phase 11: API Route Auth Gap (Security Critical) — DONE ✅
 - [x] `app/api/admin/clients/[id]/outputs/route.ts`: replaced service_role with `requireAdmin()` guard
@@ -72,10 +83,16 @@
 - [x] Re-scan API routes for auth coverage
 - [x] Verify `feedback` table RLS policy enforces `auth.uid()`
 
-## Phase 12: Cache Revalidation (Medium) — TODO
-- [ ] Add `revalidatePath()` after mutations in API routes
-- [ ] Ensure client-side mutations call `router.refresh()` after success
-- [ ] Verify no stale data after: create event → check events tab shows it without F5
+## Phase 12: Cache Revalidation (Medium) — DONE ✅
+- [x] `revalidatePath()` after mutations in API routes — **NOT NEEDED (proven, not assumed)**:
+  18/19 server pages are `force-dynamic` (rendered per request), so server-side caching is off
+  and `revalidatePath` is a no-op. The 19th (`waitlist/page.tsx`) was made `force-dynamic`.
+  Only remaining cache is the 30s Client Router Cache (staleTimes.dynamic default, verified
+  in `node_modules/next/dist/.../define-env-plugin.js`)
+- [x] Client-side mutations call `router.refresh()` after success — added to
+  `action-center-widget.tsx` (was fire-and-forget); other 33 mutators verified to either
+  call `router.refresh()` or refetch via `onSuccess`/local state merge
+- [x] Verified no stale data: create event → tab shows it (fetchEvents refetch on success)
 
 ## Phase 13: Verification — DONE ✅
 - [x] `npx tsc --noEmit` passes (exit 0, verified 2026-09-20)

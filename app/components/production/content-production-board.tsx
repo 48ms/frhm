@@ -65,12 +65,7 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
       const res = await fetch(`/api/admin/clients/${clientId}/generate-campaign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          provider_id: 'google',
-          topic: genTopic,
-          assetCount: genAssetCount,
-          platforms: genPlatforms
-        })
+        body: JSON.stringify({ topic: genTopic, assetCount: genAssetCount, platforms: genPlatforms })
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Gagal generate')
