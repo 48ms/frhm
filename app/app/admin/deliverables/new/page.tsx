@@ -1,0 +1,199 @@
+"use client"
+
+import { useState, useCallback } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  FileTextIcon,
+  PenLineIcon,
+  UploadCloudIcon,
+  Loader2,
+} from "lucide-react"
+import { RippleButton } from "@/components/motion/ripple-button"
+
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/animate-ui/components/radix/tabs"
+
+export default function NewDeliverablePage() {
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
+  const [content, setContent] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
+  const supabase = createClient()
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim()) return
+
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push("/auth/login")
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("deliverables")
+        .insert({
+          title,
+          description: description || null,
+          content: content || null,
+          status: "draft",
+          created_by: user.id,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      router.push(`/admin/deliverables/${data.id}`)
+    } catch (err) {
+      console.error("Error creating deliverable:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [title, description, content, supabase, router])
+
+  const handleCancel = () => {
+    router.push("/admin/deliverables")
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      <Tabs defaultValue="write">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+            Buat Deliverable Baru
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Isi informasi di bawah untuk membuat deliverable konten baru.
+          </p>
+        </div>
+
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="write" className="h-11 rounded-xl">Tulis Konten</TabsTrigger>
+          <TabsTrigger value="upload" className="h-11 rounded-xl">Upload File</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="write">
+          <form onSubmit={handleSubmit}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileTextIcon className="size-5 text-primary" />
+                  Informasi Dasar
+                </CardTitle>
+                <CardDescription>
+                  Buat draf konten, brief, atau laporan untuk brand klien.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-sm font-medium text-foreground">
+                    Judul Deliverable *
+                  </Label>
+                  <Input
+                    id="title"
+                    placeholder="Mis. Ringkasan Bulanan Media Sosial"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                    className="w-full rounded-xl h-11"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Judul akan ditampilkan di dashboard dan notifikasi.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-medium text-foreground">
+                    Deskripsi Singkat
+                  </Label>
+                  <Input
+                    id="description"
+                    placeholder="Berikan deskripsi singkat tentang deliverable ini..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full rounded-xl h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content" className="text-sm font-medium text-foreground flex items-center justify-between">
+                    <span>Konten</span>
+                    <PenLineIcon className="size-4 text-muted-foreground" />
+                  </Label>
+                  <Textarea
+                    id="content"
+                    placeholder="Tulis konten lengkap di sini (dukung markdown)..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="min-h-[300px] font-mono text-sm resize-y rounded-xl"
+                  />
+                </div>
+              </CardContent>
+
+              <CardFooter className="flex justify-between border-t px-6 py-4">
+                <Button variant="outline" type="button" onClick={handleCancel} className="h-11">
+                  Batal
+                </Button>
+                <RippleButton type="submit" disabled={loading} className="h-11">
+                  {loading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin mr-2" />
+                      Membuat...
+                    </>
+                  ) : (
+                    "Buat Deliverable"
+                  )}
+                </RippleButton>
+              </CardFooter>
+            </Card>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="upload">
+          <Card className="border border-dashed">
+            <CardHeader>
+              <CardTitle>Upload File</CardTitle>
+              <CardDescription>
+                Fitur upload file akan segera tersedia.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg p-8 text-center">
+                <UploadCloudIcon className="mx-auto size-12 text-muted-foreground mb-4" />
+                <p className="text-sm text-muted-foreground">
+                  Seret & drop file, atau klik untuk memilih
+                </p>
+                <Button variant="outline" className="mt-4 h-11" disabled>
+                  Belum tersedia
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}

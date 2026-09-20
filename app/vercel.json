@@ -1,0 +1,10 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-insight",
+      "schedule": "0 1 * * *",
+      "method": "GET",
+      "timezone": "UTC"
+    }
+  ]
+}

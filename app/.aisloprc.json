@@ -1,0 +1,42 @@
+{
+  "$schema": "https://scanaislop.com/schema.json",
+  "engines": {
+    "format": true,
+    "lint": true,
+    "code-quality": true,
+    "ai-slop": true,
+    "architecture": false,
+    "security": true
+  },
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "*.config.*",
+    "*.lock",
+    "coverage",
+    ".turbo",
+    ".vercel",
+    "public",
+    "scripts",
+    "registry"
+  ],
+  "rules": {
+    "ai-slop/unused-import": "warn",
+    "ai-slop/narrative-comment": "warn",
+    "ai-slop/double-type-assertion": "warn",
+    "code-quality/duplicate-block": "warn",
+    "complexity/function-too-long": "warn",
+    "jsx-a11y/prefer-tag-over-role": "warn",
+    "jsx-a11y/control-has-associated-label": "warn",
+    "react/set-state-in-effect": "warn",
+    "security/hardcoded-secret": "error"
+  },
+  "targets": {
+    "typescript": true,
+    "javascript": true,
+    "react": true,
+    "nextjs": true
+  }
+}

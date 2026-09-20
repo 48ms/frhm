@@ -40,3 +40,10 @@ supabase/.temp/
 *.log
 dist/
 build/
+
+# Embedded third-party repos (not part of this project)
+animate-ui/
+anti-slop/
+
+# Windows reserved-name artifacts
+app/nul

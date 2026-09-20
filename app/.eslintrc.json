@@ -1,0 +1,27 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "ignorePatterns": ["scripts/**", "e2e/**"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@supabase/supabase-js"],
+            "message": "Use lib/supabase/server.ts or lib/supabase/client.ts instead of direct import"
+          }
+        ],
+        "paths": [
+          {
+            "name": "campaigns",
+            "message": "Use 'content_campaigns' instead. 'campaigns' is a legacy view for backward compatibility only."
+          },
+          {
+            "name": "content_metrics",
+            "message": "Use 'post_metrics' instead. 'content_metrics' is a legacy view for backward compatibility only."
+          }
+        ]
+      }
+    ]
+  }
+}
