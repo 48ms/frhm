@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
 import { ProductionItem } from './content-production-board'
+import { toast } from 'sonner'
 
 const STAGES = [
   { id: 'idea', label: 'Ideasi' },
@@ -156,7 +157,7 @@ export function ContentFormModal({
       onSuccess()
     } catch (err) {
       console.error('Error saving content:', err)
-      alert('Gagal menyimpan task produksi.')
+      toast.error('Gagal menyimpan task produksi.')
     } finally {
       setIsSubmitting(false)
     }

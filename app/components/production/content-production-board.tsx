@@ -16,6 +16,7 @@ import { PlatformIcon } from '@/components/calendar/calendar-view'
 import { CalendarIcon, Sparkles, Loader2 } from 'lucide-react'
 import { PostDialog } from '@/components/calendar/post-dialog'
 import { ContentFormModal } from './content-form-modal'
+import { toast } from 'sonner'
 
 export type ProductionItem = {
   id: string
@@ -73,11 +74,11 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Gagal generate')
-      alert('Berhasil membuat kampanye AI!')
+      toast.success('Berhasil membuat kampanye AI!')
       setGenerateModalOpen(false)
       fetchProductions()
     } catch (e: any) {
-      alert(e.message)
+      toast.error(e.message)
     } finally {
       setIsGenerating(false)
     }

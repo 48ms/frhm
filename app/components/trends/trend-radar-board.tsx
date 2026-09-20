@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import type { TrendRadarItem } from '@/lib/trends/radar'
+import { toast } from 'sonner'
 
 interface TrendRadarBoardProps {
   clientId: string
@@ -103,7 +104,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
           })
           return
         }
-        alert(json.error || 'Gagal memproses tren')
+        toast.error(json.error || 'Gagal memproses tren')
         return
       }
 
@@ -119,7 +120,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
       if (onContentGenerated) onContentGenerated()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kendala jaringan'
-      alert(msg)
+      toast.error(msg)
     } finally {
       setGeneratingTopic(null)
     }

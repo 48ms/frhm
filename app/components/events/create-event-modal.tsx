@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nama event minimal 2 karakter'),
@@ -68,7 +69,7 @@ export function CreateEventModal({ clientId, children, onSuccess }: CreateEventM
       if (onSuccess) onSuccess()
     } catch (err: any) {
       console.error('Error creating event:', err)
-      alert(`Gagal membuat event: ${err.message}`)
+      toast.error(`Gagal membuat event: ${err.message}`)
     } finally {
       setIsSubmitting(false)
     }

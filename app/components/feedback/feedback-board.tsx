@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Star, MessageCircle, CheckCircle2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 type FeedbackItem = {
   id: string
@@ -84,7 +85,7 @@ export function FeedbackBoard({ clientId }: { clientId: string }) {
         fetchData()
       } else {
         const err = await res.json()
-        alert(err.error || 'Gagal kirim feedback')
+        toast.error(err.error || 'Gagal kirim feedback')
       }
     } finally {
       setCreating(false)

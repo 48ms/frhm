@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
   campaign_name: z.string().min(2, 'Nama kampanye minimal 2 karakter'),
@@ -73,7 +74,7 @@ export function AdSpendFormModal({ clientId, children, onSuccess }: AdSpendFormM
       }
     } catch (err) {
       console.error('Error recording ad spend:', err)
-      alert('Gagal mencatat data iklan. Silakan coba lagi.')
+      toast.error('Gagal mencatat data iklan. Silakan coba lagi.')
     } finally {
       setIsSubmitting(false)
     }

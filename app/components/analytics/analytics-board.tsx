@@ -18,6 +18,7 @@ import { Heart } from '@/registry/icons/heart'
 import { MessageCircle } from '@/registry/icons/message-circle'
 import { Save, X, Download, Upload, FileText, Share2, Bookmark, MousePointerClick } from 'lucide-react'
 import { motion } from 'motion/react'
+import { toast } from 'sonner'
 
 type PostMetric = {
   id: string
@@ -116,7 +117,7 @@ export function AnalyticsBoard({ clientId }: { clientId: string }) {
         fetchData()
       } else {
         const err = await res.json()
-        alert(err.error || 'Gagal generate insight')
+        toast.error(err.error || 'Gagal generate insight')
       }
     } finally {
       setGenerating(false)
@@ -132,11 +133,11 @@ export function AnalyticsBoard({ clientId }: { clientId: string }) {
       })
       if (!res.ok) {
         const err = await res.json()
-        alert(err.error || 'Gagal update metrik')
+        toast.error(err.error || 'Gagal update metrik')
         fetchData() // revert on error
       }
     } catch {
-      alert('Gagal update metrik')
+      toast.error('Gagal update metrik')
       fetchData()
     }
   }
@@ -150,7 +151,7 @@ export function AnalyticsBoard({ clientId }: { clientId: string }) {
     if (!editingCell) return
     const value = parseInt(editValue, 10)
     if (isNaN(value) || value < 0) {
-      alert('Masukkan angka non-negatif')
+      toast.warning('Masukkan angka non-negatif')
       return
     }
     handleUpdateMetric(editingCell.postId, editingCell.field, value)
@@ -178,7 +179,7 @@ export function AnalyticsBoard({ clientId }: { clientId: string }) {
       const res = await fetch(`/api/admin/clients/${clientId}/analytics/export/${format === 'pdf' ? 'pdf' : 'markdown'}`)
       if (!res.ok) {
         const err = await res.json()
-        alert(err.error || `Gagal export ${format.toUpperCase()}`)
+        toast.error(err.error || `Gagal export ${format.toUpperCase()}`)
         return
       }
       const blob = await res.blob()
@@ -192,7 +193,7 @@ export function AnalyticsBoard({ clientId }: { clientId: string }) {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (e) {
-      alert(`Gagal export ${format.toUpperCase()}: ` + (e instanceof Error ? e.message : String(e)))
+      toast.error(`Gagal export ${format.toUpperCase()}: ` + (e instanceof Error ? e.message : String(e)))
     } finally {
       setExporting(null)
     }
@@ -535,7 +536,7 @@ uuid-2	tiktok	500	3000	150	30	8	3	15"
                     }
                     setImportPreview(rows)
                     if (rows.length === 0) {
-                      alert('Tidak ada baris valid')
+                      toast.warning('Tidak ada baris valid')
                       setImporting(false)
                       return
                     }
@@ -546,17 +547,17 @@ uuid-2	tiktok	500	3000	150	30	8	3	15"
                     })
                     const data = await res.json()
                     if (res.ok) {
-                      alert(`Import selesai: ${data.updated} updated, ${data.skipped} skipped`)
+                      toast.success(`Import selesai: ${data.updated} updated, ${data.skipped} skipped`)
                       fetchData()
                       setImportOpen(false)
                       setImportPreview(null)
                       setCsvFile(null)
                       setPasteText('')
                     } else {
-                      alert(data.error || 'Import gagal')
+                      toast.error(data.error || 'Import gagal')
                     }
                   } catch (e) {
-                    alert('Gagal import: ' + (e instanceof Error ? e.message : String(e)))
+                    toast.error('Gagal import: ' + (e instanceof Error ? e.message : String(e)))
                   } finally {
                     setImporting(false)
                   }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Sparkles, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { toast } from 'sonner'
 
 type AutomationClient = {
   id: string
@@ -44,7 +45,7 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
   }
 
   const handleStartBatch = async () => {
-    if (selectedIds.length === 0) return alert('Pilih minimal 1 klien.')
+    if (selectedIds.length === 0) return toast.warning('Pilih minimal 1 klien.')
     if (!confirm(`Mulai proses batch untuk ${selectedIds.length} klien? Proses ini akan memakan waktu.`)) return
 
     setIsRunning(true)
@@ -88,7 +89,7 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
     }
 
     setIsRunning(false)
-    alert('Proses Batch selesai!')
+    toast.success('Proses Batch selesai!')
   }
 
   const validClients = clients.filter(c => c.hasBrandProfile)

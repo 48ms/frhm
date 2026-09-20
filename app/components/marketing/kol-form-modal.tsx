@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nama KOL minimal 2 karakter'),
@@ -117,7 +118,7 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
       }
     } catch (err) {
       console.error('Error saving KOL:', err)
-      alert('Gagal menyimpan data KOL. Silakan coba lagi.')
+      toast.error('Gagal menyimpan data KOL. Silakan coba lagi.')
     } finally {
       setIsSubmitting(false)
     }

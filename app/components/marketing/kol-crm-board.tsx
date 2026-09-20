@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PlusIcon, SearchIcon, EditIcon, Trash2Icon } from 'lucide-react'
 import { KolFormModal, KOL } from './kol-form-modal'
+import { toast } from 'sonner'
 
 export function KolCrmBoard() {
   const [kols, setKols] = useState<KOL[]>([])
@@ -50,7 +51,7 @@ export function KolCrmBoard() {
     if (!error) {
       setKols(kols.filter((k) => k.id !== id))
     } else {
-      alert('Gagal menghapus KOL.')
+      toast.error('Gagal menghapus KOL.')
     }
   }
 

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { PencilIcon, LoaderIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   BrandProfileData,
   parseBrandProfileMarkdown,
@@ -84,7 +85,7 @@ export function BrandProfileEditorDialog({ clientId, clientName, initialMarkdown
       if (onSaved) onSaved()
     } catch (e) {
       // Surface the failure without a toast dependency; the dialog stays open so work isn't lost.
-      alert(e instanceof Error ? e.message : 'Gagal menyimpan brand profile')
+      toast.error(e instanceof Error ? e.message : 'Gagal menyimpan brand profile')
     } finally {
       setSaving(false)
     }

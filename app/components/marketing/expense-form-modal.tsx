@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
   amount: z.number().min(1, 'Jumlah pengeluaran harus lebih dari 0'),
@@ -98,7 +99,7 @@ export function ExpenseFormModal({ clientId, budgetId, children, onSuccess }: Ex
       }
     } catch (err) {
       console.error('Error recording expense:', err)
-      alert('Gagal mencatat pengeluaran. Silakan coba lagi.')
+      toast.error('Gagal mencatat pengeluaran. Silakan coba lagi.')
     } finally {
       setIsSubmitting(false)
     }
