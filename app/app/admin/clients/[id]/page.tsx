@@ -98,9 +98,11 @@ export default async function ClientWorkspacePage({
   ])
 
   // Group B: Files + pipeline
-  const [aFiles, aStages, aPSkills] = await Promise.all([
+  const [aFiles, aProfileDoc, aStages, aPSkills] = await Promise.all([
     safeQuery(supabase, (s) => s
-      .from('client_files').select('path, content').eq('client_id', id)),
+      .from('client_files').select('path').eq('client_id', id)),
+    safeQuery(supabase, (s) => s
+      .from('client_files').select('content').eq('client_id', id).eq('path', 'brand-profile.md').maybeSingle()),
     safeQuery(supabase, (s) => s
       .from('pipeline_stages').select('key, label, description, sort_order, chain, skill_order, publishes').order('sort_order')),
     safeQuery(supabase, (s) => s
@@ -127,7 +129,7 @@ export default async function ClientWorkspacePage({
   const skills: { id: string; name: string; description: string | null; category: string | null }[] = aSkills.data ?? []
   const links: { pack_id: string; skill_id: string }[] = aLinks.data ?? []
   const clientSkills: { skill_id: string; status: string; notes: string | null }[] = aClientSkills.data ?? []
-  const files: { path: string; content: string }[] = aFiles.data ?? []
+  const files: { path: string }[] = aFiles.data ?? []
   const stages: { key: string; label: string; description: string | null; sort_order: number; chain?: string | null; skill_order?: string[] | null; publishes?: boolean | null }[] = aStages.data ?? []
   const pSkills: { id: string; name: string; description: string | null; stage: string; reads_files: boolean; writes_files: boolean }[] = aPSkills.data ?? []
   const guards: { skill_id: string; kind: string; heading: string; body: string }[] = aGuards.data ?? []
@@ -136,14 +138,13 @@ export default async function ClientWorkspacePage({
   const outputs: { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[] = aOutputs.data ?? []
   const dflt: { id: string; name: string; model: string } | null = aDflt.data ?? null
 
-  // the whole client folder as { path: content } so setup.tsx can show any artifact
-  const fileMap: Record<string, string> = {}
-  for (const f of files) fileMap[f.path] = f.content
+  // Extract profile content for channel parsing (lightweight: only brand-profile.md, not full folder)
+  const profileContent: string | undefined = aProfileDoc.data?.content ?? undefined
 
   // Channels the repo already declared: brand-profile.md's "## Channels" section (its template
   // names "Active platforms", "Handles / links"). That document is the source of truth, so we
   // read the platforms from it and only overlay the bridge's connection state on top.
-  const declaredChannels = parseDeclaredChannels(fileMap['brand-profile.md'])
+  const declaredChannels = parseDeclaredChannels(profileContent)
 
   // Merge: every declared platform is a row; a client_channels row supplies connection state.
   const channelRows = declaredChannels.map((platform) => {
@@ -250,7 +251,6 @@ export default async function ClientWorkspacePage({
       pipelineSkills={pSkills}
       haveFiles={files.map((f) => f.path)}
       providerId={defaultProvider?.id ?? undefined}
-      allFiles={fileMap}
       provider={defaultProvider}
       guardrails={guards}
       groundTruths={truths}
