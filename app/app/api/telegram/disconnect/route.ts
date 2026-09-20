@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
@@ -38,7 +39,14 @@ export async function POST(request: Request) {
       return denyForbidden()
     }
 
-    const { error } = await supabase
+    // `clients` has no client UPDATE policy (only client_own_client FOR SELECT),
+    // so a user-JWT UPDATE would silently affect 0 rows. Ownership is already
+    // enforced above (isAdmin || isOwner), so use the service-role client here.
+    const srv = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+    const { error } = await srv
       .from('clients')
       .update({
         telegram_chat_id: null,
