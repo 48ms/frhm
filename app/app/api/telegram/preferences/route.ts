@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
@@ -42,13 +43,28 @@ export async function PATCH(request: Request) {
       return denyForbidden()
     }
 
-    const { error } = await supabase
+    // The `clients` table only grants SELECT to client users (policy
+    // client_own_client is FOR SELECT), so a client's UPDATE via the
+    // anon/publishable key silently affects 0 rows. We already verified
+    // ownership above, so perform the write with the service role.
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    )
+
+    const { data: updated, error } = await admin
       .from('clients')
       .update({ telegram_notifications_enabled: body.enabled })
       .eq('id', body.id)
+      .select('id, telegram_notifications_enabled')
+      .maybeSingle()
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    if (!updated) {
+      return NextResponse.json({ error: 'Client tidak ditemukan atau tidak bisa diubah' }, { status: 404 })
     }
 
     void logAudit({
