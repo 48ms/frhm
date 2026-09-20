@@ -45,32 +45,40 @@ export async function POST(
   let skipped = 0
   const errors: { row: number; reason: string }[] = []
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
+  // Batch 1: validate all post_ids in ONE query
+  const postIds = [...new Set(rows.map(r => r.post_id))]
+  const { data: validPosts, error: postsQueryError } = await supabase
+    .from('scheduled_posts')
+    .select('id, platform')
+    .in('id', postIds)
+    .eq('client_id', clientId)
+
+  if (postsQueryError) {
+    return NextResponse.json({ error: postsQueryError.message }, { status: 500 })
+  }
+
+  const postMap = new Map((validPosts ?? []).map(p => [p.id, p.platform]))
+
+  // Row-level validation against the single query result
+  const validRows: typeof rows = []
+  rows.forEach((row, i) => {
     const rowNum = i + 1
-
-    // Verify post exists and belongs to client
-    const { data: post, error: postError } = await supabase
-      .from('scheduled_posts')
-      .select('id, platform')
-      .eq('id', row.post_id)
-      .eq('client_id', clientId)
-      .single()
-
-    if (postError || !post) {
-      errors.push({ row: rowNum, reason: `post_id not found or not owned by client` })
+    const platform = postMap.get(row.post_id)
+    if (!platform) {
+      errors.push({ row: rowNum, reason: 'post_id not found or not owned by client' })
       skipped++
-      continue
+      return
     }
-
-    // Validate platform matches
-    if (post.platform !== row.platform) {
-      errors.push({ row: rowNum, reason: `platform mismatch: expected ${post.platform}, got ${row.platform}` })
+    if (platform !== row.platform) {
+      errors.push({ row: rowNum, reason: `platform mismatch: expected ${platform}, got ${row.platform}` })
       skipped++
-      continue
+      return
     }
+    validRows.push(row)
+  })
 
-    const upsertData = {
+  if (validRows.length > 0) {
+    const upsertData = validRows.map(row => ({
       post_id: row.post_id,
       client_id: clientId,
       platform: row.platform,
@@ -84,17 +92,31 @@ export async function POST(
       wa_inquiries: row.wa_inquiries ?? 0,
       dm_inquiries: row.dm_inquiries ?? 0,
       recorded_at: new Date().toISOString()
-    }
+    }))
 
-    const { error } = await supabase
+    // Batch 2: single upsert for all valid rows
+    const { error: upsertError } = await supabase
       .from('post_metrics')
       .upsert(upsertData, { onConflict: 'post_id' })
 
-    if (error) {
-      errors.push({ row: rowNum, reason: error.message })
-      skipped++
+    if (upsertError) {
+      // Fall back to per-row error reporting so the caller knows which rows failed
+      for (let i = 0; i < validRows.length; i++) {
+        const { error } = await supabase
+          .from('post_metrics')
+          .upsert({
+            ...upsertData[i],
+            recorded_at: new Date().toISOString()
+          }, { onConflict: 'post_id' })
+        if (error) {
+          errors.push({ row: rows.indexOf(validRows[i]) + 1, reason: error.message })
+          skipped++
+        } else {
+          updated++
+        }
+      }
     } else {
-      updated++
+      updated = validRows.length
     }
   }
 

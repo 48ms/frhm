@@ -7,10 +7,10 @@
 - [x] Verify: `npx tsc --noEmit` passes
 
 ## Phase 2: Batch metrics/bulk — 2 hrs
-- [ ] Pre-validate all `post_id`s with single `.in('id', postIds)` query
-- [ ] Replace for-loop upsert with single `.upsert(rowsArray)` batch
-- [ ] Handle platform mismatch errors with indexed map
-- [ ] Verify: bulk import of 100 rows = 3 DB calls total
+- [x] Pre-validate all `post_id`s with single `.in('id', postIds)` query
+- [x] Replace for-loop upsert with single `.upsert(rowsArray)` batch
+- [x] Handle platform mismatch errors with indexed map
+- [x] Verify: bulk import of 100 rows = 3 DB calls total (now 2: batch validate + batch upsert; per-row fallback only on batch failure)
 
 ## Phase 3: Parallelize skills/bulk-run — 3 hrs
 - [ ] Pre-fetch all `skill_files` with `.in('skill_id', skillIds).eq('path', 'SKILL.md')`
