@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from "motion/react"
 
 export interface ClientTaskProps {
   id: string

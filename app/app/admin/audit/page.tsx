@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Activity, ShieldAlert, LogIn, FileEdit, Settings, Search } from "lucide-react";
 
 export default function AdminAuditPage() {

@@ -46,13 +46,27 @@ export async function GET(request: Request) {
     query = query.gte('scheduled_at', startDate).lte('scheduled_at', endDate)
   }
 
-  const { data, error } = await query
+  // Pagination: ?page=N&limit=M (default 50, max 100) — calendar view can override with limit=0 for all
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
+  const rawLimit = parseInt(searchParams.get('limit') ?? '50', 10)
+  // limit=0 explicitly means "no pagination" (calendar view needs a full month in one request)
+  const limit = isNaN(rawLimit) ? 50 : (rawLimit === 0 ? 0 : Math.min(Math.max(1, rawLimit), 100))
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+
+  if (limit > 0) {
+    query = query.range(from, to)
+  }
+
+  const { data, error, count } = await limit > 0
+    ? await query
+    : await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ posts: data ?? [] })
+  return NextResponse.json({ posts: data ?? [], total: count ?? 0, page, limit })
 }
 
 export async function POST(request: Request) {

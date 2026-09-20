@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
-import { motion } from "framer-motion"
+import { motion } from "motion/react"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"

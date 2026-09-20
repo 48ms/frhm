@@ -20,17 +20,17 @@
 - [x] Verify: 5 skills run in parallel, ~10s total instead of 50s
 
 ## Phase 4: Pagination — 2 hrs
-- [ ] Add `?page` & `?limit` params to `/api/admin/clients/route.ts`
-- [ ] Add to `/api/admin/deliverables/route.ts`
-- [ ] Add to `/api/admin/scheduled-posts/route.ts`
-- [ ] Default limit 50, max 100; return `total` count in response
-- [ ] Verify: `/api/clients?limit=10` returns 10
+- [x] Add `?page` & `?limit` params to `/api/admin/clients/route.ts`
+- [x] Add to `/api/admin/deliverables/route.ts`
+- [x] Add to `/api/admin/scheduled-posts/route.ts`
+- [x] Default limit 50, max 100; return `total` count in response
+- [x] Verify: `/api/clients?limit=10` returns 10 (tsc clean)
 
 ## Phase 5: Remove framer-motion — 2 hrs
-- [ ] Run `npx codemod` or manual: replace `from "framer-motion"` with `from "motion/react"` in all 301 files
-- [ ] Remove `framer-motion` from `package.json`
-- [ ] Run `npm install` to prune
-- [ ] Verify: `npx tsc --noEmit` + build passes
+- [x] Run `npx codemod` or manual: replace `from "framer-motion"` with `from "motion/react"` in all 301 files
+- [x] Remove `framer-motion` from `package.json`
+- [x] Run `npm install` to prune
+- [x] Verify: `npx tsc --noEmit` passes
 
 ## Phase 6: Singleton supabase client — 0.5 hrs
 - [ ] Refactor `lib/supabase/client.ts` to cache the instance

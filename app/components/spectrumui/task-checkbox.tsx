@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useId, useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion } from "motion/react"
 import { cn } from "@/lib/utils"
 
 export interface TaskCheckboxProps {

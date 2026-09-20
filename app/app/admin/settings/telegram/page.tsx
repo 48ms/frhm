@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeftIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { TelegramConnectCard } from '@/components/telegram/telegram-connect-card'
-import * as motion from "framer-motion/client"
+import { motion } from 'motion/react'
 
 export const dynamic = 'force-dynamic'
 

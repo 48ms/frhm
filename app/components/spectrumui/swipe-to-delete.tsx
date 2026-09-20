@@ -8,8 +8,8 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useTransform,
-} from 'framer-motion';
-import type { PanInfo } from 'framer-motion';
+} from "motion/react";
+import type { PanInfo } from "motion/react";
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

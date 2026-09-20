@@ -10,7 +10,7 @@ import {
   CircleCheckIcon, CircleAlertIcon, CircleDashedIcon, LoaderIcon,
   RefreshCwIcon, TrashIcon, ExternalLinkIcon, KeyRoundIcon,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from "motion/react"
 
 type Account = {
   id: string

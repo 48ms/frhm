@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SendIcon, CheckCircle2Icon, ExternalLinkIcon, RefreshCwIcon, BellIcon, BellOffIcon, ShieldCheckIcon } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from "motion/react"
 
 interface TelegramConnectCardProps {
   type: 'client' | 'admin'

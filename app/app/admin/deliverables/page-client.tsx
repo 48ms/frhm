@@ -8,7 +8,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { StatusBadge, TypeBadge } from '@/components/deliverable/status-badge'
 import { FileText, Link as LinkIcon, MessageSquareIcon, UsersIcon, FilterIcon, XIcon, PlusIcon } from 'lucide-react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from "motion/react"
 import type { Deliverable } from '@/lib/supabase/types'
 
 interface DeliverableWithClient extends Deliverable {

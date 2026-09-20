@@ -24,9 +24,20 @@ export async function GET(request: Request) {
     const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
     if (profile?.role !== 'admin') return denyForbidden({ userId: user.id, role: profile?.role })
 
-    const { data, error } = await supabase.from('clients').select('id, name').order('name')
+    // Pagination: ?page=N&limit=M (default 50, max 100)
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
+    const rawLimit = parseInt(searchParams.get('limit') ?? '50', 10) || 50
+    const limit = Math.min(Math.max(1, rawLimit), 100)
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+
+    const { data, error, count } = await supabase
+      .from('clients')
+      .select('id, name', { count: 'exact' })
+      .order('name')
+      .range(from, to)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ clients: data ?? [] })
+    return NextResponse.json({ clients: data ?? [], total: count ?? 0, page, limit })
   }
   return NextResponse.json({ error: 'Bad request' }, { status: 400 })
 }

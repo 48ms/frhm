@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { LayersIcon, BookOpenIcon, ChevronRightIcon } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from "motion/react"
 
 export function AdminSkillsClient({
   packs,

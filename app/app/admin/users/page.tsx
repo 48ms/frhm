@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Users, Search, Plus, MoreHorizontal, Shield, Mail, CheckCircle2, Clock } from "lucide-react";
 
 export default function AdminUsersPage() {

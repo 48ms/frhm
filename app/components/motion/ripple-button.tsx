@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import { motion, type HTMLMotionProps } from "motion/react"
 import { cn } from 'cn'
 import { buttonVariants } from '@/components/ui/button'
 import type { VariantProps } from 'class-variance-authority'

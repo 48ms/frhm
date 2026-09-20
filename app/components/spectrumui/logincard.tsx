@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, easeOut } from 'framer-motion';
+import { motion, easeOut } from "motion/react";
 import { MoveRight } from 'lucide-react';
 
 export default function LoginPage() {

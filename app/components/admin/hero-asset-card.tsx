@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { SplitSquareHorizontal, Plus, Link as LinkIcon, Video, LayoutTemplate } from 'lucide-react'
 import { ContentDraftForm } from '@/components/admin/content-draft-form'
 import { SlideOverSheet } from '@/components/ui/slide-over-sheet'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from "motion/react"
 
 interface HeroAssetProps {
   asset: {

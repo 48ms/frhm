@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { motion, useSpring, useTransform, useMotionValue } from "framer-motion"
+import { motion, useSpring, useTransform, useMotionValue } from "motion/react"
 import { cn } from "cn"
 
 type SlidingNumberRollerProps = {
