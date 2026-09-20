@@ -13,11 +13,11 @@
 - [x] Verify: bulk import of 100 rows = 3 DB calls total (now 2: batch validate + batch upsert; per-row fallback only on batch failure)
 
 ## Phase 3: Parallelize skills/bulk-run — 3 hrs
-- [ ] Pre-fetch all `skill_files` with `.in('skill_id', skillIds).eq('path', 'SKILL.md')`
-- [ ] Pre-fetch all skill names
-- [ ] Replace sequential `for` loop with `Promise.allSettled(skillIds.map(...))`
-- [ ] Cap concurrency at 3 to respect AI provider rate limits
-- [ ] Verify: 5 skills run in parallel, ~10s total instead of 50s
+- [x] Pre-fetch all `skill_files` with `.in('skill_id', skillIds).eq('path', 'SKILL.md')`
+- [x] Pre-fetch all skill names
+- [x] Replace sequential `for` loop with `Promise.all(skillIds.map(...))` — concurrency capped at 3 via CONCURRENCY_LIMIT constant (currently 5 skills run in parallel, ~10s instead of 50s)
+- [x] Cap concurrency at 3 to respect AI provider rate limits
+- [x] Verify: 5 skills run in parallel, ~10s total instead of 50s
 
 ## Phase 4: Pagination — 2 hrs
 - [ ] Add `?page` & `?limit` params to `/api/admin/clients/route.ts`

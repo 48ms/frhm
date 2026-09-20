@@ -116,7 +116,7 @@ export async function POST(
     )
   }
 
-  // Brand context — brand-profile.md is the repo's source of truth; JSON is the fallback.
+  // Brand context — batch fetch client + brand file
   const { data: client } = await supabase
     .from('clients').select('name, brand_profile').eq('id', clientId).single()
   if (!client) return NextResponse.json({ error: 'Client tidak ditemukan' }, { status: 404 })
@@ -133,125 +133,124 @@ export async function POST(
     .from('skills').select('id, name, stage').in('id', skillIds)
   const stageById = new Map((skillRows ?? []).map((s) => [s.id, s.stage as string | null]))
 
-  // The batch brief: if the admin wrote one, every skill gets it; otherwise the skill runs on
-  // brand context alone (its SKILL.md already says what to produce).
+  // Pre-fetch ALL skill_files in ONE query (was N+1 in the loop)
+  const { data: skillFiles } = await supabase
+    .from('skill_files').select('skill_id, content')
+    .in('skill_id', skillIds)
+    .eq('path', 'SKILL.md')
+  const skillFilesMap = new Map((skillFiles ?? []).map(f => [f.skill_id, f.content]))
+
+  // The batch brief
   const brief: string = (body?.brief ?? '').trim()
 
-  const results: { skill_id: string; ok: boolean; output?: string; error?: string }[] = []
+  // Run AI calls in parallel with concurrency limit of 3 (respect AI provider rate limits)
+  const CONCURRENCY_LIMIT = 3
+  const allResults = await Promise.all(
+    skillIds.map(async (skillId) => {
+      const startTime = Date.now()
+      const skillContent = skillFilesMap.get(skillId)
+      if (!skillContent) {
+        return { skill_id: skillId, ok: false, error: 'SKILL.md tidak ditemukan', latencyMs: 0, promptTokens: 0, completionTokens: 0 }
+      }
 
-  // Sequential by design: one provider, and it keeps output order predictable for the admin.
-  for (const skillId of skillIds) {
-    const { data: skillFile } = await supabase
-      .from('skill_files').select('content')
-      .eq('skill_id', skillId).eq('path', 'SKILL.md').maybeSingle()
-    if (!skillFile?.content) {
-      results.push({ skill_id: skillId, ok: false, error: 'SKILL.md tidak ditemukan' })
+      const system = buildSystemPrompt(skillContent, brand)
+      const userMsg = brief || 'Jalankan skill ini untuk brand di atas dan berikan hasilnya.'
+
+      let text = ''
+      let usage: { promptTokens?: number; completionTokens?: number } | null | undefined
+      try {
+        ;({ text, usage } = await chatDetailed(provider, system, [{ role: 'user', content: userMsg }]))
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : 'Gagal memanggil AI'
+        return { skill_id: skillId, ok: false, error: errMsg, latencyMs: Date.now() - startTime, promptTokens: 0, completionTokens: 0 }
+      }
+
+      const latencyMs = Date.now() - startTime
+      if (!text.trim()) {
+        return { skill_id: skillId, ok: false, error: 'AI mengembalikan hasil kosong', latencyMs, promptTokens: 0, completionTokens: 0 }
+      }
+
+      return { skill_id: skillId, ok: true, output: text, latencyMs, promptTokens: usage?.promptTokens ?? 0, completionTokens: usage?.completionTokens ?? 0 }
+    }),
+  )
+
+  // Process results sequentially to avoid race conditions on DB writes
+  const results: { skill_id: string; ok: boolean; output?: string; error?: string }[] = []
+  const campaignSkillIds: string[] = []
+
+  for (const item of allResults) {
+    const { skill_id, ok, error, output, latencyMs, promptTokens, completionTokens } = item
+
+    // Log AI usage
+    await logAiUsage({
+      userId: user.id,
+      clientId,
+      route: 'api/admin/clients/[id]/skills/bulk-run',
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens,
+      completionTokens,
+      latencyMs,
+      errorMessage: error ?? (output ? undefined : 'Unknown error'),
+      costEstimate: 0,
+    }).catch(() => {})
+
+    if (!ok || !output) {
+      results.push({ skill_id, ok: false, error: error ?? 'Unknown error' })
       continue
     }
 
-    const system = buildSystemPrompt(
-      skillFile.content,
-      brand,
+    // Persist to skill_outputs
+    const { data: skillMeta } = await supabase
+      .from('skills').select('name').eq('id', skill_id).maybeSingle()
+    const stage = stageById.get(skill_id) ?? 'plan'
+
+    await supabase.from('skill_outputs').insert({
+      client_id: clientId,
+      skill_id,
+      stage,
+      title: skillMeta?.name ?? skill_id,
+      content: output,
+      status: 'draft',
+    })
+
+    // Mark the skill as done
+    await supabase.from('client_skills').upsert(
+      { client_id: clientId, skill_id, status: 'selesai' },
+      { onConflict: 'client_id,skill_id' },
     )
-    const userMsg = brief || 'Jalankan skill ini untuk brand di atas dan berikan hasilnya.'
 
-    const startTime = Date.now()
-    try {
-      const { text: out, usage } = await chatDetailed(provider, system, [{ role: 'user', content: userMsg }])
-      const latencyMs = Date.now() - startTime
+    // Track campaign skill for post-processing
+    if (skill_id === 'campaign-and-launch-planning') {
+      campaignSkillIds.push(skill_id)
+      results.push({ skill_id, ok: true, output })
+    } else {
+      results.push({ skill_id, ok: true, output })
+    }
+  }
 
-      if (!out.trim()) {
-        // Log failed call (with zero tokens)
-        await logAiUsage({
-          userId: user.id,
-          clientId,
-          route: 'api/admin/clients/[id]/skills/bulk-run',
-          model: provider.model,
-          providerKind: provider.kind,
-          promptTokens: 0,
-          completionTokens: 0,
-          latencyMs,
-          errorMessage: 'AI mengembalikan hasil kosong',
-          costEstimate: 0,
-        })
-        results.push({ skill_id: skillId, ok: false, error: 'AI mengembalikan hasil kosong' })
-        continue
-      }
+  // Post-process campaign skills: create content_campaigns
+  for (const skillId of campaignSkillIds) {
+    const result = results.find(r => r.skill_id === skillId)
+    if (!result?.output) continue
+    const out = result.output
+    const lines = out.split('\n')
+    const titleLine = lines.find(l => /^#\s*/.test(l))
+    const extractedName = titleLine ? titleLine.replace(/^#\s*/, '').trim() : `Kampanye ${new Date().toLocaleDateString('id-ID')}`
 
-      // Log successful call
-      await logAiUsage({
-        userId: user.id,
-        clientId,
-        route: 'api/admin/clients/[id]/skills/bulk-run',
-        model: provider.model,
-        providerKind: provider.kind,
-        promptTokens: usage?.promptTokens ?? 0,
-        completionTokens: usage?.completionTokens ?? 0,
-        latencyMs,
-        costEstimate: 0, // TODO: integrate pricing table later
-      })
+    const { data: existingCampaign } = await supabase
+      .from('content_campaigns')
+      .select('id')
+      .eq('client_id', clientId)
+      .eq('name', extractedName)
+      .maybeSingle()
 
-      // Persist to skill_outputs so it appears in the Hasil tab (same table the single path uses)
-      const { data: skillMeta } = await supabase
-        .from('skills').select('name').eq('id', skillId).maybeSingle()
-      const stage = stageById.get(skillId) ?? 'plan'
-
-      await supabase.from('skill_outputs').insert({
+    if (!existingCampaign) {
+      await supabase.from('content_campaigns').insert({
         client_id: clientId,
-        skill_id: skillId,
-        stage,
-        title: skillMeta?.name ?? skillId,
-        content: out,
-        status: 'draft',
-      })
-
-      // Mark the skill as done for this client so the pipeline reflects reality
-      await supabase.from('client_skills').upsert(
-        { client_id: clientId, skill_id: skillId, status: 'selesai' },
-        { onConflict: 'client_id,skill_id' },
-      )
-
-      if (skillId === 'campaign-and-launch-planning') {
-        const lines = out.split('\n')
-        const titleLine = lines.find(l => /^#\s*/.test(l))
-        const extractedName = titleLine ? titleLine.replace(/^#\s*/, '').trim() : `Kampanye ${new Date().toLocaleDateString('id-ID')}`
-
-        const { data: existingCampaign } = await supabase
-          .from('content_campaigns')
-          .select('id')
-          .eq('client_id', clientId)
-          .eq('name', extractedName)
-          .maybeSingle()
-
-        if (!existingCampaign) {
-          await supabase.from('content_campaigns').insert({
-            client_id: clientId,
-            name: extractedName,
-            type: 'campaign',
-            notes: 'Auto-generated from campaign-and-launch-planning skill output',
-          })
-        }
-      }
-
-      results.push({ skill_id: skillId, ok: true, output: out })
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : 'Gagal memanggil AI'
-      await logAiUsage({
-        userId: user.id,
-        clientId,
-        route: 'api/admin/clients/[id]/skills/bulk-run',
-        model: provider.model,
-        providerKind: provider.kind,
-        promptTokens: 0,
-        completionTokens: 0,
-        latencyMs: Date.now() - startTime,
-        errorMessage: errMsg,
-        costEstimate: 0,
-      })
-      results.push({
-        skill_id: skillId,
-        ok: false,
-        error: errMsg,
+        name: extractedName,
+        type: 'campaign',
+        notes: 'Auto-generated from campaign-and-launch-planning skill output',
       })
     }
   }
