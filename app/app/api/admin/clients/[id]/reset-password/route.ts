@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { checkRateLimit, getClientIp } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,14 @@ export async function POST(
   _request: Request,
   { params }: { params: { id: string } },
 ) {
+  // Rate limit: reset-password is a sensitive mutation — cap at 3 per IP per 60s.
+  const rl = checkRateLimit(getClientIp(_request.headers), 'reset-password', 3, 60_000)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan reset password. Coba lagi nanti.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+    )
+  }
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

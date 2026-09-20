@@ -5,6 +5,7 @@ import { notifyClientContentReady } from '@/lib/telegram/service'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,19 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   if (!data) return NextResponse.json({ error: 'Deliverable tidak ditemukan' }, { status: 404 })
+
+  // Audit: sending a deliverable to a client is a client-visible state transition.
+  await logAudit({
+    actorId: user.id,
+    actorRole: 'admin',
+    action: 'deliverable.send',
+    entityType: 'deliverable',
+    entityId: data.id,
+    clientId: data.client_id,
+    summary: `Kirim deliverable "${data.title}" ke klien`,
+    metadata: { status: 'sent' },
+    request: _request,
+  })
 
   // Kirim notifikasi Telegram ke klien secara asinkron jika terhubung
   if (data.client_id) {

@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin, isResponse } from '@/lib/ai/server'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
+  // Rate limit: creating deliverables is a write mutation.
+  const rl = checkRateLimit(getClientIp(req.headers), 'admin/deliverables', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
+      { status: 429 },
+    )
+  }
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
