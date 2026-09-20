@@ -19,12 +19,14 @@ export default async function KOLProfilePage({ params }: { params: Promise<{ id:
 
   if (!kol) notFound()
 
-  // Fetch collaboration history (content items linked to this KOL)
+  // Fetch collaboration history (content items for this KOL's client)
+  // NOTE: content_items has no assignee_id/kol FK; the real shared relationship
+  // is client_id (both kols and content_items reference clients).
   const { data: history } = await supabase
     .from('content_items')
-    .select('id, title, status, publish_date')
-    .eq('assignee_id', id)
-    .order('publish_date', { ascending: false })
+    .select('id, title, stage, target_date, platform, is_urgent')
+    .eq('client_id', kol.client_id)
+    .order('target_date', { ascending: false })
 
   return (
     <div className="space-y-6">
@@ -87,11 +89,11 @@ export default async function KOLProfilePage({ params }: { params: Promise<{ id:
                       <p className="font-medium">{item.title}</p>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                         <CalendarIcon className="size-3" />
-                        {item.publish_date ? new Date(item.publish_date).toLocaleDateString('id-ID') : 'TBD'}
+                        {item.target_date ? new Date(item.target_date).toLocaleDateString('id-ID') : 'TBD'}
                       </div>
                     </div>
-                    <Badge variant={item.status === 'published' ? 'default' : 'secondary'}>
-                      {item.status}
+                    <Badge variant={item.stage === 'Published' ? 'default' : 'secondary'}>
+                      {item.stage}
                     </Badge>
                   </div>
                 ))}

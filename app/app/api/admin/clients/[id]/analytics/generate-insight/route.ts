@@ -240,7 +240,7 @@ export async function POST(
       .limit(1),
     supabase
       .from('clients')
-      .select('name, default_ai_provider')
+      .select('name')
       .eq('id', clientId)
       .single(),
   ])
@@ -297,8 +297,8 @@ export async function POST(
   const { data: providerData } = await supabase
     .from('ai_providers')
     .select('*')
-    .eq('id', clientData?.default_ai_provider ?? null)
-    .single()
+    .eq('is_default', true)
+    .maybeSingle()
 
   if (!providerData) {
     return NextResponse.json({ error: 'Provider AI belum dikonfigurasi untuk client ini' }, { status: 400 })

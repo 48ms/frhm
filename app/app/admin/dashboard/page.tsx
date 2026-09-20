@@ -53,8 +53,8 @@ export default async function AdminDashboard() {
       .gte("scheduled_at", now.toISOString())
       .lte("scheduled_at", sevenDaysLater),
     supabase.from("tasks")
-      .select("*, kols(name), content_items(title)")
-      .in("status", ["pending", "in_progress"])
+      .select("id, title, status, created_at, client_id")
+      .in("status", ["pending", "in_progress"]),
   ])
 
   // Aggregate weekly briefing per client

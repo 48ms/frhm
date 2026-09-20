@@ -57,7 +57,7 @@ export default function DeliverableDetailPage() {
     setLoading(true)
     const { data } = await supabase
       .from('deliverables')
-      .select(`*, clients!left (name, contact_email)`)
+      .select(`*, clients!left(name, contact_email)`)
       .eq('id', deliverableId)
       .single()
 

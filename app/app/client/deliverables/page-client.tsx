@@ -63,7 +63,7 @@ export default function ClientDeliverablesPage() {
 
     const query = supabase
       .from('deliverables')
-      .select(`*, clients!left (name, contact_email)`)
+      .select(`*, clients!left(name, contact_email)`)
       .eq('client_id', clientId)
 
     if (filter !== 'all') query.eq('status', filter)

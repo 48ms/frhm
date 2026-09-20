@@ -17,8 +17,8 @@ export async function GET() {
   const { data, error } = await supabase
     .from('users')
     .select(`
-      id, email, full_name, role, client_id, created_at,
-      clients (name)
+      id, full_name, role, client_id, created_at,
+      clients(name)
     `)
     .order('created_at', { ascending: false })
 

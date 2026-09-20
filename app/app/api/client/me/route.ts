@@ -17,7 +17,7 @@ export async function GET() {
   // Fetch user profile
   const { data: profile, error: profileError } = await supabase
     .from('users')
-    .select('id, email, full_name, role, client_id, created_at, last_login, telegram_chat_id, telegram_notifications_enabled')
+    .select('id, full_name, role, client_id, created_at, telegram_chat_id, telegram_notifications_enabled')
     .eq('id', user.id)
     .single()
 

@@ -11,7 +11,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, email, full_name, client_id, role, telegram_notifications_enabled')
+    .select('id, full_name, client_id, role, telegram_notifications_enabled')
     .eq('id', user.id)
     .single()
 

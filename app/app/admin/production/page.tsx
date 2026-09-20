@@ -12,9 +12,13 @@ export default async function ProductionPage() {
     .from('content_items')
     .select(`
       *,
-      kols(id, name, rate_card)
+      campaigns(id, name)
     `)
     .order('created_at', { ascending: false })
+
+  const { data: kols } = await supabase
+    .from('kols')
+    .select('id, name, rate_card, client_id')
 
   const { data: clients } = await supabase
     .from('clients')

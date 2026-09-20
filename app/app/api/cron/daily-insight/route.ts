@@ -96,7 +96,7 @@ async function generateDailyInsightForClient(
     .from('scheduled_posts')
     .select(`
       id, title, platform, scheduled_at, campaign_tag, content_type, creative_format,
-      post_metrics!inner ( id, views, reach, likes, comments, shares, saves, clicks, wa_inquiries, dm_inquiries, comment_details, sentiment_summary )
+      post_metrics!inner(id, views, reach, likes, comments, shares, saves, clicks, wa_inquiries, dm_inquiries, comment_details, sentiment_summary)
     `)
     .eq('client_id', client.id)
     .gte('scheduled_at', periodStart)
