@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +50,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    void logAudit({
+      action: 'telegram.disconnect',
+      entityType: 'client',
+      entityId: body.id,
+      clientId: body.id,
+      summary: `Memutus koneksi Telegram client`,
+      request,
+    })
+
     return NextResponse.json({ ok: true })
   }
 
@@ -66,6 +76,15 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    void logAudit({
+      action: 'telegram.disconnect',
+      actorId: user.id,
+      entityType: 'user',
+      entityId: user.id,
+      summary: `Memutus koneksi Telegram admin`,
+      request,
+    })
 
     return NextResponse.json({ ok: true })
   }

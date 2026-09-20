@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { logAudit } from '@/lib/audit/log'
 
 export async function POST(request: Request) {
   const cookieStore = await cookies()
@@ -54,6 +55,17 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  void logAudit({
+    action: 'deliverable.create',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'deliverable',
+    entityId: (data as Record<string, unknown>)?.id as string | null,
+    clientId: client_id,
+    summary: `Membuat deliverable baru: ${title} (${type})`,
+    request,
+  })
 
   return NextResponse.json({ success: true, data }, { status: 201 })
 }

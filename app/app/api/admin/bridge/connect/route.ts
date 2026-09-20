@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, isResponse } from '@/lib/ai/server'
+import { logAudit } from '@/lib/audit/log'
 import {
   listProjects, listSocialAccounts, generateOAuthUrl, toBridgePlatform, disconnectAccount,
 } from '@/lib/bridge/woopsocial'
@@ -97,6 +98,15 @@ export async function POST(request: NextRequest) {
       .update({ status: 'belum', confirmed_at: null, handle: null, note: 'Terputus dari bridge' })
       .eq('client_id', client_id).eq('platform', platform.toLowerCase())
 
+    void logAudit({
+      action: 'channel.disconnect',
+      entityType: 'client_channel',
+      clientId: client_id,
+      summary: `Memutus channel ${platform} untuk client ${client_id}`,
+      metadata: { platform },
+      request,
+    })
+
     return NextResponse.json({ ok: true, disconnected: true, account: match.username })
   }
 
@@ -119,6 +129,15 @@ export async function POST(request: NextRequest) {
 
   const url = await generateOAuthUrl(key, project.id, bridgePlatform, redirect_url || undefined)
   if (!url.ok) return NextResponse.json({ error: url.error }, { status: 502 })
+
+  void logAudit({
+    action: 'channel.connect_initiated',
+    entityType: 'client_channel',
+    clientId: client_id,
+    summary: `Memulai koneksi channel ${platform} untuk client ${client_id}`,
+    metadata: { platform, project: project.name },
+    request,
+  })
 
   // Record that we handed out a URL — the account becomes 'terhubung' only after the bridge
   // confirms it (never optimistically, so the UI cannot claim a connection that isn't there).

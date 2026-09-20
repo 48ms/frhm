@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +50,16 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    void logAudit({
+      action: 'telegram_prefs.update',
+      entityType: 'client',
+      entityId: body.id,
+      clientId: body.id,
+      summary: `Preferensi Telegram client ${body.enabled ? 'diaktifkan' : 'dinonaktifkan'}`,
+      metadata: { enabled: body.enabled },
+      request,
+    })
+
     return NextResponse.json({ ok: true, enabled: body.enabled })
   }
 
@@ -66,6 +77,16 @@ export async function PATCH(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    void logAudit({
+      action: 'telegram_prefs.update',
+      actorId: user.id,
+      entityType: 'user',
+      entityId: user.id,
+      summary: `Preferensi Telegram admin ${body.enabled ? 'diaktifkan' : 'dinonaktifkan'}`,
+      metadata: { enabled: body.enabled },
+      request,
+    })
 
     return NextResponse.json({ ok: true, enabled: body.enabled })
   }

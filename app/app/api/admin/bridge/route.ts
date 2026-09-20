@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, isResponse } from '@/lib/ai/server'
+import { logAudit } from '@/lib/audit/log'
 import { health, listProjects, listSocialAccounts, listMedia } from '@/lib/bridge/woopsocial'
 
 export const dynamic = 'force-dynamic'
@@ -96,6 +97,13 @@ export async function POST(request: NextRequest) {
 
   const { error } = await supabase.from('bridge_config').update(patch).eq('id', 'woopsocial')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  void logAudit({
+    action: trimmed ? 'bridge.config_saved' : 'bridge.config_cleared',
+    summary: trimmed ? 'Menyimpan API key WoopSocial' : 'Menghapus API key WoopSocial',
+    metadata: { configured: Boolean(trimmed) },
+    request,
+  })
 
   // Report the key's presence, never its value.
   return NextResponse.json({ ok: true, configured: Boolean(trimmed) })

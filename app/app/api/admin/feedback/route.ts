@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,6 +49,20 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Resolve actor (feedback is submitted by client portal users)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  void logAudit({
+    action: 'feedback.submitted',
+    actorId: user?.id ?? null,
+    entityType: 'feedback',
+    entityId: (data as Record<string, unknown>)?.id as string | null,
+    clientId: client_id,
+    summary: `Feedback baru: ${title} (rating ${rating})`,
+    metadata: { rating, title },
+    request,
+  })
 
   return NextResponse.json({ feedback: data })
 }

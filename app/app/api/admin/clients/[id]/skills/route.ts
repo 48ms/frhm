@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { logAudit } from '@/lib/audit/log'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -68,6 +69,18 @@ export async function POST(
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
+  void logAudit({
+    action: 'client_skills.pack_enable',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'client_skill_pack',
+    entityId: packId,
+    clientId,
+    summary: `Mengaktifkan paket skill untuk client (${toInsert.length} skill baru)`,
+    metadata: { pack_id: packId, added: toInsert.length },
+    request,
+  })
+
   return NextResponse.json({ success: true, added: toInsert.length, already: have.size })
 }
 
@@ -107,6 +120,19 @@ export async function PATCH(
     .eq('skill_id', skillId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  void logAudit({
+    action: 'client_skills.status_change',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'client_skill',
+    entityId: skillId,
+    clientId,
+    summary: `Mengubah status skill client${status ? ` → ${status}` : ''}`,
+    metadata: { skill_id: skillId, status: status ?? null },
+    request,
+  })
+
   return NextResponse.json({ success: true })
 }
 
@@ -142,5 +168,18 @@ export async function DELETE(
     .in('skill_id', skillIds)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  void logAudit({
+    action: 'client_skills.pack_remove',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'client_skill_pack',
+    entityId: packId,
+    clientId,
+    summary: `Menghapus paket skill dari client (${skillIds.length} skill)`,
+    metadata: { pack_id: packId, removed: skillIds.length },
+    request,
+  })
+
   return NextResponse.json({ success: true, removed: skillIds.length })
 }

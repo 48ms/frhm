@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,6 +67,17 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  void logAudit({
+    action: 'competitor.create',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'competitor',
+    entityId: (competitor as Record<string, unknown>)?.id as string | null,
+    clientId: clientId,
+    summary: `Menambah benchmark kompetitor: ${parsed.data.brand_name} (${parsed.data.platform})`,
+    request,
+  })
+
   return NextResponse.json({ competitor })
 }
 
@@ -80,6 +92,9 @@ export async function DELETE(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const url = new URL(request.url)
   const competitorId = url.searchParams.get('id')
   if (!competitorId) return NextResponse.json({ error: 'competitor id required' }, { status: 400 })
@@ -91,6 +106,17 @@ export async function DELETE(
     .eq('client_id', clientId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  void logAudit({
+    action: 'competitor.delete',
+    actorId: user.id,
+    actorRole: profile?.role ?? null,
+    entityType: 'competitor',
+    entityId: competitorId,
+    clientId: clientId,
+    summary: `Menghapus benchmark kompetitor ${competitorId}`,
+    request,
+  })
 
   return NextResponse.json({ success: true })
 }
