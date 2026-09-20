@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
-import { BarChart3Icon, TrendingUpIcon, MousePointerClickIcon, TargetIcon, DollarSignIcon, ReceiptIcon } from 'lucide-react'
+import { TrendingUpIcon, MousePointerClickIcon, TargetIcon, DollarSignIcon, ReceiptIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 
 export function ROIDashboardBoard({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true)
@@ -15,7 +15,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
     totalReach: 0,
     totalClicks: 0,
     totalConversions: 0,
-    expenseData: [] as any[],
+    expenseData: [] as { name: string; value: number }[],
   })
   
   const supabase = createClient()
@@ -221,7 +221,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
                   <XAxis type="number" tickFormatter={(value) => `Rp ${value/1000}k`} fontSize={12} />
                   <YAxis dataKey="name" type="category" fontSize={12} />
                   <Tooltip 
-                    formatter={(value: any) => [`Rp ${(value as number).toLocaleString('id-ID')}`, 'Pengeluaran']}
+                    formatter={(value) => [`Rp ${Number(value).toLocaleString('id-ID')}`, 'Pengeluaran']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Bar dataKey="value" fill="currentColor" className="fill-brand-accent" radius={[0, 4, 4, 0]} />

@@ -33,13 +33,13 @@ interface ExpenseFormModalProps {
   clientId: string
   budgetId: string | undefined
   children: React.ReactNode
-  onSuccess?: (expense: any) => void
+  onSuccess?: (expense: { id: string; amount: number; category: string; description: string; expense_date: string }) => void
 }
 
 export function ExpenseFormModal({ clientId, budgetId, children, onSuccess }: ExpenseFormModalProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [kols, setKols] = useState<any[]>([])
+  const [kols, setKols] = useState<{ id: string; name: string; rate_card: number | null }[]>([])
   const supabase = createClient()
   
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<FormData>({
