@@ -67,7 +67,7 @@
 - [x] Add index on `client_id` + `created_at`
 
 ## Phase 11: Client Action Auditing (HIGH) — 2 hrs
-- [ ] Add `logAudit` to `brand-asset-hub.tsx` upload + delete (via API route)
+- [x] Add `logAudit` to `brand-asset-hub.tsx` upload + delete (via API route)
 - [x] Route `approval-board.tsx` writes through an audited API route `/api/client/approvals`
 - [x] Add `action: 'client.approve'` / `'client.reject'` audit entries
 

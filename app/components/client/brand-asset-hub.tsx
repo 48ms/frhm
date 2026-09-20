@@ -52,42 +52,40 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
       .upload(fileName, file)
 
     if (!uploadError) {
-      await supabase.from('brand_assets').insert({
-        client_id: clientId,
-        category: 'file',
-        file_path: fileName,
-        file_type: file.type,
+      const res = await fetch('/api/client/assets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: clientId,
+          category: 'file',
+          file_path: fileName,
+          file_type: file.type,
+        })
       })
-      fetchAssets()
+      if (res.ok) {
+        fetchAssets()
+      }
     }
     setUploading(false)
   }
 
   const handleSaveGuidelines = async () => {
     setSavingGuide(true)
-    const existingGuide = assets.find(a => a.category === 'guidelines')
-    
-    if (existingGuide) {
-      await supabase.from('brand_assets')
-        .update({ guidelines })
-        .eq('id', existingGuide.id)
-    } else {
-      await supabase.from('brand_assets').insert({
+    await fetch('/api/client/assets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         client_id: clientId,
         category: 'guidelines',
-        file_path: 'none',
         guidelines
       })
-    }
+    })
     fetchAssets()
     setSavingGuide(false)
   }
 
   const handleDelete = async (id: string, path: string) => {
-    if (path !== 'none') {
-      await supabase.storage.from('brand_assets').remove([path])
-    }
-    await supabase.from('brand_assets').delete().eq('id', id)
+    await fetch(`/api/client/assets?id=${id}`, { method: 'DELETE' })
     fetchAssets()
   }
 
