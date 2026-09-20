@@ -2,8 +2,16 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export async function POST(request: Request) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'admin/deliverables', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

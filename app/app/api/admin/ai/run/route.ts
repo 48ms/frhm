@@ -141,12 +141,11 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       clientId: client_id,
       route: 'api/admin/ai/run',
-      provider: provider.name,
+      providerKind: provider.kind,
       model: provider.model,
-      promptTokens: usage?.prompt_tokens ?? 0,
-      completionTokens: usage?.completion_tokens ?? 0,
-      durationMs,
-      status: 'success',
+      promptTokens: usage?.promptTokens ?? 0,
+      completionTokens: usage?.completionTokens ?? 0,
+      latencyMs: durationMs,
     })
 
     return NextResponse.json({ success: true, output: out, skill_id, client_id })

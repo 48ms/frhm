@@ -73,6 +73,14 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'skills-bulk-run', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan AI. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { logAudit } from '@/lib/audit/log'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -25,6 +26,13 @@ async function getSupabase() {
  *  If the deliverable is currently approved/revision_requested, editing it
  *  resets status to 'draft' (T016). */
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const rl = checkRateLimit(getClientIp(req.headers), 'admin/deliverables', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

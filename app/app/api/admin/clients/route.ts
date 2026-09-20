@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/audit/log'
 import { resolveProvider } from '@/lib/ai/server'
 import { chatJson } from '@/lib/ai/providers'
 import { NICHE_PACK_MAP, buildBrandProfilePrompt, type NicheId } from '@/lib/onboarding/niche-packs'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -30,6 +31,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'admin/clients', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

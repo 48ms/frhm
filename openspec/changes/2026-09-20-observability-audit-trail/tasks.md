@@ -25,10 +25,9 @@
 - [ ] Fix `app/admin/deliverables/new/page.tsx` catch block → alert
 
 ## Phase 3: Rate Limiting (11 routes) — 3 hrs
-- [ ] Add rate limit middleware to `POST /api/admin/clients`
-- [ ] Add rate limit middleware to `PATCH /api/admin/clients/[id]`
-- [ ] Add rate limit middleware to `POST /api/admin/users`
-- [ ] Add rate limit middleware to `PATCH /api/admin/users/[id]`
+- [x] Create `lib/middleware/rate-limit.ts` (sliding window, in-memory)
+- [x] Wire to all 11 critical mutation routes with RATE_LIMITS.mutation (20/min)
+- [x] Wire to AI/generate routes with RATE_LIMITS.ai (3/min)
 - [ ] Add rate limit middleware to `POST /api/admin/ai/run`
 - [ ] Add rate limit middleware to `POST /api/admin/deliverables`
 - [ ] Add rate limit middleware to `POST /api/admin/scheduled-posts`

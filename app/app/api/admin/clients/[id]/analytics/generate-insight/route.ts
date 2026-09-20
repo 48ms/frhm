@@ -12,6 +12,14 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'generate-insight', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan AI. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const { id: clientId } = await params
   const supabase = await createClient()
 

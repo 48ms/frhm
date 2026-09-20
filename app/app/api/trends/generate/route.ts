@@ -5,10 +5,19 @@ import { resolveProvider, loadClientFiles } from '@/lib/ai/server'
 import { evaluateThreeGates } from '@/lib/trends/validator'
 import { generateTrendContent } from '@/lib/trends/generator'
 import { notifyClientContentReady } from '@/lib/telegram/service'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'trends/generate', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan AI. Coba lagi dalam beberapa detik.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+    )
+  }
+
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
