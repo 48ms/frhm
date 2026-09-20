@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
+
+function serviceClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 /** PATCH update user role, name, client_id */
 export async function PATCH(
@@ -38,12 +46,13 @@ export async function PATCH(
   if (role !== undefined) updates.role = role
   if (client_id !== undefined) updates.client_id = role === 'client' ? client_id : null
 
-  const { error } = await supabase.from('users').update(updates).eq('id', id)
+  const svc = serviceClient()
+  const { error } = await svc.from('users').update(updates).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // If role changed to client but no client_id, or role changed to admin, sync auth metadata
+  // Sync role into auth user_metadata (service-role required)
   if (role) {
-    await supabase.auth.admin.updateUserById(id, { user_metadata: { role } })
+    await svc.auth.admin.updateUserById(id, { user_metadata: { role } })
   }
 
   void logAudit({
@@ -76,9 +85,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'Tidak bisa menghapus diri sendiri' }, { status: 400 })
   }
 
-  // Delete from auth (cascades to public.users via trigger or manual)
-  const { error: authError } = await supabase.auth.admin.deleteUser(id)
+  // Delete from auth.users (service-role required)
+  const svc = serviceClient()
+  const { error: authError } = await svc.auth.admin.deleteUser(id)
   if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
+
+  // Also delete from public.users
+  const { error: dbError } = await svc.from('users').delete().eq('id', id)
+  if (dbError) {
+    console.error('[admin/users/delete] auth deleted but public.users still has row:', dbError.message)
+  }
 
   void logAudit({
     action: 'user.delete',

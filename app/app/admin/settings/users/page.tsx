@@ -18,6 +18,7 @@ type User = {
   client_id: string | null
   clients: { name: string } | null
   created_at: string
+  last_sign_in_at?: string | null
 }
 
 type ClientOption = { id: string; name: string }
@@ -159,12 +160,13 @@ export default function AdminUsersPage() {
                   <th className="p-3 font-medium">Role</th>
                   <th className="p-3 font-medium">Client</th>
                   <th className="p-3 font-medium">Dibuat</th>
+                  <th className="p-3 font-medium">Login Terakhir</th>
                   <th className="p-3 font-medium text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {users.length === 0 ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada user</td></tr>
+                  <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada user</td></tr>
                 ) : users.map(u => (
                   <tr key={u.id} className="hover:bg-muted/30">
                     <td className="p-3">
@@ -177,6 +179,11 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="p-3 text-muted-foreground">
                       {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {u.last_sign_in_at
+                        ? new Date(u.last_sign_in_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : 'Belum pernah'}
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-2">
