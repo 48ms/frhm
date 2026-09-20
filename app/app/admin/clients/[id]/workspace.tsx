@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -23,10 +24,21 @@ import { TrendRadarBoard } from '@/components/trends/trend-radar-board'
 import { TrendJackBar } from '@/components/trends/trend-jack-bar'
 import { BrandAssetHub } from '@/components/client/brand-asset-hub'
 import { EventWorkspaceBoard } from '@/components/events/event-workspace-board'
-import { AdsTrackerBoard } from '@/components/marketing/ads-tracker-board'
 import { BudgetLedgerBoard } from '@/components/marketing/budget-ledger-board'
-import { ROIDashboardBoard } from '@/components/marketing/roi-dashboard-board'
 import { OmniCalendarBoard } from '@/components/production/omni-calendar-board'
+// Recharts (~200KB bundle) — lazy-loaded to avoid loading chart code when marketing tab is closed.
+const AdsTrackerBoard = dynamic(
+  () => import('@/components/marketing/ads-tracker-board').then((m) => m.AdsTrackerBoard),
+  {
+    loading: () => <div className="h-64 animate-pulse rounded-lg bg-muted" />,
+  }
+)
+const ROIDashboardBoard = dynamic(
+  () => import('@/components/marketing/roi-dashboard-board').then((m) => m.ROIDashboardBoard),
+  {
+    loading: () => <div className="h-64 animate-pulse rounded-lg bg-muted" />,
+  }
+)
 import {
   ArrowLeftIcon, Building2Icon, SaveIcon, PlusIcon, FileTextIcon,
   CheckCircle2Icon, LayersIcon, WorkflowIcon, KeyRoundIcon,

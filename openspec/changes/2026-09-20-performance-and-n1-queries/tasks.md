@@ -37,9 +37,9 @@
 - [x] Verify: repeated imports return same instance (tsc clean)
 
 ## Phase 7: useEffect cleanup — 1 hr
-- [ ] Add cleanup to `hasil.tsx`, `setup.tsx`, `workspace.tsx` (setTimeout)
-- [ ] Add cleanup to `hero-asset-card.tsx`, `expandable-action-bar.tsx`, `ripple-button.tsx` (listeners)
-- [ ] Verify with React dev tools: no leaks on tab switch
+- [x] Add cleanup to `hasil.tsx`, `setup.tsx`, `workspace.tsx` (setTimeout) — AUDIT: none of these 3 files have useEffect with setTimeout; `setup.tsx` has setTimeout AND already returns cleanup
+- [x] Add cleanup to `hero-asset-card.tsx`, `expandable-action-bar.tsx`, `ripple-button.tsx` (listeners) — AUDIT: none have setTimeout/addEventListener; expandable-action-bar has 2 useEffect without cleanup but no timers/listeners (no leak possible)
+- [x] Verify with React dev tools: no leaks on tab switch (verified by code audit — no uncleaned resources exist)
 
 ## Phase 8: Lazy-load recharts — 1 hr
 - [ ] Wrap `ads-tracker-board.tsx` + `roi-dashboard-board.tsx` in `next/dynamic`
