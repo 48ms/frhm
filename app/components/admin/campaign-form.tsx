@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import React, { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -9,70 +9,83 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
-
-const pillarSchema = z.object({
-  Educational: z.number().min(0).max(100),
-  Promotional: z.number().min(0).max(100),
-  BehindTheScenes: z.number().min(0).max(100),
-  IndustryInsights: z.number().min(0).max(100),
-  Entertainment: z.number().min(0).max(100),
-})
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
 const campaignSchema = z.object({
+  client_id: z.string().min(1, 'Klien wajib dipilih'),
   name: z.string().min(1, 'Nama kampanye wajib diisi'),
   type: z.enum(['campaign', 'promo', 'event']),
-  start_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
-  end_date: z.string().min(1, 'Tanggal selesai wajib diisi'),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
   color: z.string().min(1, 'Warna wajib diisi'),
   notes: z.string().optional(),
-  pillar_allocation: pillarSchema.refine(
-    (data) => {
-      const sum = data.Educational + data.Promotional + data.BehindTheScenes + data.IndustryInsights + data.Entertainment
-      return sum === 100
-    },
-    { message: 'Total alokasi pilar harus tepat 100%' }
-  )
 })
 
 type CampaignFormValues = z.infer<typeof campaignSchema>
 
+type ClientOption = { id: string; name: string }
+
 export function CampaignForm() {
   const router = useRouter()
-  
+  const [clients, setClients] = useState<ClientOption[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
+      client_id: '',
       name: '',
       type: 'campaign',
       start_date: '',
       end_date: '',
       color: '#3b82f6',
       notes: '',
-      pillar_allocation: {
-        Educational: 30,
-        Promotional: 20,
-        BehindTheScenes: 20,
-        IndustryInsights: 20,
-        Entertainment: 10,
-      }
-    }
+    },
   })
 
-  const { register, handleSubmit, formState: { errors }, control, watch } = form
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = form
+  const clientId = watch('client_id')
+  const type = watch('type')
 
-  const pillarValues = watch('pillar_allocation')
-  const totalPillar = (pillarValues?.Educational || 0) + 
-                      (pillarValues?.Promotional || 0) + 
-                      (pillarValues?.BehindTheScenes || 0) + 
-                      (pillarValues?.IndustryInsights || 0) + 
-                      (pillarValues?.Entertainment || 0)
+  useEffect(() => {
+    fetch('/api/admin/clients?all=true&limit=100')
+      .then((r) => r.json())
+      .then((j) => setClients(j.clients ?? []))
+      .catch(() => toast.error('Gagal memuat daftar klien'))
+  }, [])
 
   const onSubmit = async (data: CampaignFormValues) => {
-    console.log('Submitting campaign:', data)
-    // TODO: Connect to Server Action / Supabase
-    // For now, redirect back
-    router.push('/admin/dashboard')
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/admin/clients/' + data.client_id + '/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: data.client_id,
+          name: data.name.trim(),
+          type: data.type,
+          start_date: data.start_date || null,
+          end_date: data.end_date || null,
+          color: data.color,
+          notes: data.notes || null,
+        }),
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'Gagal menyimpan kampanye')
+
+      toast.success('Kampanye berhasil dibuat')
+      router.push('/admin/calendar')
+      router.refresh()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan kampanye'
+      toast.error(msg)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -84,9 +97,39 @@ export function CampaignForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="client">Klien</Label>
+            <Select value={clientId} onValueChange={(v) => setValue('client_id', v ?? '', { shouldValidate: true })}>
+              <SelectTrigger id="client">
+                <SelectValue placeholder="Pilih klien..." />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.client_id && <p className="text-sm text-red-500">{errors.client_id.message}</p>}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="name">Nama Kampanye</Label>
             <Input id="name" placeholder="Mis. Promo Lebaran 2026" {...register('name')} />
             {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="type">Tipe</Label>
+            <Select value={type} onValueChange={(v) => setValue('type', (v ?? 'campaign') as CampaignFormValues['type'], { shouldValidate: true })}>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Pilih tipe..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="campaign">Kampanye</SelectItem>
+                <SelectItem value="promo">Promo</SelectItem>
+                <SelectItem value="event">Event</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -103,42 +146,23 @@ export function CampaignForm() {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="color">Warna</Label>
+            <Input type="color" id="color" className="h-10 w-20 p-1" {...register('color')} />
+            {errors.color && <p className="text-sm text-red-500">{errors.color.message}</p>}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="notes">Catatan (Opsional)</Label>
             <Textarea id="notes" placeholder="Catatan tambahan..." {...register('notes')} />
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Alokasi Pilar Konten</CardTitle>
-          <CardDescription>
-            Tentukan persentase distribusi konten berdasarkan pilar. Total harus 100%. 
-            Saat ini: <span className={totalPillar === 100 ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{totalPillar}%</span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {['Educational', 'Promotional', 'BehindTheScenes', 'IndustryInsights', 'Entertainment'].map((pillar) => (
-            <div key={pillar} className="flex items-center gap-4">
-              <Label className="w-1/3">{pillar}</Label>
-              <div className="flex-1 flex items-center gap-2">
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="100" 
-                  {...register(`pillar_allocation.${pillar as keyof typeof pillarSchema.shape}`, { valueAsNumber: true })} 
-                />
-                <span>%</span>
-              </div>
-            </div>
-          ))}
-          {errors.pillar_allocation && <p className="text-sm text-red-500">{errors.pillar_allocation.message}</p>}
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end gap-4">
-        <Button variant="outline" type="button" onClick={() => router.back()}>Batal</Button>
-        <Button type="submit" disabled={totalPillar !== 100}>Simpan Kampanye</Button>
+        <Button variant="outline" type="button" onClick={() => router.back()} disabled={submitting}>Batal</Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : 'Simpan Kampanye'}
+        </Button>
       </div>
     </form>
   )

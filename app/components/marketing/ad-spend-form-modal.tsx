@@ -21,8 +21,8 @@ import { toast } from 'sonner'
 
 const formSchema = z.object({
   campaign_name: z.string().min(2, 'Nama kampanye minimal 2 karakter'),
-  spend: z.number().min(0, 'Angka positif'),
-  clicks: z.number().min(0, 'Angka positif'),
+  spend: z.coerce.number().min(0, 'Angka positif'),
+  clicks: z.coerce.number().min(0, 'Angka positif'),
   log_date: z.string().min(1, 'Tanggal wajib diisi')
 })
 
@@ -39,7 +39,7 @@ export function AdSpendFormModal({ clientId, children, onSuccess }: AdSpendFormM
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       campaign_name: '',
       spend: 0,

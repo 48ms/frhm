@@ -21,7 +21,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
-  amount: z.number().min(1, 'Jumlah pengeluaran harus lebih dari 0'),
+  amount: z.coerce.number().min(1, 'Jumlah pengeluaran harus lebih dari 0'),
   category: z.string().min(1, 'Pilih kategori'),
   description: z.string().min(1, 'Isi keterangan'),
   expense_date: z.string().min(1, 'Pilih tanggal'),
@@ -43,7 +43,7 @@ export function ExpenseFormModal({ clientId, budgetId, children, onSuccess }: Ex
   const supabase = createClient()
   
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       amount: 0,
       category: '',

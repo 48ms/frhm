@@ -21,7 +21,7 @@ import { toast } from 'sonner'
 
 const formSchema = z.object({
   month: z.string().min(1, 'Pilih bulan'),
-  total_budget: z.number().min(1, 'Budget harus lebih dari 0'),
+  total_budget: z.coerce.number().min(1, 'Budget harus lebih dari 0'),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -37,7 +37,7 @@ export function BudgetFormModal({ clientId, children, onSuccess }: BudgetFormMod
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       month: '',
       total_budget: 0

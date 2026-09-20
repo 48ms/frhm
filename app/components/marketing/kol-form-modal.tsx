@@ -23,7 +23,7 @@ const formSchema = z.object({
   name: z.string().min(2, 'Nama KOL minimal 2 karakter'),
   niche: z.string().optional(),
   contact_info: z.string().optional(),
-  rate_card: z.number().min(0, 'Rate card tidak boleh negatif'),
+  rate_card: z.coerce.number().min(0, 'Rate card tidak boleh negatif'),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -54,7 +54,7 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       name: '',
       niche: '',
