@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
 
 export type AiUsageInput = {
   /** Caller's user id (the admin/client who triggered the call). Null for system/cron calls. */

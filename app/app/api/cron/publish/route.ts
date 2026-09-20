@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 import { getBridgeKey } from '@/lib/bridge/config'
 import { listSocialAccounts, validatePost, createPost, toBridgePlatform } from '@/lib/bridge/woopsocial'
 import { notifyAdminPublishStatus } from '@/lib/telegram/service'
+import { isFeatureEnabled } from '@/lib/feature-flags'
+import { logger } from '@/lib/logger'
 
 // Run dynamically, triggered by external CRON scheduler (Vercel Cron, pg_cron)
 export const dynamic = 'force-dynamic'
@@ -14,6 +16,13 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized CRON trigger' }, { status: 401 })
+  }
+
+  // Kill-switch: if auto-publish is disabled, do nothing (Phase 13 feature flag)
+  const autoPublishEnabled = await isFeatureEnabled('auto_publish_enabled')
+  if (!autoPublishEnabled) {
+    logger.info('Auto-publish disabled by feature flag — skipping cron run')
+    return NextResponse.json({ message: 'Auto-publish is disabled', processed: 0 })
   }
 
   // Use service role to bypass RLS for background job
