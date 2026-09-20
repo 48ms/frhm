@@ -1,24 +1,24 @@
 # Tasks: Observability & Audit Trail Fixes
 
 ## Phase 1: Audit Coverage (15 routes) — 5 hrs
-- [ ] Add `logAudit({ action: 'user.create' })` to `POST /api/admin/users`
-- [ ] Add `logAudit({ action: 'user.delete' })` to `DELETE /api/admin/users/[id]`
-- [ ] Add `logAudit({ action: 'ai.provider.change' })` to `PATCH /api/admin/ai/providers`
-- [ ] Add `logAudit({ action: 'telegram.disconnect' })` to `POST /api/telegram/disconnect`
-- [ ] Add `logAudit({ action: 'telegram.preferences' })` to `PATCH /api/telegram/preferences`
-- [ ] Add `logAudit({ action: 'client.delete' })` to `DELETE /api/admin/clients/[id]`
-- [ ] Add `logAudit({ action: 'competitor.delete' })` to `DELETE /api/admin/clients/[id]/competitors`
-- [ ] Add `logAudit({ action: 'skill.delete' })` to `DELETE /api/admin/clients/[id]/skills`
-- [ ] Add `logAudit({ action: 'deliverable.delete' })` to `DELETE /api/admin/deliverables/[id]`
+- [x] Add `logAudit({ action: 'user.create' })` to `POST /api/admin/users`
+- [x] Add `logAudit({ action: 'user.delete' })` to `DELETE /api/admin/users/[id]`
+- [x] Add `logAudit({ action: 'ai.provider.change' })` to `PATCH /api/admin/ai/providers`
+- [x] Add `logAudit({ action: 'telegram.disconnect' })` to `POST /api/telegram/disconnect`
+- [x] Add `logAudit({ action: 'telegram.preferences' })` to `PATCH /api/telegram/preferences`
+- [x] Add `logAudit({ action: 'client.delete' })` to `DELETE /api/admin/clients/[id]`
+- [x] Add `logAudit({ action: 'competitor.delete' })` to `DELETE /api/admin/clients/[id]/competitors`
+- [x] Add `logAudit({ action: 'skill.delete' })` to `DELETE /api/admin/clients/[id]/skills`
+- [x] Add `logAudit({ action: 'deliverable.delete' })` to `DELETE /api/admin/deliverables/[id]`
 - [ ] Add `logAudit({ action: 'deliverable.send' })` to `POST /api/admin/deliverables/[id]/send`
-- [ ] Add `logAudit({ action: 'deliverable.create' })` to `POST /api/admin/deliverables`
+- [x] Add `logAudit({ action: 'deliverable.create' })` to `POST /api/admin/deliverables`
 - [ ] Add `logAudit({ action: 'scheduled_post.create' })` to `POST /api/admin/scheduled-posts`
 - [ ] Add `logAudit({ action: 'publish' })` to `POST /api/cron/publish`
 - [ ] Add `logAudit({ action: 'daily_insight' })` to `GET /api/cron/daily-insight`
-- [ ] Add `logAudit({ action: 'auth.signin' })` to `/auth/login/page.tsx` login handler
+- [x] Add `logAudit({ action: 'auth.signin' })` to `/auth/callback/route.ts` login handler
 
 ## Phase 2: Error Handling (10 routes) — 3 hrs
-- [ ] Create `app/error.tsx` (ErrorBoundary for all pages)
+- [x] Create `app/error.tsx` (ErrorBoundary for all pages)
 - [ ] Create `app/admin/error.tsx` (errorBoundary for admin)
 - [ ] Create `app/client/error.tsx` (errorBoundary for client)
 - [ ] Add `ErrorBoundary` wrapper in `app/layout.tsx`
@@ -83,10 +83,10 @@
 - [ ] Use flag for auto-publish kill-switch
 
 ## Phase 14: Trigger-Based Audit Backstop (HIGH) — 2 hrs
-- [ ] Create `audit_row_change()` SECURITY DEFINER trigger function
-- [ ] Attach to critical tables: `users`, `clients`, `deliverables`, `scheduled_posts`, `platform_posts`
-- [ ] Trigger writes `action: 'db.<table>.update'` / `'db.<table>.delete'` with before/after metadata
-- [ ] Verify trigger does not break app writes (test insert/update/delete)
+- [x] Create `audit_row_change()` SECURITY DEFINER trigger function
+- [x] Attach to critical tables: `users`, `clients`, `deliverables`, `scheduled_posts`, `platform_posts`
+- [x] Trigger writes `action: 'db.<table>.update'` / `'db.<table>.delete'` with before/after metadata
+- [x] Verify trigger does not break app writes (test insert/update/delete)
 
 ## Phase 15: Before/After Diff in logAudit (MEDIUM) — 1 hr
 - [ ] For UPDATE operations, fetch old row before update

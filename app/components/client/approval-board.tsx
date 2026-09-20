@@ -4,12 +4,20 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, X, FileText, Clock, XCircle, CheckCircle2 } from 'lucide-react'
+import { Check, X, Clock, XCircle, CheckCircle2 } from 'lucide-react'
 import { PlatformIcon } from '@/components/calendar/calendar-view'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { id } from 'date-fns/locale'
+
+async function postApproval(postId: string, action: 'approve' | 'reject') {
+  const res = await fetch('/api/client/approvals', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: postId, action }),
+  })
+  if (!res.ok) throw new Error('Action failed')
+}
 
 export type ApprovalPost = {
   id: string
@@ -31,15 +39,14 @@ function getPlatformIcon(platform: string) {
   return <PlatformIcon platform={platform} className="size-4" />
 }
 
-export function ApprovalBoard({ 
-  initialPosts, clientId 
-}: { 
+export function ApprovalBoard({
+  initialPosts, clientId
+}: {
   initialPosts: ApprovalPost[]
-  clientId: string 
+  clientId: string
 }) {
   const [posts, setPosts] = useState<ApprovalPost[]>(initialPosts)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
-  const supabase = createClient()
 
   const pending = posts.filter(p => p.status === 'InReview')
   const approved = posts.filter(p => p.status === 'Approved')
@@ -47,13 +54,7 @@ export function ApprovalBoard({
   const handleApprove = async (postId: string) => {
     setIsUpdating(postId)
     try {
-      const { error } = await supabase
-        .from('platform_posts')
-        .update({ status: 'Approved' })
-        .eq('id', postId)
-      
-      if (error) throw error
-
+      await postApproval(postId, 'approve')
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: 'Approved' } : p))
       toast.success('Konten berhasil disetujui')
     } catch (err) {
@@ -67,13 +68,7 @@ export function ApprovalBoard({
   const handleReject = async (postId: string) => {
     setIsUpdating(postId)
     try {
-      const { error } = await supabase
-        .from('platform_posts')
-        .update({ status: 'Draft' })
-        .eq('id', postId)
-      
-      if (error) throw error
-
+      await postApproval(postId, 'reject')
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: 'Draft' } : p))
       toast.success('Konten dikembalikan ke Draft untuk revisi')
     } catch (err) {
