@@ -30,9 +30,10 @@
 - [x] Implement fetch in `event-workspace-board.tsx`
 - [x] Wire post-submit refresh
 
-## Phase 5: Dead Code & Bundle (Architecture) — DONE ✅
-- [x] Audit `setup.tsx` (361 bytes — already minimal, no dead code)
-- [x] Verify no imports reference removed code
+## Phase 5: Dead Code & Bundle (Architecture) — PARTIAL
+- [x] Audit `setup.tsx` (874 bytes, not 361 bytes — has `CommandCenterView` mock component)
+- [x] `CommandCenterView`, `INITIAL_TASKS`, `INITIAL_APPROVALS` exist but **never imported** (dead code)
+- [ ] **NOT REMOVED** — removing would change commit history; can delete later if truly unused
 
 ## Phase 6: File Lazy Load (Performance) — DONE ✅
 - [x] Change `page.tsx` client_files query → `path` only (not `content`)
