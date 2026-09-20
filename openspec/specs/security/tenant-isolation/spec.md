@@ -1,6 +1,9 @@
-# tenant-isolation Specification
+# security/tenant-isolation Specification
 
-## ADDED Requirements
+## Purpose
+TBD - created by archiving change 2026-09-20-fullstack-audit-hardening. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Row Level Security enforces tenant boundaries
 The system SHALL enforce per-tenant isolation on all client-scoped tables via Row Level Security policies that constrain access to the requesting user's own client_id. Policies MUST NOT use `USING (true)` for write operations.

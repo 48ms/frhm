@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,15 +10,26 @@ import { CheckCircle2Icon, ClockIcon, AlertCircleIcon, CalendarIcon } from 'luci
 
 export function ActionCenterWidget({ initialTasks }: { initialTasks: any[] }) {
   const [tasks, setTasks] = useState(initialTasks)
+  const router = useRouter()
 
   const markDone = async (id: string) => {
     // Optimistic update
+    const previous = tasks
     setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t))
-    await fetch('/api/admin/tasks', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action: 'mark_done' }),
-    })
+    try {
+      const res = await fetch('/api/admin/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'mark_done' }),
+      })
+      if (!res.ok) throw new Error('mark_done failed')
+      toast.success('Task ditandai selesai')
+      // Keep server-rendered dashboard in sync (force-dynamic page)
+      router.refresh()
+    } catch {
+      setTasks(previous) // rollback optimistic update
+      toast.error('Gagal menandai task selesai')
+    }
   }
 
   const reschedule = async (id: string) => {
@@ -26,14 +39,23 @@ export function ActionCenterWidget({ initialTasks }: { initialTasks: any[] }) {
 
     const newDate = new Date(task.due_date)
     newDate.setDate(newDate.getDate() + 1)
-    
+
     // Optimistic update
+    const previous = tasks
     setTasks(tasks.map(t => t.id === id ? { ...t, due_date: newDate.toISOString() } : t))
-    await fetch('/api/admin/tasks', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action: 'reschedule', due_date: newDate.toISOString() }),
-    })
+    try {
+      const res = await fetch('/api/admin/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'reschedule', due_date: newDate.toISOString() }),
+      })
+      if (!res.ok) throw new Error('reschedule failed')
+      toast.success('Task dijadwalkan ulang (+1 hari)')
+      router.refresh()
+    } catch {
+      setTasks(previous) // rollback optimistic update
+      toast.error('Gagal menjadwalkan ulang task')
+    }
   }
 
   const now = new Date()

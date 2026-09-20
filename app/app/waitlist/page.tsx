@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { LockIcon } from 'lucide-react'
 
+// Always render per-request — never cache RSC payload (avoids stale session/role state)
+export const dynamic = 'force-dynamic'
+
 export default async function WaitlistPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
