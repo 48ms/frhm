@@ -58,7 +58,7 @@ export function BottomNav({ pendingCount = 0 }: { pendingCount?: number }) {
 
   return (
     <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 flex md:hidden pb-safe">
-      <div className="grid h-full w-full grid-cols-5 font-medium">
+      <div className="grid h-full w-full grid-cols-6 font-medium">
         {items.map((item) => (
           <Link
             key={item.title}
