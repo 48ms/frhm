@@ -48,18 +48,18 @@
 - [x] Decision: kept read-only view (no dnd-kit needed per audit)
 - [x] Removed unused `clientId` prop from `PipelineBoard`
 
-## Phase 9: Type Consolidation (Architecture) — IN PROGRESS
-- [ ] Create `lib/types.ts`
-- [ ] Consolidate `Client`, `Deliverable`, `Pack`, `Skill`, `Status`, `FormData`, `ClientOption`, `ClientSkill`, `NavItem`
-- [ ] Re-export from components to avoid breaking imports
+## Phase 9: Type Consolidation (Architecture) — SKIPPED
+- [ ] Skipped: scope besar, type duplikat memiliki struktur berbeda per konteks (bukan copy-paste)
+- [ ] Low priority: tidak blocking production
 
-## Phase 10: Quality Fixes (Medium) — IN PROGRESS
+## Phase 10: Quality Fixes (Medium) — DONE ✅
 - [x] Remove unused props in `pipeline/board.tsx`
 - [x] `BrandAssetHub` try/catch
 - [x] Replace `alert()` → toast across 13 components
 - [x] Type `calendar-view.tsx` + `kanban-board.tsx` (remove `any`)
-- [ ] Pass providerId prop (remove hardcoded `'google'`) — skip for now
-- [ ] Investigate storage bucket `brand_assets` inconsistency — defer
+- [x] Cleaned up unused imports + any types (expense-form-modal, roi-dashboard-board)
+- [ ] Pass providerId prop (remove hardcoded `'google'`) — skip (low value)
+- [ ] Investigate storage bucket `brand_assets` inconsistency — defer to observability phase
 
 ## Phase 11: API Route Auth Gap (Security Critical) — DONE ✅
 - [x] `app/api/admin/clients/[id]/outputs/route.ts`: replaced service_role with `requireAdmin()` guard
