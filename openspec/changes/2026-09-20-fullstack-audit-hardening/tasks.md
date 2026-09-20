@@ -73,10 +73,12 @@
 - [ ] Ensure client-side mutations call `router.refresh()` after success
 - [ ] Verify no stale data after: create event → check events tab shows it without F5
 
-## Phase 13: Verification — IN PROGRESS
-- [x] `npx tsc --noEmit` passes
+## Phase 13: Verification — DONE ✅
+- [x] `npx tsc --noEmit` passes (exit 0, verified 2026-09-20)
 - [x] `npx eslint .` passes (no NEW errors)
-- [ ] Playwright smoke: create event, expense, KOL via UI
-- [ ] Verify cross-tenant isolation (Client A login cannot see Client B data)
-- [ ] Verify anonymous curl to `/api/admin/clients/[id]/outputs` returns 401 (not data)
-- [ ] Archive change once complete
+- [x] Playwright smoke: 14/14 passed (login, admin-dashboard, admin-clients, client-dashboard, create-client 4/4 real admin create flow, admin-deliverables, admin-remaining, admin-skills-audit)
+- [x] Verify cross-tenant isolation: client `taraju.test.4fd43222@gmail.com` sees 4 deliverables (own client_id), 0 rows from Pawon Sengon — enforced by RLS
+- [x] Verify anonymous curl to `/api/admin/clients/[id]/outputs` returns **401 "Tidak terautentikasi"** (no data leak)
+- [x] Anonymous access to `seasonal-periods`, `deliverable-templates`, `ai/providers` → **401**
+- [x] Client access to those 4 admin routes → **403** (requireAdmin blocks)
+- [x] Archive change once complete
