@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
-import { chat, type Provider } from '@/lib/ai/providers'
+import { chatDetailed, type Provider } from '@/lib/ai/providers'
+import { logAiUsage } from '@/lib/ai/usage'
 import { buildInsightPrompt, type InsightContext } from '@/lib/analytics/insight-prompt'
 import { buildAdminReport, buildClientReport } from '@/lib/telegram/messages/daily-briefing'
 import { sendTelegramMessage } from '@/lib/telegram/service'
@@ -313,9 +314,21 @@ async function generateDailyInsightForClient(
     api_key: providerData.api_key,
   }
 
-  const aiInsight = await chat(provider, 'Kamu adalah Senior Social Media Analyst untuk agency Frhm.', [
+  const startTime = Date.now()
+  const { text: aiInsight, usage } = await chatDetailed(provider, 'Kamu adalah Senior Social Media Analyst untuk agency Frhm.', [
     { role: 'user', content: prompt }
   ])
+  await logAiUsage({
+    userId: null,
+    clientId: client.id,
+    route: 'api/cron/daily-insight',
+    model: provider.model,
+    providerKind: provider.kind,
+    promptTokens: usage?.promptTokens ?? 0,
+    completionTokens: usage?.completionTokens ?? 0,
+    latencyMs: Date.now() - startTime,
+    costEstimate: 0,
+  })
 
   // 9. Save summary to DB
   const { data: summary, error: sumError } = await supabase

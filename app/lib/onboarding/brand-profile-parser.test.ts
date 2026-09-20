@@ -4,6 +4,7 @@
  * Exits non-zero on failure so CI can gate on it.
  */
 
+import { describe, it } from 'vitest'
 import { parseBrandProfileMarkdown, serializeBrandProfile, calculateTotalPercentage } from './brand-profile-parser'
 
 let failures = 0
@@ -16,7 +17,9 @@ function check(label: string, cond: boolean, detail?: unknown) {
   }
 }
 
-const sampleMarkdown = `# Brand Profile — Pawon Sengon
+describe('brand-profile-parser', () => {
+  it('parses and serializes brand profile correctly', () => {
+    const sampleMarkdown = `# Brand Profile — Pawon Sengon
 
 ## Who We Are
 Pawon Sengon adalah waralaba kuliner Indonesia yang menyajikan hidangan tradisional dengan resep turun-temurun sejak 1985. Kami melayani keluarga Indonesia dengan makanan halal, sehat, dan penuh rempah asli.
@@ -89,9 +92,9 @@ check('pillars stable', reparsed.pillars.length === parsed.pillars.length, repar
 check('channels stable', reparsed.channels.join(',') === parsed.channels.join(','), reparsed.channels)
 check('tone stable', reparsed.voice.tone.join(',') === parsed.voice.tone.join(','), reparsed.voice.tone)
 
-console.log('')
-if (failures > 0) {
-  console.log(`❌ ${failures} assertion(s) failed`)
-  process.exit(1)
-}
-console.log('✅ All assertions passed')
+    console.log('')
+    if (failures > 0) {
+      throw new Error(`${failures} assertion(s) failed`)
+    }
+  })
+})

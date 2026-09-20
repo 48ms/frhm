@@ -61,15 +61,15 @@
 - [ ] Backfill not required (new columns nullable)
 
 ## Phase 10: AI Usage Tracking (CRITICAL) — 2 hrs
-- [ ] Surface `usage` (prompt_tokens/completion_tokens) from AI provider responses in `lib/ai/providers.ts`
-- [ ] Create migration `ai_usage_logs` table (client_id, route, model, prompt_tokens, completion_tokens, cost_estimate, created_at)
-- [ ] Create wrapper `logAiUsage()` called from every AI route
-- [ ] Add index on `client_id` + `created_at`
+- [x] Surface `usage` (prompt_tokens/completion_tokens) from AI provider responses in `lib/ai/providers.ts`
+- [x] Create migration `ai_usage_logs` table (client_id, route, model, prompt_tokens, completion_tokens, cost_estimate, created_at)
+- [x] Create wrapper `logAiUsage()` called from every AI route
+- [x] Add index on `client_id` + `created_at`
 
 ## Phase 11: Client Action Auditing (HIGH) — 2 hrs
 - [ ] Add `logAudit` to `brand-asset-hub.tsx` upload + delete (via API route)
-- [ ] Route `approval-board.tsx` writes through an audited API route `/api/client/approvals`
-- [ ] Add `action: 'client.approve'` / `'client.reject'` audit entries
+- [x] Route `approval-board.tsx` writes through an audited API route `/api/client/approvals`
+- [x] Add `action: 'client.approve'` / `'client.reject'` audit entries
 
 ## Phase 12: Infrastructure Observability (MEDIUM) — 1.5 hrs
 - [ ] Enable `pg_stat_statements` extension

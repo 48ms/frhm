@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { chat, type Provider } from '@/lib/ai/providers'
+import { chatDetailed, type Provider } from '@/lib/ai/providers'
+import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 import { buildInsightPrompt, type InsightContext } from '@/lib/analytics/insight-prompt'
 
@@ -309,12 +310,37 @@ export async function POST(
 
   // 5. Generate Insight with AI
   let aiInsight = ''
+  const startTime = Date.now()
   try {
-    aiInsight = await chat(provider, 'Kamu adalah Senior Social Media Analyst untuk agency Frhm.', [
+    const { text, usage } = await chatDetailed(provider, 'Kamu adalah Senior Social Media Analyst untuk agency Frhm.', [
       { role: 'user', content: prompt }
     ])
+    aiInsight = text
+    await logAiUsage({
+      userId: user.id,
+      clientId,
+      route: 'api/admin/clients/[id]/analytics/generate-insight',
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens: usage?.promptTokens ?? 0,
+      completionTokens: usage?.completionTokens ?? 0,
+      latencyMs: Date.now() - startTime,
+      costEstimate: 0,
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
+    await logAiUsage({
+      userId: user.id,
+      clientId,
+      route: 'api/admin/clients/[id]/analytics/generate-insight',
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens: 0,
+      completionTokens: 0,
+      latencyMs: Date.now() - startTime,
+      errorMessage: msg,
+      costEstimate: 0,
+    })
     return NextResponse.json({ error: 'Gagal generate AI insight: ' + msg }, { status: 500 })
   }
 

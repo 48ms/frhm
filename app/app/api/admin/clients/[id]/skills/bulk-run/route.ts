@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { chat, type Provider } from '@/lib/ai/providers'
+import { chatDetailed, type Provider } from '@/lib/ai/providers'
+import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
@@ -144,12 +145,41 @@ export async function POST(
     )
     const userMsg = brief || 'Jalankan skill ini untuk brand di atas dan berikan hasilnya.'
 
+    const startTime = Date.now()
     try {
-      const out = await chat(provider, system, [{ role: 'user', content: userMsg }])
+      const { text: out, usage } = await chatDetailed(provider, system, [{ role: 'user', content: userMsg }])
+      const latencyMs = Date.now() - startTime
+
       if (!out.trim()) {
+        // Log failed call (with zero tokens)
+        await logAiUsage({
+          userId: user.id,
+          clientId,
+          route: 'api/admin/clients/[id]/skills/bulk-run',
+          model: provider.model,
+          providerKind: provider.kind,
+          promptTokens: 0,
+          completionTokens: 0,
+          latencyMs,
+          errorMessage: 'AI mengembalikan hasil kosong',
+          costEstimate: 0,
+        })
         results.push({ skill_id: skillId, ok: false, error: 'AI mengembalikan hasil kosong' })
         continue
       }
+
+      // Log successful call
+      await logAiUsage({
+        userId: user.id,
+        clientId,
+        route: 'api/admin/clients/[id]/skills/bulk-run',
+        model: provider.model,
+        providerKind: provider.kind,
+        promptTokens: usage?.promptTokens ?? 0,
+        completionTokens: usage?.completionTokens ?? 0,
+        latencyMs,
+        costEstimate: 0, // TODO: integrate pricing table later
+      })
 
       // Persist to skill_outputs so it appears in the Hasil tab (same table the single path uses)
       const { data: skillMeta } = await supabase
@@ -195,10 +225,23 @@ export async function POST(
 
       results.push({ skill_id: skillId, ok: true, output: out })
     } catch (e) {
+      const errMsg = e instanceof Error ? e.message : 'Gagal memanggil AI'
+      await logAiUsage({
+        userId: user.id,
+        clientId,
+        route: 'api/admin/clients/[id]/skills/bulk-run',
+        model: provider.model,
+        providerKind: provider.kind,
+        promptTokens: 0,
+        completionTokens: 0,
+        latencyMs: Date.now() - startTime,
+        errorMessage: errMsg,
+        costEstimate: 0,
+      })
       results.push({
         skill_id: skillId,
         ok: false,
-        error: e instanceof Error ? e.message : 'Gagal memanggil AI',
+        error: errMsg,
       })
     }
   }

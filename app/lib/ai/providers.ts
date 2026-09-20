@@ -19,6 +19,30 @@ type AiResponse = {
   choices?: { message?: { content?: string }; delta?: { content?: string } }[]
   candidates?: { content?: { parts?: { text?: string }[] } }[]
   content?: { text?: string }[]
+  usage?: {
+    prompt_tokens?: number
+    completion_tokens?: number
+    total_tokens?: number
+    input_tokens?: number
+    output_tokens?: number
+    prompt_tokens_details?: { cached_tokens?: number }
+  }
+}
+
+/** Normalise each provider's usage shape into one common form. */
+export type AiUsage = {
+  promptTokens: number
+  completionTokens: number
+}
+
+function extractUsage(j: AiResponse | undefined): AiUsage | null {
+  if (!j?.usage) return null
+  const u = j.usage
+  // OpenAI/Anthropic use prompt/completion; Gemini uses input/output.
+  const promptTokens = u.prompt_tokens ?? u.input_tokens ?? 0
+  const completionTokens = u.completion_tokens ?? u.output_tokens ?? 0
+  if (!promptTokens && !completionTokens) return null
+  return { promptTokens, completionTokens }
 }
 
 const TIMEOUT_MS = 120_000
@@ -137,6 +161,66 @@ export async function chatJson<T>(
   } catch {
     return null
   }
+}
+
+/**
+ * Same as chat() but also returns the provider's token usage, so callers can
+ * record cost per client (O20). Falls back to null when the gateway omits usage.
+ */
+export async function chatDetailed(
+  p: Provider,
+  system: string,
+  messages: ChatMessage[]
+): Promise<{ text: string; usage: AiUsage | null }> {
+  if (p.kind === 'gemini') {
+    const base = p.base_url || 'https://generativelanguage.googleapis.com'
+    const { ok, status, j } = await post(
+      `${base}/v1beta/models/${p.model}:generateContent?key=${p.api_key ?? ''}`,
+      {},
+      {
+        systemInstruction: { parts: [{ text: system }] },
+        contents: messages.map((m) => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: { temperature: 0.8, maxOutputTokens: 16384 },
+      }
+    )
+    if (!ok) throw new Error(j?.error?.message || `Gemini ${status}`)
+    const text =
+      j?.candidates?.[0]?.content?.parts?.map((x: { text?: string }) => x.text ?? '').join('') ?? ''
+    return { text, usage: extractUsage(j) }
+  }
+
+  if (p.kind === 'anthropic') {
+    const base = p.base_url || 'https://api.anthropic.com'
+    const { ok, status, j } = await post(
+      `${base}/v1/messages`,
+      { 'x-api-key': p.api_key ?? '', 'anthropic-version': '2023-06-01' },
+      { model: p.model, max_tokens: 16384, system, messages }
+    )
+    if (!ok) throw new Error(j?.error?.message || `Anthropic ${status}`)
+    const text = (j?.content ?? []).map((c: { text?: string }) => c.text ?? '').join('')
+    return { text, usage: extractUsage(j) }
+  }
+
+  // openai + custom (9router) share the OpenAI-compatible shape
+  const base = (p.base_url || 'https://api.openai.com').replace(/\/$/, '')
+  const res = await post(
+    `${base}/v1/chat/completions`,
+    { Authorization: `Bearer ${p.api_key ?? ''}` },
+    {
+      model: p.model,
+      temperature: 0.8,
+      max_tokens: 16384,
+      stream: false,
+      messages: [{ role: 'system', content: system }, ...messages],
+    }
+  )
+  const { ok, status, j } = res
+  if (!ok) throw new Error(j?.error?.message || `OpenAI ${status}`)
+  const text = j?.choices?.[0]?.message?.content ?? ''
+  return { text, usage: extractUsage(j) }
 }
 
 /**
