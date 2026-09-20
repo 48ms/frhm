@@ -8,7 +8,7 @@
 
 ## Phase 2: Add CRON_SECRET to daily-insight (HIGH) — 0.5 hr
 - [x] Import `CRON_SECRET` from env
-- [x] Add `Authorization: Bearer ***` check before any logic
+- [x] Add `Authorization: Bearer <CRON_SECRET>` check before any logic
 - [x] Return 401 if header missing/incorrect
 - [x] Remove the current inverted `getUser()` guard (or keep as defense-in-depth AFTER secret check)
 
