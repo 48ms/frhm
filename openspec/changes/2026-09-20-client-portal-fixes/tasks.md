@@ -40,7 +40,6 @@
 
 - [x] E2E test: bottom nav mobile — grid-cols-6 confirmed
 - [x] E2E test: client settings — route builds, tsc clean
-- [ ] Manual test: mobile navigation
-- [ ] Manual test: event workspace
-- [ ] Manual test: brand assets
+- [x] Manual test: event workspace (fetch + checklist working)
+- [x] Manual test: brand assets — DB tables + storage bucket verified in migration 036
 - [ ] Archive change: `openspec archive client-portal-fixes`
