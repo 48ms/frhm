@@ -55,7 +55,6 @@ export async function POST(request: Request) {
     visual_hook,
     body_content,
     call_to_action,
-    campaign_id,
   } = body
 
   if (!client_id || !platform || !body_content) {
@@ -75,7 +74,6 @@ export async function POST(request: Request) {
       visual_hook: visual_hook || null,
       body_content: body_content.trim(),
       call_to_action: call_to_action || null,
-      campaign_id: campaign_id || null,
     })
     .select()
     .single()
