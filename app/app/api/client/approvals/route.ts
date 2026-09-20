@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 async function getSupabase() {
   const cookieStore = await cookies()
   return createServerClient(

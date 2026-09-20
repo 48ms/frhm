@@ -40,7 +40,7 @@ export async function GET(
 
   if (postsError) return NextResponse.json({ error: postsError.message }, { status: 500 })
 
-  return NextResponse.json({ posts: posts || [] })
+  return NextResponse.json({ posts: posts || [] }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } })
 }
 
 // PATCH - Single field update for inline editing

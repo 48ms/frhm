@@ -10,6 +10,8 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-
 import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'trends/generate', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
   if (rl.limited) {

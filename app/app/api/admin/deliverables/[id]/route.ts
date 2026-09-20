@@ -5,6 +5,8 @@ import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 async function getSupabase() {
   const cookieStore = await cookies()
   return createServerClient(

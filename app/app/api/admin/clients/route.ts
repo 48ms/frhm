@@ -10,6 +10,8 @@ import { NICHE_PACK_MAP, buildBrandProfilePrompt, type NicheId } from '@/lib/onb
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   if (searchParams.get('all') === 'true') {

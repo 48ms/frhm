@@ -6,6 +6,8 @@ import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * POST /api/admin/clients/[id]/reset-password
  *

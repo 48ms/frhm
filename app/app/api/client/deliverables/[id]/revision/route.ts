@@ -7,6 +7,8 @@ import { notifyAdminClientFeedback } from '@/lib/telegram/service'
 import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }

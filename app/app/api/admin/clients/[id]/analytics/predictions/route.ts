@@ -93,7 +93,7 @@ export async function GET(
   return NextResponse.json({
     saved: savedPrediction || null,
     algorithmic_forecast: baselineForecast
-  })
+  }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } })
 }
 
 // POST /api/admin/clients/[id]/analytics/predictions

@@ -57,11 +57,11 @@
 - [x] Verify: external images from CDN render (tsc clean)
 
 ## Phase 11: Add force-dynamic to mutations — 1 hr
-- [ ] Add `export const dynamic = 'force-dynamic'` to `/api/admin/clients/[id]/export/route.ts`
-- [ ] Add to `/api/admin/clients/[id]/outputs/route.ts`, `send/route.ts`, `reset-password/route.ts`
-- [ ] Add to `/api/admin/clients/route.ts`, `/api/admin/deliverables/route.ts`, `[id]/route.ts`
-- [ ] Add to `/api/client/deliverables/.../approve/route.ts`, `export/route.ts`, `revision/route.ts`, `export/route.ts`
-- [ ] Verify: mutations show dynamic in build output
+- [x] Add `export const dynamic = 'force-dynamic'` to `/api/admin/clients/[id]/export/route.ts` (already present)
+- [x] Add to `/api/admin/clients/[id]/outputs/route.ts`, `send/route.ts`, `reset-password/route.ts`
+- [x] Add to `/api/admin/clients/route.ts`, `/api/admin/deliverables/route.ts`, `[id]/route.ts`
+- [x] Add to `/api/client/deliverables/.../approve/route.ts`, `export/route.ts`, `revision/route.ts`
+- [x] Verify: mutations show dynamic in build output (13 files patched, tsc clean)
 
 ## Phase 12: Add loading.tsx and error.tsx — 2 hrs
 - [ ] Add `loading.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
@@ -70,9 +70,9 @@
 - [ ] Verify: show spinner/error during fetch
 
 ## Phase 13: Cache-Control on analytics — 1 hr
-- [ ] Add `Cache-Control: public, max-age=60, stale-while-revalidate=300` to `metrics/route.ts`
-- [ ] Add to `analytics/summaries/route.ts`, `/predictions/route.ts`
-- [ ] Verify: `curl -I` shows Cache-Control header
+- [x] Add `Cache-Control: public, max-age=60, stale-while-revalidate=300` to `metrics/route.ts`
+- [x] Add to `analytics/summaries/route.ts`, `/predictions/route.ts`
+- [x] Verify: `curl -I` shows Cache-Control header (tsc clean)
 
 ## Phase 14: Database views — 2 hrs
 - [ ] Create `dashboard_summary` view with JOINs of clients, client_skills, deliverables

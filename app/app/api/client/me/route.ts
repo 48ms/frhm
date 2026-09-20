@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { logger } from '@/lib/logger'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GDPR export endpoint: GET /api/client/me
  * Returns all personal data associated with the authenticated client user.
