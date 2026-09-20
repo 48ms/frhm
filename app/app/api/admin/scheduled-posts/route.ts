@@ -58,9 +58,7 @@ export async function GET(request: Request) {
     query = query.range(from, to)
   }
 
-  const { data, error, count } = await limit > 0
-    ? await query
-    : await query
+  const { data, error, count } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

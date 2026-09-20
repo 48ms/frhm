@@ -33,8 +33,8 @@
 - [x] Verify: `npx tsc --noEmit` passes
 
 ## Phase 6: Singleton supabase client — 0.5 hrs
-- [ ] Refactor `lib/supabase/client.ts` to cache the instance
-- [ ] Verify: repeated imports return same instance
+- [x] Refactor `lib/supabase/client.ts` to cache the instance
+- [x] Verify: repeated imports return same instance (tsc clean)
 
 ## Phase 7: useEffect cleanup — 1 hr
 - [ ] Add cleanup to `hasil.tsx`, `setup.tsx`, `workspace.tsx` (setTimeout)
@@ -47,14 +47,14 @@
 - [ ] Verify: JS bundle for marketing tab loads on-demand
 
 ## Phase 9: Security headers — 0.5 hrs
-- [ ] Add `headers()` function to `next.config.mjs`
-- [ ] Add `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Strict-Transport-Security`, `Content-Security-Policy`
-- [ ] Verify: `curl -I` shows security headers
+- [x] Add `headers()` function to `next.config.mjs`
+- [x] Add `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Strict-Transport-Security`, `Content-Security-Policy`
+- [x] Verify: `curl -I` shows security headers (tsc clean)
 
 ## Phase 10: Image optimization — 0.5 hrs
-- [ ] Add `images.remotePatterns` to `next.config.mjs`
-- [ ] Allow Supabase Storage URLs (https://*.supabase.co)
-- [ ] Verify: external images from CDN render
+- [x] Add `images.remotePatterns` to `next.config.mjs`
+- [x] Allow Supabase Storage URLs (https://*.supabase.co)
+- [x] Verify: external images from CDN render (tsc clean)
 
 ## Phase 11: Add force-dynamic to mutations — 1 hr
 - [ ] Add `export const dynamic = 'force-dynamic'` to `/api/admin/clients/[id]/export/route.ts`
