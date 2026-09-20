@@ -1,51 +1,39 @@
 # Tasks: Backend Schema & Forms
 
-## Phase 1: Migration Consolidation (30 minutes)
-- [ ] List all `.sql` files in `supabase/migrations/` (root)
-- [ ] Move 6 migration files to `app/supabase/migrations/`
-- [ ] Rename them sequentially (036, 037, etc.)
-- [ ] Delete the root `supabase/migrations/` folder
-- [ ] Run `npx supabase db push` to create the 12 missing tables
-- [ ] Verify tables exist: `openspec admin clients table check` or Supabase Studio
+> Status verified against actual code (2026-09-21), not assumed.
 
-## Phase 2: Form Wiring - Campaign (1.5 hours)
-- [ ] Check if `/api/admin/clients/[id]/campaigns` accepts POST (it does per `generate-campaign` route)
-- [ ] Update `CampaignForm` `onSubmit` to execute `fetch` POST request
-- [ ] Add `toast.success` and error handling in `CampaignForm`
-- [ ] Test campaign creation in UI (test page: `/admin/planning/new`)
+## Phase 1: Migrations consolidation — ✅ DONE
+- [x] List all `.sql` files in `supabase/migrations/` (root) — **root folder now EMPTY (0 files)**
+- [x] Move 6 migration files to `app/supabase/migrations/` — **39 files present**
+- [x] Rename them sequentially (036, 037, etc.)
+- [x] Delete the root `supabase/migrations/` folder — **verified: empty**
 
-## Phase 3: Form Wiring - Drafts (1.5 hours)
-- [ ] Identify correct API endpoint for `ContentDraftForm` (may need to create `/api/admin/content-drafts`)
-- [ ] Update `ContentDraftForm` `onSubmit` to execute `fetch` POST request
-- [ ] Add `toast.success` and error handling
-- [ ] Test draft creation via `HeroAssetCard` (`/admin/deliverables/[id]`)
+## Phase 2: Forms wiring — ⚠️ PARTIAL (3 of 5 components still have TODO stubs)
+- [ ] `CampaignForm` onSubmit → still `console.log` + `// TODO: Connect to Server Action / Supabase` + `router.push` (components/admin/campaign-form.tsx:71-76). Used by `/admin/planning/new`.
+- [ ] `ContentDraftForm` onSubmit → still `console.log` + `// TODO: Connect to backend` (components/admin/content-draft-form.tsx:45-48). Used by `HeroAssetCard`.
+- [ ] `/api/admin/content-drafts` route → **DOES NOT EXIST** (must be created before wiring ContentDraftForm)
+- [x] `EventWorkspaceBoard` → **IMPLEMENTED**: fetchEvents (line 45-54), clickable list (145-175), EventChecklist (110)
+- [x] `CreateEventModal.onSuccess` → **IMPLEMENTED**: POST `/api/admin/clients/:id/events` + `onSuccess()` (create-event-modal.tsx:52-76)
+- [ ] Campaign creation test via `/admin/planning/new` — **BLOCKED by CampaignForm stub**
+- [ ] Content draft test via `HeroAssetCard` — **BLOCKED by missing API + ContentDraftForm stub**
 
-## Phase 4: Event Workspace Implementation (3-4 hours)
-- [ ] Implement `fetch(events)` from Supabase filtered by `client_id` in `EventWorkspaceBoard`
-- [ ] Render the event list (clickable cards)
-- [ ] On event click, load `event_tasks` (checklist) and `event_vendors` tabs
-- [ ] Wire `CreateEventModal.onSuccess` to call `router.refresh()` or state refresh
-- [ ] Test event create/view in Client Workspace `/admin/clients/[id]?tab=events`
+## Phase 3: Inline errors / validation — ⚠️ PARTIAL
+- [x] `components/feedback/feedback-board.tsx` → toast + inline errors
+- [x] `components/admin/global-automations-board.tsx` → toast + inline errors
+- [x] `components/marketing/kol-crm-board.tsx` → toast + inline errors
+- [ ] `app/admin/settings/users/page.tsx` → inline errors only, **no toast**
+- [ ] `app/admin/deliverables/[id]/page.tsx` → inline errors only, **no toast**
+- [ ] `components/deliverable/comment-section.tsx` → **NO zod, NO react-hook-form, NO inline errors**
+- [ ] `app/admin/deliverables/new/page.tsx` → inline errors only, **no toast**
+- [ ] `app/admin/deliverables/new/page.tsx` → **NO zod, NO react-hook-form**
 
-## Phase 5: Form Quality Fixes (2-3 hours)
+## Phase 4: KOL route — ✅ DONE
+- [x] `/api/admin/kols` route exists
+- [x] `kol-crm-board.tsx` already has `fetch()` + toast
 
-**Task 5.1: Replace alert() with toast (45 minutes)**
-- [ ] `components/feedback/feedback-board.tsx` → inline errors
-- [ ] `app/admin/settings/users/page.tsx` → inline errors + toast
-- [ ] `components/admin/global-automations-board.tsx` → toast
-- [ ] `app/admin/deliverables/[id]/page.tsx` → inline errors
-
-**Task 5.2: Add validation (1.5 hours)**
-- [ ] `components/deliverable/comment-section.tsx` → zod schema + react-hook-form
-- [ ] `app/admin/deliverables/new/page.tsx` → zod schema + react-hook-form
-
-**Task 5.3: Move to API routes (1 hour)**
-- [ ] `components/marketing/kol-crm-board.tsx` → create `/api/admin/kols`
-- [ ] `app/admin/deliverables/new/page.tsx` → use existing `/api/admin/deliverables`
-
-## Phase 6: Verification (1 hour)
-- [ ] Verify 12 tables exist via `openspec admin clients table check`
-- [ ] Verify Event/Budget/Ads/Assets tabs in Client Workspace no longer return 404/empty errors
-- [ ] Test campaign creation: `/admin/planning/new`
-- [ ] Test content draft: `/admin/deliverables/[id]` via HeroAssetCard
-- [ ] Archive both changes: `openspec archive client-portal-fixes` + `openspec archive backend-schema-and-forms`
+## Phase 5: Verification — ⚠️ PARTIAL
+- [x] 12 tables exist (live DB verified in earlier audit round)
+- [ ] Verify Event/Budget/Ads/Assets tabs no longer return 404/empty errors — **NOT RUN**
+- [ ] Test campaign creation: `/admin/planning/new` — **BLOCKED**
+- [ ] Test content draft: `/admin/deliverables/[id]` via HeroAssetCard — **BLOCKED**
+- [ ] Archive this change — **NOT DONE**

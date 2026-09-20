@@ -1,105 +1,37 @@
-# Tasks: Performance & N+1 Query Resolution
+# Tasks: Performance & N+1 Queries
 
-## Phase 1: Parallelize generate-insight — 2 hrs
-- [x] Refactor `generate-insight/route.ts`: wrap all independent `.from()` calls in `Promise.all`
-- [x] Identify queries that can be JOINed into a single `.select('*, relation(*)')`
-- [x] Move `users` + `ai_providers` into a separate parallel batch
-- [x] Verify: `npx tsc --noEmit` passes
+> Status verified against actual code (2026-09-21), not assumed.
 
-## Phase 2: Batch metrics/bulk — 2 hrs
-- [x] Pre-validate all `post_id`s with single `.in('id', postIds)` query
-- [x] Replace for-loop upsert with single `.upsert(rowsArray)` batch
-- [x] Handle platform mismatch errors with indexed map
-- [x] Verify: bulk import of 100 rows = 3 DB calls total (now 2: batch validate + batch upsert; per-row fallback only on batch failure)
+## Phase 1: Lazy-load heavy boards — ✅ DONE
+- [x] `ads-tracker-board.tsx` + `roi-dashboard-board.tsx` wrapped in `next/dynamic` — **verified in workspace.tsx**
+- [x] Loading skeleton fallback — **`loading: () => <div className="h-64 animate-pulse ...">` present**
+- [x] Recharts lazy-loaded (comment: "~200KB bundle — lazy-loaded to avoid loading chart code when marketing tab closed")
 
-## Phase 3: Parallelize skills/bulk-run — 3 hrs
-- [x] Pre-fetch all `skill_files` with `.in('skill_id', skillIds).eq('path', 'SKILL.md')`
-- [x] Pre-fetch all skill names
-- [x] Replace sequential `for` loop with `Promise.all(skillIds.map(...))` — concurrency capped at 3 via CONCURRENCY_LIMIT constant (currently 5 skills run in parallel, ~10s instead of 50s)
-- [x] Cap concurrency at 3 to respect AI provider rate limits
-- [x] Verify: 5 skills run in parallel, ~10s total instead of 50s
+## Phase 2: DB views — ❌ NOT DONE (0 of 3)
+- [ ] `dashboard_summary` view → **NOT in any migration**
+- [ ] `metrics_by_client` view → **NOT in any migration**
+- [ ] Routes use views instead of multiple `.from()` → **BLOCKED by missing views**
 
-## Phase 4: Pagination — 2 hrs
-- [x] Add `?page` & `?limit` params to `/api/admin/clients/route.ts`
-- [x] Add to `/api/admin/deliverables/route.ts`
-- [x] Add to `/api/admin/scheduled-posts/route.ts`
-- [x] Default limit 50, max 100; return `total` count in response
-- [x] Verify: `/api/clients?limit=10` returns 10 (tsc clean)
+## Phase 3: Virtualization — ❌ NOT DONE (0 of 3)
+- [ ] `react-window` / `@tanstack/react-virtual` → **NEITHER INSTALLED**
+- [ ] Wrap table rows in virtualized container → **BLOCKED**
+- [ ] Sticky header → **NOT DONE**
+- [ ] Verify 1000-row table renders instantly → **BLOCKED**
 
-## Phase 5: Remove framer-motion — 2 hrs
-- [x] Run `npx codemod` or manual: replace `from "framer-motion"` with `from "motion/react"` in all 301 files
-- [x] Remove `framer-motion` from `package.json`
-- [x] Run `npm install` to prune
-- [x] Verify: `npx tsc --noEmit` passes
+## Phase 4: params await — ⚠️ NOT APPLICABLE
+- [ ] `deliverables/[id]/page.tsx` `await params` → **Next.js 14.2.35: params NOT a promise — no await needed**
+- [ ] `approve/export/revision` routes `await params` → **Next 14: not required**
+- [x] Verify `npx tsc --noEmit` passes → **PASSES (verified)**
 
-## Phase 6: Singleton supabase client — 0.5 hrs
-- [x] Refactor `lib/supabase/client.ts` to cache the instance
-- [x] Verify: repeated imports return same instance (tsc clean)
+## Phase 5: React Compiler — ❌ NOT DONE (0 of 3)
+- [ ] `@react-compiler/runtime` → **NOT INSTALLED**
+- [ ] Babel plugin in `.babelrc` → **NO .babelrc**
+- [ ] Verify build uses compiler → **BLOCKED**
 
-## Phase 7: useEffect cleanup — 1 hr
-- [x] Add cleanup to `hasil.tsx`, `setup.tsx`, `workspace.tsx` (setTimeout) — AUDIT: none of these 3 files have useEffect with setTimeout; `setup.tsx` has setTimeout AND already returns cleanup
-- [x] Add cleanup to `hero-asset-card.tsx`, `expandable-action-bar.tsx`, `ripple-button.tsx` (listeners) — AUDIT: none have setTimeout/addEventListener; expandable-action-bar has 2 useEffect without cleanup but no timers/listeners (no leak possible)
-- [x] Verify with React dev tools: no leaks on tab switch (verified by code audit — no uncleaned resources exist)
-
-## Phase 8: Lazy-load recharts — 1 hr
-- [ ] Wrap `ads-tracker-board.tsx` + `roi-dashboard-board.tsx` in `next/dynamic`
-- [ ] Add loading skeleton fallback
-- [ ] Verify: JS bundle for marketing tab loads on-demand
-
-## Phase 9: Security headers — 0.5 hrs
-- [x] Add `headers()` function to `next.config.mjs`
-- [x] Add `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Strict-Transport-Security`, `Content-Security-Policy`
-- [x] Verify: `curl -I` shows security headers (tsc clean)
-
-## Phase 10: Image optimization — 0.5 hrs
-- [x] Add `images.remotePatterns` to `next.config.mjs`
-- [x] Allow Supabase Storage URLs (https://*.supabase.co)
-- [x] Verify: external images from CDN render (tsc clean)
-
-## Phase 11: Add force-dynamic to mutations — 1 hr
-- [x] Add `export const dynamic = 'force-dynamic'` to `/api/admin/clients/[id]/export/route.ts` (already present)
-- [x] Add to `/api/admin/clients/[id]/outputs/route.ts`, `send/route.ts`, `reset-password/route.ts`
-- [x] Add to `/api/admin/clients/route.ts`, `/api/admin/deliverables/route.ts`, `[id]/route.ts`
-- [x] Add to `/api/client/deliverables/.../approve/route.ts`, `export/route.ts`, `revision/route.ts`
-- [x] Verify: mutations show dynamic in build output (13 files patched, tsc clean)
-
-## Phase 12: Add loading.tsx and error.tsx — 2 hrs
-- [x] Add `loading.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
-- [x] Add `error.tsx` to `app/admin/dashboard`, `/analytics`, `/clients`, `/deliverables`
-- [x] Add to `app/client/dashboard`, `/deliverables`, `/pipeline`
-- [x] Verify: show spinner/error during fetch (root app already has error.tsx, new loading.tsx at root also added)
-
-## Phase 13: Cache-Control on analytics — 1 hr
-- [x] Add `Cache-Control: public, max-age=60, stale-while-revalidate=300` to `metrics/route.ts`
-- [x] Add to `analytics/summaries/route.ts`, `/predictions/route.ts`
-- [x] Verify: `curl -I` shows Cache-Control header (tsc clean)
-
-## Phase 14: Database views — 2 hrs
-- [ ] Create `dashboard_summary` view with JOINs of clients, client_skills, deliverables
-- [ ] Create `metrics_by_client` view with pre-aggregated metrics
-- [ ] Verify routes: use views instead of multiple `.from()`
-
-## Phase 15: Table virtualization — 2 hrs
-- [ ] Install `react-window` or `@tanstack/react-virtual`
-- [ ] Wrap table rows in virtualized container
-- [ ] Add sticky header
-- [ ] Verify: 1000-row table renders instantly
-
-## Phase 16: Await params in Next 15 — 1 hr
-- [ ] Add `const { id } = await params` to `deliverables/[id]/page.tsx`
-- [ ] Add to `/api/client/deliverables/[id]/approve/route.ts`, `export/route.ts`, `revision/route.ts`
-- [ ] Verify: `npx tsc --noEmit` passes
-
-## Phase 17: React compiler — 1 hr
-- [ ] Install `@react-compiler/runtime`
-- [ ] Add Babel plugin to `.babelrc`
-- [ ] Verify: build uses compiler
-
-## Phase 18: Verification — 2 hrs
-- [x] `npx tsc --noEmit` passes
-- [ ] `npx eslint .` passes
-- [ ] `npm run build` succeeds
-- [ ] E2E: dashboard + analytics load < 2s
-- [ ] E2E: security headers present
-- [ ] E2E: analytics Cache-Control header present
-- [ ] E2E: 1000-row table doesn't freeze
+## Phase 6: Final checks — ⚠️ PARTIAL
+- [ ] `npx eslint .` passes → **81 pre-existing problems (not from our changes)**
+- [x] `npm run build` succeeds → **CLEAN (verified)**
+- [ ] E2E: dashboard + analytics load < 2s → **NOT RUN**
+- [ ] E2E: security headers present → **NOT RUN**
+- [ ] E2E: analytics Cache-Control header present → **NOT RUN**
+- [ ] E2E: 1000-row table doesn't freeze → **BLOCKED (no virtualization)**
