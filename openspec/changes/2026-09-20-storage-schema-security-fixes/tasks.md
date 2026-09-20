@@ -1,10 +1,10 @@
 # Tasks: Storage & Schema Security Fixes (Consolidated)
 
 ## Phase 1: Consolidate Migrations & Schema (CRITICAL) — 3 hrs
-- [ ] Move 6 root migrations to `app/supabase/migrations/`
-- [ ] Resolve duplicate `campaigns` definitions
-- [ ] Add `client_id` (UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE) to `kols`, `tasks`, `content_assets`, `platform_posts`
-- [ ] Remove empty root `supabase/migrations/`
+- [x] Move 6 root migrations to `app/supabase/migrations/` (done via migration 036 consolidation)
+- [x] Resolve duplicate `campaigns` definitions (merged in previous session)
+- [x] Add `client_id` (UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE) to `kols`, `tasks`, `content_assets`, `platform_posts` (verified present)
+- [x] Remove empty root `supabase/migrations/` (done in previous session)
 
 ## Phase 2: Add RLS & Triggers (CRITICAL) — 2 hrs
 - [x] Add `ENABLE ROW LEVEL SECURITY` to `platform_posts`, `content_items`, `campaigns` (verified all RLS=True)
@@ -24,7 +24,7 @@
 ## Phase 5: Resolve Dual Systems (HIGH) — 3 hrs
 - [x] `platform_posts`: 0 rows, `scheduled_posts`: active table — no merge needed in production
 - [x] `content_items` & `content_assets`: both 0 rows, no data to merge
-- [ ] Update `approval-board.tsx` to include `.eq('client_id', clientId)` check
+- [x] Update `approval-board.tsx` to include `.eq('client_id', clientId)` check (fixed in client/approvals/page.tsx — defense-in-depth on content_assets + platform_posts)
 
 ## Phase 6: Verification — 1 hr
 - [ ] `npx tsc --noEmit` passes

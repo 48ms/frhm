@@ -35,20 +35,22 @@ export default async function ClientApprovalsPage() {
     const campaignIds = campaigns.map(c => c.id)
     const campaignMap = new Map(campaigns.map(c => [c.id, c.name]))
 
-    // 4. Fetch Assets
+    // 4. Fetch Assets (defense-in-depth: also scope by client_id)
     const { data: assets } = await supabase
       .from('content_assets')
       .select('id, title, description, campaign_id')
+      .eq('client_id', clientId)
       .in('campaign_id', campaignIds)
 
     if (assets && assets.length > 0) {
       const assetIds = assets.map(a => a.id)
       const assetMap = new Map(assets.map(a => [a.id, a]))
 
-      // 5. Fetch Posts that are InReview or Approved
+      // 5. Fetch Posts that are InReview or Approved (defense-in-depth: scope by client_id)
       const { data: platformPosts } = await supabase
         .from('platform_posts')
         .select('id, asset_id, platform, format, scheduled_at, status, body_content, visual_hook, call_to_action')
+        .eq('client_id', clientId)
         .in('asset_id', assetIds)
         .in('status', ['InReview', 'Approved'])
         .order('scheduled_at', { ascending: true })
