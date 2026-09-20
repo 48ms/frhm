@@ -30,10 +30,14 @@
 - [x] Implement fetch in `event-workspace-board.tsx`
 - [x] Wire post-submit refresh
 
-## Phase 5: Dead Code & Bundle (Architecture) — PARTIAL
-- [x] Audit `setup.tsx` (874 bytes, not 361 bytes — has `CommandCenterView` mock component)
-- [x] `CommandCenterView`, `INITIAL_TASKS`, `INITIAL_APPROVALS` exist but **never imported** (dead code)
-- [ ] **NOT REMOVED** — removing would change commit history; can delete later if truly unused
+## Phase 5: Dead Code & Bundle (Architecture) — DONE ✅
+- [x] Audit `setup.tsx` — was 874 lines / 37,730 bytes with `CommandCenterView` mock component
+- [x] Verified `CommandCenterView`, `INITIAL_TASKS`, `INITIAL_APPROVALS` never imported anywhere (repo-wide grep incl. tests, dynamic imports)
+- [x] Removed dead code: `setup.tsx` 37,730 → 1,193 bytes (-96.8%), 833 lines deleted
+- [x] Removed unused imports (Link, useRouter, motion, AnimatePresence, Dialog*, cn, 15 lucide icons)
+- [x] Deleted empty tracked artifact `setup.tsx.bak` (0 bytes)
+- [x] Verified: production bundle `.next` has 0 references to dead markers; `ClientSetup` UI intact
+- [x] Runtime-verified via Playwright: Setup tab renders, dead mock data absent (test passed, then removed)
 
 ## Phase 6: File Lazy Load (Performance) — DONE ✅
 - [x] Change `page.tsx` client_files query → `path` only (not `content`)
