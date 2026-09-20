@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
-import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 
 const STATUSES = [
   { id: 'ideation', label: 'Ideation' },
@@ -17,7 +17,6 @@ const STATUSES = [
 
 export function KanbanBoard({ initialItems, clients }: { initialItems: any[], clients: any[] }) {
   const [items, setItems] = useState(initialItems)
-  const supabase = createClient()
 
   const onDragEnd = async (result: any) => {
     const { destination, source, draggableId } = result
@@ -32,11 +31,16 @@ export function KanbanBoard({ initialItems, clients }: { initialItems: any[], cl
     )
     setItems(updatedItems)
 
-    // Persist to DB
-    await supabase
-      .from('content_items')
-      .update({ status: newStatus })
-      .eq('id', draggableId)
+    // Persist via API
+    const res = await fetch('/api/admin/content-items', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: draggableId, status: newStatus }),
+    })
+    if (!res.ok) {
+      toast.error('Gagal menyimpan perubahan status.')
+      setItems(items) // revert
+    }
   }
 
   const getItemsByStatus = (status: string) => items.filter(i => i.status === status)

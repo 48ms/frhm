@@ -78,24 +78,24 @@ export function ExpenseFormModal({ clientId, budgetId, children, onSuccess }: Ex
     setIsSubmitting(true)
     
     try {
-      const { data: resData, error } = await supabase
-        .from('expenses')
-        .insert({
-          client_id: clientId,
+      const res = await fetch(`/api/admin/clients/${clientId}/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           budget_id: budgetId,
           amount: data.amount,
           category: data.category,
           description: data.description,
-          expense_date: data.expense_date
-        })
-        .select()
-        
-      if (error) throw error
+          expense_date: data.expense_date,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal mencatat pengeluaran')
       
       reset()
       setOpen(false)
-      if (onSuccess && resData && resData.length > 0) {
-        onSuccess(resData[0])
+      if (onSuccess && json.expense) {
+        onSuccess(json.expense)
       }
     } catch (err) {
       console.error('Error recording expense:', err)

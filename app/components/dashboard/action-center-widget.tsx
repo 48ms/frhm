@@ -5,16 +5,18 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2Icon, ClockIcon, AlertCircleIcon, CalendarIcon } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 export function ActionCenterWidget({ initialTasks }: { initialTasks: any[] }) {
   const [tasks, setTasks] = useState(initialTasks)
-  const supabase = createClient()
 
   const markDone = async (id: string) => {
     // Optimistic update
     setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t))
-    await supabase.from('tasks').update({ status: 'completed' }).eq('id', id)
+    await fetch('/api/admin/tasks', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action: 'mark_done' }),
+    })
   }
 
   const reschedule = async (id: string) => {
@@ -27,7 +29,11 @@ export function ActionCenterWidget({ initialTasks }: { initialTasks: any[] }) {
     
     // Optimistic update
     setTasks(tasks.map(t => t.id === id ? { ...t, due_date: newDate.toISOString() } : t))
-    await supabase.from('tasks').update({ due_date: newDate.toISOString() }).eq('id', id)
+    await fetch('/api/admin/tasks', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action: 'reschedule', due_date: newDate.toISOString() }),
+    })
   }
 
   const now = new Date()

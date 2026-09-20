@@ -46,9 +46,12 @@ function parseDeclaredChannels(brandProfile: string | undefined): string[] {
 }
 
 /** Safe query wrapper — returns data on success, null + error string on failure */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function safeQuery<T = any>(
-  supabase: Record<string, any>,
-  queryFn: (s: Record<string, any>) => PromiseLike<{ data: T | null; error: any }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  queryFn: (s: any) => PromiseLike<{ data: T | null; error: any }>
 ): Promise<{ data: T; errors: string[] }> {
   try {
     const { data, error } = await queryFn(supabase)
@@ -56,8 +59,8 @@ async function safeQuery<T = any>(
       return { data: null as unknown as T, errors: [error.message] }
     }
     return { data: data as T, errors: [] }
-  } catch (e: any) {
-    return { data: null as unknown as T, errors: [e?.message ?? 'Query failed'] }
+  } catch (e: unknown) {
+    return { data: null as unknown as T, errors: [(e as Error)?.message ?? 'Query failed'] }
   }
 }
 
@@ -118,13 +121,6 @@ export default async function ClientWorkspacePage({
       .from('ai_providers').select('id, name, model').eq('is_default', true).maybeSingle()),
   ])
 
-  // Collect all errors for inline display
-  const allErrors: string[] = [
-    ...aDeliverables.errors, ...aPacks.errors, ...aSkills.errors, ...aLinks.errors,
-    ...aClientSkills.errors, ...aFiles.errors, ...aStages.errors, ...aPSkills.errors,
-    ...aGuards.errors, ...aTruths.errors, ...aChannels.errors, ...aOutputs.errors,
-    ...aDflt.errors,
-  ]
 
   const deliverables: { id: string; title: string; type: 'brief' | 'content' | 'report'; status: 'draft' | 'sent' | 'approved' | 'revision_requested'; updated_at: string }[] = aDeliverables.data ?? []
   const packs: { id: string; name: string; description: string | null; icon: string | null; sort_order: number }[] = aPacks.data ?? []
@@ -215,8 +211,29 @@ export default async function ClientWorkspacePage({
       : []),
   ]
 
+  // Collect all section errors for the inline notice (Issue #4: partial render + notice)
+  const allErrors = [
+    ...aDeliverables.errors, ...aPacks.errors, ...aSkills.errors, ...aLinks.errors,
+    ...aClientSkills.errors, ...aFiles.errors, ...aStages.errors, ...aPSkills.errors,
+    ...aGuards.errors, ...aTruths.errors, ...aChannels.errors, ...aOutputs.errors,
+    ...aDflt.errors,
+  ]
+
   return (
-    <ClientWorkspace
+    <>
+      {allErrors.length > 0 && (
+        <div className="m-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">
+            Beberapa data gagal dimuat ({allErrors.length} bagian)
+          </p>
+          <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
+            {allErrors.slice(0, 5).map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <ClientWorkspace
       client={{
         id: client.id,
         name: client.name,
@@ -240,5 +257,6 @@ export default async function ClientWorkspacePage({
       channels={channelRows}
       outputs={outputs as { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[]}
     />
+    </>
   )
 }

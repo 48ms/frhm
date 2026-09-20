@@ -1,7 +1,6 @@
 import { requireAdmin, loadClientFiles } from '@/lib/ai/server'
 import { isResponse } from '@/lib/ai/server'
 import { GlobalAutomationsBoard } from '@/components/admin/global-automations-board'
-import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 

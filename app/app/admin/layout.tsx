@@ -5,7 +5,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import { AdminCommandSearch } from "@/components/admin-command-search"
 import { CreateClientProvider } from "@/components/client/create-client-provider"
-import { PRODUCT_NAME } from "@/lib/config"
 
 export const dynamic = "force-dynamic"
 

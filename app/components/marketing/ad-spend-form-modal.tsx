@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -38,7 +37,6 @@ interface AdSpendFormModalProps {
 export function AdSpendFormModal({ clientId, children, onSuccess }: AdSpendFormModalProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const supabase = createClient()
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -54,23 +52,18 @@ export function AdSpendFormModal({ clientId, children, onSuccess }: AdSpendFormM
     setIsSubmitting(true)
     
     try {
-      const { data: resData, error } = await supabase
-        .from('ad_spend_logs')
-        .insert({
-          client_id: clientId,
-          campaign_name: data.campaign_name,
-          spend: data.spend,
-          clicks: data.clicks,
-          log_date: data.log_date
-        })
-        .select()
-        
-      if (error) throw error
+      const res = await fetch(`/api/admin/clients/${clientId}/ad-spend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal mencatat data iklan')
       
       reset()
       setOpen(false)
-      if (onSuccess && resData && resData.length > 0) {
-        onSuccess(resData[0])
+      if (onSuccess && json.ad_spend_log) {
+        onSuccess(json.ad_spend_log)
       }
     } catch (err) {
       console.error('Error recording ad spend:', err)

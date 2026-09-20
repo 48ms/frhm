@@ -10,8 +10,8 @@ import { enUS } from 'date-fns/locale/en-US'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import withDragAndDrop, { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
-import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 const locales = {
   'en-US': enUS,
@@ -28,8 +28,6 @@ const localizer = dateFnsLocalizer({
 const DnDCalendar = withDragAndDrop(Calendar)
 
 export function CalendarView({ initialItems, clients }: { initialItems: any[], clients: any[] }) {
-  const supabase = createClient()
-  
   // Transform initialItems into calendar events
   const [events, setEvents] = useState<Event[]>(
     initialItems
@@ -50,12 +48,17 @@ export function CalendarView({ initialItems, clients }: { initialItems: any[], c
     )
     setEvents(updatedEvents)
 
-    // Persist to DB
+    // Persist via API
     const publishDate = (start as Date).toISOString()
-    await supabase
-      .from('content_items')
-      .update({ publish_date: publishDate })
-      .eq('id', (event as any).id)
+    const res = await fetch('/api/admin/content-items', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: (event as any).id, publish_date: publishDate }),
+    })
+    if (!res.ok) {
+      toast.error('Gagal menyimpan jadwal publish.')
+      setEvents(events) // revert
+    }
   }
 
   return (

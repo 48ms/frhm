@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -42,17 +41,17 @@ interface KolFormModalProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   editingKol?: KOL | null
+  clientId?: string
   onSuccess?: (kol: KOL) => void
 }
 
-export function KolFormModal({ children, open: controlledOpen, onOpenChange: controlledOnOpenChange, editingKol, onSuccess }: KolFormModalProps) {
+export function KolFormModal({ children, open: controlledOpen, onOpenChange: controlledOnOpenChange, editingKol, clientId, onSuccess }: KolFormModalProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : uncontrolledOpen
   const setOpen = isControlled ? controlledOnOpenChange! : setUncontrolledOpen
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const supabase = createClient()
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -88,33 +87,28 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
     setIsSubmitting(true)
     
     try {
-      const payload = {
-        name: data.name,
-        niche: data.niche || null,
-        contact_info: data.contact_info || null,
-        rate_card: data.rate_card || 0
-      }
-
-      let res
-      if (editingKol) {
-        res = await supabase
-          .from('kols')
-          .update(payload)
-          .eq('id', editingKol.id)
-          .select()
-      } else {
-        res = await supabase
-          .from('kols')
-          .insert(payload)
-          .select()
-      }
-
-      if (res.error) throw res.error
+      const res = await fetch('/api/admin/kols', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: editingKol ? 'update' : 'create',
+          client_id: clientId,
+          id: editingKol?.id,
+          name: data.name,
+          niche: data.niche || null,
+          contact_info: data.contact_info || null,
+          rate_card: data.rate_card || 0,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal menyimpan data KOL')
       
       reset()
       setOpen(false)
-      if (onSuccess && res.data && res.data.length > 0) {
-        onSuccess(res.data[0] as KOL)
+      if (onSuccess && json.kol) {
+        onSuccess(json.kol as KOL)
+      } else if (!editingKol) {
+        onSuccess?.({ id: '', name: data.name, niche: data.niche || null, contact_info: data.contact_info || null, rate_card: data.rate_card || 0 } as KOL)
       }
     } catch (err) {
       console.error('Error saving KOL:', err)

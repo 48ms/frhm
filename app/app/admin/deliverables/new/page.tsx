@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,7 +36,6 @@ export default function NewDeliverablePage() {
   const [loading, setLoading] = useState(false)
 
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,33 +43,21 @@ export default function NewDeliverablePage() {
 
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push("/auth/login")
-        return
-      }
+      const res = await fetch('/api/admin/deliverables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, content }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal membuat deliverable')
 
-      const { data, error } = await supabase
-        .from("deliverables")
-        .insert({
-          title,
-          description: description || null,
-          content: content || null,
-          status: "draft",
-          created_by: user.id,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      router.push(`/admin/deliverables/${data.id}`)
+      router.push(`/admin/deliverables/${json.deliverable.id}`)
     } catch (err) {
       console.error("Error creating deliverable:", err)
     } finally {
       setLoading(false)
     }
-  }, [title, description, content, supabase, router])
+  }, [title, description, content, router])
 
   const handleCancel = () => {
     router.push("/admin/deliverables")

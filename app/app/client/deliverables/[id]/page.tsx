@@ -119,21 +119,14 @@ export default function ClientDeliverableDetailPage() {
   }
 
   const handleAddComment = async (content: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data, error } = await supabase
-      .from('deliverable_comments')
-      .insert({
-        deliverable_id: deliverableId,
-        author_id: user.id,
-        content,
-      })
-      .select('id, content, created_at, author_name, author_role')
-      .single()
-
-    if (!error && data) {
-      setComments([...comments, data as unknown as Comment])
+    const res = await fetch(`/api/client/deliverables/${deliverableId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    if (res.ok) {
+      const json = await res.json()
+      if (json.comment) setComments([...comments, json.comment as unknown as Comment])
     }
   }
 

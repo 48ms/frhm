@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -36,7 +35,6 @@ interface BudgetFormModalProps {
 export function BudgetFormModal({ clientId, children, onSuccess }: BudgetFormModalProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const supabase = createClient()
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -48,43 +46,20 @@ export function BudgetFormModal({ clientId, children, onSuccess }: BudgetFormMod
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
-    const formattedMonth = `${data.month}-01` // YYYY-MM-01
-    
+
     try {
-      // Check if exists
-      const { data: existing } = await supabase
-        .from('client_budgets')
-        .select('*')
-        .eq('client_id', clientId)
-        .eq('month', formattedMonth)
+      const res = await fetch(`/api/admin/clients/${clientId}/budgets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: data.month, total_budget: data.total_budget }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Gagal menyimpan budget')
 
-      let res
-      if (existing && existing.length > 0) {
-        // Update existing budget
-        res = await supabase
-          .from('client_budgets')
-          .update({ total_budget: data.total_budget })
-          .eq('id', existing[0].id)
-          .select()
-      } else {
-        // Insert new budget
-        res = await supabase
-          .from('client_budgets')
-          .insert({ 
-            client_id: clientId, 
-            month: formattedMonth, 
-            total_budget: data.total_budget, 
-            remaining_balance: data.total_budget 
-          })
-          .select()
-      }
-
-      if (res.error) throw res.error
-      
       reset()
       setOpen(false)
-      if (onSuccess && res.data && res.data.length > 0) {
-        onSuccess(res.data[0])
+      if (onSuccess && json.budget) {
+        onSuccess(json.budget)
       }
     } catch (err) {
       console.error('Error setting budget:', err)

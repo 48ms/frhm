@@ -52,13 +52,11 @@ export default function SettingsClient({
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  async function handleNameUpdate() {
+  const handleNameUpdate = async () => {
     if (!name.trim()) return
     setSaving(true)
+    // Update auth metadata (self-scoped, secure)
     const { error } = await supabase.auth.updateUser({ data: { full_name: name.trim() } })
-    if (!error) {
-      await supabase.from('users').update({ full_name: name.trim() }).eq('client_id', initialProfile.client_id)
-    }
     setSaving(false)
     if (error) return alert('Gagal: ' + error.message)
     setNameSaved(true)
