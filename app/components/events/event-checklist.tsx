@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 
@@ -12,38 +11,38 @@ type EventTask = {
   stage: 'pre' | 'day-of' | 'post'
 }
 
-export function EventChecklist({ eventId }: { eventId: string }) {
+interface EventChecklistProps {
+  eventId: string
+  clientId: string
+}
+
+export function EventChecklist({ eventId, clientId }: EventChecklistProps) {
   const [tasks, setTasks] = useState<EventTask[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
     async function fetchTasks() {
-      const { data, error } = await supabase
-        .from('event_tasks')
-        .select('id, title, is_completed, stage')
-        .eq('event_id', eventId)
-        .order('created_at')
-
-      if (data && !error) {
-        setTasks(data as EventTask[])
+      const res = await fetch(`/api/admin/clients/${clientId}/event-tasks?event_id=${eventId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setTasks(data.tasks ?? [])
       }
       setLoading(false)
     }
 
-    if (eventId) {
+    if (eventId && clientId) {
       fetchTasks()
     }
-  }, [eventId])
+  }, [eventId, clientId])
 
   const toggleTask = async (taskId: string, currentStatus: boolean) => {
-    // Optimistic UI update
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, is_completed: !currentStatus } : t))
 
-    await supabase
-      .from('event_tasks')
-      .update({ is_completed: !currentStatus })
-      .eq('id', taskId)
+    await fetch(`/api/admin/clients/${clientId}/event-tasks?task_id=${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_completed: !currentStatus }),
+    })
   }
 
   const renderStage = (stage: 'pre' | 'day-of' | 'post', label: string) => {
