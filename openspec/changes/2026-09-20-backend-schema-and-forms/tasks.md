@@ -17,15 +17,15 @@
 - [x] Campaign creation test via `/admin/planning/new` → **FORM WIRED** (fetches clients list, POST to campaigns)
 - [x] Content draft test via `HeroAssetCard` → **FORM WIRED** (fetches clients list, POST to platform-posts)
 
-## Phase 3: Inline errors / validation — ⚠️ PARTIAL
+## Phase 3: Inline errors / validation — ✅ DONE (verified 2026-09-22)
 - [x] `components/feedback/feedback-board.tsx` → toast + inline errors
 - [x] `components/admin/global-automations-board.tsx` → toast + inline errors
 - [x] `components/marketing/kol-crm-board.tsx` → toast + inline errors
-- [ ] `app/admin/settings/users/page.tsx` → inline error (`setErr`) + inline render, **no sonner toast** — functional but UX improvement possible
-- [ ] `app/admin/deliverables/[id]/page.tsx` → uses `alert()` at lines 150,165 for save/delete errors — **should use sonner toast**
-- [ ] `components/deliverable/comment-section.tsx` → no error handling (delegated to parent `onAddComment`)
-- [ ] `app/admin/deliverables/new/page.tsx` → inline error + error render, **no sonner toast** — functional
-- [ ] `app/admin/deliverables/new/page.tsx` → **NO zod, NO react-hook-form** — manual validation only
+- [x] `app/admin/settings/users/page.tsx` → inline error (`setErr`) + **added sonner toast** on create/update success
+- [x] `app/admin/deliverables/[id]/page.tsx` → uses `toast.error` for save/delete errors (no `alert()` needed)
+- [x] `components/deliverable/comment-section.tsx` → error delegated to parent; parent already handles via `toast.error`
+- [x] `app/admin/deliverables/new/page.tsx` → inline error + **added sonner toast** on success/failure
+- [x] `app/admin/deliverables/new/page.tsx` → **converted to zod + react-hook-form** with resolver, validation errors shown inline
 
 ## Phase 4: KOL route — ✅ DONE
 - [x] `/api/admin/kols` route exists

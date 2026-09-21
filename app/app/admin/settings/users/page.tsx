@@ -110,6 +110,7 @@ export default function AdminUsersPage() {
       setOpen(false)
       await load()
       router.refresh()
+      toast.success(editing ? 'User berhasil diperbarui' : 'User baru berhasil dibuat')
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
     } finally {

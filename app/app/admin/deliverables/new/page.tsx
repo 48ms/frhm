@@ -1,7 +1,10 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -28,6 +31,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { RippleButton } from "@/components/motion/ripple-button"
+import { toast } from "sonner"
 
 import {
   Tabs,
@@ -36,53 +40,65 @@ import {
   TabsTrigger,
 } from "@/components/animate-ui/components/radix/tabs"
 
+const deliverableSchema = z.object({
+  title: z.string().min(1, "Judul wajib diisi"),
+  client_id: z.string().min(1, "Pilih klien terlebih dahulu"),
+  type: z.enum(["content", "brief", "report"]),
+  content: z.string(),
+})
+
+type DeliverableFormValues = z.infer<typeof deliverableSchema>
+
 type ClientOption = { id: string; name: string }
 
 export default function NewDeliverablePage() {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [clientId, setClientId] = useState("")
-  const [type, setType] = useState("content")
   const [clients, setClients] = useState<ClientOption[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
 
+  const form = useForm<DeliverableFormValues>({
+    resolver: zodResolver(deliverableSchema),
+    defaultValues: {
+      title: "",
+      client_id: "",
+      type: "content",
+      content: "",
+    },
+  })
+
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = form
+  const title = watch("title")
+  const clientId = watch("client_id")
+  const content = watch("content")
+  const type = watch("type")
+
   useEffect(() => {
-    fetch('/api/admin/clients?all=true&limit=100')
+    fetch("/api/admin/clients?all=true&limit=100")
       .then((r) => r.json())
       .then((j) => setClients(j.clients ?? []))
       .catch(() => setClients([]))
   }, [])
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    if (!title.trim()) return
-    if (!clientId) {
-      setError('Pilih klien terlebih dahulu.')
-      return
-    }
-
+  const onSubmit = useCallback(async (data: DeliverableFormValues) => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/deliverables', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), content, client_id: clientId, type }),
+      const res = await fetch("/api/admin/deliverables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Gagal membuat deliverable')
+      if (!res.ok) throw new Error(json.error || "Gagal membuat deliverable")
 
+      toast.success("Deliverable berhasil dibuat")
       router.push(`/admin/deliverables/${json.deliverable.id}`)
     } catch (err) {
-      console.error("Error creating deliverable:", err)
-      setError(err instanceof Error ? err.message : 'Gagal membuat deliverable')
+      toast.error(err instanceof Error ? err.message : "Gagal membuat deliverable")
     } finally {
       setLoading(false)
     }
-  }, [title, content, clientId, type, router])
+  }, [router])
 
   const handleCancel = () => {
     router.push("/admin/deliverables")
@@ -106,7 +122,7 @@ export default function NewDeliverablePage() {
         </TabsList>
 
         <TabsContent value="write">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -126,11 +142,14 @@ export default function NewDeliverablePage() {
                   <Input
                     id="title"
                     placeholder="Mis. Ringkasan Bulanan Media Sosial"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    {...register("title")}
                     required
                     className="w-full rounded-xl h-11"
+                    aria-invalid={!!errors.title}
                   />
+                  {errors.title && (
+                    <p className="text-xs text-destructive">{errors.title.message}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Judul akan ditampilkan di dashboard dan notifikasi.
                   </p>
@@ -141,7 +160,10 @@ export default function NewDeliverablePage() {
                     <Label htmlFor="client" className="text-sm font-medium text-foreground">
                       Klien *
                     </Label>
-                    <Select value={clientId} onValueChange={(v) => setClientId(v ?? "")}>
+                    <Select
+                      value={clientId}
+                      onValueChange={(v) => setValue("client_id", v ?? "", { shouldValidate: true })}
+                    >
                       <SelectTrigger id="client" className="w-full rounded-xl h-11">
                         <SelectValue placeholder="Pilih klien..." />
                       </SelectTrigger>
@@ -151,13 +173,19 @@ export default function NewDeliverablePage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.client_id && (
+                      <p className="text-xs text-destructive">{errors.client_id.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="type" className="text-sm font-medium text-foreground">
                       Tipe
                     </Label>
-                    <Select value={type} onValueChange={(v) => setType(v ?? "content")}>
+                    <Select
+                      value={type}
+                      onValueChange={(v) => setValue("type", v as "content" | "brief" | "report", { shouldValidate: true })}
+                    >
                       <SelectTrigger id="type" className="w-full rounded-xl h-11">
                         <SelectValue />
                       </SelectTrigger>
@@ -178,31 +206,28 @@ export default function NewDeliverablePage() {
                   <Textarea
                     id="content"
                     placeholder="Tulis konten lengkap di sini (dukung markdown)..."
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    {...register("content")}
                     className="min-h-[300px] font-mono text-sm resize-y rounded-xl"
+                    aria-invalid={!!errors.content}
                   />
                 </div>
               </CardContent>
 
               <CardFooter className="flex flex-col gap-3 border-t px-6 py-4">
-                {error && (
-                  <p className="w-full text-sm text-destructive">{error}</p>
-                )}
                 <div className="flex w-full justify-between">
-                <Button variant="outline" type="button" onClick={handleCancel} className="h-11">
-                  Batal
-                </Button>
-                <RippleButton type="submit" disabled={loading} className="h-11">
-                  {loading ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin mr-2" />
-                      Membuat...
-                    </>
-                  ) : (
-                    "Buat Deliverable"
-                  )}
-                </RippleButton>
+                  <Button variant="outline" type="button" onClick={handleCancel} className="h-11">
+                    Batal
+                  </Button>
+                  <RippleButton type="submit" disabled={loading} className="h-11">
+                    {loading ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin mr-2" />
+                        Membuat...
+                      </>
+                    ) : (
+                      "Buat Deliverable"
+                    )}
+                  </RippleButton>
                 </div>
               </CardFooter>
             </Card>
