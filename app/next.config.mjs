@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   // Clickjacking protection — the app must never be framed by a third party.
@@ -22,7 +24,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://o4512121963347968.ingest.us.sentry.io",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -33,6 +35,10 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Next.js 14.2 requires explicit opt-in for instrumentation.ts (Sentry server/edge init)
+  experimental: {
+    instrumentationHook: true,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -62,4 +68,15 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Upload source maps for readable stack traces in Sentry
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Route Sentry requests through /sentry-tunnel (avoids ad-blockers)
+  tunnelRoute: "/sentry-tunnel",
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+});
