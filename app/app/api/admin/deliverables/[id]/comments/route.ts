@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
@@ -31,7 +31,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('deliverable_comments')
     .insert({
-      deliverable_id: params.id,
+      deliverable_id: (await params).id,
       author_id: ctx.userId,
       content: content.trim(),
     })

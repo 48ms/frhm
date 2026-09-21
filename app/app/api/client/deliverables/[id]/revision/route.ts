@@ -23,7 +23,7 @@ async function patchSkillOutputsByDeliverable(id: string, body: { status: string
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -60,7 +60,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('deliverables')
     .update({ status: 'revision_requested', updated_by: user.id })
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('client_id', profile.client_id)
     .select()
     .single()
@@ -70,11 +70,11 @@ export async function POST(
   // the linked skill output mirrors the deliverable — revision means the work goes back for edits
   // Use service-role client because `so_client_own` RLS policy on skill_outputs is FOR
   // SELECT only; a direct client JWT call would silently update 0 rows.
-  await patchSkillOutputsByDeliverable(params.id, { status: 'revision_requested' })
+  await patchSkillOutputsByDeliverable((await params).id, { status: 'revision_requested' })
 
   // log the reason as a comment on the thread
   await supabase.from('deliverable_comments').insert({
-    deliverable_id: params.id,
+    deliverable_id: (await params).id,
     author_id: user.id,
     content: `[REVISI DIMINTA]: ${reason.trim()}`,
   })
@@ -85,7 +85,7 @@ export async function POST(
     actorName: profile.full_name,
     action: 'deliverable.revision_request',
     entityType: 'deliverable',
-    entityId: params.id,
+    entityId: (await params).id,
     clientId: profile.client_id,
     summary: `Klien meminta revisi "${data?.title ?? 'deliverable'}"`,
     metadata: { title: data?.title ?? null, reason: reason.trim() },
@@ -117,7 +117,7 @@ export async function POST(
           title: data?.title || 'Deliverable',
           action: 'revision_requested',
           notes: reason.trim(),
-          deliverableId: params.id,
+          deliverableId: (await params).id,
         }, {
           onBlocked: async (recipientType, recipientId) => {
             if (recipientId && serviceRoleKey && supabaseUrl) {

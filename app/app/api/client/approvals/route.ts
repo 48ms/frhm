@@ -24,18 +24,16 @@ async function getSupabase() {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
+  const body = await req.json().catch(() => ({}))
+  const { action, id } = body // 'approve' or 'reject'; id is the post id
+  if (!id || !action || !['approve', 'reject'].includes(action)) {
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+  }
+
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return denyUnauthorized()
-
-  const body = await req.json().catch(() => ({}))
-  const { action } = body // 'approve' or 'reject'
-  if (!action || !['approve', 'reject'].includes(action)) {
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
-  }
 
   const { data: existing } = await supabase
     .from('platform_posts').select('status').eq('id', id).single()

@@ -23,7 +23,7 @@ async function patchSkillOutputsByDeliverable(id: string, body: { status: string
 
 export async function POST(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -53,7 +53,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('deliverables')
     .update({ status: 'approved', approved_at: new Date().toISOString(), updated_by: user.id })
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('client_id', profile.client_id)
     .select()
     .single()
@@ -64,7 +64,7 @@ export async function POST(
   // finished and ready to publish (the repo: "the agent drafts, the human judges")
   // Use service-role client because `so_client_own` RLS policy on skill_outputs is FOR
   // SELECT only; a direct client JWT call would silently update 0 rows.
-  await patchSkillOutputsByDeliverable(params.id, { status: 'approved' })
+  await patchSkillOutputsByDeliverable((await params).id, { status: 'approved' })
 
   await logAudit({
     actorId: user.id,
@@ -72,7 +72,7 @@ export async function POST(
     actorName: profile.full_name,
     action: 'deliverable.approve',
     entityType: 'deliverable',
-    entityId: params.id,
+    entityId: (await params).id,
     clientId: profile.client_id,
     summary: `Klien menyetujui "${data?.title ?? 'deliverable'}"`,
     metadata: { title: data?.title ?? null },
@@ -103,7 +103,7 @@ export async function POST(
           clientName: clientObj?.name || 'Klien',
           title: data?.title || 'Deliverable',
           action: 'approved',
-          deliverableId: params.id,
+          deliverableId: (await params).id,
         }, {
           onBlocked: async (recipientType, recipientId) => {
             if (recipientId && serviceRoleKey && supabaseUrl) {

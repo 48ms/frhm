@@ -19,10 +19,10 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string; outputId: string } },
+  { params }: { params: Promise<{ id: string; outputId: string }> },
 ) {
-  const clientId = params.id
-  const outputId = params.outputId
+  const clientId = (await params).id
+  const outputId = (await params).outputId
 
   const cookieStore = await cookies()
   const supabase = createServerClient(

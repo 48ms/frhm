@@ -5,13 +5,13 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const clientId = params.id
+  const clientId = (await params).id
   const { skill_id, title, content } = await req.json()
 
   if (!skill_id || !content) {
@@ -82,13 +82,13 @@ export async function POST(
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const clientId = params.id
+  const clientId = (await params).id
 
   const { data, error } = await supabase
     .from('skill_outputs')

@@ -1,10 +1,10 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
-  // Clickjacking protection — the app must never be framed by a third party.
+  // Clickjacking protection — the app can never be framed by a third party.
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-  // Stop MIME-type sniffing (a .txt should never be executed as script).
+  // Stop MIME-type sniffing — a .txt should never be executed as script.
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   // Legacy XSS filter — harmless where unsupported, defence-in-depth where honoured.
   { key: 'X-XSS-Protection', value: '1; mode=block' },
@@ -35,10 +35,6 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 14.2 requires explicit opt-in for instrumentation.ts (Sentry server/edge init)
-  experimental: {
-    instrumentationHook: true,
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -57,13 +53,13 @@ const nextConfig = {
       },
     ];
   },
+  // Webpack config: disable eval source maps (Edge Runtime bug on Windows)
+  // Next.js 16 uses Turbopack by default; --webpack needed for production build
   webpack: (config, { dev }) => {
-    // Disable eval source maps completely to fix Next.js Edge Runtime bug on Windows
     config.devtool = false;
     config.plugins = config.plugins.filter(
       (p) => !p.constructor || !p.constructor.name.includes('EvalSourceMap')
     );
-
     return config;
   },
 };
@@ -71,14 +67,8 @@ const nextConfig = {
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
-  // Upload source maps for readable stack traces in Sentry
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  // Route Sentry requests through /sentry-tunnel (avoids ad-blockers)
   tunnelRoute: "/sentry-tunnel",
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
   sourcemaps: {
     deleteSourcemapsAfterUpload: true,
   },

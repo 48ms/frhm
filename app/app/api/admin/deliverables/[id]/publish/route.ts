@@ -27,7 +27,7 @@ import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -60,7 +60,7 @@ export async function POST(
   const { data: deliverable } = await supabase
     .from('deliverables')
     .select('id, client_id, type, title, content_md, status')
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .single()
   if (!deliverable) return NextResponse.json({ error: 'Deliverable tidak ditemukan' }, { status: 404 })
 
@@ -137,14 +137,14 @@ export async function POST(
   await supabase
     .from('deliverables')
     .update({ external_link: createdData?.id ? `bridge://post/${createdData.id}` : null })
-    .eq('id', params.id)
+    .eq('id', (await params).id)
 
   await logAudit({
     actorId: user.id,
     actorRole: 'admin',
     action: 'deliverable.publish',
     entityType: 'deliverable',
-    entityId: params.id,
+    entityId: (await params).id,
     clientId: deliverable.client_id,
     summary: `Admin mempublikasikan "${deliverable.title}" ke bridge`,
     metadata: {

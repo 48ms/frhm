@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   // Rate limit: reset-password is a sensitive mutation — cap at 3 per IP per 60s.
   const rl = checkRateLimit(getClientIp(_request.headers), 'reset-password', 3, 60_000)
@@ -50,7 +50,7 @@ export async function POST(
   const { data: linked } = await supabase
     .from('users')
     .select('id')
-    .eq('client_id', params.id)
+    .eq('client_id', (await params).id)
     .maybeSingle()
 
   if (!linked) {
@@ -80,8 +80,8 @@ export async function POST(
     actorRole: 'admin',
     action: 'client.reset_password',
     entityType: 'client',
-    entityId: params.id,
-    clientId: params.id,
+    entityId: (await params).id,
+    clientId: (await params).id,
     summary: `Admin mereset password akun client (${authUser.user.email ?? 'tanpa email'})`,
     // deliberately NOT logging the password itself
     metadata: { email: authUser.user.email ?? null },

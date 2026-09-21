@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -47,7 +47,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('deliverable_comments')
     .insert({
-      deliverable_id: params.id,
+      deliverable_id: (await params).id,
       author_id: user.id,
       content: content.trim(),
     })

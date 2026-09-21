@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 /** PATCH /api/admin/deliverables/[id] — edit deliverable.
  *  If the deliverable is currently approved/revision_requested, editing it
  *  resets status to 'draft' (T016). */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const rl = checkRateLimit(getClientIp(req.headers), 'admin/deliverables', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
   if (rl.limited) {
     return NextResponse.json(
@@ -32,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // current status → decide whether to reset
   const { data: current } = await supabase
-    .from('deliverables').select('status').eq('id', params.id).single()
+    .from('deliverables').select('status').eq('id', (await params).id).single()
 
   let resetToDraft = false
   if (current && (current.status === 'approved' || current.status === 'revision_requested')) {
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   patch.updated_by = userId
 
   const { data, error } = await supabase
-    .from('deliverables').update(patch).eq('id', params.id).select().single()
+    .from('deliverables').update(patch).eq('id', (await params).id).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
@@ -51,11 +51,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     actorId: userId,
     actorRole: 'admin',
     entityType: 'deliverable',
-    entityId: params.id,
+    entityId: (await params).id,
     clientId: data.client_id as string | null,
     summary: resetToDraft
-      ? `Mengedit deliverable ${params.id} → status direset ke draft`
-      : `Mengedit deliverable ${params.id}`,
+      ? `Mengedit deliverable ${(await params).id} → status direset ke draft`
+      : `Mengedit deliverable ${(await params).id}`,
     request: req,
   })
 
@@ -63,13 +63,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 /** DELETE /api/admin/deliverables/[id] — only allowed when status = 'draft' (T017). */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase, userId } = ctx
 
   const { data: current } = await supabase
-    .from('deliverables').select('status, client_id').eq('id', params.id).single()
+    .from('deliverables').select('status, client_id').eq('id', (await params).id).single()
 
   if (!current) return NextResponse.json({ error: 'Deliverable tidak ditemukan' }, { status: 404 })
   if (current.status !== 'draft') {
@@ -79,7 +79,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     )
   }
 
-  const { error } = await supabase.from('deliverables').delete().eq('id', params.id)
+  const { error } = await supabase.from('deliverables').delete().eq('id', (await params).id)
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
   void logAudit({
@@ -87,9 +87,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     actorId: userId,
     actorRole: 'admin',
     entityType: 'deliverable',
-    entityId: params.id,
+    entityId: (await params).id,
     clientId: (current.client_id as string | null) ?? null,
-    summary: `Menghapus deliverable ${params.id}`,
+    summary: `Menghapus deliverable ${(await params).id}`,
     request: req,
   })
 

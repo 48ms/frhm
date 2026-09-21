@@ -5,3 +5,6 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
   debug: false,
 });
+
+// Instrument client-side router transitions for performance monitoring
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

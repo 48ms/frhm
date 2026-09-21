@@ -72,7 +72,7 @@ function buildSystemPrompt(skillMd: string, brand: string): string {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const rl = checkRateLimit(getClientIp(request.headers), 'skills-bulk-run', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
   if (rl.limited) {
@@ -92,7 +92,7 @@ export async function POST(
     return denyForbidden()
   }
 
-  const clientId = params.id
+  const clientId = (await params).id
   const body = await request.json().catch(() => ({}))
   const skillIds: string[] = Array.isArray(body?.skill_ids) ? body.skill_ids : []
   const providerId: string | undefined = body?.provider_id

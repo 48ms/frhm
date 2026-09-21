@@ -63,12 +63,12 @@ function normalizeFormat(v: string): string {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
-  const clientId = params.id
+  const clientId = (await params).id
 
   try {
     const { provider_id, topic, assetCount, platforms } = await request.json().catch(() => ({}))
@@ -228,7 +228,7 @@ CRITICAL INSTRUCTIONS:
       stack: error?.stack,
       url: '/api/admin/clients/[id]/generate-campaign',
       component: 'generate-campaign',
-      context: { clientId: params?.id },
+      context: { clientId: (await params)?.id },
     })
     return NextResponse.json({ error: error.message || 'Terjadi kesalahan server.' }, { status: 500 })
   }

@@ -14,13 +14,13 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const clientId = params.id
+  const clientId = (await params).id
   const { searchParams } = new URL(req.url)
   const eventId = searchParams.get('event_id')
 
@@ -55,13 +55,13 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const clientId = params.id
+  const clientId = (await params).id
   const { searchParams } = new URL(req.url)
   const taskId = searchParams.get('task_id')
 

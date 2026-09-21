@@ -5,13 +5,13 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const clientId = params.id
+  const clientId = (await params).id
   const { budget_id, amount, category, description, expense_date } = await req.json()
 
   if (amount === undefined || !expense_date) {

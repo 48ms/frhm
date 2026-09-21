@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -42,7 +42,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('deliverables')
     .update({ status: 'sent', updated_by: user.id })
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .select()
     .single()
 

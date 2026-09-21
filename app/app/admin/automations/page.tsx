@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function GlobalAutomationsPage() {
   const ctx = await requireAdmin()
-  if (isResponse(ctx)) return ctx
+  if (isResponse(ctx)) throw ctx
   const { supabase } = ctx
 
   const { data: clients, error } = await supabase
