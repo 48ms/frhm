@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { ChevronDownIcon, FolderIcon, InboxIcon, LoaderIcon, SendIcon, CheckIcon, CalendarIcon, ClapperboardIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import { Markdown } from '@/components/markdown'
 import { PostDialog } from '@/components/calendar/post-dialog'
 
@@ -126,7 +127,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
         setProductionDraft(null)
       } else {
         const err = await res.json()
-        alert(err.error || 'Gagal mengirim ke production board')
+        toast.error(err.error || 'Gagal mengirim ke production board')
       }
     } finally {
       setProdSending(false)

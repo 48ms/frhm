@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import {
   UserIcon,
   MailIcon,
@@ -58,7 +59,7 @@ export default function SettingsClient({
     // Update auth metadata (self-scoped, secure)
     const { error } = await supabase.auth.updateUser({ data: { full_name: name.trim() } })
     setSaving(false)
-    if (error) return alert('Gagal: ' + error.message)
+    if (error) return toast.error('Gagal: ' + error.message)
     setNameSaved(true)
     setTimeout(() => setNameSaved(false), 2000)
   }
@@ -73,7 +74,7 @@ export default function SettingsClient({
     if (error) { setPwError(error.message); return }
     setNewPassword('')
     setConfirmPassword('')
-    alert('Password berhasil diubah. Silakan login ulang.')
+    toast.success('Password berhasil diubah. Silakan login ulang.')
     router.push('/auth/login')
   }
 
@@ -94,7 +95,7 @@ export default function SettingsClient({
     } catch (err) {
       // Revert optimistic update
       setClient((prev) => prev ? { ...prev, telegram_notifications_enabled: !newEnabled } : prev)
-      alert('Gagal: ' + (err instanceof Error ? err.message : String(err)))
+      toast.error('Gagal: ' + (err instanceof Error ? err.message : String(err)))
     } finally {
       setTelegramLoading(false)
     }
@@ -113,7 +114,7 @@ export default function SettingsClient({
       await supabase.auth.signOut()
       router.push('/auth/login')
     } catch (err) {
-      alert('Gagal: ' + (err instanceof Error ? err.message : String(err)))
+      toast.error('Gagal: ' + (err instanceof Error ? err.message : String(err)))
       setDeleting(false)
     }
   }

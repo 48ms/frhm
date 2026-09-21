@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PlusIcon, UserCheckIcon, Loader2Icon, Edit2Icon, Trash2Icon, KeyRoundIcon, UsersIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 type User = {
   id: string
@@ -123,7 +124,7 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error('Gagal menghapus')
       await load()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Gagal hapus')
+      toast.error(e instanceof Error ? e.message : 'Gagal hapus')
     }
   }
 

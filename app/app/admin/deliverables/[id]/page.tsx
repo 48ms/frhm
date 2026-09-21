@@ -15,6 +15,7 @@ import {
 import { StatusBadge, TypeBadge } from '@/components/deliverable/status-badge'
 import { CommentSection } from '@/components/deliverable/comment-section'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 import {
   ArrowLeft, Send, Link as LinkIcon, Calendar, User, Clock,
   CheckCircle2, MessageSquare, Pencil, Trash2, Save, X, Rocket, AlertTriangle,
@@ -147,7 +148,7 @@ export default function DeliverableDetailPage() {
         setDeliverable({ ...deliverable, ...form, status: json.data.status })
         setEditing(false)
       } else {
-        alert(json.error || 'Gagal menyimpan')
+        toast.error(json.error || 'Gagal menyimpan')
       }
     } finally { setSaving(false) }
   }
@@ -162,7 +163,7 @@ export default function DeliverableDetailPage() {
         router.push('/admin/deliverables')
         router.refresh()
       } else {
-        alert(json.error || 'Gagal menghapus')
+        toast.error(json.error || 'Gagal menghapus')
       }
     } finally {
       setDeleting(false)
@@ -179,6 +180,9 @@ export default function DeliverableDetailPage() {
     if (res.ok) {
       const json = await res.json()
       if (json.comment) setComments((c) => [...c, json.comment as unknown as Comment])
+    } else {
+      const json = await res.json().catch(() => ({}))
+      toast.error(json.error || 'Gagal menambah komentar')
     }
   }
 
