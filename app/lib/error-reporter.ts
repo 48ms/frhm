@@ -1,15 +1,17 @@
 /**
- * Error reporter: sends formatted error details to Telegram + structured log.
+ * Error reporter: sends formatted error details to Telegram + audit_log.
  *
  * Used by:
  * - `app/api/errors/report/route.ts` (client-side error boundaries call this)
  * - API routes that catch errors (direct call)
  *
- * Non-blocking: all operations are fire-and-forget. Never throws.
+ * Always awaits logAudit for forensic trail.
+ * Telegram delivery is fire-and-forget but non-blocking when chatId exists.
  */
 
 import { sendTelegramMessage } from '@/lib/telegram/service'
 import { logger } from '@/lib/logger'
+import { logAudit } from '@/lib/audit/log'
 
 interface ErrorReport {
   /** Error message */
@@ -33,12 +35,11 @@ const reportedDigests = new Map<string, number>()
 const DEDUP_WINDOW_MS = 60_000 // 1 minute
 
 function shouldReport(digest: string | undefined): boolean {
-  if (!digest) return true // no digest = always report (different error each time)
+  if (!digest) return true // no digest = always report
   const now = Date.now()
   const last = reportedDigests.get(digest)
   if (last && now - last < DEDUP_WINDOW_MS) return false
   reportedDigests.set(digest, now)
-  // Cleanup old entries periodically
   if (reportedDigests.size > 1000) {
     for (const [key, ts] of reportedDigests) {
       if (now - ts > DEDUP_WINDOW_MS * 2) reportedDigests.delete(key)
@@ -77,7 +78,6 @@ function formatTelegramMessage(report: ErrorReport): string {
 
   if (report.stack) {
     const stackLines = report.stack.split('\n')
-    // First 3 frames after the message line (most useful)
     const frames = stackLines.slice(1, 4)
     lines.push('📋 <b>Stack:</b>')
     lines.push(`<pre>${esc(frames.join('\n'))}</pre>`)
@@ -91,20 +91,20 @@ function formatTelegramMessage(report: ErrorReport): string {
     lines.push(`<pre>${esc(JSON.stringify(report.context, null, 2).slice(0, 500))}</pre>`)
   }
 
-  // Telegram hard limit is 4096 chars
   const out = lines.join('\n')
   return out.length > 4000 ? out.slice(0, 3990) + '\n…(truncated)' : out
 }
 
 /**
- * Report an error to Telegram + structured log.
- * Non-blocking: always returns void, never throws.
+ * Report an error to audit_log + Telegram.
+ * - audit_log: ALWAYS written (awaited, forensic trail)
+ * - Telegram: delivered if chatId configured
  */
 export async function reportError(report: ErrorReport): Promise<void> {
-  // 1. Dedup check
+  // 1. Dedup check (same digest = skip to avoid duplicates)
   if (!shouldReport(report.digest)) return
 
-  // 2. Structured log (always works, even if Telegram fails)
+  // 2. Structured log (always works)
   const errObj = new Error(report.message)
   errObj.name = report.name || 'Error'
   if (report.stack) errObj.stack = report.stack
@@ -114,11 +114,29 @@ export async function reportError(report: ErrorReport): Promise<void> {
     error: errObj,
   })
 
-  // 3. Telegram notification (fire-and-forget, never blocks)
-  try {
-    const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID
-    if (!chatId) return
+  // 3. Forensic audit trail — always await (audit must land before response)
+  await logAudit({
+    actorId: typeof report.context?.userId === 'string' ? report.context.userId : null,
+    actorRole: 'system',
+    actorName: 'Error Reporter',
+    action: 'system.error',
+    entityType: 'error',
+    entityId: null,
+    summary: `[${report.component || 'unknown'}] ${report.message}`.slice(0, 500),
+    metadata: {
+      digest: report.digest,
+      name: report.name,
+      url: report.url,
+      stack: report.stack?.split('\n').slice(0, 5).join('\n'),
+      context: report.context,
+    },
+  })
 
+  // 4. Telegram notification (fire-and-forget, never blocks response)
+  const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID
+  if (!chatId) return
+
+  try {
     await sendTelegramMessage({
       chatId,
       text: formatTelegramMessage(report),
@@ -127,7 +145,6 @@ export async function reportError(report: ErrorReport): Promise<void> {
       recipientType: 'admin',
     })
   } catch (err) {
-    // Telegram notification failed — log but never throw
     logger.error('[error-reporter] Telegram notification failed', { error: err })
   }
 }

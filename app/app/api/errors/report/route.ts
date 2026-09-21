@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     context: typeof body.context === 'object' && body.context ? body.context : undefined,
   }
 
-  // Fire-and-forget: report in background, respond immediately
-  void reportError(report)
+  // Await reportError: Telegram delivery + audit_log write must complete before response
+  await reportError(report)
 
   return NextResponse.json({ ok: true })
 }
