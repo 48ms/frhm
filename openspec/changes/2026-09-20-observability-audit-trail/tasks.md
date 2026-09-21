@@ -51,8 +51,8 @@
 - [x] `sourcemaps.deleteSourcemapsAfterUpload: true` in next.config.mjs
 - [x] `@sentry/cli@3.8.0` installed (devDependency, replaces v1.77.3)
 
-## Phase 6: Session management — ❌ NOT DONE (no route exists)
-- [ ] `POST /api/admin/clients/[id]/revoke-sessions` → **ROUTE DOES NOT EXIST**
+## Phase 6: Session management — ✅ DONE
+- [x] `POST /api/admin/clients/[id]/revoke-sessions` → **IMPLEMENTED** — admin reset password to invalidate all sessions (note: no native revoke-by-user-id API exists; Supabase auth doesn't expose `/admin/users/{id}/sessions`)
 
 ## Phase 7: Audit log cleanup — ❌ BLOCKED (immutability conflict)
 - [ ] Cron: `DELETE FROM audit_log WHERE created_at < NOW() - INTERVAL '90 days'` → **IMPOSSIBLE**
