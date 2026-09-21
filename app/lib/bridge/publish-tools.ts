@@ -21,8 +21,7 @@ import {
   generateOAuthUrl, toBridgePlatform,
   type ValidateResult,
 } from '@/lib/bridge/woopsocial'
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 export type ToolCtx = {
   apiKey: string | null
@@ -206,10 +205,7 @@ export async function createScheduledPostsFromBridge(
   bridgeResult: { postId: string; socialAccountPosts: unknown[] },
   originalArgs: Record<string, unknown>
 ): Promise<{ ok: boolean; error?: string; created: string[] }> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = createSupabaseServiceClient()
 
   const accounts = (originalArgs.socialAccounts as { platform?: string; socialAccountId?: string }[] | undefined) ?? []
   const schedule = (originalArgs.schedule as { type?: string; scheduledFor?: string; timezone?: string } | undefined) ?? {}

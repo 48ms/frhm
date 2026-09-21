@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 /**
  * Append one row to audit_log.
@@ -44,13 +43,7 @@ function forensicFromRequest(request?: Request) {
 
 export async function logAudit(input: AuditInput): Promise<void> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!url || !key) return
-
-    const admin = createClient(url, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    const admin = createSupabaseServiceClient()
 
     // fill actor_name/role from the users row when only an id is known
     let role = input.actorRole ?? null

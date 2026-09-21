@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { logger } from '@/lib/logger'
 
@@ -106,10 +106,7 @@ export async function DELETE() {
   // Uses the service-role client: `users` only has a client SELECT policy
   // (`user_own_profile`), so a user-JWT UPDATE silently affects 0 rows.
   // Ownership was already verified above via the same user's auth session.
-  const srv = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const srv = createSupabaseServiceClient()
   const { error: updateError } = await srv
     .from('users')
     .update({

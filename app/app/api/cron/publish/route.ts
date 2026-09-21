@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { getBridgeKey } from '@/lib/bridge/config'
 import { listSocialAccounts, validatePost, createPost, toBridgePlatform } from '@/lib/bridge/woopsocial'
 import { notifyAdminPublishStatus } from '@/lib/telegram/service'
@@ -26,10 +25,7 @@ export async function POST(request: Request) {
   }
 
   // Use service role to bypass RLS for background job
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = createSupabaseServiceClient()
 
   // Fetch posts due for publishing
   const { data: duePosts, error } = await supabase

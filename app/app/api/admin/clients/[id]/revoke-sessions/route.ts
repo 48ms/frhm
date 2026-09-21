@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
@@ -52,10 +52,7 @@ export async function POST(
   }
 
   // Service-role client — auth.admin needs it (JWT user token cannot revoke others)
-  const svc = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const svc = createSupabaseServiceClient()
 
   // Get auth email for the audit trail
   const { data: authUser, error: fetchErr } = await svc.auth.admin.getUserById(linked.id)

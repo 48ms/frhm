@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 export interface TelegramButton {
   text: string
@@ -171,7 +170,7 @@ async function logTelegramNotification(params: {
   if (!supabaseUrl || !serviceRoleKey) return
 
   try {
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabase = createSupabaseServiceClient()
     await supabase.from('telegram_notification_logs').insert({
       recipient_type: params.recipientType,
       recipient_id: params.recipientId || null,

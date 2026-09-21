@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
@@ -47,11 +47,7 @@ export async function PATCH(request: Request) {
     // client_own_client is FOR SELECT), so a client's UPDATE via the
     // anon/publishable key silently affects 0 rows. We already verified
     // ownership above, so perform the write with the service role.
-    const admin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    )
+    const admin = createSupabaseServiceClient()
 
     const { data: updated, error } = await admin
       .from('clients')

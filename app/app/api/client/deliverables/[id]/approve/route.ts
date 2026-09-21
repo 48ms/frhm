@@ -1,10 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { notifyAdminClientFeedback } from '@/lib/telegram/service'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,10 +14,7 @@ export const dynamic = 'force-dynamic'
  * service-role write is gated behind an auth check, not open to any caller.
  */
 async function patchSkillOutputsByDeliverable(id: string, body: { status: string }) {
-  const srv = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const srv = createSupabaseServiceClient()
   await srv.from('skill_outputs').update(body).eq('deliverable_id', id)
 }
 
@@ -107,7 +104,7 @@ export async function POST(
         }, {
           onBlocked: async (recipientType, recipientId) => {
             if (recipientId && serviceRoleKey && supabaseUrl) {
-              const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
+              const supabaseAdmin = createSupabaseServiceClient()
               await supabaseAdmin
                 .from('users')
                 .update({ telegram_notifications_enabled: false })

@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { logger } from '@/lib/logger'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 export type AiUsageInput = {
   /** Caller's user id (the admin/client who triggered the call). Null for system/cron calls. */
@@ -36,13 +35,7 @@ export type AiUsageInput = {
  */
 export async function logAiUsage(input: AiUsageInput): Promise<void> {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!url || !key) return
-
-    const admin = createClient(url, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    const admin = createSupabaseServiceClient()
 
     await admin.from('ai_usage_logs').insert({
       user_id: input.userId ?? null,
