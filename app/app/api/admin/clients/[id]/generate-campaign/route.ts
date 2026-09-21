@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, isResponse, resolveProvider, loadClientFiles } from '@/lib/ai/server'
 import { chatJson } from '@/lib/ai/providers'
+import { reportError } from '@/lib/error-reporter'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 800
@@ -221,6 +222,14 @@ CRITICAL INSTRUCTIONS:
     return NextResponse.json({ success: true, message: 'Berhasil membuat kampanye AI.' })
   } catch (error: any) {
     console.error('Error generate AI Campaign:', error)
+    reportError({
+      message: error?.message || 'Terjadi kesalahan server.',
+      name: error?.name || 'Error',
+      stack: error?.stack,
+      url: '/api/admin/clients/[id]/generate-campaign',
+      component: 'generate-campaign',
+      context: { clientId: params?.id },
+    })
     return NextResponse.json({ error: error.message || 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }

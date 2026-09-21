@@ -12,6 +12,8 @@
 - [x] `app/admin/error.tsx` → **EXISTS**
 - [x] `app/client/error.tsx` → **EXISTS**
 - [x] `app/error.tsx` → **EXISTS** (root-level)
+- [x] **Error reporter** → **/api/errors/report** (rate-limited 30/min)
+- [x] Error boundaries POST to reporter → **TELEGRAM + structured log**
 
 ## Phase 3: Rate limiting — ✅ DONE (12+ routes covered)
 - [x] `POST /api/admin/ai/chat` → **checkRateLimit**

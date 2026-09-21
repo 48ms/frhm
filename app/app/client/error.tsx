@@ -19,6 +19,19 @@ export default function ClientError({
 }) {
   useEffect(() => {
     console.error('[client error boundary]', error)
+    // Report to Telegram + structured log
+    fetch('/api/errors/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        digest: error.digest,
+        url: window.location.href,
+        component: 'ClientError',
+      }),
+    }).catch(() => {})
   }, [error])
 
   return (

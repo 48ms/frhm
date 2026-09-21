@@ -19,8 +19,20 @@ export default function AdminError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Surface to the browser console for local debugging; production reporting (Sentry) hooks here.
     console.error('[admin error boundary]', error)
+    // Report to Telegram + structured log
+    fetch('/api/errors/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        digest: error.digest,
+        url: window.location.href,
+        component: 'AdminError',
+      }),
+    }).catch(() => {})
   }, [error])
 
   return (

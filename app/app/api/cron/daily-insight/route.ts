@@ -7,6 +7,7 @@ import { buildInsightPrompt, type InsightContext } from '@/lib/analytics/insight
 import { buildAdminReport, buildClientReport } from '@/lib/telegram/messages/daily-briefing'
 import { sendTelegramMessage } from '@/lib/telegram/service'
 import { analyzeSentiment, aggregateSentiments, type SentimentSummary } from '@/lib/nlp/sentiment'
+import { reportError } from '@/lib/error-reporter'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +50,14 @@ export async function GET(request: Request) {
       results.push(result)
     } catch (err: unknown) {
       console.error(`[daily-insight] Client ${client.id} failed:`, err)
+      reportError({
+        message: err instanceof Error ? err.message : String(err),
+        name: err instanceof Error ? err.name : 'Error',
+        stack: err instanceof Error ? err.stack : undefined,
+        url: `/cron/daily-insight (client=${client.id})`,
+        component: 'cron/daily-insight',
+        context: { clientId: client.id, clientName: client.name },
+      })
       errors.push({
         clientId: client.id,
         clientName: client.name,
