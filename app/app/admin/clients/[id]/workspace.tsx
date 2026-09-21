@@ -40,9 +40,9 @@ const ROIDashboardBoard = dynamic(
   }
 )
 import {
-  ArrowLeftIcon, Building2Icon, SaveIcon, PlusIcon, FileTextIcon,
-  CheckCircle2Icon, LayersIcon, WorkflowIcon, KeyRoundIcon,
-  DownloadIcon, LoaderIcon, MessageCircle, Flame,
+ArrowLeftIcon, Building2Icon, SaveIcon, PlusIcon, FileTextIcon,
+CheckCircle2Icon, LayersIcon, WorkflowIcon, KeyRoundIcon,
+DownloadIcon, LoaderIcon, MessageCircle, Flame, LogOut,
 } from 'lucide-react'
 
 type BrandProfile = {
@@ -119,6 +119,9 @@ export function ClientWorkspace({
     const [resetLoading, setResetLoading] = useState(false)
     const [resetErr, setResetErr] = useState<string | null>(null)
     const [exporting, setExporting] = useState(false)
+    const [revokeLoading, setRevokeLoading] = useState(false)
+    const [revokeErr, setRevokeErr] = useState<string | null>(null)
+    const [revokeDone, setRevokeDone] = useState(false)
     const fileCount = haveFiles.length
 
     const exportDeliverables = async () => {
@@ -180,6 +183,22 @@ export function ClientWorkspace({
       }
     }
 
+    const handleRevokeSessions = async () => {
+      setRevokeErr(null)
+      setRevokeDone(false)
+      setRevokeLoading(true)
+      try {
+        const res = await fetch(`/api/admin/clients/${client.id}/revoke-sessions`, { method: 'POST' })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || 'Gagal mencabut session')
+        setRevokeDone(true)
+      } catch (e) {
+        setRevokeErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
+      } finally {
+        setRevokeLoading(false)
+      }
+    }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -208,6 +227,9 @@ export function ClientWorkspace({
                       </Badge>
                       <Button variant="outline" className="h-11 lg:h-9" onClick={() => { setResetData(null); setResetErr(null); setResetOpen(true) }}>
                         <KeyRoundIcon className="size-4" /> Reset Password
+                      </Button>
+                      <Button variant="destructive" className="h-11 lg:h-9" onClick={handleRevokeSessions} disabled={revokeLoading}>
+                        <LogOut className="size-4" /> {revokeLoading ? 'Memproses...' : 'Cabut Session'}
                       </Button>
                       <Button className="h-11 lg:h-9" onClick={handleSave} disabled={saving}>
                         {saved ? (
@@ -466,6 +488,24 @@ export function ClientWorkspace({
                                   {resetLoading ? 'Memproses...' : 'Reset Sekarang'}
                                 </Button>
                               )}
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={revokeDone} onOpenChange={(o) => { if (!o) setRevokeDone(false) }}>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <LogOut className="size-5 text-destructive" /> Session Dicabut
+                              </DialogTitle>
+                              <DialogDescription>
+                                Semua session client ini telah di-invalidate. Client harus login ulang.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button className="h-11 lg:h-8" onClick={() => setRevokeDone(false)}>
+                                Tutup
+                              </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
