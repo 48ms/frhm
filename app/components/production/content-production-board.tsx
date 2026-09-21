@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +18,7 @@ import { CalendarIcon, Sparkles, Loader2 } from 'lucide-react'
 import { PostDialog } from '@/components/calendar/post-dialog'
 import { ContentFormModal } from './content-form-modal'
 import { toast } from 'sonner'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export type ProductionItem = {
   id: string
@@ -58,6 +60,8 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
   const [genTopic, setGenTopic] = useState('')
   const [genAssetCount, setGenAssetCount] = useState(2)
   const [genPlatforms, setGenPlatforms] = useState<string[]>(['INSTAGRAM', 'TIKTOK', 'FACEBOOK'])
+  const supabase = createClient()
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   const handleAutoGenerate = async () => {
     try {
@@ -92,6 +96,24 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
 
   useEffect(() => {
     if (clientId) fetchProductions()
+
+    channelRef.current = supabase
+      .channel('content-productions-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'content_productions' },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>
+          if (row.client_id === clientId) {
+            fetchProductions()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelRef.current!)
+    }
   }, [clientId, fetchProductions])
 
   const openNewModal = (stage?: ProductionItem['stage']) => {

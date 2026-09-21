@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { AdSpendFormModal } from './ad-spend-form-modal'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 type AdSpendLog = {
   id: string
+  client_id: string
   campaign_name: string
   spend: number
   clicks: number
@@ -20,6 +22,7 @@ export function AdsTrackerBoard({ clientId }: { clientId: string }) {
   const [logs, setLogs] = useState<AdSpendLog[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   const handleSuccess = (newLog: AdSpendLog) => {
     setLogs([...logs, newLog].sort((a, b) => new Date(a.log_date).getTime() - new Date(b.log_date).getTime()))
@@ -37,6 +40,24 @@ export function AdsTrackerBoard({ clientId }: { clientId: string }) {
       setLoading(false)
     }
     fetchLogs()
+
+    channelRef.current = supabase
+      .channel('ad-spend-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ad_spend_logs' },
+        (payload) => {
+          const log = payload.new as AdSpendLog
+          if (log.client_id === clientId) {
+            handleSuccess(log)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelRef.current!)
+    }
   }, [clientId, supabase])
 
   // Form submit handler has been moved to AdSpendFormModal

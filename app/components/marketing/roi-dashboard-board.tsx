@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import { TrendingUpIcon, MousePointerClickIcon, TargetIcon, DollarSignIcon, ReceiptIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export function ROIDashboardBoard({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true)
@@ -19,6 +20,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
   })
   
   const supabase = createClient()
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -111,6 +113,34 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
     }
 
     fetchData()
+
+    channelRef.current = supabase
+      .channel('roi-expenses-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'expenses' },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>
+          if (row.client_id === clientId) {
+            fetchData()
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ad_spend_logs' },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>
+          if (row.client_id === clientId) {
+            fetchData()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelRef.current!)
+    }
   }, [clientId, supabase])
 
   if (loading) {

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PlusIcon, WalletIcon } from 'lucide-react'
 import { BudgetFormModal } from './budget-form-modal'
 import { ExpenseFormModal } from './expense-form-modal'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 type ClientBudget = {
   id: string
@@ -28,6 +29,7 @@ export function BudgetLedgerBoard({ clientId }: { clientId: string }) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   const handleBudgetSuccess = (newBudget: ClientBudget) => {
     setBudget(newBudget)
@@ -62,6 +64,24 @@ export function BudgetLedgerBoard({ clientId }: { clientId: string }) {
       setLoading(false)
     }
     fetchData()
+
+    channelRef.current = supabase
+      .channel('expenses-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'expenses' },
+        (payload) => {
+          const exp = payload.new as Expense & { client_id: string }
+          if (exp.client_id === clientId) {
+            handleExpenseSuccess(exp)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelRef.current!)
+    }
   }, [clientId, supabase])
 
   // Form submit handlers have been moved to their respective modals

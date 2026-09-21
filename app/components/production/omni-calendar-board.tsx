@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import {
 import { id } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react'
 import { PlatformIcon } from '@/components/calendar/calendar-view'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 type PlatformPost = {
   id: string
@@ -43,6 +44,7 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
   const [posts, setPosts] = useState<PlatformPost[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -100,6 +102,21 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
     }
 
     fetchPosts()
+
+    channelRef.current = supabase
+      .channel('platform-posts-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'platform_posts' },
+        () => {
+          fetchPosts()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelRef.current!)
+    }
   }, [clientId, supabase])
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
