@@ -57,6 +57,8 @@
 ## Phase 7: Audit log cleanup — ❌ BLOCKED (immutability conflict)
 - [ ] Cron: `DELETE FROM audit_log WHERE created_at < NOW() - INTERVAL '90 days'` → **IMPOSSIBLE**
 - **Reason**: Migration 039 `audit_log_immutable_delete` trigger blocks ALL DELETE on audit_log (forensic requirement)
+- **Resolution**: Marked won't-fix; action filter + search were added as UI mitigation since growth is ~28 rows/day (~5 MB/year), far from a performance concern. Retention policy to be revisited if spec immutability requirement changes.
+
 
 ## Phase 8: Forensic columns — ✅ DONE
 - [x] `ip_address`, `user_agent`, `request_id` columns → **migration 038**
