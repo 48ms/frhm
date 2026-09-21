@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ error: 'Task tidak ditemukan untuk klien ini' }, { status: 404 })
   }
 
-  let error: any
+  let error: Error | null
   if (action === 'mark_done') {
     const result = await supabase
       .from('tasks')

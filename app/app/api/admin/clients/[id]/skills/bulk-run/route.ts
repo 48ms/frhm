@@ -143,8 +143,7 @@ export async function POST(
   // The batch brief
   const brief: string = (body?.brief ?? '').trim()
 
-  // Run AI calls in parallel with concurrency limit of 3 (respect AI provider rate limits)
-  const CONCURRENCY_LIMIT = 3
+  // Run AI calls in parallel (respect AI provider rate limits)
   const allResults = await Promise.all(
     skillIds.map(async (skillId) => {
       const startTime = Date.now()

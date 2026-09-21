@@ -57,11 +57,11 @@ class Logger {
 
     // In local development, format it nicely. In production, write raw JSON.
     if (process.env.NODE_ENV === 'development') {
-      const { timestamp, level: l, msg: m, error, ...ctx } = entry
+      const { timestamp, level, msg, error, ...ctx } = entry
       const ctxStr = Object.keys(ctx).length ? `\n    ${JSON.stringify(ctx)}` : ''
-      const errStr = error ? `\n    ${(error as any).stack || (error as any).message}` : ''
+      const errStr = error ? `\n    ${(error as Error).stack || (error as Error).message}` : ''
       
-      const out = `[${timestamp}] ${level.toUpperCase()}: ${msg}${ctxStr}${errStr}`
+      const out = `[${timestamp}] ${(level as string).toUpperCase()}: ${msg}${ctxStr}${errStr}`
       if (level === 'error' || level === 'fatal') console.error(out)
       else if (level === 'warn') console.warn(out)
       else if (level === 'debug') console.debug(out)

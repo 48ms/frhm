@@ -16,7 +16,7 @@ type AutomationClient = {
 type JobStatus = 'pending' | 'running' | 'success' | 'error'
 
 export function GlobalAutomationsBoard({ initialClients }: { initialClients: AutomationClient[] }) {
-  const [clients, setClients] = useState<AutomationClient[]>(initialClients)
+  const [clients] = useState<AutomationClient[]>(initialClients)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   const [topic, setTopic] = useState('')
@@ -77,9 +77,9 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
         
         setJobStatuses(prev => ({ ...prev, [clientId]: 'success' }))
         setJobLogs(prev => ({ ...prev, [clientId]: 'Berhasil! Kampanye tersimpan.' }))
-      } catch (error: any) {
+      } catch (error: unknown) {
         setJobStatuses(prev => ({ ...prev, [clientId]: 'error' }))
-        setJobLogs(prev => ({ ...prev, [clientId]: error.message }))
+        setJobLogs(prev => ({ ...prev, [clientId]: (error as Error).message }))
       }
     }
 

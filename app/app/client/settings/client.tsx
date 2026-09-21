@@ -31,7 +31,7 @@ export default function SettingsClient({
 }) {
   const router = useRouter()
   const supabase = createClient()
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
 
   // Profile state
   const [name, setName] = useState(initialProfile.full_name ?? '')

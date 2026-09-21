@@ -23,7 +23,6 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   // 1. Fetch all active clients with Telegram notifications enabled
   const { data: clients } = await supabase
