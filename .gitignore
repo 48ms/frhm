@@ -48,3 +48,5 @@ anti-slop/
 
 # Windows reserved-name artifacts
 app/nul
+# Sentry CLI config (contains auth token)
+.sentryclirc

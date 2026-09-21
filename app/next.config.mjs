@@ -79,4 +79,7 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 });

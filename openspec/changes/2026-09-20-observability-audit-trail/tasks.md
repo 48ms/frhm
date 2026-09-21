@@ -36,9 +36,20 @@
 ## Phase 4: Health endpoint — ✅ DONE
 - [x] `GET /api/health` → **EXISTS**, returns `{status, timestamp, uptime}`
 
-## Phase 5: Sentry — ❌ NOT DONE (blocked by npm install decision)
-- [ ] `@sentry/nextjs` in package.json → **NOT INSTALLED**
-- [ ] Sentry init in layout → **MISSING**
+## Phase 5: Sentry — ✅ DONE (2026-09-21)
+- [x] `@sentry/nextjs@8.55.2` installed (v8 compatible with Next.js 14.2.35)
+- [x] Sentry init: `instrumentation.ts`, `instrumentation-client.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
+- [x] `experimental.instrumentationHook: true` in `next.config.mjs`
+- [x] `withSentryConfig()` wrapper in `next.config.mjs`
+- [x] `NEXT_PUBLIC_SENTRY_DSN` in `.env.local`
+- [x] `SENTRY_AUTH_TOKEN` in `.env.local` + `.sentryclirc` (untracked)
+- [x] CSP `connect-src` includes Sentry ingest domain
+- [x] `global-error.tsx` — Sentry captures React rendering errors
+- [x] Source maps upload: 300 files via `CI=true npx next build`
+- [x] Error capture verified: `Sentry.captureException()` → event in Sentry dashboard
+- [x] `.sentryclirc` untracked + added to `.gitignore` (contains auth token)
+- [x] `sourcemaps.deleteSourcemapsAfterUpload: true` in next.config.mjs
+- [x] `@sentry/cli@3.8.0` installed (devDependency, replaces v1.77.3)
 
 ## Phase 6: Session management — ❌ NOT DONE (no route exists)
 - [ ] `POST /api/admin/clients/[id]/revoke-sessions` → **ROUTE DOES NOT EXIST**
