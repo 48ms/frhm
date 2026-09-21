@@ -50,3 +50,8 @@ anti-slop/
 app/nul
 # Sentry CLI config (contains auth token)
 .sentryclirc
+
+# Playwright artifacts (session tokens, reports)
+app/e2e/.auth/
+app/test-results/
+app/playwright-report/

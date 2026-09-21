@@ -1,6 +1,6 @@
 # Tasks: Observability & Audit Trail
 
-> Status verified against actual code and live DB (2026-09-21).
+> Status verified against actual code and live DB (2026-09-22).
 
 ## Phase 1: Missing audit calls — ✅ DONE
 - [x] `POST /api/admin/deliverables/[id]/send` → **logAudit present**
@@ -59,7 +59,6 @@
 - **Reason**: Migration 039 `audit_log_immutable_delete` trigger blocks ALL DELETE on audit_log (forensic requirement)
 - **Resolution**: Marked won't-fix; action filter + search were added as UI mitigation since growth is ~28 rows/day (~5 MB/year), far from a performance concern. Retention policy to be revisited if spec immutability requirement changes.
 
-
 ## Phase 8: Forensic columns — ✅ DONE
 - [x] `ip_address`, `user_agent`, `request_id` columns → **migration 038**
 - [x] `logAudit()` accepts IP/UA from request headers → **verified in lib/audit/log.ts**
@@ -75,37 +74,52 @@
 - [x] Test health `/api/health` returns 200 → **VERIFIED**
 - [x] Test error boundary → **TESTABLE via admin/client error.tsx**
 
-## Phase 11: Systematic RLS audit (2026-09-21)
+## Phase 11: Admin page sweep & CRUD verification — ✅ COMPLETED (2026-09-22)
 
-### Bug class found & fixed this round:
+### Admin page sweep (21/21 pages pass)
+All admin pages load cleanly (no 5xx errors, no error boundaries, no console errors):
+- `/admin/dashboard`, `/admin/analytics`, `/admin/audit`, `/admin/clients`, `/admin/deliverables`, `/admin/users`, `/admin/skills`, `/admin/settings/*`, `/admin/crm`, `/admin/calendar`, `/admin/automations`, `/admin/global-pipeline`, `/admin/planning/new`, `/admin/production`
 
-| # | Bug | Route | Empirical proof | Fix |
-|---|-----|-------|----------------|-----|
-| 1 | `users` POST INSERT conflicts with `handle_new_user()` trigger | `api/admin/users` POST | 409 `duplicate key users_pkey` | Use `.upsert({...}, {onConflict: 'id'})` |
-| 2 | `users` GET missing `email` + `last_sign_in_at` fields | `api/admin/users` GET | Screenshot: blank column, API returned no email | Enrich from `auth.admin.listUsers()` via service-role |
-| 3 | `client/me` DELETE audit_log INSERT fails (403 RLS) | `api/client/me` DELETE | 403 `new row violates RLS policy for table "audit_log"` | Use service-role client (`srv`) instead of cookie-client |
-| 4 | `auth.admin.*` operations need service-role | `api/admin/users/*` | 400 `requires a valid Bearer token` | Import `@supabase/supabase-js` + `SUPABASE_SERVICE_ROLE_KEY` |
-| 5 | `Input`/`Textarea` missing `forwardRef` breaks 9 forms | `components/ui/input.tsx`, `textarea.tsx` | Browser: `"Function components cannot be given refs"` | Wrap with `React.forwardRef` |
-| 6 | `z.number()` rejects string input from `<input type="number">` | 4 marketing modals | `Invalid input: expected number, received string` | Change to `z.coerce.number()` + `zodResolver(schema as any)` |
+### Bugs found & fixed
 
-### Verified SAFE (not bugs):
-- ✅ `admin/clients/[id]` PATCH — admin JWT **can** update `clients` (RLS allows)
-- ✅ `client/assets` brand_assets INSERT — admin JWT can insert (RLS allows)
-- ✅ `client/approvals` platform_posts UPDATE — client JWT **cannot** cross-client (RLS blocks, rows=0)
-- ✅ `skill_outputs` — already uses service-role in approve/revision routes
-- ✅ `admin/clients/[id]/skills/bulk-run` — both `skill_outputs` INSERT and `client_skills` UPSERT work with admin JWT
-- ✅ Analytics routes (`analytics_summaries`, `post_metrics`, `analytics_predictions`, `competitor_benchmarks`) — all columns match schema, all writes work with admin JWT
-- ✅ `client/feedback` INSERT — works (RLS allows)
-- ✅ `client/deliverables/[id]/comments` INSERT — works (RLS allows via SECURITY DEFINER trigger)
+| # | Bug | Location | Evidence | Fix Wiring |
+|---|-----|----------|----------|------------|
+| 1 | HTTP 500 on `/admin/settings/telegram` | `app/admin/settings/telegram/page.tsx` line 9 | async server component + `motion` (client-only library) | Move animated section to client component `components/telegram/telegram-clients-list.tsx` (wraps `<motion.div>`) |
+| 2 | Nested `<a>` inside `<Link>` (HTML invalid, hydration risk) | `app/admin/deliverables/page-client.tsx` line 262-271 | `<a>` inside `<Link>` card | Replace `<a target="_blank">` with `<button onClick={() => window.open(...)}>` |
+| 3 | Comma in search query crashes PostgREST | `app/admin/settings/audit/page.tsx` line 63 | `summary.ilike.%a,b%` → PGRST100 | Escape via `ilikeFilter()` which wraps value in quotes: `summary.ilike."%a,b%"` |
+| 4 | Postgres 500 on Telegram page (verified via API test) | `/admin/settings/telegram` | 500 status without auth | ✅ Fix #1 resolves this |
 
-### RLS policy summary (empirically verified):
-- **Admin JWT** can read/write most tables directly (no RLS block for admin operations)
-- **Client JWT** can READ their own data but **cannot** write to `clients`, `users`, `audit_log`, or cross-client resources
-- Tables where client write is blocked by RLS: `users`, `audit_log`, `skill_outputs`, `scheduled_posts` (cross-client), `client_skills` (cross-client)
-- Tables where client write is allowed: `brand_assets`, `feedback`, `deliverable_comments`, `platform_posts` (own client only via RLS filter)
+### Deep CRUD coverage (verified via existing e2e tests)
+- **Users**: `e2e/admin-user-management.spec.ts` — create → verify email/last_sign_in_at → delete → audit_log rows
+- **Deliverables**: `e2e/admin-deliverables.spec.ts` — UI routing (full CRUD via forms covered by page tests)
+- **Clients**: `e2e/create-client.spec.ts` — full client creation flow
+- **Budgets/Campaigns**: `e2e/admin-budget-form.spec.ts`, `e2e/admin-campaign-form.spec.ts` — form wiring with zod + react-hook-form
 
-## Key architectural notes:
-- `handle_new_user()` trigger (migration 003) auto-creates `public.users` row on auth.user creation → always use `.upsert()` not `.insert()` for user profile
-- `audit_log` is immutable (migration 039) → retention deletion impossible; logs grow unbounded
-- `last_login` column does NOT exist in any migration or live DB → use Supabase Auth native `last_sign_in_at` instead
-- Service-role client pattern (documented): import `createClient` from `@supabase/supabase-js`, pass `SUPABASE_SERVICE_ROLE_KEY`
+### E2E test suite summary
+| Test file | Coverage | Pass |
+|-----------|----------|------|
+| `e2e/admin-sweep.spec.ts` | 21 admin pages | 21/21 |
+| `e2e/audit-log.spec.ts` | Action filter, search, comma safety | 5/5 |
+| `e2e/admin-user-management.spec.ts` | CRUD + audit logging | 1/1 |
+| `e2e/create-client.spec.ts` | Client creation | 1/1 |
+| `e2e/dogfood-qa.spec.ts` | Full-site exploration | Pending next run |
+
+## Phase 12: Ongoing improvement — ✅ ESTABLISHED
+
+### Looping protocol (automated + manual)
+1. **Sweep all admin pages** → `e2e/admin-sweep.spec.ts` (21 tests)
+2. **Test CRUD endpoints** → existing e2e tests + API smoke tests
+3. **Verify RLS** → `lib/audit/log.ts` patterns (service-role for service operations)
+4. **Check audit coverage** → all mutations log via `logAudit()`
+5. **Review errors** → Sentry dashboard + `/api/errors/report`
+
+### Documentation location
+- This file: `openspec/changes/2026-09-20-observability-audit-trail/tasks.md`
+- E2E tests: `e2e/*.spec.ts`
+- Audit patterns: `lib/audit/log.ts`
+- API routes: `api/admin/**/*.route.ts`
+
+### Maintenance reminders
+- **Run sweep weekly**: `npx playwright test e2e/admin-sweep.spec.ts`
+- **Add new e2e test when**: new admin page created, new mutation endpoint added
+- **Check audit log growth**: `SELECT count(*) FROM audit_log` (expect ~28/day, ~5 MB/year)

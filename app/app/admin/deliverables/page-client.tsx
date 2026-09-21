@@ -259,16 +259,14 @@ export default function DeliverablesPage() {
                       </div>
                     </div>
                     {d.external_link && (
-                      <a
-                        href={d.external_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                      <button
+                        type="button"
+                        onClick={() => window.open(d.external_link!, '_blank', 'noopener,noreferrer')}
                         className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                       >
                         <LinkIcon className="size-4 shrink-0" />
                         Buka tautan eksternal
-                      </a>
+                      </button>
                     )}
                   </div>
                 </Link>
