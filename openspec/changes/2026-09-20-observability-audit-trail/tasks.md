@@ -13,7 +13,15 @@
 - [x] `app/client/error.tsx` → **EXISTS**
 - [x] `app/error.tsx` → **EXISTS** (root-level)
 - [x] **Error reporter** → **/api/errors/report** (rate-limited 30/min)
-- [x] Error boundaries POST to reporter → **TELEGRAM + structured log**
+- [x] Error boundaries POST to reporter → **TELEGRAM + audit_log + structured log**
+- [x] Error reporter writes `system.error` to audit_log (forensic, immutable)
+- [x] **UUID constraint**: `audit_log.entity_id` is UUID — digest must go in `metadata.digest`, NOT `entity_id` (silent insert failure otherwise, root-caused 2026-09-21)
+
+## Phase 5b: Error reporting coverage (2026-09-21)
+- [x] `cron/daily-insight` catch → `reportError` (Telegram + audit)
+- [x] `cron/check-zero-metrics` query error → `reportError`
+- [x] `admin/clients/[id]/generate-campaign` 500 → `reportError`
+- [x] Telegram delivery verified: `telegram_notification_logs` status=sent
 
 ## Phase 3: Rate limiting — ✅ DONE (12+ routes covered)
 - [x] `POST /api/admin/ai/chat` → **checkRateLimit**
