@@ -32,10 +32,12 @@ export default async function AdminDashboard() {
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: clients }, { data: clientSkills }, { data: delivByClient }, { data: todayPostsData }, { data: pastPostsData }, { data: nextPostsData }, { data: tasksData }] = await Promise.all([
-    supabase.from("clients").select("id, name, contact_email").order("name"),
-    supabase.from("client_skills").select("client_id, status"),
-    supabase.from("deliverables").select("client_id, status, updated_at"),
+  const [{ data: summaryData }, { data: todayPostsData }, { data: pastPostsData }, { data: nextPostsData }, { data: tasksData }] = await Promise.all([
+    // Single view replaces three separate `.from()` calls (clients, client_skills,
+    // deliverables) plus the two Map-reduce loops that rebuilt these totals here.
+    supabase.from("dashboard_summary")
+      .select("client_id, client_name, contact_email, draft_count, sent_count, approved_count, revision_count, deliverable_count, last_activity_at, skills_done, skills_total")
+      .order("client_name"),
     supabase.from("scheduled_posts")
       .select("id, title, platform, scheduled_at, status, client_id, publish_retry_count, clients(name)")
       .in("status", ["scheduled", "failed", "draft"])
@@ -57,9 +59,11 @@ export default async function AdminDashboard() {
       .in("status", ["pending", "in_progress"]),
   ])
 
+  const summary = summaryData ?? []
+
   // Aggregate weekly briefing per client
-  const clientBriefings: ClientBriefing[] = (clients ?? []).map((c) => {
-    const clientPast = (pastPostsData ?? []).filter((p) => p.client_id === c.id)
+  const clientBriefings: ClientBriefing[] = summary.map((c) => {
+    const clientPast = (pastPostsData ?? []).filter((p) => p.client_id === c.client_id)
     const postsThisWeek = clientPast.length
     
     let totalReach = 0
@@ -82,11 +86,11 @@ export default async function AdminDashboard() {
     }
 
     const engagementRate = totalReach > 0 ? (totalEng / totalReach) * 100 : 0
-    const scheduledNextWeek = (nextPostsData ?? []).filter((p) => p.client_id === c.id).length
+    const scheduledNextWeek = (nextPostsData ?? []).filter((p) => p.client_id === c.client_id).length
 
     return {
-      clientId: c.id,
-      clientName: c.name,
+      clientId: c.client_id,
+      clientName: c.client_name,
       postsThisWeek,
       totalReach,
       engagementRate,
@@ -96,39 +100,17 @@ export default async function AdminDashboard() {
     }
   })
 
-  const skillTotals = new Map<string, { done: number; total: number }>()
-  for (const cs of clientSkills ?? []) {
-    const t = skillTotals.get(cs.client_id) ?? { done: 0, total: 0 }
-    t.total += 1
-    if (cs.status === "selesai") t.done += 1
-    skillTotals.set(cs.client_id, t)
-  }
-
-  const delivTotals = new Map<string, { review: number; revision: number; approved: number; last: string | null }>()
-  for (const d of delivByClient ?? []) {
-    const t = delivTotals.get(d.client_id) ?? { review: 0, revision: 0, approved: 0, last: null }
-    if (d.status === "sent") t.review += 1
-    if (d.status === "revision_requested") t.revision += 1
-    if (d.status === "approved") t.approved += 1
-    if (d.updated_at && (!t.last || d.updated_at > t.last)) t.last = d.updated_at
-    delivTotals.set(d.client_id, t)
-  }
-
-  const clientSummaries: ClientSummary[] = (clients ?? []).map((c) => {
-    const sk = skillTotals.get(c.id) ?? { done: 0, total: 0 }
-    const dv = delivTotals.get(c.id) ?? { review: 0, revision: 0, approved: 0, last: null }
-    return {
-      id: c.id,
-      name: c.name,
-      contact_email: c.contact_email,
-      doneSkills: sk.done,
-      totalSkills: sk.total,
-      awaitingReview: dv.review,
-      needsRevision: dv.revision,
-      approved: dv.approved,
-      lastActivityAt: dv.last,
-    }
-  })
+  const clientSummaries: ClientSummary[] = summary.map((c) => ({
+    id: c.client_id,
+    name: c.client_name,
+    contact_email: c.contact_email,
+    doneSkills: Number(c.skills_done),
+    totalSkills: Number(c.skills_total),
+    awaitingReview: Number(c.sent_count),
+    needsRevision: Number(c.revision_count),
+    approved: Number(c.approved_count),
+    lastActivityAt: c.last_activity_at,
+  }))
 
   const { data: history } = await supabase
     .from("status_history")

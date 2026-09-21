@@ -45,6 +45,10 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.in', pathname: '/storage/v1/object/**' },
     ],
   },
+  // React Compiler — memoize derived values automatically where types allow.
+  // `infer` mode only compiles what the type checker can prove is safe, so the
+  // opt-in is conservative and won't break existing component behaviour.
+  reactCompiler: true,
   async headers() {
     return [
       {
