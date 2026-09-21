@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 test.use({ baseURL: 'http://localhost:3004' });
 
 // Admin credentials — same as scripts/e2e_admin.py
-const ADMIN_EMAIL = 'dheia.buleud@gmail.com';
-const ADMIN_PASSWORD = 'Sum3dang';
+const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
+const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
 
 /** Log in and land on the admin dashboard. */
 async function loginAsAdmin(page: any) {

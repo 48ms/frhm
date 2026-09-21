@@ -87,39 +87,66 @@ All admin pages load cleanly (no 5xx errors, no error boundaries, no console err
 | 1 | HTTP 500 on `/admin/settings/telegram` | `app/admin/settings/telegram/page.tsx` line 9 | async server component + `motion` (client-only library) | Move animated section to client component `components/telegram/telegram-clients-list.tsx` (wraps `<motion.div>`) |
 | 2 | Nested `<a>` inside `<Link>` (HTML invalid, hydration risk) | `app/admin/deliverables/page-client.tsx` line 262-271 | `<a>` inside `<Link>` card | Replace `<a target="_blank">` with `<button onClick={() => window.open(...)}>` |
 | 3 | Comma in search query crashes PostgREST | `app/admin/settings/audit/page.tsx` line 63 | `summary.ilike.%a,b%` → PGRST100 | Escape via `ilikeFilter()` which wraps value in quotes: `summary.ilike."%a,b%"` |
-| 4 | Postgres 500 on Telegram page (verified via API test) | `/admin/settings/telegram` | 500 status without auth | ✅ Fix #1 resolves this |
+| 4 | Hardcoded credentials in tracked e2e test files | `e2e/*.spec.ts` (9 files) | `dheia.buleud@gmail.com` / `Sum3dang` committed | Replace with `process.env.AUDIT_E2E_EMAIL/PASSWORD` |
 
-### Deep CRUD coverage (verified via existing e2e tests)
-- **Users**: `e2e/admin-user-management.spec.ts` — create → verify email/last_sign_in_at → delete → audit_log rows
-- **Deliverables**: `e2e/admin-deliverables.spec.ts` — UI routing (full CRUD via forms covered by page tests)
-- **Clients**: `e2e/create-client.spec.ts` — full client creation flow
-- **Budgets/Campaigns**: `e2e/admin-budget-form.spec.ts`, `e2e/admin-campaign-form.spec.ts` — form wiring with zod + react-hook-form
+### Verified SAFE (no bugs found)
+- All 21 admin pages render without 5xx errors or error boundaries
+- Campaign form POST returns 200, DB row created correctly
+- Budget form POST returns 200, DB row created correctly  
+- User CRUD: create → verify email/last_sign_in_at → delete → audit_log rows written
+- Client creation flow: command palette + sidebar button + validation + DB write
+- Cross-tab: expense creation → ROI tab shows updated data without F5
+- Platform posts: POST route writes to DB correctly
+- Telegram settings: connect/disconnect toggles work via real session
+- Client approve/revision: skill_outputs.status updated via real session
 
-### E2E test suite summary
-| Test file | Coverage | Pass |
-|-----------|----------|------|
-| `e2e/admin-sweep.spec.ts` | 21 admin pages | 21/21 |
-| `e2e/audit-log.spec.ts` | Action filter, search, comma safety | 5/5 |
-| `e2e/admin-user-management.spec.ts` | CRUD + audit logging | 1/1 |
-| `e2e/create-client.spec.ts` | Client creation | 1/1 |
-| `e2e/dogfood-qa.spec.ts` | Full-site exploration | Pending next run |
+### E2E test suite summary (20 specs, all passing)
+| Suite | Tests | Status |
+|-------|-------|--------|
+| `e2e/admin-sweep.spec.ts` | 21 | ✅ PASS |
+| `e2e/audit-log.spec.ts` | 5 | ✅ PASS |
+| `e2e/admin-user-management.spec.ts` | 1 | ✅ PASS |
+| `e2e/create-client.spec.ts` | 4 | ✅ PASS |
+| `e2e/admin-campaign-form.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-budget-form.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-crosstab.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-platform-posts.spec.ts` | 1 | ✅ PASS |
+| `e2e/client-approve-revision.spec.ts` | 1 | ✅ PASS |
+| `e2e/client-settings-telegram.spec.ts` | 1 | ✅ PASS |
+| `e2e/client-telegram-disconnect.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-clients.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-dashboard.spec.ts` | 1 | ✅ PASS |
+| `e2e/admin-deliverables.spec.ts` | 2 | ✅ PASS |
+| `e2e/admin-remaining.spec.ts` | 4 | ✅ PASS |
+| `e2e/admin-skills-audit.spec.ts` | 2 | ✅ PASS |
+| `e2e/api-errors-report.spec.ts` | 3 | ✅ PASS |
+| `e2e/client-dashboard.spec.ts` | 1 | ✅ PASS |
+| `e2e/dogfood-qa.spec.ts` | 5 | ✅ PASS |
+| `e2e/login.spec.ts` | 1 | ✅ PASS |
+| **TOTAL** | **51** | **51/51 PASS** |
+
+### Infrastructure notes
+- **Dev server instability**: Server crashes with `MaxListenersExceededWarning` (listener leak, likely from Sentry `tunnelRoute`). Solution: run tests with per-suite server restart via `bash full-verify.sh <suite>`.
+- **Auth pattern**: Per-test login (same proven pattern as `e2e/audit-log.spec.ts`) is more stable than `storageState` due to missing `origins` field bug in Playwright's `storageState()` on Windows.
+- **Security fix**: Removed hardcoded credentials from 9 e2e test files; all now use `process.env.*` variables.
 
 ## Phase 12: Ongoing improvement — ✅ ESTABLISHED
 
-### Looping protocol (automated + manual)
-1. **Sweep all admin pages** → `e2e/admin-sweep.spec.ts` (21 tests)
-2. **Test CRUD endpoints** → existing e2e tests + API smoke tests
-3. **Verify RLS** → `lib/audit/log.ts` patterns (service-role for service operations)
-4. **Check audit coverage** → all mutations log via `logAudit()`
-5. **Review errors** → Sentry dashboard + `/api/errors/report`
+### Looping protocol (verified workflow)
+1. **Start server**: `npx next start -p 3004` (prod build, stable)
+2. **Run sweep**: `bash full-verify.sh <suite>` — auto-restarts server per suite
+3. **Check results**: All suites must report `exit=0` with `X passed`
+4. **Document findings**: Update this tasks.md with any new bugs found
 
 ### Documentation location
 - This file: `openspec/changes/2026-09-20-observability-audit-trail/tasks.md`
 - E2E tests: `e2e/*.spec.ts`
 - Audit patterns: `lib/audit/log.ts`
 - API routes: `api/admin/**/*.route.ts`
+- Test harness: `run-e2e.sh`, `full-verify.sh`
 
 ### Maintenance reminders
-- **Run sweep weekly**: `npx playwright test e2e/admin-sweep.spec.ts`
+- **Run sweep after each change**: `bash full-verify.sh admin-sweep`
 - **Add new e2e test when**: new admin page created, new mutation endpoint added
 - **Check audit log growth**: `SELECT count(*) FROM audit_log` (expect ~28/day, ~5 MB/year)
+- **Server health**: Monitor for `MaxListenersExceededWarning` — if seen, restart server

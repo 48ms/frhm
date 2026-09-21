@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.use({ baseURL: 'http://localhost:3004' });
 
-const CLIENT_EMAIL = 'taraju.test.4fd43222@gmail.com';
-const CLIENT_PASSWORD = 'TestPass123!';
+const CLIENT_EMAIL = process.env.CLIENT_E2E_EMAIL!
+const CLIENT_PASSWORD = process.env.CLIENT_E2E_PASSWORD!
 
 test.describe('Client Settings - Telegram Toggle (real DB write)', () => {
   test('toggle sends PATCH and server returns ok:true', async ({ page }) => {

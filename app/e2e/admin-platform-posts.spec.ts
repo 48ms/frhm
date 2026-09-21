@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.use({ baseURL: 'http://localhost:3004' });
 
-const ADMIN_EMAIL = 'dheia.buleud@gmail.com';
-const ADMIN_PASSWORD = 'Sum3dang';
+const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
+const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
 const CLIENT_ID = '44b48931-a33e-470a-9f3e-9064ee46373f';
 
 test('platform-posts route writes to DB', async ({ page }) => {

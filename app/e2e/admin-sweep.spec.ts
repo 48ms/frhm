@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 
-test.use({ baseURL: 'http://localhost:3004', storageState: 'e2e/.auth/admin.json' })
-
 // Every admin route. Sweep them all and record: HTTP status, whether an error
 // boundary rendered, and any console/page errors.
+// Auth is done per-test (same proven pattern as e2e/audit-log.spec.ts) so no
+// stale storageState / missing origins issues.
 const ADMIN_ROUTES = [
   '/admin/dashboard',
   '/admin/analytics',
@@ -37,9 +37,26 @@ const ERROR_MARKERS = [
   'This page could not be found',
 ]
 
+test.use({ baseURL: 'http://localhost:3004' })
+
+const EMAIL = process.env.AUDIT_E2E_EMAIL
+const PASSWORD = process.env.AUDIT_E2E_PASSWORD
+
+function authBeforeEach(testFn: (ctx: { page: import('@playwright/test').Page }) => Promise<void>) {
+  return async ({ page }: { page: import('@playwright/test').Page }) => {
+    if (!EMAIL || !PASSWORD) throw new Error('AUDIT_E2E_EMAIL / AUDIT_E2E_PASSWORD not set')
+    await page.goto('/auth/login')
+    await page.getByLabel('Email').fill(EMAIL)
+    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByRole('button', { name: 'Masuk' }).click()
+    await page.waitForURL(/\/admin(\/|$)/, { timeout: 20000 })
+    await testFn({ page })
+  }
+}
+
 test.describe('Admin page sweep', () => {
   for (const route of ADMIN_ROUTES) {
-    test(`${route} loads clean`, async ({ page }) => {
+    test(`${route} loads clean`, authBeforeEach(async ({ page }) => {
       const consoleErrors: string[] = []
       const pageErrors: string[] = []
       page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()) })
@@ -60,6 +77,6 @@ test.describe('Admin page sweep', () => {
       // Report what we saw (visible in the list reporter)
       if (consoleErrors.length) console.log(`[${route}] console errors:\n  ${consoleErrors.join('\n  ')}`)
       if (pageErrors.length) console.log(`[${route}] page errors:\n  ${pageErrors.join('\n  ')}`)
-    })
+    }))
   }
 })

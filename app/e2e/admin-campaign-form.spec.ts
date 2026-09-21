@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.use({ baseURL: 'http://localhost:3004' });
 
-const ADMIN_EMAIL = 'dheia.buleud@gmail.com';
-const ADMIN_PASSWORD = 'Sum3dang';
+const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
+const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
 
 test.describe('CampaignForm wiring', () => {
   test('fills and submits campaign form, DB row created', async ({ page }) => {

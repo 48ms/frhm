@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 import { execSync } from 'child_process';
 
 test.use({ baseURL: 'http://localhost:3004' });
-const ADMIN_EMAIL = 'dheia.buleud@gmail.com';
-const ADMIN_PASSWORD = 'Sum3dang';
+const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
+const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
 
 function dbq(path: string): string {
   return execSync(`python3 scripts/dbq.py "${path}"`, {
