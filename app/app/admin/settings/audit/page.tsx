@@ -7,6 +7,19 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 50
 
+// Build a PostgREST `or` filter that matches `q` in summary or actor_name.
+// The value is wrapped in double quotes and backslash/quote are escaped, because
+// PostgREST parses commas and parentheses in an unquoted value as logic-tree
+// syntax: a raw comma makes the request fail with "failed to parse logic tree".
+// (Verified against the live table: raw comma -> parse error, quoted -> 0 rows,
+// normal word still matches.) `%` and `_` keep their LIKE wildcard meaning, which
+// is the usual behaviour of a search box.
+function ilikeFilter(q: string): string {
+  const escaped = q.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  const pattern = `"%${escaped}%"`
+  return `summary.ilike.${pattern},actor_name.ilike.${pattern}`
+}
+
 export type AuditRow = {
   id: string
   actor_id: string | null
@@ -60,7 +73,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
     .select('id, actor_id, actor_role, actor_name, action, entity_type, entity_id, client_id, summary, metadata, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
   if (action !== 'all') query = query.eq('action', action)
-  if (q) query = query.or(`summary.ilike.%${q}%,actor_name.ilike.%${q}%`)
+  if (q) query = query.or(ilikeFilter(q))
   query = query.range(from, to)
 
   const { data: rows, count } = await query
