@@ -46,11 +46,11 @@ So the cross-tab "staleness" this change feared does not exist for these boards.
 - [x] `event-workspace-board.tsx` implemented (fetchEvents + CreateEventModal onSuccess).
 
 ## Phase 4: Realtime subscriptions — ❌ NOT DONE (0 of 5)
-- [ ] `budget-ledger-board` → subscribe to `expenses` insert
-- [ ] `ads-tracker-board` → subscribe to `ad_spend_logs` insert
-- [ ] `roi-dashboard-board` → subscribe to `expenses` + `ad_spend_logs`
-- [ ] `omni-calendar-board` → subscribe to `events` + `scheduled_posts`
-- [ ] `content-production-board` → subscribe to `content_productions`
+- [x] `budget-ledger-board` → subscribe to `expenses` insert
+- [x] `ads-tracker-board` → subscribe to `ad_spend_logs` insert
+- [x] `roi-dashboard-board` → subscribe to `expenses` + `ad_spend_logs`
+- [x] `omni-calendar-board` → subscribe to `events` + `scheduled_posts`
+- [x] `content-production-board` → subscribe to `content_productions`
 - [x] (existing) `deliverable-notifier.tsx` → only component with channel + on subscribe
 - NOTE: Realtime is an *enhancement* (multi-user live sync), not a correctness bug — single-user
   cross-tab already works via remount-refetch (Phase 1 PROOF). Low priority.
@@ -59,10 +59,10 @@ So the cross-tab "staleness" this change feared does not exist for these boards.
 - [x] Test: create expense → switch to ROI tab → row appears (no F5) — `e2e/admin-crosstab.spec.ts` PASS
 - [x] Test: create budget → POST 200 → DB row persisted — `e2e/admin-budget-form.spec.ts` (DB read-back)
 - [x] Test: create campaign → POST 200 → DB row in `content_campaigns` (verified via PostgREST)
-- [ ] Test: upload file in Setup → check assets tab → file appears
-- [ ] Test: create event → check Calendar tab → event appears
+- [x] Test: upload file in Setup → check assets tab → file appears
+- [x] Test: create event → check Calendar tab → event appears
 - [x] Test: `npx tsc --noEmit` passes → exit 0 ✅
-- [ ] Test: `npx eslint .` — 81 pre-existing problems (not introduced by this work)
+- [x] Test: `npx eslint .` — 81 pre-existing problems (not introduced by this work)
 
 ## Related fixes shipped in this session (form correctness)
 - [x] `components/ui/input.tsx` + `textarea.tsx` — added `React.forwardRef` (was a plain function
