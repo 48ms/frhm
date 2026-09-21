@@ -1,5 +1,5 @@
 import { chat, type Provider } from '@/lib/ai/providers'
-import { getCachedSentiment, setCachedSentiment } from '@/lib/nlp/sentiment-cache'
+import { getCachedSentiment } from '@/lib/nlp/sentiment-cache'
 
 export interface SentimentResult {
   sentiment: 'positive' | 'negative' | 'neutral'

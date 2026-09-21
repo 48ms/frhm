@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
 import { sendTelegramMessage } from '@/lib/telegram/service'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 

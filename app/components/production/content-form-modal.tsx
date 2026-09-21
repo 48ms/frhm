@@ -10,7 +10,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -71,7 +70,7 @@ export function ContentFormModal({
   const [newAssetName, setNewAssetName] = useState('')
   const [newAssetUrl, setNewAssetUrl] = useState('')
   
-  const { register, handleSubmit, formState: { errors }, reset, control, setValue, getValues } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, reset, control } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',

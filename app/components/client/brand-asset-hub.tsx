@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2Icon, UploadIcon, FileIcon, TrashIcon, DownloadIcon } from 'lucide-react'
+import { Loader2Icon, FileIcon, TrashIcon, DownloadIcon } from 'lucide-react'
 
 export function BrandAssetHub({ clientId }: { clientId: string }) {
-  const [assets, setAssets] = useState<any[]>([])
+  const [assets, setAssets] = useState<{ id: string; file_path: string; category: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [guidelines, setGuidelines] = useState('')
@@ -85,7 +85,7 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
     setSavingGuide(false)
   }
 
-  const handleDelete = async (id: string, path: string) => {
+  const handleDelete = async (id: string) => {
     await fetch(`/api/client/assets?id=${id}`, { method: 'DELETE' })
     fetchAssets()
   }
@@ -127,7 +127,7 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
                     }}>
                       <DownloadIcon className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(asset.id, asset.file_path)}>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(asset.id)}>
                       <TrashIcon className="size-4 text-destructive" />
                     </Button>
                   </div>

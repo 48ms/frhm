@@ -35,7 +35,6 @@ type GeneratedCampaign = {
 // platform_enum, post_format_enum, asset_status_enum
 const PILLARS = ['Educational', 'Promotional', 'BehindTheScenes', 'IndustryInsights', 'Entertainment'] as const
 const PLATFORMS = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter', 'Facebook'] as const
-const FORMATS = ['Reel', 'Carousel', 'SingleImage', 'Thread', 'TextPost', 'Story'] as const
 
 function normalizePillar(v: string): string {
   const s = String(v || '').toLowerCase()
@@ -220,16 +219,17 @@ CRITICAL INSTRUCTIONS:
     }
 
     return NextResponse.json({ success: true, message: 'Berhasil membuat kampanye AI.' })
-  } catch (error: any) {
-    console.error('Error generate AI Campaign:', error)
+  } catch (error) {
+    const err = error as Error
+    console.error('Error generate AI Campaign:', err)
     reportError({
-      message: error?.message || 'Terjadi kesalahan server.',
-      name: error?.name || 'Error',
-      stack: error?.stack,
+      message: err?.message || 'Terjadi kesalahan server.',
+      name: err?.name || 'Error',
+      stack: err?.stack,
       url: '/api/admin/clients/[id]/generate-campaign',
       component: 'generate-campaign',
       context: { clientId: (await params)?.id },
     })
-    return NextResponse.json({ error: error.message || 'Terjadi kesalahan server.' }, { status: 500 })
+    return NextResponse.json({ error: err.message || 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }

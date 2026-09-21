@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from 'sonner'
 import { StatusBadge, TypeBadge } from '@/components/deliverable/status-badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -120,7 +121,6 @@ export function ClientWorkspace({
     const [resetErr, setResetErr] = useState<string | null>(null)
     const [exporting, setExporting] = useState(false)
     const [revokeLoading, setRevokeLoading] = useState(false)
-    const [revokeErr, setRevokeErr] = useState<string | null>(null)
     const [revokeDone, setRevokeDone] = useState(false)
     const fileCount = haveFiles.length
 
@@ -184,7 +184,6 @@ export function ClientWorkspace({
     }
 
     const handleRevokeSessions = async () => {
-      setRevokeErr(null)
       setRevokeDone(false)
       setRevokeLoading(true)
       try {
@@ -193,7 +192,7 @@ export function ClientWorkspace({
         if (!res.ok) throw new Error(json.error || 'Gagal mencabut session')
         setRevokeDone(true)
       } catch (e) {
-        setRevokeErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
+        toast.error(e instanceof Error ? e.message : 'Terjadi kesalahan')
       } finally {
         setRevokeLoading(false)
       }

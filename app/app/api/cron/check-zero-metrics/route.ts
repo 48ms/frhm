@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notifyZeroMetricsEscalation } from '@/lib/telegram/service'
 import { reportError } from '@/lib/error-reporter'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 

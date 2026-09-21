@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 

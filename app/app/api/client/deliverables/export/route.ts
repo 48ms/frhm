@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 const TYPE_LABEL: Record<string, string> = {
   brief: 'Brief', content: 'Konten', report: 'Laporan',

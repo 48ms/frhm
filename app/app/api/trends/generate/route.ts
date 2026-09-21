@@ -8,7 +8,7 @@ import { notifyClientContentReady } from '@/lib/telegram/service'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 export const dynamic = 'force-dynamic'
 

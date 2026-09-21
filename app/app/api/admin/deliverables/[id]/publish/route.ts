@@ -6,7 +6,7 @@ import {
 } from '@/lib/bridge/woopsocial'
 import { getBridgeKey } from '@/lib/bridge/config'
 import { logAudit } from '@/lib/audit/log'
-import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { denyUnauthorized } from '@/lib/auth/guard'
 
 /**
  * POST /api/admin/deliverables/[id]/publish
