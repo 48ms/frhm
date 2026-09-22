@@ -8,10 +8,10 @@ import { test, expect } from '@playwright/test'
 
 test.use({ baseURL: 'http://localhost:3004' })
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'test-user@frhm.dev'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'TestPass123!'
-const CLIENT_EMAIL = process.env.CLIENT_EMAIL ?? 'taraju.test.4fd43222@gmail.com'
-const CLIENT_PASSWORD = process.env.CLIENT_PASSWORD ?? 'TestPass123!'
+const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL ?? 'test-user@frhm.dev'
+const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD ?? 'TestPass123!'
+const CLIENT_EMAIL = process.env.CLIENT_E2E_EMAIL ?? 'taraju.test.4fd43222@gmail.com'
+const CLIENT_PASSWORD = process.env.CLIENT_E2E_PASSWORD ?? 'TestPass123!'
 
 const ERROR_MARKERS = [
   'Application error',

@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test'
 
 test.use({ baseURL: 'http://localhost:3004' })
 
-const EMAIL = process.env.ADMIN_EMAIL ?? 'test-user@frhm.dev'
-const PASSWORD = process.env.ADMIN_PASSWORD ?? 'TestPass123!'
+const EMAIL = process.env.AUDIT_E2E_EMAIL ?? 'test-user@frhm.dev'
+const PASSWORD = process.env.AUDIT_E2E_PASSWORD ?? 'TestPass123!'
 
 test('workspace debug', async ({ page }) => {
   const errors: string[] = []
