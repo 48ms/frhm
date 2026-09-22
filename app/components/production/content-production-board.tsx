@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import {
@@ -14,11 +13,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { PlatformIcon } from '@/components/calendar/calendar-view'
-import { CalendarIcon, Sparkles, Loader2 } from 'lucide-react'
+import { CalendarIcon, Loader2 } from 'lucide-react'
 import { PostDialog } from '@/components/calendar/post-dialog'
 import { ContentFormModal } from './content-form-modal'
 import { toast } from 'sonner'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel } from '@/lib/supabase/client'
 
 export type ProductionItem = {
   id: string
@@ -76,8 +75,8 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
       toast.success('Berhasil membuat kampanye AI!')
       setGenerateModalOpen(false)
       fetchProductions()
-    } catch (e: any) {
-      toast.error(e.message)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Gagal generate')
     } finally {
       setIsGenerating(false)
     }

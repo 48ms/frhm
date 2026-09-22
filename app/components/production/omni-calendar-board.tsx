@@ -11,7 +11,7 @@ import {
 import { id } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react'
 import { PlatformIcon } from '@/components/calendar/calendar-view'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel } from '@/lib/supabase/client'
 
 type PlatformPost = {
   id: string

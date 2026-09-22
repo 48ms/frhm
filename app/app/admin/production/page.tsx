@@ -43,9 +43,8 @@ export default async function ProductionPage() {
           />
         </TabsContent>
         <TabsContent value="calendar" className="flex-1 mt-4 min-h-0">
-          <CalendarView 
-            initialItems={contentItems || []} 
-            clients={clients || []} 
+          <CalendarView
+            initialItems={contentItems || []}
           />
         </TabsContent>
       </Tabs>

@@ -15,10 +15,27 @@ const STATUSES = [
   { id: 'published', label: 'Published' }
 ]
 
-export function KanbanBoard({ initialItems, clients }: { initialItems: any[], clients: any[] }) {
-  const [items, setItems] = useState(initialItems)
+export type KanbanItem = {
+  id: string
+  title: string
+  status: string
+  client_id: string
+  platform?: string
+  [key: string]: unknown
+}
 
-  const onDragEnd = async (result: any) => {
+export type KanbanClient = {
+  id: string
+  name: string
+  [key: string]: unknown
+}
+
+import type { OnDragEndResponder } from '@hello-pangea/dnd'
+
+export function KanbanBoard({ initialItems, clients }: { initialItems: KanbanItem[], clients: KanbanClient[] }) {
+  const [items, setItems] = useState<KanbanItem[]>(initialItems)
+
+  const onDragEnd: OnDragEndResponder = async (result) => {
     const { destination, source, draggableId } = result
     if (!destination) return
     if (destination.droppableId === source.droppableId && destination.index === source.index) return

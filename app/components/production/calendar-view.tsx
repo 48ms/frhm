@@ -27,7 +27,14 @@ const localizer = dateFnsLocalizer({
 
 const DnDCalendar = withDragAndDrop(Calendar)
 
-export function CalendarView({ initialItems, clients }: { initialItems: any[], clients: any[] }) {
+export type ContentItem = {
+  id: string
+  title: string
+  publish_date: string | null
+  [key: string]: unknown
+}
+
+export function CalendarView({ initialItems }: { initialItems: ContentItem[] }) {
   // Transform initialItems into calendar events
   const [events, setEvents] = useState<Event[]>(
     initialItems
@@ -35,8 +42,8 @@ export function CalendarView({ initialItems, clients }: { initialItems: any[], c
       .map(item => ({
         id: item.id,
         title: item.title,
-        start: new Date(item.publish_date),
-        end: new Date(item.publish_date),
+        start: new Date(item.publish_date as string),
+        end: new Date(item.publish_date as string),
         resource: item, // store full item for custom rendering if needed
       }))
   )
@@ -44,7 +51,7 @@ export function CalendarView({ initialItems, clients }: { initialItems: any[], c
   const onEventDrop: withDragAndDropProps['onEventDrop'] = async ({ event, start, end }) => {
     // Optimistic update
     const updatedEvents = events.map(e =>
-      (e as any).id === (event as any).id ? { ...e, start: new Date(start as Date), end: new Date(end as Date) } : e
+      (e as Event & { id?: string }).id === (event as Event & { id?: string }).id ? { ...e, start: new Date(start as Date), end: new Date(end as Date) } : e
     )
     setEvents(updatedEvents)
 
@@ -53,7 +60,7 @@ export function CalendarView({ initialItems, clients }: { initialItems: any[], c
     const res = await fetch('/api/admin/content-items', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: (event as any).id, publish_date: publishDate }),
+      body: JSON.stringify({ id: (event as Event & { id?: string }).id, publish_date: publishDate }),
     })
     if (!res.ok) {
       toast.error('Gagal menyimpan jadwal publish.')
