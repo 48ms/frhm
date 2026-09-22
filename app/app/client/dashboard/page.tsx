@@ -66,7 +66,7 @@ export default async function ClientDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/client">
+            <Link href="/client/dashboard">
               <ChevronLeftIcon className="size-5 text-muted-foreground hover:text-foreground" />
             </Link>
             <div>
