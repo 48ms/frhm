@@ -35,9 +35,6 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     // Supabase Storage serves brand assets from <project>.supabase.co
     remotePatterns: [
@@ -72,7 +69,6 @@ export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  tunnelRoute: "/sentry-tunnel",
   sourcemaps: {
     deleteSourcemapsAfterUpload: true,
   },
