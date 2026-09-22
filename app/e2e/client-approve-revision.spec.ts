@@ -4,7 +4,7 @@ test.use({ baseURL: 'http://localhost:3004' });
 
 const CLIENT_EMAIL = process.env.CLIENT_E2E_EMAIL!
 const CLIENT_PASSWORD = process.env.CLIENT_E2E_PASSWORD!
-const DID = '68082013-5253-4d78-b5b6-9ddc14cbc66c';
+const DID = process.env.ADMIN_ID ?? "68082013-5253-4d78-b5b6-9ddc14cbc66c";
 
 test.describe('Client approve/revision → skill_outputs (real DB write)', () => {
   test('approve writes skill_outputs.status via real session', async ({ page }) => {

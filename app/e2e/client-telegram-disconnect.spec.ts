@@ -4,7 +4,7 @@ test.use({ baseURL: 'http://localhost:3004' });
 
 const CLIENT_EMAIL = process.env.CLIENT_E2E_EMAIL!
 const CLIENT_PASSWORD = process.env.CLIENT_E2E_PASSWORD!
-const CID = '44b48931-a33e-470a-9f3e-9064ee46373f';
+const CID = process.env.CLIENT_ID ?? "44b48931-a33e-470a-9f3e-9064ee46373f";
 
 test.describe('Telegram disconnect (real DB write)', () => {
   test('client disconnect clears clients telegram fields', async ({ page }) => {
