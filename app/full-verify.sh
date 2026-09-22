@@ -1,19 +1,16 @@
 #!/bin/bash
 # full-verify.sh — Run each e2e spec in isolation with server restart
 # Prevents MaxListeners leak accumulation from Sentry tunnelRoute
-set -e
 
 cd "$(dirname "$0")"
 
 PORT=3004
-ENV_ARGS=(
-  -e AUDIT_E2E_EMAIL=test-user@frhm.dev
-  -e AUDIT_E2E_PASSWORD=TestPass123!
-  -e CLIENT_E2E_EMAIL=taraju.test.4fd43222@gmail.com
-  -e CLIENT_E2E_PASSWORD=clientpass123!
-  -e CLIENT_ID=44b48931-a33e-470a-9f3e-9064ee46373f
-  -e ADMIN_ID=68082013-5253-4d78-b5b6-9ddc14cbc66c
-)
+export AUDIT_E2E_EMAIL=test-user@frhm.dev
+export AUDIT_E2E_PASSWORD=TestPass123!
+export CLIENT_E2E_EMAIL=taraju.test.4fd43222@gmail.com
+export CLIENT_E2E_PASSWORD=TestPass123!
+export CLIENT_ID=44b48931-a33e-470a-9f3e-9064ee46373f
+export ADMIN_ID=68082013-5253-4d78-b5b6-9ddc14cbc66c
 
 SPECS=(
   e2e/final-sweep.spec.ts
@@ -34,39 +31,49 @@ FAIL=0
 for spec in "${SPECS[@]}"; do
   echo "=== Running $spec ==="
 
-  # Kill existing server
-  PID=$(netstat -ano 2>/dev/null | grep ":$PORT" | grep LISTENING | awk '{print $5}' | head -1)
+  # Kill any process listening on PORT (npx spawns a child node — kill by port)
+  PID=$(netstat -ano 2>/dev/null | grep ":$PORT " | grep LISTENING | awk '{print $NF}' | head -1)
   if [ -n "$PID" ]; then
     taskkill //F //PID "$PID" > /dev/null 2>&1 || true
     sleep 2
   fi
 
-  # Start fresh server
-  npx next start -p $PORT &
-  SERVER_PID=$!
-  sleep 5
+  # Start fresh server (background)
+  npx next start -p $PORT > /dev/null 2>&1 &
+  sleep 6
 
   # Wait for health
+  HEALTHY=0
   for i in $(seq 1 30); do
     if curl -s http://localhost:$PORT/api/health > /dev/null 2>&1; then
       echo "Server healthy after ${i}s"
+      HEALTHY=1
       break
     fi
     sleep 1
   done
+  if [ "$HEALTHY" -eq 0 ]; then
+    echo "❌ Server failed to become healthy for $spec"
+    FAIL=$((FAIL + 1))
+    continue
+  fi
 
-  # Run test
+  # Run test (capture exit without set -e aborting)
   npx playwright test "$spec" --reporter=list 2>&1
-  if [ $? -eq 0 ]; then
+  TEST_EXIT=$?
+  if [ $TEST_EXIT -eq 0 ]; then
     echo "✅ PASS: $spec"
     PASS=$((PASS + 1))
   else
-    echo "❌ FAIL: $spec"
+    echo "❌ FAIL: $spec (exit $TEST_EXIT)"
     FAIL=$((FAIL + 1))
   fi
 
-  # Kill server
-  taskkill //F //PID "$SERVER_PID" > /dev/null 2>&1 || true
+  # Kill server by port
+  PID=$(netstat -ano 2>/dev/null | grep ":$PORT " | grep LISTENING | awk '{print $NF}' | head -1)
+  if [ -n "$PID" ]; then
+    taskkill //F //PID "$PID" > /dev/null 2>&1 || true
+  fi
   sleep 1
 done
 
