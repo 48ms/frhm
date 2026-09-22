@@ -113,7 +113,7 @@ export function ContentProductionBoard({ clientId }: { clientId: string }) {
     return () => {
       supabase.removeChannel(channelRef.current!)
     }
-  }, [clientId, fetchProductions])
+  }, [clientId, fetchProductions, supabase])
 
   const openNewModal = (stage?: ProductionItem['stage']) => {
     setEditingItem(null)

@@ -18,3 +18,14 @@ build/
 *.log
 .DS_Store
 next-env.d.ts
+
+# Playwright / E2E artifacts
+app/e2e/.auth/
+app/test-results/
+app/playwright-report/
+app/build-out.txt
+app/build-out2.txt
+suite-summary.txt
+sweep-result.txt
+run-output.txt
+run-e2e.sh
