@@ -4,7 +4,7 @@ test.use({ baseURL: 'http://localhost:3004' });
 
 const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
 const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
-const CLIENT_ID = '44b48931-a33e-470a-9f3e-9064ee46373f'; // Taraju
+const CLIENT_ID = process.env.CLIENT_ID ?? "44b48931-a33e-470a-9f3e-9064ee46373f"; // Taraju
 
 test('budget form modal submits to DB', async ({ page }) => {
   // Capture budget POSTs
