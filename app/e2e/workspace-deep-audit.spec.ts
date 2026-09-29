@@ -28,8 +28,6 @@ test('client workspace deep audit', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`/admin/clients/${CLIENT_ID}`, { waitUntil: 'load' })
   await page.waitForTimeout(5000)
-
-  // ---------- TAB ROLES / ARIA ----------
   const tabA11y = await page.evaluate(() => {
     const tabs = Array.from(document.querySelectorAll('[role="tab"]'))
     const tablist = document.querySelector('[role="tablist"]')
@@ -44,8 +42,6 @@ test('client workspace deep audit', async ({ page }) => {
     }
   })
   console.log('TAB_A11Y:', JSON.stringify(tabA11y))
-
-  // ---------- TABPANEL ARIA ----------
   const panelA11y = await page.evaluate(() => {
     const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'))
     return {
@@ -54,8 +50,6 @@ test('client workspace deep audit', async ({ page }) => {
     }
   })
   console.log('PANEL_A11Y:', JSON.stringify(panelA11y))
-
-  // ---------- TAP TARGETS ----------
   const tapTargets = await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll('button, a[href], [role="tab"], input[type="checkbox"], [role="button"]'))
     const small: { text: string; w: number; h: number }[] = []
@@ -69,8 +63,6 @@ test('client workspace deep audit', async ({ page }) => {
     return { total: els.length, smallCount: small.length, samples: small.slice(0, 12) }
   })
   console.log('TAP_TARGETS:', JSON.stringify(tapTargets))
-
-  // ---------- CONTRAST (tab triggers) ----------
   const contrast = await page.evaluate(() => {
     function lum(c: string) {
       const m = c.match(/\d+(\.\d+)?/g)
@@ -107,8 +99,6 @@ test('client workspace deep audit', async ({ page }) => {
     })
   })
   console.log('TAB_CONTRAST:', JSON.stringify(contrast))
-
-  // ---------- FORM CONTROLS WITHOUT LABEL ----------
   const labelAudit = await page.evaluate(() => {
     const inputs = Array.from(document.querySelectorAll('input, textarea, select'))
     const unlabeled: string[] = []
@@ -120,8 +110,6 @@ test('client workspace deep audit', async ({ page }) => {
     return { total: inputs.length, unlabeledCount: unlabeled.length, samples: unlabeled.slice(0, 10) }
   })
   console.log('FORM_LABELS:', JSON.stringify(labelAudit))
-
-  // ---------- REDUCED MOTION ----------
   const motion = await page.evaluate(() => {
     let count = 0
     for (const el of Array.from(document.querySelectorAll('*'))) {
@@ -131,8 +119,6 @@ test('client workspace deep audit', async ({ page }) => {
     return count
   })
   console.log('ANIMATED_ELEMENTS:', motion)
-
-  // ---------- PER-TAB: content presence + empty states + heights ----------
   const tabs = await page.locator('[role="tab"]').all()
   const tabNames = await Promise.all(tabs.map((t) => t.textContent()))
   console.log('TAB_NAMES:', JSON.stringify(tabNames.map((t) => (t || '').trim())))
@@ -157,8 +143,6 @@ test('client workspace deep audit', async ({ page }) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '_')
     await page.screenshot({ path: `${OUT}/wsdeep_${i}_${slug}.png`, fullPage: true })
   }
-
-  // ---------- KEYBOARD NAV ----------
   const firstTab = page.locator('[role="tab"]').first()
   await firstTab.focus()
   await page.keyboard.press('ArrowRight')
@@ -168,8 +152,6 @@ test('client workspace deep audit', async ({ page }) => {
     return { focused: (document.activeElement?.textContent || '').trim(), focusedIsTab: document.activeElement?.getAttribute('role') === 'tab', tabIndexes: tabs.map((t) => (t as HTMLElement).tabIndex) }
   })
   console.log('KEYBOARD_ARROW:', JSON.stringify(afterArrow))
-
-  // ---------- FOCUS RING ----------
   const focusRing = await page.evaluate(() => {
     const el = document.querySelector('[role="tab"]') as HTMLElement | null
     if (!el) return null
@@ -178,8 +160,6 @@ test('client workspace deep audit', async ({ page }) => {
     return { outlineWidth: cs.outlineWidth, outlineStyle: cs.outlineStyle, boxShadow: cs.boxShadow.slice(0, 80) }
   })
   console.log('FOCUS_RING:', JSON.stringify(focusRing))
-
-  // ---------- MOBILE ----------
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`/admin/clients/${CLIENT_ID}`, { waitUntil: 'load' })
   await page.waitForTimeout(3500)

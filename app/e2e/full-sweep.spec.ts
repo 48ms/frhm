@@ -70,10 +70,7 @@ async function resolveClientDeliverableId(page: import('@playwright/test').Page)
     return m?.[1] ?? null
   } catch { return null }
 }
-
-// ============================================================================
 // ADMIN DYNAMIC [id] ROUTES
-// ============================================================================
 test.describe('Admin dynamic [id] routes', () => {
   test('/admin/clients/[id] loads clean (workspace)', async ({ page }) => {
     const consoleErrors: string[] = []
@@ -136,10 +133,7 @@ test.describe('Admin dynamic [id] routes', () => {
     if (consoleErrors.length) console.log(`[skills/[id]] console errors:\n  ${consoleErrors.join('\n  ')}`)
   })
 })
-
-// ============================================================================
 // CLIENT PORTAL PAGES
-// ============================================================================
 test.describe('Client portal pages', () => {
   test('/client/dashboard loads clean', async ({ page }) => {
     const consoleErrors: string[] = []

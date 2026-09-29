@@ -22,8 +22,6 @@ test('admin clients list UI/UX audit', async ({ page }) => {
   page.on('pageerror', (e) => pageErrors.push(e.message))
 
   await login(page)
-
-  // ---------- DESKTOP ----------
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/admin/clients', { waitUntil: 'load' })
   await page.waitForTimeout(4000)
@@ -76,8 +74,6 @@ test('admin clients list UI/UX audit', async ({ page }) => {
     await page.waitForTimeout(1200)
     await page.screenshot({ path: `${OUT}/clients_desktop_grid.png`, fullPage: true })
   }
-
-  // ---------- SEARCH behaviour ----------
   const search = page.getByPlaceholder(/Cari nama atau email/i)
   if (await search.count() > 0) {
     await search.fill('zzzznonexistentzzz')
@@ -91,8 +87,6 @@ test('admin clients list UI/UX audit', async ({ page }) => {
     await search.fill('')
     await page.waitForTimeout(800)
   }
-
-  // ---------- MOBILE ----------
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/admin/clients', { waitUntil: 'load' })
   await page.waitForTimeout(3000)

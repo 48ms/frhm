@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import { useQueryState, parseAsString, debounce } from "nuqs"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import {
@@ -16,9 +17,6 @@ function PlatformIcon({ icon, className }: { icon: string; className?: string })
   return <Icons.hub className={className} />
 }
 
-/* -------------------------------------------------------------------------- */
-/* Account row — mirrors the reference `renderAccounts` card verbatim.        */
-/* -------------------------------------------------------------------------- */
 function AccountRow({ acc }: { acc: SocialAccount }) {
   const isSynced = acc.status === "SYNCED"
   return (
@@ -73,9 +71,6 @@ function AccountRow({ acc }: { acc: SocialAccount }) {
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Connect Channel modal — reference `Connect Channel to Client` dialog.      */
-/* -------------------------------------------------------------------------- */
 function ConnectChannelModal({
   open,
   client,
@@ -203,12 +198,15 @@ function ConnectChannelModal({
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Page                                                                        */
-/* -------------------------------------------------------------------------- */
 export function SocialAccountsBoard() {
-  const [activeClientId, setActiveClientId] = useState(SOCIAL_CLIENTS[0].id)
-  const [query, setQuery] = useState("")
+  const [activeClientId, setActiveClientId] = useQueryState(
+    "clientId",
+    parseAsString.withDefault(SOCIAL_CLIENTS[0].id)
+  )
+  const [query, setQuery] = useQueryState(
+    "q",
+    parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
+  )
   const [pickerOpen, setPickerOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 

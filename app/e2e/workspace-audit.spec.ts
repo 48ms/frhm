@@ -13,15 +13,11 @@ test('client workspace UI/UX audit', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()) })
   page.on('pageerror', (e) => pageErrors.push(e.message))
-
-  // ---- login ----
   await page.goto('/auth/login')
   await page.getByLabel('Email').fill(EMAIL)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Masuk' }).click()
   await page.waitForURL(/\/admin(\/|$)/, { timeout: 60_000 })
-
-  // ---- desktop ----
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`/admin/clients/${CLIENT_ID}`, { waitUntil: 'load' })
   await page.waitForTimeout(4000)
@@ -72,8 +68,6 @@ test('client workspace UI/UX audit', async ({ page }) => {
     console.log(`TAB_${name.toUpperCase()}_height:`, h)
     await page.screenshot({ path: `${OUT}/ws_desktop_${name.toLowerCase()}.png`, fullPage: true })
   }
-
-  // ---- mobile ----
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`/admin/clients/${CLIENT_ID}`, { waitUntil: 'load' })
   await page.waitForTimeout(3000)

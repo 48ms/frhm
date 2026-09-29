@@ -105,23 +105,21 @@ export function DashboardStitchConnectedHub() {
       </div>
 
       {/* Studio Identity Card */}
-      <div className="relative p-6 rounded-2xl bg-[hsl(var(--admin-cobalt))] shadow-lg overflow-hidden group">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white/70 tracking-wider">STUDIO IDENTITY</span>
-            <span className="text-[hsl(var(--brand-accent))] text-xl font-bold">✦</span>
-          </div>
-          <div className="mt-4">
-            <span className="block font-syne font-extrabold text-2xl text-white tracking-tight leading-none">
-              DIGITAL
-            </span>
-            <span className="block font-syne font-extrabold text-2xl text-[hsl(var(--brand-accent))] tracking-tight leading-none">
-              SPACE.
-            </span>
-          </div>
+      <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm transition-all">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider">STUDIO IDENTITY</span>
+          <span className="text-[hsl(var(--admin-cobalt))] text-xl font-bold">✦</span>
         </div>
-        <div className="relative z-10 pt-6">
-          <div className="p-3.5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 shadow-sm">
+        <div className="mt-4">
+          <span className="block font-syne font-extrabold text-2xl text-[hsl(var(--admin-on-surface))] tracking-tight leading-none">
+            DIGITAL
+          </span>
+          <span className="block font-syne font-extrabold text-2xl text-[hsl(var(--admin-cobalt))] tracking-tight leading-none">
+            SPACE.
+          </span>
+        </div>
+        <div className="pt-6">
+          <div className="p-3.5 rounded-2xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 shadow-sm">
             <p className="font-syne font-bold text-sm text-[hsl(var(--admin-on-surface))]">
               Campaign Velocity: 98%
             </p>
@@ -129,7 +127,7 @@ export function DashboardStitchConnectedHub() {
               Multi-network algorithmic amplification active across EMEA &amp; NA regions.
             </p>
             <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[hsl(var(--brand-accent))]">
+              <span className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))]">
                 STATUS: ACCELERATING
               </span>
               <button className="px-2.5 py-0.5 rounded-full bg-[hsl(var(--admin-on-surface))] text-white text-[10px] font-semibold hover:bg-[hsl(var(--admin-cobalt))] cursor-pointer transition-colors">

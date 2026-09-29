@@ -12,11 +12,11 @@ import {
 
 import { cn } from '@/lib/utils';
 
-/* ---------------------------------------------------------------------------
- * Iconly on a 24px grid, recolored with `currentColor`. Outline (Light) is the
- * idle mark, search, clear, and fill (Bold) is reserved for a state that is
- * already on: a copied tick, a document in the empty body.
- * ------------------------------------------------------------------------- */
+
+// Iconly on a 24px grid, recolored with `currentColor`. Outline (Light) is the
+// idle mark, search, clear, and fill (Bold) is reserved for a state that is
+// already on: a copied tick, a document in the empty body.
+
 
 type IconProps = React.SVGProps<SVGSVGElement>;
 
@@ -123,7 +123,7 @@ function IconTickSquare(props: IconProps) {
   );
 }
 
-/* ------------------------------------------------------------------------- */
+
 
 export type DataTableVariant = 'default' | 'bordered' | 'striped' | 'minimal' | 'panel';
 export type DataTableDensity = 'compact' | 'default' | 'relaxed';

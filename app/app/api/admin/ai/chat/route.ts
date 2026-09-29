@@ -241,8 +241,7 @@ export async function POST(request: NextRequest) {
         ]
         continue
       }
-
-      // ---- THE GATE: irreversible actions require the user's explicit confirmation ----
+      // Irreversible actions require the user's explicit confirmation.
       if (requiresConfirmation(name, turn.args)) {
         const preview = buildPreview(turn.args)
         const userSaid = convoLoop

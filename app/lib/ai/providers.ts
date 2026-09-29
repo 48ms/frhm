@@ -202,7 +202,6 @@ export async function chatJson<T>(
   if (parsed) return parsed
   if (!looksAgentic(raw)) return null
 
-  // Model tried to use tools. Retry once with an explicit ban and a JSON-only primer.
   const hardened =
     system +
     '\n\nCRITICAL: You are a JSON API. Do NOT run commands, read files, or call any tools. ' +

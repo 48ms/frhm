@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useQueryState, parseAsStringEnum, parseAsString, debounce } from "nuqs"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -52,9 +53,10 @@ function formatPeriod(start: string | null, end: string | null): string {
 }
 
 export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsViewProps) {
-  const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "completed">("all")
-  const [clientFilter, setClientFilter] = React.useState<string>("all")
-  const [searchQuery, setSearchQuery] = React.useState<string>("")
+  const [tf, setTf] = useQueryState("tf", parseAsStringEnum(["7d", "30d", "90d", "all"]).withDefault("30d"))
+  const [statusFilter, setStatusFilter] = useQueryState("status", parseAsStringEnum(["all", "active", "completed"]).withDefault("all"))
+  const [clientFilter, setClientFilter] = useQueryState("client", parseAsString.withDefault("all"))
+  const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) }))
 
   const activeCount = campaigns.filter(c => c.status === "active").length
   const completedCount = campaigns.filter(c => c.status === "completed").length

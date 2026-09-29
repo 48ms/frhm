@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import { useQueryState, parseAsStringEnum, parseAsString, debounce } from "nuqs"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import {
@@ -12,9 +13,6 @@ import {
   type CampaignType,
 } from "./campaign-data"
 
-/* -------------------------------------------------------------------------- */
-/* Create / Edit Campaign modal                                               */
-/* -------------------------------------------------------------------------- */
 function CampaignModal({
   open,
   onClose,
@@ -163,9 +161,6 @@ function CampaignModal({
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Campaign card                                                              */
-/* -------------------------------------------------------------------------- */
 function CampaignCard({
   campaign,
   client,
@@ -264,13 +259,19 @@ function CampaignCard({
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Page                                                                       */
-/* -------------------------------------------------------------------------- */
 export function CampaignsBoard() {
-  const [activeClientId, setActiveClientId] = useState<string>("all")
-  const [typeFilter, setTypeFilter] = useState<CampaignType | "all">("all")
-  const [query, setQuery] = useState("")
+  const [activeClientId, setActiveClientId] = useQueryState(
+    "clientId",
+    parseAsStringEnum(["all", ...CAMPAIGN_CLIENTS.map((c) => c.id)]).withDefault("all")
+  )
+  const [typeFilter, setTypeFilter] = useQueryState(
+    "type",
+    parseAsStringEnum(["all", "campaign", "promo", "event"]).withDefault("all")
+  )
+  const [query, setQuery] = useQueryState(
+    "q",
+    parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
+  )
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
 

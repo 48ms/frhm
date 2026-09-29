@@ -1,7 +1,6 @@
 /**
  * Kanban → Skill-pipeline bridge.
  *
- * WHY THIS FILE EXISTS
  * The dashboard has TWO orthogonal taxonomies and they must not be conflated:
  *
  *   1. `content_productions.stage` — the *production* workflow of a single piece of

@@ -75,7 +75,7 @@ export function AppSidebar({
         {...props}
       >
         <div className="flex flex-col justify-between h-full p-4">
-          {/* ============ TOP: Brand capsule + nav + CTA ============ */}
+          
           <div>
             {/* Brand capsule */}
             <div className="flex items-center gap-3 px-3 py-2.5 mb-5 bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-white/80">
@@ -115,7 +115,7 @@ export function AppSidebar({
                 )
               })}
 
-              {/* ===== Client interactive section (expandable) ===== */}
+              
               <div className="pt-2">
                 <button
                   type="button"
@@ -203,7 +203,7 @@ export function AppSidebar({
             </div>
           </div>
 
-          {/* ============ BOTTOM: Settings / Support / User ============ */}
+          
           <div className="pt-3 border-t border-[#c5c9ad]/30 space-y-1">
             <a
               href="/admin/settings"

@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// We test the contract of logAudit without hitting a real DB.
-// The function must: (1) never throw, (2) skip silently when env is missing,
-// (3) forward metadata, (4) resolve actor role/name when only id is given.
-
 // Mock supabase-js BEFORE importing the module under test.
 const insertMock = vi.fn().mockResolvedValue({ error: null })
 const maybeSingleMock = vi.fn().mockResolvedValue({ data: null })

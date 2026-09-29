@@ -32,11 +32,7 @@ async function resolveClientId(page: import('@playwright/test').Page): Promise<s
   if (!m) throw new Error(`No client ID in: ${href}`)
   return m[1]
 }
-
-// ============================================================================
 // CRITICAL CRUD: users (create+delete+audit_log)
-// ============================================================================
-
 test('CRUD: user management create → list → delete → audit_log', async ({ page }) => {
   await loginAdmin(page)
   
@@ -80,11 +76,7 @@ test('CRUD: user management create → list → delete → audit_log', async ({ 
   expect(deleteAudit, 'audit_log must have user.delete').toContain('user.delete')
   console.log('AUDIT_LOG verified: ✅')
 })
-
-// ============================================================================
 // CRITICAL CRUD: campaign (create+verify)
-// ============================================================================
-
 test('CRUD: campaign form submits POST to /api/admin/clients/[id]/campaigns', async ({ page }) => {
   const postLogs: number[] = []
   page.on('response', (r) => {
@@ -124,11 +116,7 @@ test('CRUD: campaign form submits POST to /api/admin/clients/[id]/campaigns', as
   expect(page.url()).toContain('/admin/calendar')
   console.log('CRUD campaign: ✅')
 })
-
-// ============================================================================
 // CRITICAL CRUD: budget (create+verify)
-// ============================================================================
-
 test('CRUD: budget form submits POST to /api/admin/clients/[id]/budgets', async ({ page }) => {
   const postLogs: number[] = []
   page.on('response', (r) => {

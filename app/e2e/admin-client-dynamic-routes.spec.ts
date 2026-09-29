@@ -115,8 +115,6 @@ test.describe('Admin dynamic [id] routes', () => {
     if (consoleErrors.length) console.log(`[skills/[id]] console errors:\n  ${consoleErrors.join('\n  ')}`)
   })
 })
-
-// ---- Client portal pages ----
 // Note: client area has DeliverableNotifier (Supabase Realtime websocket) in the layout,
 // so networkidle NEVER settles. Use domcontentloaded + explicit wait instead.
 test.describe('Client portal pages', () => {

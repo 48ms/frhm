@@ -53,11 +53,7 @@ async function resolveClientId(page: import('@playwright/test').Page): Promise<s
   if (!m) throw new Error(`No client ID in href: ${href}`)
   return m[1]
 }
-
-// ============================================================================
 // PUBLIC + AUTH
-// ============================================================================
-
 test('/ (landing) loads clean', async ({ page }) => {
   const resp = await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 })
   expect(resp?.status()).toBeLessThan(500)
@@ -79,11 +75,7 @@ test('/waitlist loads clean (redirects authenticated users to dashboard)', async
   // Should bounce to login (not show error)
   expect(page.url(), 'unauthenticated waitlist should redirect to login').toContain('/auth/login')
 })
-
-// ============================================================================
 // ADMIN — STATIC ROUTES
-// ============================================================================
-
 const ADMIN_STATIC = [
   '/admin/dashboard',
   '/admin/analytics',
@@ -124,11 +116,7 @@ for (const route of ADMIN_STATIC) {
     }
   })
 }
-
-// ============================================================================
 // ADMIN — DYNAMIC [id] ROUTES
-// ============================================================================
-
 test('/admin/clients/[id] loads clean (workspace)', async ({ page }) => {
   const consoleErrors: string[] = []
   page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()) })
@@ -175,11 +163,7 @@ test('/admin/skills/[id] loads clean (404 gracefully)', async ({ page }) => {
   if (resp) expect(resp.status()).toBeLessThan(500)
   await assertClean(page)
 })
-
-// ============================================================================
 // CLIENT PORTAL
-// ============================================================================
-
 const CLIENT_STATIC = [
   '/client/dashboard',
   '/client/deliverables',

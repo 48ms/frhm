@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 
 export default async function AdminDashboardStitchPage() {
   return (
-    <main className="flex-1 p-6 lg:p-8 space-y-7 max-w-[1440px] mx-auto w-full">
+    <main className="flex-1 p-6 lg:p-8 space-y-6 max-w-[1440px] mx-auto w-full">
       <DashboardStitchHero />
       <DashboardStitchKpis />
 

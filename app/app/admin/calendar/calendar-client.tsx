@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { parseAsStringEnum, useQueryState } from "nuqs"
+import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
 import { Icons } from "@/components/icons"
 import { calendarService } from "@/features/calendar/service"
 import { calendarKeys, scheduledPostsQueryOptions } from "@/features/calendar/queries"
@@ -19,15 +19,21 @@ type StatusFilter = (typeof STATUS_FILTERS)[number]
 
 export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
   const queryClient = useQueryClient()
-  const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id ?? "")
+  const [selectedClientId, setSelectedClientId] = useQueryState(
+    "clientId",
+    parseAsString.withDefault(clients[0]?.id ?? "")
+  )
   const [statusFilter, setStatusFilter] = useQueryState(
     "status",
     parseAsStringEnum<StatusFilter>([...STATUS_FILTERS]).withDefault("all")
   )
+  const [viewMode, setViewMode] = useQueryState(
+    "view",
+    parseAsStringEnum(["month", "week", "list"]).withDefault("month")
+  )
   const [dialogOpen, setDialogOpen] = useState(false)
   const [initialDate, setInitialDate] = useState<Date | undefined>()
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
-  const [viewMode, setViewMode] = useState<"month" | "week" | "list">("month")
 
   const { data: posts = [] } = useQuery(scheduledPostsQueryOptions(selectedClientId))
 
