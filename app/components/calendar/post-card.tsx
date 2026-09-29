@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from '@/components/ui/badge'
 import { PlatformIcon } from '@/components/calendar/platform-icon'
 import { ScheduledPost, PLATFORMS, STATUS_CONFIG } from '@/features/calendar/types'
