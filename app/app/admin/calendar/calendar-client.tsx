@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
 import { Icons } from "@/components/icons"
@@ -10,12 +10,46 @@ import { CalendarView } from "@/components/calendar/calendar-view"
 import { toast } from "sonner"
 import { type ScheduledPost, type ScheduledPostUpdate } from "@/features/calendar/types"
 import { PostDialog } from "@/components/calendar/post-dialog"
+import { CalendarExportModal } from "@/components/calendar/calendar-export-modal"
 import { cn } from "@/lib/utils"
 
 export type ClientOption = { id: string; name: string }
 
 const STATUS_FILTERS = ["all", "scheduled", "published", "draft", "failed", "cancelled"] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
+
+/** Ticking countdown to the next scheduled post. */
+function useNextRelease(posts: ScheduledPost[]) {
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const next = useMemo(() => {
+    const upcoming = posts
+      .filter((p) => p.status === "scheduled" && new Date(p.scheduled_at).getTime() > now)
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+    return upcoming[0] ?? null
+  }, [posts, now])
+
+  const remaining = useMemo(() => {
+    if (!next) return null
+    const diff = new Date(next.scheduled_at).getTime() - now
+    if (diff <= 0) return null
+    const h = Math.floor(diff / 3_600_000)
+    const m = Math.floor((diff % 3_600_000) / 60_000)
+    const s = Math.floor((diff % 60_000) / 1000)
+    return {
+      label: [h, m, s].map((n) => String(n).padStart(2, "0")).join(":"),
+      title: next.title,
+      platform: next.platform,
+    }
+  }, [next, now])
+
+  return remaining
+}
 
 export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
   const queryClient = useQueryClient()
@@ -34,8 +68,10 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [initialDate, setInitialDate] = useState<Date | undefined>()
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const { data: posts = [] } = useQuery(scheduledPostsQueryOptions(selectedClientId))
+  const release = useNextRelease(posts)
 
   const filteredPosts = useMemo(
     () => (statusFilter === "all" ? posts : posts.filter((p) => p.status === statusFilter)),
@@ -98,7 +134,10 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[hsl(var(--admin-outline-variant))]/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95">
+          <button
+            onClick={() => setExportOpen(true)}
+            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[hsl(var(--admin-outline-variant))]/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer"
+          >
             <Icons.download className="size-4" />
             Quick Export
           </button>
@@ -209,23 +248,33 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
               </span>
             </div>
 
-            {/* Countdown Pill */}
+            {/* Countdown Pill — live ticking to the next scheduled release */}
             <div className="rounded-2xl bg-[hsl(var(--admin-cobalt))] text-white p-4 shadow-sm relative overflow-hidden">
               <div className="relative z-10 flex items-center justify-between">
-                <div>
+                <div className="min-w-0">
                   <span className="text-[9px] font-bold uppercase tracking-wider text-white/70">
                     Next Release In
                   </span>
                   <span className="block font-syne font-extrabold text-2xl tracking-tight">
-                    01:42:15
+                    {release ? release.label : "—"}
                   </span>
+                  {release && (
+                    <span className="block text-[10px] text-white/80 truncate mt-0.5">
+                      {release.title}
+                    </span>
+                  )}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm shrink-0">
                   <Icons.rocket className="size-5" />
                 </div>
               </div>
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
             </div>
+            {!release && (
+              <p className="text-[10px] text-[hsl(var(--admin-outline))] -mt-1">
+                No upcoming scheduled releases for this client.
+              </p>
+            )}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3">
@@ -250,6 +299,12 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
         </div>
       </div>
 
+      <CalendarExportModal
+        open={exportOpen}
+        posts={posts}
+        clientName={activeClient?.name ?? ""}
+        onClose={() => setExportOpen(false)}
+      />
       <PostDialog
         isOpen={dialogOpen}
         onClose={() => {
