@@ -1,6 +1,7 @@
 import { requireAdmin, loadClientFiles } from '@/lib/ai/server'
 import { isResponse } from '@/lib/ai/server'
 import { GlobalAutomationsBoard } from '@/components/admin/global-automations-board'
+import { PageContainer } from '@/components/layout/page-container'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +20,6 @@ export default async function GlobalAutomationsPage() {
   }
 
   // Pre-fetch which clients have brand-profile.md
-  // We process this sequentially or with Promise.all
   const automationClients = await Promise.all(
     clients.map(async (client) => {
       const files = await loadClientFiles(supabase, client.id)
@@ -33,15 +33,11 @@ export default async function GlobalAutomationsPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Batch Automations</h1>
-        <p className="text-muted-foreground">
-          Pabrik Konten: Buat ratusan kampanye untuk banyak klien sekaligus dengan AI.
-        </p>
-      </div>
-      
+    <PageContainer
+      pageTitle="Batch Automations"
+      pageDescription="Pabrik Konten: Buat ratusan kampanye untuk banyak klien sekaligus dengan AI."
+    >
       <GlobalAutomationsBoard initialClients={automationClients} />
-    </div>
+    </PageContainer>
   )
 }

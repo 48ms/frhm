@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback } from 'react'
-import { CreateClientDialog } from './create-client-dialog'
+import { CreateClientWizard } from './create-client-dialog'
 
 interface CreateClientContextType {
   openCreateClient: () => void
@@ -33,7 +33,7 @@ export function CreateClientProvider({ children }: { children: React.ReactNode }
   return (
     <CreateClientContext.Provider value={{ openCreateClient, closeCreateClient }}>
       {children}
-      <CreateClientDialog open={open} onOpenChange={setOpen} />
+      <CreateClientWizard open={open} onOpenChange={setOpen} />
     </CreateClientContext.Provider>
   )
 }

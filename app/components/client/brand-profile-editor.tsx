@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { PencilIcon, LoaderIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 import {
   BrandProfileData,
@@ -94,7 +94,7 @@ export function BrandProfileEditorDialog({ clientId, clientName, initialMarkdown
   return (
     <>
       <Button variant="outline" size="sm" className="h-11 sm:h-8" onClick={() => handleOpenChange(true)}>
-        <PencilIcon className="size-3.5" /> Edit Brand Profile
+        <Icons.pencil className="size-3.5" /> Edit Brand Profile
       </Button>
 
       <Dialog open={open ?? internalOpen} onOpenChange={handleOpenChange}>
@@ -322,7 +322,7 @@ export function BrandProfileEditorDialog({ clientId, clientName, initialMarkdown
               disabled={!totalValid || saving}
               title={totalValid ? undefined : 'Total alokasi pilar harus tepat 100%'}
             >
-              {saving ? <LoaderIcon className="size-4 animate-spin" /> : null}
+              {saving ? <Icons.spinner className="size-4 animate-spin" /> : null}
               {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </Button>
           </DialogFooter>

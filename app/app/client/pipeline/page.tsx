@@ -3,18 +3,16 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowLeftIcon, CheckCircle2Icon, CircleIcon, ClockIcon, WorkflowIcon,
-} from "lucide-react";
+import { Icons } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
 type Status = "belum" | "jalan" | "selesai";
 
 const STATUS_META: Record<Status, { icon: React.ReactNode; label: string; cls: string }> = {
-  belum: { icon: <CircleIcon className="size-4" />, label: "Belum", cls: "text-muted-foreground" },
-  jalan: { icon: <ClockIcon className="size-4" />, label: "Dikerjakan", cls: "text-primary" },
-  selesai: { icon: <CheckCircle2Icon className="size-4" />, label: "Selesai", cls: "text-green-600" },
+  belum: { icon: <Icons.circle className="size-4" />, label: "Belum", cls: "text-muted-foreground" },
+  jalan: { icon: <Icons.clock className="size-4" />, label: "Dikerjakan", cls: "text-primary" },
+  selesai: { icon: <Icons.circleCheck className="size-4" />, label: "Selesai", cls: "text-green-600" },
 };
 
 export default async function ClientPipelinePage() {
@@ -55,11 +53,11 @@ export default async function ClientPipelinePage() {
           href="/client/dashboard"
           className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:min-h-0"
         >
-          <ArrowLeftIcon className="size-3.5" /> Dashboard
+          <Icons.chevronLeft className="size-3.5" /> Dashboard
         </Link>
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <WorkflowIcon className="size-6" />
+            <Icons.workflow className="size-6" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Progres Pengerjaan</h1>
@@ -128,7 +126,7 @@ export default async function ClientPipelinePage() {
                   <div className="flex items-center gap-2">
                     {active > 0 && (
                       <Badge variant="outline" className="gap-1 h-6 px-2 text-xs">
-                        <ClockIcon className="size-3" /> {active} dikerjakan
+                        <Icons.clock className="size-3" /> {active} dikerjakan
                       </Badge>
                     )}
                     <Badge variant="outline" className="h-6 px-2 text-xs">

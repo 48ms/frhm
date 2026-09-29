@@ -144,6 +144,8 @@ CREATE TABLE IF NOT EXISTS public.kols (
     niche TEXT,
     contact_info TEXT,
     rate_card NUMERIC(10, 2),
+    platforms TEXT[] DEFAULT '{}'::text[],
+    notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

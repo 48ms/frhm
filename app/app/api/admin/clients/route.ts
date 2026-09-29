@@ -4,9 +4,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
-import { resolveProvider } from '@/lib/ai/server'
-import { chatJson } from '@/lib/ai/providers'
-import { NICHE_PACK_MAP, buildBrandProfilePrompt, type NicheId } from '@/lib/onboarding/niche-packs'
+import { NICHE_PACK_MAP, type NicheId } from '@/lib/onboarding/niche-packs'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 
@@ -82,17 +80,18 @@ export async function POST(request: Request) {
   const name: string = (body?.name ?? '').trim()
   const contact_email: string | null = body?.contact_email?.trim() || null
   const contact_phone: string | null = body?.contact_phone?.trim() || null
-  // Marketing foundation inputs (optional — backward compatible with old payloads)
+  const telegram_chat_id: string | null = body?.telegram_chat_id?.trim() || null
+
+  // Niche drives skill-pack seeding only. The rest of the foundation (brand profile, voice,
+  // audience, pillars) is now gathered by the brand-profile skill interview, not this form —
+  // the repo's rule is "the agent interviews you", so we don't pre-fill it from a wizard.
   const niche: NicheId | null = (body?.niche ?? null) as NicheId | null
-  const target_audience: string = (body?.target_audience ?? '').trim()
-  const products: string = (body?.products ?? '').trim()
-  const usp: string = (body?.usp ?? '').trim()
 
   if (!name) return NextResponse.json({ error: 'Nama client wajib diisi' }, { status: 400 })
 
   const { data, error } = await supabase
     .from('clients')
-    .insert({ name, contact_email, contact_phone })
+    .insert({ name, contact_email, contact_phone, telegram_chat_id })
     .select()
     .single()
 
@@ -136,11 +135,7 @@ export async function POST(request: Request) {
     credentials = { email: contact_email, password }
   }
 
-  // --- Smart Onboarding: AI brand-profile synthesis + skill pack seeding ---
-  // Non-fatal: a client without a brand profile is still usable, so we never roll back
-  // a successful creation over an AI hiccup (unlike the auth-user failure above).
-  let brandProfileGenerated = false
-  let brandProfileReason: string | null = null
+  // --- Skill Seeding only (No AI Synthesis) ---
   let seededSkillCount = 0
 
   if (niche) {
@@ -164,38 +159,6 @@ export async function POST(request: Request) {
     } catch (e) {
       console.error('Skill seeding failed (non-fatal):', e)
     }
-
-    // 2. Synthesize brand-profile.md via the configured AI provider
-    try {
-      const provider = await resolveProvider(supabase)
-      if (!provider) {
-        brandProfileReason = 'Belum ada provider AI. Atur di /admin/settings/ai lalu generate ulang di Client Setup.'
-      } else {
-        const prompt = buildBrandProfilePrompt(name, niche, target_audience, products, usp)
-        const aiResult = await chatJson<{ brand_profile_md: string }>(provider, prompt, [
-          { role: 'user', content: 'Generate the brand-profile.md document as JSON now.' },
-        ])
-        const md = aiResult?.brand_profile_md?.trim()
-        if (!md) {
-          brandProfileReason = 'AI tidak mengembalikan dokumen yang valid.'
-        } else {
-          const { error: fileErr } = await supabase
-            .from('client_files')
-            .upsert(
-              { client_id: clientId, path: 'brand-profile.md', content: md, updated_at: new Date().toISOString() },
-              { onConflict: 'client_id,path' }
-            )
-          if (fileErr) {
-            brandProfileReason = `Gagal menyimpan brand profile: ${fileErr.message}`
-          } else {
-            brandProfileGenerated = true
-          }
-        }
-      }
-    } catch (e) {
-      brandProfileReason = e instanceof Error ? e.message : 'Gagal generate brand profile.'
-      console.error('Brand profile synthesis failed (non-fatal):', e)
-    }
   }
 
   await logAudit({
@@ -208,19 +171,17 @@ export async function POST(request: Request) {
     summary: credentials
       ? `Admin membuat client "${name}" beserta akun login (${contact_email})`
       : `Admin membuat client "${name}" (tanpa akun login)`,
-    // never the password
     metadata: {
       name,
       contact_email: contact_email ?? null,
       has_login: Boolean(credentials),
       niche: niche ?? null,
-      brand_profile_generated: brandProfileGenerated,
       seeded_skills: seededSkillCount,
     },
   })
 
   return NextResponse.json(
-    { success: true, data, credentials, brandProfileGenerated, brandProfileReason, seededSkillCount },
+    { success: true, data, credentials, seededSkillCount },
     { status: 201 }
   )
 }

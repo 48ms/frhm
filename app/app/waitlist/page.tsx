@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LockIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 // Always render per-request — never cache RSC payload (avoids stale session/role state)
 export const dynamic = 'force-dynamic'
@@ -29,7 +29,7 @@ export default async function WaitlistPage() {
       <div className="w-full max-w-md text-center">
         <div className="mb-6 flex justify-center">
           <div className="flex size-14 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground">
-            <LockIcon className="size-7" />
+            <Icons.lock className="size-7" />
           </div>
         </div>
         <h1 className="text-2xl font-bold tracking-tight mb-3">Menunggu Akses</h1>

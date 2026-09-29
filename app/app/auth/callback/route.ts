@@ -1,15 +1,34 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
+import { checkRateLimit } from '@/lib/middleware/rate-limit'
+import { safeRedirect } from '@/lib/safe-redirect'
+
+const RATE_LIMIT = 5
+const RATE_WINDOW_MS = 60_000 // 5 attempts per minute
+
+function getIp(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+}
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  const redirect = searchParams.get('redirect') || '/admin/dashboard'
+  const ip = getIp(request)
+  const limited = checkRateLimit(ip, 'auth/callback', RATE_LIMIT, RATE_WINDOW_MS)
+  if (limited.limited) {
+    void logAudit({
+      action: 'auth.rate_limited',
+      summary: `Auth callback rate limited: ${ip}`,
+      request,
+    })
+    const url = new URL('/waitlist', request.url)
+    return NextResponse.redirect(url)
+  }
 
-  if (code) {
+  const { searchParams } = new URL(request.url)
+  const redirect = safeRedirect(searchParams.get('redirect'), '/admin/dashboard')
+  if (searchParams.get('code')) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error } = await supabase.auth.exchangeCodeForSession(searchParams.get('code')!)
 
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
@@ -32,7 +51,6 @@ export async function GET(request: NextRequest) {
           const url = new URL(redirect, request.url)
           return NextResponse.redirect(url)
         }
-        // Authenticated but no profile role — suspicious, log it.
         void logAudit({
           action: 'auth.login.no_role',
           actorId: user.id,
@@ -42,7 +60,6 @@ export async function GET(request: NextRequest) {
         })
       }
     } else {
-      // Failed code exchange — security event.
       void logAudit({
         action: 'auth.login.failed',
         summary: `Login gagal: ${error.message}`,
@@ -51,7 +68,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // If no role or error → waitlist
   const url = new URL('/waitlist', request.url)
   return NextResponse.redirect(url)
 }

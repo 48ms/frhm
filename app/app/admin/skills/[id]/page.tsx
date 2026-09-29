@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeftIcon, LayersIcon, FileTextIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,12 +43,12 @@ export default async function SkillPackPage({
           href="/admin/skills"
           className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeftIcon className="size-3.5" /> Semua Paket
+          <Icons.arrowLeft className="size-3.5" /> Semua Paket
         </Link>
         <h1 className="text-2xl font-bold tracking-tight">{pack.name}</h1>
         <p className="text-sm text-muted-foreground mt-1">{pack.description}</p>
         <Badge variant="secondary" className="mt-2 gap-1.5 h-6 px-2 text-xs">
-          <LayersIcon className="size-3" />
+          <Icons.layers2 className="size-3" />
           {(skills ?? []).length} skill
         </Badge>
       </div>
@@ -56,7 +56,7 @@ export default async function SkillPackPage({
       {(skills ?? []).length === 0 ? (
         <Card className="border border-dashed">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
-            <FileTextIcon className="size-10" />
+            <Icons.post className="size-10" />
             <p className="text-center">Paket ini belum punya skill.</p>
           </CardContent>
         </Card>

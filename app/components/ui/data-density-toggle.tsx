@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { AlignJustify, List } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface DataDensityToggleProps {
   density: 'compact' | 'comfortable'
@@ -11,8 +11,8 @@ interface DataDensityToggleProps {
 
 export function DataDensityToggle({ density, onChange }: DataDensityToggleProps) {
   const options = [
-    { label: 'Rapat', value: 'compact', icon: <AlignJustify className="h-4 w-4" /> },
-    { label: 'Nyaman', value: 'comfortable', icon: <List className="h-4 w-4" /> }
+    { label: 'Rapat', value: 'compact', icon: <Icons.dots className="h-4 w-4" /> },
+    { label: 'Nyaman', value: 'comfortable', icon: <Icons.forms className="h-4 w-4" /> }
   ]
 
   return (

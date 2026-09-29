@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface Competitor {
   id: string
@@ -34,7 +34,7 @@ export function CompetitorBenchmarkCard({ clientId }: { clientId: string }) {
         <CardContent>
           <p className="text-sm text-muted-foreground">Belum ada data benchmark. Tambahkan untuk analisis gap.</p>
           <Button variant="outline" size="sm" className="mt-3">
-            <Plus className="size-4 mr-2" /> Tambah Benchmark
+            <Icons.add className="size-4 mr-2" /> Tambah Benchmark
           </Button>
         </CardContent>
       </Card>
@@ -67,7 +67,7 @@ export function CompetitorBenchmarkCard({ clientId }: { clientId: string }) {
                 <span className="text-xs text-muted-foreground block">/minggu</span>
               </div>
               <Button variant="ghost" size="sm">
-                <Trash2 className="size-4 text-red-500" />
+                <Icons.trash className="size-4 text-red-500" />
               </Button>
             </div>
           </div>

@@ -1,0 +1,127 @@
+/* Luminous Space — Exact Match to Stitch Design */
+
+.auth-viewport {
+  background: hsl(var(--background));
+  background-image:
+    radial-gradient(at 0% 0%, rgba(183, 117, 252, 0.27) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(67, 83, 255, 0.2) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(212, 255, 50, 0.33) 0px, transparent 60%),
+    radial-gradient(at 10% 85%, rgba(220, 184, 255, 0.4) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(189, 194, 255, 0.33) 0px, transparent 50%);
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-container {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 24px 60px -12px rgba(67, 83, 255, 0.14);
+}
+
+.dark .auth-container {
+  background: rgba(18, 19, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.5);
+}
+
+.auth-nav {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .auth-nav {
+  background: rgba(18, 19, 26, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .auth-card {
+  background: rgba(18, 19, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Glass panel */
+.fluted-glass-pane {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.45) 0px,
+    rgba(255, 255, 255, 0.45) 12px,
+    rgba(255, 255, 255, 0.1) 13px,
+    rgba(255, 255, 255, 0.1) 24px
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .fluted-glass-pane {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.15) 0px,
+    rgba(255, 255, 255, 0.15) 12px,
+    rgba(255, 255, 255, 0.02) 13px,
+    rgba(255, 255, 255, 0.02) 24px
+  );
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Animations */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(12px) rotate(-1.5deg);
+  }
+}
+
+@keyframes float-drift {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(8px, -8px) scale(1.02);
+  }
+}
+
+@keyframes star-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluted-glass-pane,
+  [style*="animation"] {
+    animation: none !important;
+    transform: none !important;
+  }
+}

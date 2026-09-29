@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Sparkles, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 type AutomationClient = {
@@ -131,10 +131,10 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
                   {isSelected && status && (
                     <div className="flex items-center gap-2 text-xs text-right">
                       <span className="text-muted-foreground w-48 truncate">{log}</span>
-                      {status === 'pending' && <Clock className="size-4 text-muted-foreground" />}
-                      {status === 'running' && <Loader2 className="size-4 text-blue-500 animate-spin" />}
-                      {status === 'success' && <CheckCircle2 className="size-4 text-green-500" />}
-                      {status === 'error' && <XCircle className="size-4 text-red-500" />}
+                      {status === 'pending' && <Icons.clock className="size-4 text-muted-foreground" />}
+                      {status === 'running' && <Icons.spinner className="size-4 text-blue-500 animate-spin" />}
+                      {status === 'success' && <Icons.circleCheck className="size-4 text-green-500" />}
+                      {status === 'error' && <Icons.xCircle className="size-4 text-red-500" />}
                     </div>
                   )}
                 </div>
@@ -201,9 +201,9 @@ export function GlobalAutomationsBoard({ initialClients }: { initialClients: Aut
             className="w-full mt-2"
           >
             {isRunning ? (
-              <><Loader2 className="size-4 mr-2 animate-spin" /> Memproses...</>
+              <><Icons.spinner className="size-4 mr-2 animate-spin" /> Memproses...</>
             ) : (
-              <><Sparkles className="size-4 mr-2" /> Start Batch Generation ({selectedIds.length})</>
+              <><Icons.sparkles className="size-4 mr-2" /> Start Batch Generation ({selectedIds.length})</>
             )}
           </Button>
         </div>

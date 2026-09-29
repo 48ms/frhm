@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PlusIcon, WalletIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { BudgetFormModal } from './budget-form-modal'
 import { ExpenseFormModal } from './expense-form-modal'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel } from '@/lib/supabase/client'
 
 type ClientBudget = {
   id: string
@@ -96,7 +96,7 @@ export function BudgetLedgerBoard({ clientId }: { clientId: string }) {
           </div>
           <BudgetFormModal clientId={clientId} onSuccess={handleBudgetSuccess}>
             <Button size="sm" className="h-9">
-              <WalletIcon className="size-4 mr-2" /> Set Budget
+              <Icons.billing className="size-4 mr-2" /> Set Budget
             </Button>
           </BudgetFormModal>
         </CardHeader>
@@ -122,7 +122,7 @@ export function BudgetLedgerBoard({ clientId }: { clientId: string }) {
           </div>
           <ExpenseFormModal clientId={clientId} budgetId={budget?.id} onSuccess={handleExpenseSuccess}>
             <Button size="sm" className="h-9" disabled={!budget}>
-              <PlusIcon className="size-4 mr-2" /> Catat Pengeluaran
+              <Icons.add className="size-4 mr-2" /> Catat Pengeluaran
             </Button>
           </ExpenseFormModal>
         </CardHeader>

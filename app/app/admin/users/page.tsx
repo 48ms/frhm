@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Search, Plus, MoreHorizontal, Shield, Mail, CheckCircle2, Clock } from "lucide-react";
+import { Icons } from "@/components/icons"
 
 export default function AdminUsersPage() {
   const users = [
@@ -24,7 +24,7 @@ export default function AdminUsersPage() {
           <p className="text-neutral-500 mt-1">Kelola akses, peran, dan status seluruh pengguna platform Frahma.</p>
         </div>
         <button className="inline-flex items-center gap-2 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 px-4 py-2 rounded-xl text-sm font-medium hover:scale-105 active:scale-95 transition-all shadow-sm">
-          <Plus className="w-4 h-4" />
+          <Icons.add className="w-4 h-4" />
           Tambah Pengguna
         </button>
       </motion.div>
@@ -38,7 +38,7 @@ export default function AdminUsersPage() {
       >
         <div className="p-4 border-b border-neutral-200/50 dark:border-neutral-800/50 flex items-center justify-between">
           <div className="relative max-w-sm w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input 
               type="text" 
               placeholder="Cari nama atau email..." 
@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
                       <div>
                         <div className="font-medium text-neutral-900 dark:text-neutral-100">{user.name}</div>
                         <div className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
-                          <Mail className="w-3 h-3" />
+                          <Icons.send className="w-3 h-3" />
                           {user.email}
                         </div>
                       </div>
@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs font-medium text-neutral-600 dark:text-neutral-300">
-                      <Shield className="w-3 h-3" />
+                      <Icons.info className="w-3 h-3" />
                       {user.role}
                     </div>
                   </td>
@@ -93,7 +93,7 @@ export default function AdminUsersPage() {
                         ? 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
                         : 'bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                     }`}>
-                      {user.status === 'Active' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                      {user.status === 'Active' ? <Icons.circleCheck className="w-3 h-3" /> : <Icons.clock className="w-3 h-3" />}
                       {user.status}
                     </div>
                   </td>
@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button className="p-2 hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors opacity-0 group-hover:opacity-100">
-                      <MoreHorizontal className="w-4 h-4" />
+                      <Icons.moreHorizontal className="w-4 h-4" />
                     </button>
                   </td>
                 </motion.tr>

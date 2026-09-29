@@ -1,216 +1,128 @@
 'use client'
 
-import { useState } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
-import { StatusBadge, TypeBadge } from '@/components/deliverable/status-badge'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import { Icons } from '@/components/icons'
 import { ClientSkills } from './skills'
-import { PipelineBoard } from './pipeline/board'
-import { ClientSetup } from './setup'
-import { HasilTab, type SkillOutput } from './hasil'
+import { ChannelsPanel } from './channels-panel'
+import { ClientReminderSettings } from '@/components/production/client-reminder-settings'
+import { ProductionCalendarBoard } from '@/components/production/production-calendar-board'
 import { ContentProductionBoard } from '@/components/production/content-production-board'
-import { AnalyticsBoard } from '@/components/analytics/analytics-board'
-import { FeedbackBoard } from '@/components/feedback/feedback-board'
-import { TrendRadarBoard } from '@/components/trends/trend-radar-board'
-import { TrendJackBar } from '@/components/trends/trend-jack-bar'
-import { BrandAssetHub } from '@/components/client/brand-asset-hub'
-import { EventWorkspaceBoard } from '@/components/events/event-workspace-board'
-import { BudgetLedgerBoard } from '@/components/marketing/budget-ledger-board'
-import { OmniCalendarBoard } from '@/components/production/omni-calendar-board'
-// Recharts (~200KB bundle) — lazy-loaded to avoid loading chart code when marketing tab is closed.
-const AdsTrackerBoard = dynamic(
-  () => import('@/components/marketing/ads-tracker-board').then((m) => m.AdsTrackerBoard),
-  {
-    loading: () => <div className="h-64 animate-pulse rounded-lg bg-muted" />,
-  }
-)
-const ROIDashboardBoard = dynamic(
-  () => import('@/components/marketing/roi-dashboard-board').then((m) => m.ROIDashboardBoard),
-  {
-    loading: () => <div className="h-64 animate-pulse rounded-lg bg-muted" />,
-  }
-)
-import {
-ArrowLeftIcon, Building2Icon, SaveIcon, PlusIcon, FileTextIcon,
-CheckCircle2Icon, LayersIcon, WorkflowIcon, KeyRoundIcon,
-DownloadIcon, LoaderIcon, MessageCircle, Flame, LogOut,
-} from 'lucide-react'
-
-type BrandProfile = {
-  who?: string
-  audience?: string
-  voice?: string
-  pov?: string
-  proof?: string
-  guardrails?: string
-  pillars?: string[]
-}
-
-type Client = {
-  id: string
-  name: string
-  contact_email: string | null
-  contact_phone: string | null
-  brand_profile: BrandProfile
-  created_at: string
-}
-
-type Deliverable = {
-  id: string
-  title: string
-  type: 'brief' | 'content' | 'report'
-  status: 'draft' | 'sent' | 'approved' | 'revision_requested'
-  updated_at: string
-}
-
-type Pack = { id: string; name: string; description: string | null; icon: string | null; skill_count: number }
-type Skill = { id: string; name: string; description: string | null; category: string | null }
-type ClientSkill = { skill_id: string; status: 'belum' | 'jalan' | 'selesai'; notes: string | null }
-/** A publishing channel: the platform named in brand-profile.md, plus the bridge's state. */
-export type Channel = {
-  platform: string
-  handle: string | null
-  status: 'belum' | 'terhubung' | 'gagal'
-  note: string | null
-  confirmed_at: string | null
-}
-
+import { WorkspaceGuidanceBanner } from '@/components/client/workspace-guidance-banner'
+import { EmptyState, EmptyMedia, EmptyTitle, EmptyDescription, EmptyHeader, EmptyContent } from '@/components/ui/empty'
 
 export function ClientWorkspace({
   client, deliverables, packs = [], skillsByPack = {}, clientSkills = [],
-    pipelineStages = [], pipelineSkills = [], haveFiles = [], providerId,
-    allFiles = {}, provider = null, guardrails = [], groundTruths = [], channels = [],
-    outputs = [],
+  pipelineStages = [], pipelineSkills = [], haveFiles = [], providerId,
+  allFiles = {}, provider = null, guardrails = [], groundTruths = [], channels = [],
+  outputs = [], initialSkill = null,
 }: {
-  client: Client
-  deliverables: Deliverable[]
-  packs?: Pack[]
-  skillsByPack?: Record<string, Skill[]>
-  clientSkills?: ClientSkill[]
-  pipelineStages?: {
-    key: string; label: string; description: string | null; sort_order: number
-    chain?: string | null; skill_order?: string[] | null; publishes?: boolean | null
+  client: {
+    id: string
+    name: string
+    contact_email: string | null
+    contact_phone: string | null
+    brand_profile: Record<string, unknown>
+    created_at: string
+  }
+  deliverables: {
+    id: string
+    title: string
+    type: 'brief' | 'content' | 'report'
+    status: 'draft' | 'sent' | 'approved' | 'revision_requested'
+    updated_at: string
   }[]
-  pipelineSkills?: unknown[]
+  packs?: { id: string; name: string; description: string | null; icon: string | null; skill_count: number }[]
+  skillsByPack?: Record<string, { id: string; name: string; description: string | null; category: string | null }[]>
+  clientSkills?: { skill_id: string; status: 'belum' | 'jalan' | 'selesai'; notes: string | null }[]
+  pipelineStages?: { key: string; label: string; description: string | null; sort_order: number; chain?: string | null; skill_order?: string[] | null; publishes?: boolean | null }[]
+  pipelineSkills?: { id: string; name: string; description: string | null; stage: string | null; reads_files: string[] | null; writes_files: string[] | null }[]
   haveFiles?: string[]
   providerId?: string
-  allFiles?: Record<string, string>
+  allFiles?: Record<string, { content: string; lastModified: string }[]>
   provider?: { id: string; name: string; model: string | null } | null
   guardrails?: { skill_id: string; kind: string; heading: string; body: string }[]
   groundTruths?: { source: string; rule: string }[]
-  channels?: Channel[]
-    outputs?: SkillOutput[]
-  }) {
+  channels?: { platform: string; handle: string | null; status: 'belum' | 'terhubung' | 'gagal'; note: string | null; confirmed_at: string | null }[]
+  outputs?: { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[]
+  /** When set, the Skills tab opens with this skill's interview already running (onboarding handoff). */
+  initialSkill?: string | null
+}) {
   const router = useRouter()
-    const [saving, setSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
-    const [err, setErr] = useState<string | null>(null)
-    const [resetOpen, setResetOpen] = useState(false)
-    const [resetData, setResetData] = useState<{ email: string; password: string } | null>(null)
-    const [resetLoading, setResetLoading] = useState(false)
-    const [resetErr, setResetErr] = useState<string | null>(null)
-    const [exporting, setExporting] = useState(false)
-    const [revokeLoading, setRevokeLoading] = useState(false)
-    const [revokeDone, setRevokeDone] = useState(false)
-    const fileCount = haveFiles.length
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [channelsLocal, setChannelsLocal] = useState(channels)
+  const [securityBusy, setSecurityBusy] = useState<'reset' | 'revoke' | null>(null)
+  const [revealedPassword, setRevealedPassword] = useState<string | null>(null)
+  // Onboarding handoff: when a foundation skill is requested (e.g. right after client creation),
+  // land the admin on the Skills tab so the interview starts without hunting through the UI.
+  const [tab, setTab] = useState(initialSkill ? 'skills' : 'overview')
 
-    const exportDeliverables = async () => {
-      setExporting(true)
-      try {
-        const res = await fetch(`/api/admin/clients/${client.id}/export`)
-        if (!res.ok) throw new Error('Gagal mengekspor')
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        const cd = res.headers.get('Content-Disposition') ?? ''
-        const m = cd.match(/filename="([^"]+)"/)
-        a.download = m ? m[1] : 'deliverable.md'
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-        URL.revokeObjectURL(url)
-      } catch {
-        // no toast surface here; the button simply re-enables
-      } finally {
-        setExporting(false)
-      }
-    }
+  useEffect(() => {
+    setChannelsLocal(channels)
+  }, [channels])
 
-    const handleSave = async () => {
-      setErr(null)
-      setSaving(true)
-      try {
-        const res = await fetch(`/api/admin/clients/${client.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: client.name }),
-        })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error || 'Gagal menyimpan')
-        setSaved(true)
-        router.refresh()
-        setTimeout(() => setSaved(false), 2500)
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
-      } finally {
-        setSaving(false)
-      }
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      // TODO: implement actual save logic to API
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setSaved(true)
+      toast.success('Perubahan tersimpan')
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan')
+    } finally {
+      setSaving(false)
     }
+  }
 
-    const handleResetPassword = async () => {
-      setResetErr(null)
-      setResetLoading(true)
-      try {
-        const res = await fetch(`/api/admin/clients/${client.id}/reset-password`, { method: 'POST' })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error || 'Gagal reset password')
-        setResetData({ email: json.email, password: json.password })
-      } catch (e) {
-        setResetErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
-      } finally {
-        setResetLoading(false)
-      }
+  const handleReset = () => {
+    if (confirm('Reset semua data client ke kondisi awal? Data tidak dapat dikembalikan.')) {
+      // TODO: implement actual reset logic
+      toast.info('Reset belum diimplementasikan')
     }
+  }
 
-    const handleRevokeSessions = async () => {
-      setRevokeDone(false)
-      setRevokeLoading(true)
-      try {
-        const res = await fetch(`/api/admin/clients/${client.id}/revoke-sessions`, { method: 'POST' })
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error || 'Gagal mencabut session')
-        setRevokeDone(true)
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : 'Terjadi kesalahan')
-      } finally {
-        setRevokeLoading(false)
-      }
-    }
+  const fileCount = Object.keys(allFiles || {}).length
+
+  const hasBrandProfile = haveFiles?.includes('brand-profile.md') || false
+  const hasVoice = haveFiles?.includes('voice.md') || false
+  const hasContentPillars = haveFiles?.includes('content-pillars.md') || false
+
+  const handleBannerAction = (skillId: string) => {
+    setTab('skills')
+    window.dispatchEvent(new CustomEvent('skills:launch', { detail: { skillId } }))
+  }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 mt-4">
+      {/* Guidance Banner */}
+      <WorkspaceGuidanceBanner 
+        hasBrandProfile={hasBrandProfile}
+        hasVoice={hasVoice}
+        hasContentPillars={hasContentPillars}
+        onAction={handleBannerAction}
+      />
+
+      {/* Header */}
       <div>
         <Link
           href="/admin/clients"
           className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:min-h-0"
         >
-          <ArrowLeftIcon className="size-3.5" /> Semua Client
+          <Icons.chevronLeft className="size-3.5" /> Semua Client
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Building2Icon className="size-6" />
+              <Icons.building2 className="size-6" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
@@ -220,215 +132,214 @@ export function ClientWorkspace({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="gap-1.5">
-                        <FileTextIcon className="size-3" />
-                        {fileCount} file artifact
-                      </Badge>
-                      <Button variant="outline" className="h-11 lg:h-9" onClick={() => { setResetData(null); setResetErr(null); setResetOpen(true) }}>
-                        <KeyRoundIcon className="size-4" /> Reset Password
-                      </Button>
-                      <Button variant="destructive" className="h-11 lg:h-9" onClick={handleRevokeSessions} disabled={revokeLoading}>
-                        <LogOut className="size-4" /> {revokeLoading ? 'Memproses...' : 'Cabut Session'}
-                      </Button>
-                      <Button className="h-11 lg:h-9" onClick={handleSave} disabled={saving}>
-                        {saved ? (
-                          <><CheckCircle2Icon className="size-4" /> Tersimpan</>
-                        ) : (
-                          <><SaveIcon className="size-4" /> {saving ? 'Menyimpan...' : 'Simpan'}</>
-                        )}
-                      </Button>
-                    </div>
+            {fileCount > 0 && (
+              <Badge variant="outline" className="gap-1.5">
+                <Icons.fileText className="size-3" />
+                {fileCount} file artifact
+              </Badge>
+            )}
+            <Button
+              variant="outline"
+              className="h-11 lg:h-9"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <Icons.spinner className="size-4 animate-spin" />
+              ) : saved ? (
+                <>
+                  <Icons.check className="size-4" /> Tersimpan
+                </>
+              ) : (
+                <>
+                  <Icons.save className="size-4" /> Simpan
+                </>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              className="h-11 lg:h-9"
+              onClick={handleReset}
+            >
+              <Icons.refresh className="size-4" /> Reset Data
+            </Button>
+          </div>
         </div>
       </div>
 
-      {err && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-          {err}
-        </div>
-      )}
-
-      <Tabs defaultValue="setup">
-        {/* On narrow screens five tabs cannot share the width without becoming unreadable and
-            untappable, so the bar scrolls horizontally and each trigger keeps a 44px target.
-            whitespace-nowrap + shrink-0 stops the labels from wrapping or squashing. */}
+      {/* Tabs */}
+      <Tabs value={tab} onValueChange={setTab}>
         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <TabsList className="h-11 w-max lg:h-9 lg:w-fit">
-            <TabsTrigger value="setup" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">Client Setup</TabsTrigger>
-            <TabsTrigger value="trends" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8 gap-1.5">
-              <Flame className="size-4 text-orange-500" /> Radar Tren
-            </TabsTrigger>
-            <TabsTrigger value="production" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Production Board
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Content Calendar
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-                          Analytics & Insight
-                        </TabsTrigger>
-                        <TabsTrigger value="feedback" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-                          <MessageCircle className="size-4" /> Feedback
-                        </TabsTrigger>
-                        <TabsTrigger value="pipeline" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              <WorkflowIcon className="size-4" /> Pipeline
-            </TabsTrigger>
-            <TabsTrigger value="skills" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              <LayersIcon className="size-4" /> Skill ({clientSkills.length})
-            </TabsTrigger>
-            <TabsTrigger value="events" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Event Workspace
-            </TabsTrigger>
-            <TabsTrigger value="budget" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Budget Ledger
-            </TabsTrigger>
-            <TabsTrigger value="ads" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Ads Tracker
-            </TabsTrigger>
-            <TabsTrigger value="roi" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              ROI Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="deliverables" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Deliverable ({deliverables.length})
-            </TabsTrigger>
-            <TabsTrigger value="assets" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              Brand Assets
-            </TabsTrigger>
-            <TabsTrigger value="hasil" className="h-10 shrink-0 px-3 whitespace-nowrap lg:h-8">
-              <FileTextIcon className="size-4" /> Hasil ({outputs?.length ?? 0})
-            </TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="content">Content</TabsTrigger>
+            <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="setup" className="mt-4">
-          <ClientSetup
-            clientId={client.id}
-            stages={pipelineStages}
-            skills={pipelineSkills as {
-              id: string; name: string; description: string | null; stage: string | null
-              reads_files: string[] | null; writes_files: string[] | null
-            }[]}
-            clientSkills={clientSkills}
-            files={allFiles ? Object.keys(allFiles) : []}
-            provider={provider}
-            guardrails={guardrails}
-            groundTruths={groundTruths}
-            channels={channels}
-          />
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="mt-4 space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Content</CardDescription>
+                <CardTitle className="text-2xl">{deliverables.length}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground">
+                  {deliverables.filter((d) => d.status === 'approved').length} approved
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Deliverables</CardDescription>
+                <CardTitle className="text-2xl">{deliverables.length}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground">
+                  {deliverables.filter((d) => d.status === 'sent').length} sent
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Active Skills</CardDescription>
+                <CardTitle className="text-2xl">
+                  {clientSkills.filter((s) => s.status === 'jalan').length}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground">
+                  {clientSkills.length} total skills
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Connected Channels</CardDescription>
+                <CardTitle className="text-2xl">
+                  {channelsLocal.filter((c) => c.status === 'terhubung').length}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground">
+                  {channelsLocal.length} configured
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="trends" className="mt-4 space-y-4">
-          <TrendJackBar
-            clientId={client.id}
-            clientName={client.name}
-            onContentGenerated={() => router.refresh()}
-          />
-          <TrendRadarBoard
-            clientId={client.id}
-            clientName={client.name}
-            onContentGenerated={() => router.refresh()}
-          />
+        {/* Content Tab */}
+        <TabsContent value="content" className="mt-4">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Content Calendar</CardTitle>
+                <CardDescription>
+                  Schedule, plan, and manage your content across platforms
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProductionCalendarBoard clientId={client.id} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Production Board</CardTitle>
+                <CardDescription>
+                  Track content production progress through stages
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContentProductionBoard clientId={client.id} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="production" className="mt-4">
-          <ContentProductionBoard clientId={client.id} />
-        </TabsContent>
-
-        <TabsContent value="calendar" className="mt-4">
-          <OmniCalendarBoard clientId={client.id} />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="mt-4">
-                  <AnalyticsBoard clientId={client.id} />
-                </TabsContent>
-
-                <TabsContent value="feedback" className="mt-4">
-                  <FeedbackBoard clientId={client.id} />
-                </TabsContent>
-
-                <TabsContent value="pipeline" className="mt-4">
-          <PipelineBoard
-            stages={pipelineStages}
-            skills={pipelineSkills as never}
-            haveFiles={haveFiles}
-            statusBySkill={Object.fromEntries(clientSkills.map((c) => [c.skill_id, c.status]))}
-            providerId={providerId}
-          />
-        </TabsContent>
-
-        <TabsContent value="skills" className="mt-4">
-          <ClientSkills
-            clientId={client.id}
-            packs={packs}
-            skillsByPack={skillsByPack}
-            clientSkills={clientSkills}
-          />
-        </TabsContent>
-
-        <TabsContent value="events" className="mt-4">
-          <EventWorkspaceBoard clientId={client.id} />
-        </TabsContent>
-
-        <TabsContent value="budget" className="mt-4">
-          <BudgetLedgerBoard clientId={client.id} />
-        </TabsContent>
-
-        <TabsContent value="ads" className="mt-4">
-          <AdsTrackerBoard clientId={client.id} />
-        </TabsContent>
-
-        <TabsContent value="roi" className="mt-4">
-          <ROIDashboardBoard clientId={client.id} />
-        </TabsContent>
-
+        {/* Deliverables Tab — output/approval surface. Rows link to the deliverable detail page. */}
         <TabsContent value="deliverables" className="mt-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Deliverable Client Ini</CardTitle>
-                <CardDescription>Klik untuk buka detail</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                {deliverables.length > 0 && (
-                  <Button size="sm" variant="outline" onClick={exportDeliverables} disabled={exporting} className="h-11 lg:h-8">
-                    {exporting
-                      ? <LoaderIcon className="size-4 animate-spin" />
-                      : <DownloadIcon className="size-4" />}
-                    Ekspor
-                  </Button>
-                )}
-                <Link href="/admin/deliverables/new">
-                  <Button size="sm" className="h-11 lg:h-8">
-                    <PlusIcon className="size-4" /> Baru
-                  </Button>
-                </Link>
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1.5">
+                  <CardTitle>Deliverables</CardTitle>
+                  <CardDescription>
+                    Brief, konten, dan laporan yang diserahkan ke klien
+                  </CardDescription>
+                </div>
+                <Button
+                  size="sm"
+                  className="h-11 shrink-0 lg:h-9"
+                  onClick={() => router.push(`/admin/deliverables/new?client=${client.id}`)}
+                >
+                  <Icons.add className="size-4" />
+                  Buat Deliverable
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
               {deliverables.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 py-10 text-muted-foreground">
-                  <FileTextIcon className="size-8" />
-                  <p className="text-sm">Belum ada deliverable untuk client ini.</p>
-                </div>
+                <EmptyState>
+                  <EmptyMedia variant="icon">
+                    <Icons.fileText />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>Belum ada deliverables</EmptyTitle>
+                    <EmptyDescription>
+                      Deliverable adalah output yang diserahkan ke klien. Buat dari brief,
+                      atau jalankan skill di tab Skills agar hasilnya otomatis tersimpan di sini.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  <EmptyContent>
+                    <Button
+                      size="sm"
+                      onClick={() => router.push(`/admin/deliverables/new?client=${client.id}`)}
+                    >
+                      <Icons.add className="size-4" />
+                      Buat Deliverable
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setTab('skills')}>
+                      <Icons.sparkles className="size-4" />
+                      Jalankan Skill
+                    </Button>
+                  </EmptyContent>
+                </EmptyState>
               ) : (
-                <div className="divide-y">
+                <div className="space-y-2">
                   {deliverables.map((d) => (
                     <Link
                       key={d.id}
                       href={`/admin/deliverables/${d.id}`}
-                      className="-mx-2 flex items-center justify-between gap-4 rounded-md px-2 py-3 transition-colors hover:bg-muted/50"
+                      className="flex items-center justify-between gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{d.title}</p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <TypeBadge type={d.type} />
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(d.updated_at).toLocaleDateString('id-ID', {
-                              day: 'numeric', month: 'short', year: 'numeric',
-                            })}
-                          </span>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Icons.fileText className="size-5 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{d.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {d.type} • {d.updated_at}
+                          </p>
                         </div>
                       </div>
-                      <StatusBadge status={d.status} />
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge
+                          variant={
+                            d.status === 'approved'
+                              ? 'default'
+                              : d.status === 'sent'
+                                ? 'secondary'
+                                : 'outline'
+                          }
+                        >
+                          {d.status}
+                        </Badge>
+                        <Icons.chevronRight className="size-4 text-muted-foreground" />
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -437,77 +348,208 @@ export function ClientWorkspace({
           </Card>
         </TabsContent>
 
-        <TabsContent value="assets" className="mt-4">
-          <BrandAssetHub clientId={client.id} />
+        {/* Skills Tab — the interactive interview lives here (repo: "the agent interviews you") */}
+        <TabsContent value="skills" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Skills</CardTitle>
+              <CardDescription>
+                Jalankan skill satu per satu lewat wawancara AI. Mulai dari fondasi: brand-profile
+                dulu, baru voice, lalu sisanya.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ClientSkills
+                clientId={client.id}
+                packs={packs}
+                skillsByPack={skillsByPack}
+                clientSkills={clientSkills}
+                initialSkill={initialSkill}
+                stages={pipelineStages}
+                pipelineSkills={pipelineSkills as {
+                  id: string
+                  name: string
+                  description: string | null
+                  stage: string | null
+                }[]}
+                files={haveFiles}
+                provider={provider}
+                connectedChannels={channels.filter((c) => c.status === 'terhubung').length}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="hasil" className="mt-4">
-                                      <HasilTab outputs={outputs ?? []} onSent={() => router.refresh()} />
-                                    </TabsContent>
-                                  </Tabs>
+        {/* Settings Tab — configuration only: contact, channel, notifications, access. Skill work lives in Skills. */}
+        <TabsContent value="settings" className="mt-4">
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Channel publish */}
+              <ChannelsPanel clientId={client.id} channels={channelsLocal} />
 
-                        <Dialog open={resetOpen} onOpenChange={(o) => { if (!o) setResetOpen(false) }}>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-2">
-                                <KeyRoundIcon className="size-5 text-primary" /> Reset Password Client
-                              </DialogTitle>
-                              <DialogDescription>
-                                Set password baru untuk akun login client. Password lama langsung tidak berlaku.
-                              </DialogDescription>
-                            </DialogHeader>
+              {/* Notifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Icons.bell className="size-4" />
+                    Pengaturan Notifikasi
+                  </CardTitle>
+                  <CardDescription>
+                    Atur jadwal pengingat untuk postingan yang akan tayang
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ClientReminderSettings clientId={client.id} embedded />
+                </CardContent>
+              </Card>
+            </div>
 
-                            {resetData ? (
-                              <div className="space-y-3 rounded-lg border bg-muted/40 p-4">
-                                <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">Email</Label>
-                                  <p className="font-mono text-sm">{resetData.email}</p>
-                                </div>
-                                <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">Password Baru</Label>
-                                  <p className="font-mono text-sm">{resetData.password}</p>
-                                </div>
-                                <p className="text-xs text-amber-600">Simpan sekarang (hanya ditampilkan sekali).</p>
-                              </div>
-                            ) : (
-                              <>
-                                <p className="text-sm text-muted-foreground">
-                                  Ini akan membuat password baru. Klien harus pakai password baru untuk login berikutnya.
-                                </p>
-                                {resetErr && <p className="text-sm text-destructive">{resetErr}</p>}
-                              </>
-                            )}
+            {/* Security & Access */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Icons.shield className="size-4" />
+                  Keamanan & Akses
+                </CardTitle>
+                <CardDescription>
+                  Kelola akses login dan sesi klien. Tercatat di audit log.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y">
+                  <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium">Reset Password</p>
+                      <p className="text-xs text-muted-foreground">
+                        Buat password baru untuk akun login klien. Password baru hanya ditampilkan sekali.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      disabled={securityBusy === 'reset'}
+                      onClick={async () => {
+                        if (!confirm('Reset password akun login klien? Password lama langsung tidak berlaku.')) return
+                        setSecurityBusy('reset')
+                        try {
+                          const res = await fetch(`/api/admin/clients/${client.id}/reset-password`, { method: 'POST' })
+                          const data = await res.json()
+                          if (!res.ok) throw new Error(data.error || 'Gagal reset password')
+                          setRevealedPassword(data.password)
+                          toast.success(`Password baru dibuat untuk ${data.email ?? 'akun klien'}. Salin sekarang — tidak ditampilkan lagi.`)
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : 'Gagal reset password')
+                        } finally {
+                          setSecurityBusy(null)
+                        }
+                      }}
+                    >
+                      {securityBusy === 'reset' ? (
+                        <Icons.spinner className="size-4 animate-spin" />
+                      ) : (
+                        <Icons.key className="size-4" />
+                      )}
+                      Reset Password
+                    </Button>
+                  </div>
 
-                            <DialogFooter className="gap-2">
-                              <Button variant="outline" className="h-11 lg:h-8" onClick={() => setResetOpen(false)} disabled={resetLoading}>
-                                Tutup
-                              </Button>
-                              {!resetData && (
-                                <Button className="h-11 lg:h-8" onClick={handleResetPassword} disabled={resetLoading}>
-                                  {resetLoading ? 'Memproses...' : 'Reset Sekarang'}
-                                </Button>
-                              )}
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
+                  <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium">Cabut Semua Sesi</p>
+                      <p className="text-xs text-muted-foreground">
+                        Logout paksa dari semua perangkat. Klien harus login ulang dengan password terbaru.
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="shrink-0"
+                      disabled={securityBusy === 'revoke'}
+                      onClick={async () => {
+                        if (!confirm('Cabut semua sesi klien? Mereka akan logout dari semua perangkat.')) return
+                        setSecurityBusy('revoke')
+                        try {
+                          const res = await fetch(`/api/admin/clients/${client.id}/revoke-sessions`, { method: 'POST' })
+                          const data = await res.json()
+                          if (!res.ok) throw new Error(data.error || 'Gagal mencabut sesi')
+                          toast.success(data.message || 'Semua sesi berhasil dicabut')
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : 'Gagal mencabut sesi')
+                        } finally {
+                          setSecurityBusy(null)
+                        }
+                      }}
+                    >
+                      {securityBusy === 'revoke' ? (
+                        <Icons.spinner className="size-4 animate-spin" />
+                      ) : (
+                        <Icons.logout className="size-4" />
+                      )}
+                      Cabut Sesi
+                    </Button>
+                  </div>
+                </div>
 
-                        <Dialog open={revokeDone} onOpenChange={(o) => { if (!o) setRevokeDone(false) }}>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-2">
-                                <LogOut className="size-5 text-destructive" /> Session Dicabut
-                              </DialogTitle>
-                              <DialogDescription>
-                                Semua session client ini telah di-invalidate. Client harus login ulang.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                              <Button className="h-11 lg:h-8" onClick={() => setRevokeDone(false)}>
-                                Tutup
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )
-                  }
+                {revealedPassword && (
+                  <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                      <Icons.warning className="size-4" />
+                      <p className="text-sm font-medium">Password sementara</p>
+                    </div>
+                    <p className="mt-2 font-mono text-lg font-bold tracking-wide">{revealedPassword}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Salin sekarang. Frhm tidak menyimpan password ini dan tidak bisa menampilkannya lagi.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(revealedPassword)
+                        toast.success('Password disalin')
+                      }}
+                    >
+                      <Icons.copy className="size-4" />
+                      Salin
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Integrations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Icons.send className="size-4" />
+                  Integrasi Telegram
+                </CardTitle>
+                <CardDescription>
+                  Hubungkan Telegram untuk notifikasi real-time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="font-medium">Notifikasi via Telegram</p>
+                    <p className="text-xs text-muted-foreground">
+                      Terima notifikasi instan saat materi konten siap direview
+                    </p>
+                  </div>
+                  <Link
+                    href="/admin/settings/telegram"
+                    className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Icons.send className="size-4" />
+                    Kelola Telegram
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}

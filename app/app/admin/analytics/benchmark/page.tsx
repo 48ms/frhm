@@ -1,30 +1,36 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { BenchmarkBoard } from '@/components/analytics/benchmark-board'
-import { ChartLine } from '@/registry/icons/chart-line'
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { BenchmarkBoard } from "@/components/analytics/benchmark-board"
+import { PageContainer } from "@/components/layout/page-container"
+import { buttonVariants } from "@/components/ui/button"
+import { Icons } from "@/components/icons"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 export default async function BenchmarkPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  if (!user) redirect("/auth/login")
 
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/client/dashboard')
+  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single()
+  if (profile?.role !== "admin") redirect("/client/dashboard")
 
   return (
-    <div className="flex flex-col gap-6 p-1">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ChartLine className="size-6 text-primary" />
-          Benchmarking Antar Klien
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Bandingkan performa konten, engagement, dan konversi bisnis lintas brand klien.
-        </p>
-      </div>
+    <PageContainer
+      pageTitle="Benchmarking Antar Klien"
+      pageDescription="Bandingkan performa konten, engagement, dan konversi bisnis lintas brand klien"
+      pageHeaderAction={
+        <Link
+          href="/admin/analytics"
+          className={buttonVariants({ variant: "outline", size: "sm", className: "gap-2 text-xs" })}
+        >
+          <Icons.chevronLeft className="size-3.5" />
+          Kembali ke Analytics
+        </Link>
+      }
+    >
       <BenchmarkBoard />
-    </div>
+    </PageContainer>
   )
 }

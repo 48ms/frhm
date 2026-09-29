@@ -1,3 +1,11 @@
+# Frhm — Digital Marketing Platform
+
+> Product: **Frhm** (SaaS milik Bima Maulana Saputra)
+> Client brands: Taraju (Pak Adit), Pawon Sengon (Bunda)
+
+Lihat aturan lengkap di file root: [AGENTS.md](file:///c:/Users/bimam/Downloads/Tools%20Frahma/AGENTS.md).
+Semua pengembangan wajib mematuhi standar arsitektur `next-shadcn-dashboard-starter` dan kedaulatan 100% Supabase Auth + PostgreSQL RLS.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

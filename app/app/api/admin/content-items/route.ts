@@ -7,22 +7,22 @@ export const dynamic = 'force-dynamic'
  * Update a content_item by id (admin-only).
  *
  * PATCH /api/admin/content-items
- *   body: { id: string, status?: string, publish_date?: string }
+ *   body: { id: string, stage?: string, target_date?: string }
  */
 export async function PATCH(req: Request) {
   const ctx = await requireAdmin()
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const { id, status, publish_date } = await req.json()
+  const { id, stage, target_date } = await req.json()
 
   if (!id) {
     return NextResponse.json({ error: 'id wajib diisi' }, { status: 400 })
   }
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (status !== undefined) updates.status = status
-  if (publish_date !== undefined) updates.publish_date = new Date(publish_date).toISOString()
+  if (stage !== undefined) updates.stage = stage
+  if (target_date !== undefined) updates.target_date = new Date(target_date).toISOString()
 
   const { error } = await supabase.from('content_items').update(updates).eq('id', id)
 

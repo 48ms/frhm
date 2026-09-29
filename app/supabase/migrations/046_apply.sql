@@ -1,0 +1,1 @@
+ALTER TABLE public.kols ADD COLUMN IF NOT EXISTS platforms TEXT[] DEFAULT '{}'::text[], ADD COLUMN IF NOT EXISTS notes TEXT;

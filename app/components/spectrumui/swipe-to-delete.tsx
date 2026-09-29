@@ -10,7 +10,7 @@ import {
   useTransform,
 } from "motion/react";
 import type { PanInfo } from "motion/react";
-import { Trash2 } from 'lucide-react';
+import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 
 export interface SwipeToDeleteProps {
@@ -250,7 +250,7 @@ export function SwipeToDelete({
                     : ICON_REST_SPRING
               }
             >
-              <Trash2 size={18} aria-hidden="true" />
+              <Icons.trash size={18} aria-hidden="true" />
             </motion.span>
           </motion.span>
         </button>

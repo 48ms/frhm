@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { MessageSquare, Send } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface Comment {
   id: string
@@ -40,7 +40,7 @@ export function CommentSection({ comments, onAddComment }: CommentSectionProps) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 font-semibold text-lg">
-        <MessageSquare className="w-5 h-5 text-muted-foreground" />
+        <Icons.messageSquare className="w-5 h-5 text-muted-foreground" />
         <h2>Diskusi & Feedback ({comments.length})</h2>
       </div>
 
@@ -100,7 +100,7 @@ export function CommentSection({ comments, onAddComment }: CommentSectionProps) 
         />
         <div className="flex justify-end">
           <Button type="submit" disabled={submitting || !content.trim()} size="sm" className="h-11 w-full gap-2 lg:h-9 lg:w-auto">
-            <Send className="w-4 h-4" />
+            <Icons.send className="w-4 h-4" />
             {submitting ? 'Mengirim...' : 'Kirim Komentar'}
           </Button>
         </div>

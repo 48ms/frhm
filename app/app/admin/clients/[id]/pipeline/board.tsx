@@ -2,9 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  CheckCircle2Icon, CircleIcon, ClockIcon, LoaderIcon,
-} from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 type Stage = {
   key: string; label: string; description: string | null; sort_order: number
@@ -15,9 +13,9 @@ type Skill = {
 type Status = 'belum' | 'jalan' | 'selesai'
 
 const STATUS_META: Record<Status, { icon: React.ReactNode; label: string; color: string }> = {
-  belum:   { icon: <CircleIcon   className="size-4" />, label: 'Belum',    color: 'text-muted-foreground' },
-  jalan:   { icon: <ClockIcon    className="size-4" />, label: 'Dikerjakan', color: 'text-amber-600' },
-  selesai: { icon: <CheckCircle2Icon className="size-4" />, label: 'Selesai', color: 'text-green-600' },
+  belum:   { icon: <Icons.circle   className="size-4" />, label: 'Belum',    color: 'text-muted-foreground' },
+  jalan:   { icon: <Icons.clock    className="size-4" />, label: 'Dikerjakan', color: 'text-amber-600' },
+  selesai: { icon: <Icons.circleCheck className="size-4" />, label: 'Selesai', color: 'text-green-600' },
 }
 
 export function PipelineBoard({
@@ -55,7 +53,7 @@ export function PipelineBoard({
                 <div className="flex items-center gap-2">
                   {active > 0 && (
                     <Badge variant="outline" className="gap-1 text-amber-600">
-                      <LoaderIcon className="size-3" /> {active} aktif
+                      <Icons.spinner className="size-3" /> {active} aktif
                     </Badge>
                   )}
                   <Badge variant="outline" className="gap-1">

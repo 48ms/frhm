@@ -1,0 +1,794 @@
+/* Luminous Space â€” admin shell.
+   Palette lifted from app/auth/login/auth-stage.css; alphas dialled back so
+   dense tables and long lists stay legible. Everything is scoped to
+   .admin-theme, which the admin layout sets on its root wrapper. The client
+   portal never renders inside that wrapper, so it keeps its own theme. */
+
+/* ---------------------------------------------------------------- tokens -- */
+.admin-theme {
+  /* Lime chartreuse becomes the UI accent, exactly as on the login stage. */
+  --brand-accent: 73 100% 60%;
+  --brand-accent-foreground: 240 10% 10%;
+  --primary: var(--brand-accent);
+  --primary-foreground: var(--brand-accent-foreground);
+  --accent: var(--brand-accent);
+  --accent-foreground: var(--brand-accent-foreground);
+  --ring: var(--brand-accent);
+  --sidebar: 0 0% 100%;
+  --sidebar-accent: 73 100% 94%;
+  --sidebar-accent-foreground: 240 10% 10%;
+  /* Reference remapped radius (not Tailwind defaults) */
+  --admin-radius-card: 1rem;
+  --admin-radius-sm: 0.5rem;
+  --admin-radius-md: 1.5rem;
+  --admin-radius-lg: 2rem;
+  --admin-radius-xl: 3rem;
+  --admin-radius-full: 9999px;
+  /* Cobalt (secondary) and lavender (tertiary) from reference */
+  --admin-cobalt: 235 100% 63%;            /* #4353FF secondary-container */
+  --admin-cobalt-foreground: 0 0% 100%;
+  --admin-cobalt-fixed: 240 100% 94%;      /* #E0E0FF */
+  --admin-cobalt-fixed-foreground: 235 80% 52%;
+  --admin-lavender: 270 54% 49%;           /* #7D3AC0 tertiary */
+  --admin-lavender-foreground: 0 0% 100%;
+  --admin-lavender-fixed: 275 100% 93%;    /* #F0DBFF */
+  --admin-lavender-fixed-foreground: 273 70% 37%;
+  /* Material surface ramp + ink/outline, per DESIGN.md */
+  --admin-surface: 266 100% 99%;           /* #FBF8FF surface */
+  --admin-surface-lowest: 0 0% 100%;       /* #FFFFFF */
+  --admin-surface-low: 251 73% 97%;        /* #F4F2FD */
+  --admin-surface-base: 246 38% 95%;       /* #EEEDF7 */
+  --admin-surface-high: 246 26% 93%;       /* #E8E7F1 */
+  --admin-surface-highest: 251 22% 90%;    /* #E3E1EC */
+  --admin-on-surface: 233 13% 12%;         /* #1A1B22 */
+  --admin-outline: 70 11% 43%;             /* #757961 */
+  --admin-outline-variant: 69 21% 73%;     /* #C5C9AD */
+  /* Elevation L1 "glass" straight from DESIGN.md: translucent white plate,
+     heavy backdrop blur, near-white hairline, and a cobalt-tinted drop shadow. */
+  --admin-glass-bg: 0 0% 100% / 0.65;
+  --admin-glass-bg-strong: 0 0% 100% / 0.78;
+  --admin-glass-border: 0 0% 100% / 0.85;
+  --admin-glass-blur: 40px;
+  --admin-glass-shadow: 0 24px 60px -12px hsl(235 100% 63% / 0.12);
+  /* CTA hover glow, also from DESIGN.md. */
+  --admin-cta-glow: 0 10px 24px -4px hsl(73 100% 60% / 0.6);
+  --radius: var(--admin-radius-md);
+}
+
+.dark .admin-theme {
+  --brand-accent: 73 100% 66%;
+  --brand-accent-foreground: 240 10% 8%;
+  --sidebar: 240 10% 6%;
+  --sidebar-accent: 73 40% 14%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --admin-surface: 240 10% 9%;
+  --admin-surface-lowest: 240 10% 7%;
+  --admin-surface-low: 240 10% 10%;
+  --admin-surface-base: 240 9% 13%;
+  --admin-surface-high: 240 9% 16%;
+  --admin-surface-highest: 240 8% 19%;
+  --admin-on-surface: 250 20% 92%;
+  --admin-outline: 250 10% 62%;
+  --admin-outline-variant: 250 10% 28%;
+  --admin-glass-bg: 240 10% 9% / 0.72;
+  --admin-glass-bg-strong: 240 10% 9% / 0.82;
+  --admin-glass-border: 250 10% 28% / 0.5;
+  --admin-glass-shadow: 0 24px 60px -12px hsl(0 0% 0% / 0.5);
+}
+
+/* ------------------------------------------------------------- viewport -- */
+.admin-viewport {
+  position: relative;
+  min-height: 100svh;
+  overflow-x: hidden;
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(at 0% 0%, rgba(183, 117, 252, 0.16) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(67, 83, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(212, 255, 50, 0.14) 0px, transparent 60%),
+    radial-gradient(at 12% 88%, rgba(220, 184, 255, 0.18) 0px, transparent 50%),
+    radial-gradient(at 88% 78%, rgba(189, 194, 255, 0.16) 0px, transparent 50%);
+}
+
+.dark .admin-viewport {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(183, 117, 252, 0.22) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(67, 83, 255, 0.18) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(212, 255, 50, 0.18) 0px, transparent 60%),
+    radial-gradient(at 12% 88%, rgba(220, 184, 255, 0.2) 0px, transparent 50%),
+    radial-gradient(at 88% 78%, rgba(189, 194, 255, 0.18) 0px, transparent 50%);
+}
+
+/* Ambient diffuse glow orbs (decorative). */
+.admin-orb {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(110px);
+  z-index: 0;
+}
+.admin-orb-lavender {
+  top: 0;
+  left: 0;
+  width: 420px;
+  height: 420px;
+  transform: translate(-33%, -33%);
+  background: rgba(220, 184, 255, 0.5);
+}
+.admin-orb-lime {
+  right: 0;
+  bottom: 0;
+  width: 500px;
+  height: 500px;
+  transform: translate(25%, 25%);
+  background: rgba(212, 255, 50, 0.4);
+  filter: blur(130px);
+}
+.admin-orb-cobalt {
+  top: 25%;
+  right: 25%;
+  width: 380px;
+  height: 380px;
+  background: rgba(189, 194, 255, 0.4);
+  filter: blur(120px);
+}
+.dark .admin-orb-lavender { background: rgba(183, 117, 252, 0.28); }
+.dark .admin-orb-lime { background: rgba(212, 255, 50, 0.22); }
+.dark .admin-orb-cobalt { background: rgba(67, 83, 255, 0.25); }
+
+/* Everything above the orbs. */
+.admin-viewport > :not(.admin-orb) {
+  position: relative;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------- shell ---- */
+/* Inset stays transparent so the mesh shows through. */
+.admin-theme [data-slot="sidebar-inset"] {
+  background: transparent;
+}
+
+/* Sidebar becomes a single frosted glass panel. */
+.admin-theme [data-slot="sidebar-container"] {
+  border: 0 !important;
+}
+.admin-theme [data-slot="sidebar-container"] > div {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 8px 0 40px -12px rgba(67, 83, 255, 0.16);
+}
+.dark .admin-theme [data-slot="sidebar-container"] > div {
+  background: rgba(18, 19, 26, 0.78) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 8px 0 40px -12px rgba(0, 0, 0, 0.55);
+}
+
+/* Mobile sheet gets the same treatment. */
+.admin-theme [data-mobile="true"] {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+.dark .admin-theme [data-mobile="true"] {
+  background: rgba(18, 19, 26, 0.9) !important;
+}
+
+/* --------------------------------------------------------------- header --- */
+.admin-header {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+}
+.dark .admin-header {
+  background: rgba(18, 19, 26, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Wordmark: Syne, tight, with the lime dot from the login nav. */
+.admin-wordmark {
+  font-family: var(--font-syne);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.font-syne {
+  font-family: var(--font-syne);
+}
+.font-display {
+  font-family: var(--font-syne);
+}
+
+.admin-nav-link {
+  font-family: var(--font-syne);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+.admin-nav-link:hover {
+  color: hsl(var(--brand-accent));
+}
+
+/* Avatar pill with lime ring (reference line 447: ring-2 ring-primary-container). */
+.admin-avatar {
+  background: #d4ff32;
+  color: #5e7400;
+  box-shadow: 0 0 0 2px #d4ff32, 0 1px 2px rgba(26, 27, 34, 0.08);
+}
+
+/* ---------------------------------------------------------------- nav ----- */
+.admin-group-label {
+  font-family: var(--font-syne);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* Active item: solid lime capsule + ink text (reference code.html line 347). */
+.admin-theme .admin-nav-active[data-slot="sidebar-menu-button"],
+.admin-theme .admin-nav-active {
+  background: #d4ff32 !important;
+  color: #5e7400 !important;
+  font-weight: 600;
+  box-shadow: 0 6px 18px -8px rgba(212, 255, 50, 0.75);
+}
+.admin-theme .admin-nav-active svg,
+.admin-theme .admin-nav-active span {
+  color: #5e7400 !important;
+}
+
+.admin-nav-badge {
+  background: hsl(var(--brand-accent) / 0.18);
+  color: hsl(var(--brand-accent));
+}
+.dark .admin-nav-badge {
+  color: hsl(73 100% 72%);
+}
+
+/* ------------------------------------------------------------ surfaces ---- */
+.admin-card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.dark .admin-card {
+  background: rgba(18, 19, 26, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.admin-card-hover:hover {
+  border-color: rgba(212, 255, 50, 0.5);
+  box-shadow: 0 14px 40px -14px rgba(212, 255, 50, 0.32);
+  transform: translateY(-2px);
+}
+
+/* Fluted glass pane â€” the ribbed texture from the login showcase. */
+.admin-fluted {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.45) 0px,
+    rgba(255, 255, 255, 0.45) 12px,
+    rgba(255, 255, 255, 0.1) 13px,
+    rgba(255, 255, 255, 0.1) 24px
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.dark .admin-fluted {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.15) 0px,
+    rgba(255, 255, 255, 0.15) 12px,
+    rgba(255, 255, 255, 0.02) 13px,
+    rgba(255, 255, 255, 0.02) 24px
+  );
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Lime icon chip used on stat cards. */
+.admin-chip {
+  background: hsl(var(--brand-accent) / 0.16);
+  color: hsl(var(--brand-accent));
+  box-shadow: inset 0 0 0 1px hsl(var(--brand-accent) / 0.35);
+}
+.dark .admin-chip {
+  color: hsl(73 100% 72%);
+}
+
+/* Reference: bg-mesh-aurora (5 radial gradients) */
+.admin-mesh-aurora {
+  background-color: #fbf8ff;
+  background-image:
+    radial-gradient(circle at 10% 15%, rgba(183, 117, 252, 0.28) 0px, transparent 480px),
+    radial-gradient(circle at 85% 10%, rgba(67, 83, 255, 0.22) 0px, transparent 520px),
+    radial-gradient(circle at 50% 50%, rgba(212, 255, 50, 0.20) 0px, transparent 600px),
+    radial-gradient(circle at 90% 80%, rgba(183, 117, 252, 0.18) 0px, transparent 500px),
+    radial-gradient(circle at 20% 90%, rgba(67, 83, 255, 0.16) 0px, transparent 480px);
+}
+
+/* Reference: fluted-glass-overlay (ribbed texture) */
+.admin-fluted-overlay {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.22) 0px,
+    rgba(255, 255, 255, 0.22) 6px,
+    rgba(255, 255, 255, 0.05) 6px,
+    rgba(255, 255, 255, 0.05) 12px
+  );
+}
+
+/* ---------------------------------------------------------- pill & chip ---- */
+/* Lime CTA pill â€” the reference's primary action (Create Campaign, etc). */
+.admin-pill {
+  border-radius: 9999px;
+  font-family: var(--font-syne);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.admin-pill-lime {
+  background: #d4ff32;
+  color: #1a1b22;
+}
+.admin-pill-lime:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -4px rgba(212, 255, 50, 0.6);
+}
+.admin-pill-lime:active {
+  transform: scale(0.98);
+}
+.admin-pill-ghost {
+  background: rgba(255, 255, 255, 0.8);
+  color: #1a1b22;
+  border: 1px solid rgba(18, 19, 26, 0.08);
+}
+.admin-pill-ghost:hover {
+  background: #ffffff;
+}
+
+/* Status badge pills from the reference (SYNCED / Ready / Needs Approval). */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-family: var(--font-syne);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.admin-badge-lime {
+  background: #d4ff32;
+  color: #5e7400;
+}
+.admin-badge-cobalt {
+  background: #e0e0ff;
+  color: #2333e7;
+}
+.admin-badge-lavender {
+  background: #f0dbff;
+  color: #7d3ac0;
+}
+.admin-badge-surface {
+  background: #e3e1ec;
+  color: #444934;
+}
+
+/* Live status dot (animate-pulse in the reference). */
+.admin-dot-live {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: #526600;
+  animation: admin-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes admin-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Section eyebrow label (uppercase Syne, wide tracking). */
+.admin-section-label {
+  font-family: var(--font-syne);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #757961;
+}
+
+/* Display heading sizes from the reference type scale. */
+.admin-display-hero {
+  font-family: var(--font-syne);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+}
+.admin-headline-xl {
+  font-family: var(--font-syne);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+.admin-headline-lg {
+  font-family: var(--font-syne);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 1.5rem;
+}
+.admin-headline-md {
+  font-family: var(--font-syne);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+/* Recessed glass well (level 2 in DESIGN.md). */
+.admin-well {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+.dark .admin-well {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Primary glass frame (level 1 in DESIGN.md). */
+.admin-glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 24px 60px -12px rgba(67, 83, 255, 0.12);
+}
+.dark .admin-glass {
+  background: rgba(18, 19, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Reference's frosted glass card: rounded-2xl/3xl, surface-container-lowest/80 + blur. */
+.admin-card {
+  border-radius: var(--admin-radius-card, 1rem);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dark .admin-card {
+  background: rgba(18, 19, 26, 0.72);
+}
+.admin-card-lg {
+  border-radius: var(--admin-radius-lg, 2rem);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dark .admin-card-lg {
+  background: rgba(18, 19, 26, 0.72);
+}
+.admin-card-xl {
+  border-radius: var(--admin-radius-xl, 3rem);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dark .admin-card-xl {
+  background: rgba(18, 19, 26, 0.72);
+}
+
+/* ------------------------------------------------------------- headings --- */
+/* Display font for every heading inside the admin shell (PageContainer's h1
+   is shared with the client portal, so this is scoped rather than edited). */
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3 {
+  font-family: var(--font-syne);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.admin-theme ::selection {
+  background: hsl(var(--brand-accent) / 0.35);
+}
+
+/* Display numerals: Syne, tabular. */
+.admin-stat-value {
+  font-family: var(--font-syne);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ motion ----- */
+@keyframes admin-float {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(8px, -8px) scale(1.02); }
+}
+.admin-orb-cobalt {
+  animation: admin-float 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-orb-cobalt,
+  .admin-card-hover,
+  .admin-dot-live,
+  .admin-pill-lime,
+  .admin-pill-lime:hover,
+  .admin-pill-lime:active,
+  [style*="animation"] {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------- rollout (wave 4) ----- */
+/* The admin layout <main> owns page padding + max-width, so the reusable
+   PageContainer must not add its own inside the admin theme (it still does
+   for the client portal). */
+.admin-theme [data-slot="page-container"] {
+  padding: 0;
+}
+
+/* Reference page title uses the Syne display face. */
+.admin-theme [data-slot="page-container"] > div:first-child h1 {
+  font-family: var(--font-syne);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+/* Map shadcn Card onto the reference "frosted card" surface so every feature
+   component (CRM board, deliverables table, calendar, analytics, settings)
+   inherits the luminous look without per-file edits. */
+.admin-theme [data-slot="card"] {
+  border-radius: var(--admin-radius-card);
+  background: hsl(var(--admin-glass-bg));
+  border: 1px solid hsl(var(--admin-glass-border));
+  box-shadow: var(--admin-glass-shadow);
+  backdrop-filter: blur(var(--admin-glass-blur));
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}
+.dark .admin-theme [data-slot="card"],
+.admin-theme.dark [data-slot="card"] {
+  background: hsl(var(--admin-glass-bg));
+  border-color: hsl(var(--admin-glass-border));
+}
+.admin-theme [data-slot="card-footer"] {
+  background: hsl(var(--admin-surface-low) / 0.6);
+}
+
+/* Table surfaces inside admin use the same border language. */
+.admin-theme [data-slot="table-container"] {
+  border-radius: var(--admin-radius-card);
+  border: 1px solid hsl(var(--admin-outline-variant) / 0.3);
+  background: hsl(var(--admin-surface-lowest) / 0.7);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+/* DataTable already renders its own bordered shell, so neutralise the nested
+   table-container frame to avoid a double border, and let the shell carry the
+   frosted surface. */
+.admin-theme [data-slot="data-table-shell"] {
+  border-radius: var(--admin-radius-card);
+  border: 1px solid hsl(var(--admin-glass-border));
+  background: hsl(var(--admin-glass-bg-strong));
+  box-shadow: var(--admin-glass-shadow);
+  backdrop-filter: blur(var(--admin-glass-blur));
+}
+.dark .admin-theme [data-slot="data-table-shell"],
+.admin-theme.dark [data-slot="data-table-shell"] {
+  border-color: hsl(var(--admin-glass-border));
+  background: hsl(var(--admin-glass-bg-strong));
+}
+.admin-theme [data-slot="data-table-shell"] [data-slot="table-container"] {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+.admin-theme [data-slot="table-header"] {
+  background: hsl(var(--admin-surface-low) / 0.8);
+}
+.admin-theme [data-slot="table-header"] [data-slot="table-head"] {
+  font-family: var(--font-syne);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--admin-outline));
+}
+.admin-theme [data-slot="table-row"] {
+  border-color: hsl(var(--admin-outline-variant) / 0.25);
+}
+.admin-theme [data-slot="table-row"]:hover {
+  background: hsl(var(--admin-surface-low) / 0.5);
+}
+
+/* Generic panels: retheme the surface utilities that feature components use
+   (CRM board, kanban, calendar, budget ledger, automation board, ...). Scoped
+   to the admin theme so the client portal is untouched. The radius override is
+   limited to block containers so buttons, chips, and links keep their own
+   shape. */
+.admin-theme div.rounded-xl,
+.admin-theme section.rounded-xl,
+.admin-theme article.rounded-xl,
+.admin-theme div.rounded-2xl,
+.admin-theme section.rounded-2xl,
+.admin-theme article.rounded-2xl,
+.admin-theme div.rounded-3xl,
+.admin-theme section.rounded-3xl,
+.admin-theme article.rounded-3xl {
+  border-radius: var(--admin-radius-card);
+}
+
+.admin-theme .bg-muted\/20,
+.admin-theme .bg-muted\/30,
+.admin-theme .bg-muted\/40,
+.admin-theme .bg-muted\/60 {
+  background: hsl(var(--admin-glass-bg));
+  backdrop-filter: blur(20px);
+}
+
+.admin-theme .bg-white\/10,
+.admin-theme .bg-white\/20,
+.admin-theme .bg-white\/50,
+.admin-theme .bg-black\/5,
+.admin-theme .bg-neutral-50,
+.admin-theme .bg-neutral-100,
+.admin-theme .bg-neutral-900\/20 {
+  background: hsl(var(--admin-glass-bg));
+  backdrop-filter: blur(20px);
+}
+
+.admin-theme .bg-card,
+.admin-theme .bg-card\/60,
+.admin-theme .bg-card\/70,
+.admin-theme .bg-card\/80,
+.admin-theme .bg-card\/90,
+.admin-theme .bg-card\/95 {
+  background: hsl(var(--admin-glass-bg-strong));
+  backdrop-filter: blur(var(--admin-glass-blur));
+}
+
+.admin-theme .bg-background\/95 {
+  background: hsl(var(--admin-surface-lowest) / 0.95);
+}
+
+.admin-theme .border-border\/30,
+.admin-theme .border-border\/40,
+.admin-theme .border-border\/50,
+.admin-theme .border-border\/60,
+.admin-theme .border-border\/80 {
+  border-color: hsl(var(--admin-glass-border));
+}
+
+/* Neutral hairlines lean too gray for this design system; the shared outline
+   variant keeps borders luminous and readable on glass surfaces. */
+.admin-theme .border-neutral-100,
+.admin-theme .border-neutral-200,
+.admin-theme .border-neutral-200\/50,
+.admin-theme .border-neutral-300,
+.admin-theme .border-neutral-400,
+.admin-theme .border-neutral-500\/30 {
+  border-color: hsl(var(--admin-outline-variant) / 0.6);
+}
+
+
+.dark .admin-theme .bg-muted\/20,
+.dark .admin-theme .bg-muted\/30,
+.dark .admin-theme .bg-muted\/40,
+.dark .admin-theme .bg-muted\/60,
+.dark .admin-theme .bg-white\/10,
+.dark .admin-theme .bg-white\/20,
+.dark .admin-theme .bg-white\/50,
+.dark .admin-theme .bg-black\/5,
+.dark .admin-theme .bg-neutral-50,
+.dark .admin-theme .bg-neutral-100,
+.dark .admin-theme .bg-neutral-900\/20,
+.dark .admin-theme .bg-card,
+.dark .admin-theme .bg-card\/60,
+.dark .admin-theme .bg-card\/70,
+.dark .admin-theme .bg-card\/80,
+.dark .admin-theme .bg-card\/90,
+.dark .admin-theme .bg-card\/95,
+.admin-theme.dark .bg-muted\/20,
+.admin-theme.dark .bg-muted\/30,
+.admin-theme.dark .bg-muted\/40,
+.admin-theme.dark .bg-muted\/60,
+.admin-theme.dark .bg-white\/10,
+.admin-theme.dark .bg-white\/20,
+.admin-theme.dark .bg-white\/50,
+.admin-theme.dark .bg-black\/5,
+.admin-theme.dark .bg-neutral-50,
+.admin-theme.dark .bg-neutral-100,
+.admin-theme.dark .bg-neutral-900\/20,
+.admin-theme.dark .bg-card,
+.admin-theme.dark .bg-card\/60,
+.admin-theme.dark .bg-card\/70,
+.admin-theme.dark .bg-card\/80,
+.admin-theme.dark .bg-card\/90,
+.admin-theme.dark .bg-card\/95 {
+  background: hsl(var(--admin-glass-bg-strong));
+}
+
+.dark .admin-theme .border-border\/30,
+.dark .admin-theme .border-border\/40,
+.dark .admin-theme .border-border\/50,
+.dark .admin-theme .border-border\/60,
+.dark .admin-theme .border-border\/80,
+.admin-theme.dark .border-border\/30,
+.admin-theme.dark .border-border\/40,
+.admin-theme.dark .border-border\/50,
+.admin-theme.dark .border-border\/60,
+.admin-theme.dark .border-border\/80 {
+  border-color: hsl(var(--admin-glass-border));
+}
+
+.dark .admin-theme .bg-background\/95,
+.admin-theme.dark .bg-background\/95 {
+  background: hsl(var(--admin-surface-lowest) / 0.92);
+}
+
+.dark .admin-theme .border-neutral-100,
+.dark .admin-theme .border-neutral-200,
+.dark .admin-theme .border-neutral-200\/50,
+.dark .admin-theme .border-neutral-300,
+.dark .admin-theme .border-neutral-400,
+.dark .admin-theme .border-neutral-500\/30,
+.admin-theme.dark .border-neutral-100,
+.admin-theme.dark .border-neutral-200,
+.admin-theme.dark .border-neutral-200\/50,
+.admin-theme.dark .border-neutral-300,
+.admin-theme.dark .border-neutral-400,
+.admin-theme.dark .border-neutral-500\/30 {
+  border-color: hsl(var(--admin-outline-variant) / 0.35);
+}
+
+/* Stitch Dashboard Reference Tokens */
+:root {
+  --surface: #fbf8ff;
+  --secondary: #2333e7;
+  --secondary-container: #4353ff;
+  --primary: #485a00;
+  --primary-container: #d4ff32;
+  --surface-container-lowest: #ffffff;
+}
+
+.bg-mesh-aurora {
+  background-color: #fbf8ff;
+  background-image: 
+    radial-gradient(circle at 8% 12%, rgba(183, 117, 252, 0.22) 0px, transparent 480px),
+    radial-gradient(circle at 88% 8%, rgba(67, 83, 255, 0.18) 0px, transparent 520px),
+    radial-gradient(circle at 50% 50%, rgba(212, 255, 50, 0.16) 0px, transparent 600px),
+    radial-gradient(circle at 85% 85%, rgba(183, 117, 252, 0.15) 0px, transparent 500px);
+}
+.fluted-glass-overlay {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0px,
+    rgba(255, 255, 255, 0.25) 6px,
+    rgba(255, 255, 255, 0.05) 6px,
+    rgba(255, 255, 255, 0.05) 12px
+  );
+}

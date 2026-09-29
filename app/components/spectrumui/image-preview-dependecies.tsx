@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { Icons } from '@/components/icons';
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
@@ -42,7 +42,7 @@ export default function ImagePreview({
               onClick={() => setIsOpen(false)}
               className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/75 focus:outline-hidden"
             >
-              <X className="h-6 w-6" />
+              <Icons.close className="h-6 w-6" />
               <span className="sr-only">Close</span>
             </button>
             <div className="relative w-full h-full">

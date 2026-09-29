@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, MapPin, Loader2, Plus, CheckCircle2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { CreateEventModal } from './create-event-modal'
 import { EventChecklist } from './event-checklist'
 
@@ -60,7 +60,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        <Icons.spinner className="mr-2 h-5 w-5 animate-spin" />
         Memuat data event...
       </div>
     )
@@ -80,7 +80,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
               <div>
                 <CardTitle>{selectedEvent.name}</CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1">
-                  <Calendar className="h-3.5 w-3.5" />
+                  <Icons.calendar className="h-3.5 w-3.5" />
                   {new Date(selectedEvent.event_date).toLocaleDateString('id-ID', {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
                     hour: '2-digit', minute: '2-digit',
@@ -93,7 +93,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
             </div>
             {selectedEvent.location && (
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
+                <Icons.mapPin className="h-3.5 w-3.5" />
                 {selectedEvent.location}
               </div>
             )}
@@ -104,7 +104,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
             )}
 
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
+              <Icons.circleCheck className="h-4 w-4" />
               Checklist Event
             </h3>
             <EventChecklist eventId={selectedEvent.id} clientId={clientId} />
@@ -126,7 +126,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
         </div>
         <CreateEventModal clientId={clientId} onSuccess={fetchEvents}>
           <Button size="sm">
-            <Plus className="h-4 w-4 mr-1.5" />
+            <Icons.add className="h-4 w-4 mr-1.5" />
             Tambah Event
           </Button>
         </CreateEventModal>
@@ -135,7 +135,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
       {events.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Calendar className="h-10 w-10 text-muted-foreground mb-3" />
+            <Icons.calendar className="h-10 w-10 text-muted-foreground mb-3" />
             <p className="text-muted-foreground">Belum ada event untuk klien ini.</p>
             <p className="text-xs text-muted-foreground mt-1">Klik &quot;Tambah Event&quot; untuk membuat event baru.</p>
           </CardContent>
@@ -152,7 +152,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{event.name}</div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
+                    <Icons.calendar className="h-3.5 w-3.5 shrink-0" />
                     <span>
                       {new Date(event.event_date).toLocaleDateString('id-ID', {
                         weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
@@ -161,7 +161,7 @@ export function EventWorkspaceBoard({ clientId }: EventWorkspaceBoardProps) {
                     {event.location && (
                       <>
                         <span>·</span>
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <Icons.mapPin className="h-3.5 w-3.5 shrink-0" />
                         <span className="truncate">{event.location}</span>
                       </>
                     )}

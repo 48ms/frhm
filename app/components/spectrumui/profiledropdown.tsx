@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Check,
-  ChevronUp,
-  BarChart3,
-  Settings,
-  Grid3X3,
-  Crown,
-  DoorOpen,
-  Sun,
-  Moon,
-} from "lucide-react";
+import { Icons } from '@/components/icons';
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
@@ -30,17 +20,17 @@ export default function WalletProfile() {
   }
 
   const menuItems = [
-    { icon: <BarChart3 className="w-5 h-5" />, label: "Activity log" },
-    { icon: <Settings className="w-5 h-5" />, label: "Settings" },
-    { icon: <Grid3X3 className="w-5 h-5" />, label: "Integrations" },
+    { icon: <Icons.barChart className="w-5 h-5" />, label: "Activity log" },
+    { icon: <Icons.settings className="w-5 h-5" />, label: "Settings" },
+    { icon: <Icons.dashboard className="w-5 h-5" />, label: "Integrations" },
     {
-      icon: <Crown className="w-5 h-5" />,
+      icon: <Icons.pro className="w-5 h-5" />,
       label: "Upgrade to Pro",
       action: true,
       actionLabel: "Upgrade",
     },
     {
-      icon: <DoorOpen className="w-5 h-5" />,
+      icon: <Icons.logout className="w-5 h-5" />,
       label: "Sign out",
       danger: true,
     },
@@ -86,7 +76,7 @@ export default function WalletProfile() {
                   whileHover={{ scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  <Check className="w-3 h-3 text-white" />
+                  <Icons.check className="w-3 h-3 text-white" />
                 </motion.div>
               </div>
               <p className="text-neutral-500 dark:text-neutral-400 text-sm">
@@ -103,7 +93,7 @@ export default function WalletProfile() {
                 animate={{ rotate: isOpen ? 0 : 180 }}
                 transition={{ duration: 0.3 }}
               >
-                <ChevronUp className="w-5 h-5" />
+                <Icons.chevronUp className="w-5 h-5" />
               </motion.div>
             </motion.button>
           </div>
@@ -197,7 +187,7 @@ export default function WalletProfile() {
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
-                    <Sun
+                    <Icons.sun
                       className={`w-4 h-4 mr-2 ${
                         theme === "light"
                           ? "text-amber-500"
@@ -223,7 +213,7 @@ export default function WalletProfile() {
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
-                    <Moon
+                    <Icons.moon
                       className={`w-4 h-4 mr-2 ${
                         theme === "dark"
                           ? "text-indigo-300"

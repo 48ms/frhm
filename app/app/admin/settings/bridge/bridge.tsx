@@ -5,10 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  CircleCheckIcon, CircleAlertIcon, CircleDashedIcon, LoaderIcon,
-  RefreshCwIcon, TrashIcon, ExternalLinkIcon, KeyRoundIcon,
-} from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { motion } from "motion/react"
 
 type Account = {
@@ -88,7 +85,7 @@ export function BridgeConfig() {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-semibold text-neutral-900 dark:text-neutral-50 mb-1">
-              <KeyRoundIcon className="size-5 text-neutral-500" /> Bridge Publishing (WoopSocial)
+              <Icons.key className="size-5 text-neutral-500" /> Bridge Publishing (WoopSocial)
             </h2>
             <p className="text-sm text-neutral-500 max-w-2xl">
               Tahap Publish mengirim post lewat bridge ini. Repo{' '}
@@ -99,13 +96,13 @@ export function BridgeConfig() {
           {s && (
             <Badge variant="secondary" className="shrink-0 gap-1.5 h-7 px-3 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-800">
               {loading ? (
-                <LoaderIcon className="size-3.5 animate-spin text-neutral-500" />
+                <Icons.spinner className="size-3.5 animate-spin text-neutral-500" />
               ) : s.connected ? (
-                <CircleCheckIcon className="size-3.5 text-green-500" />
+                <Icons.circleCheck className="size-3.5 text-green-500" />
               ) : s.configured ? (
-                <CircleAlertIcon className="size-3.5 text-amber-500" />
+                <Icons.alertCircle className="size-3.5 text-amber-500" />
               ) : (
-                <CircleDashedIcon className="size-3.5 text-neutral-400" />
+                <Icons.circle className="size-3.5 text-neutral-400" />
               )}
               {loading ? 'memeriksa' : s.connected ? 'terhubung' : s.configured ? 'gagal' : 'belum diatur'}
             </Badge>
@@ -166,7 +163,7 @@ export function BridgeConfig() {
                   <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-50 mb-3">Daftar Akun:</h3>
                   {s.accounts.map((a) => (
                     <div key={a.id} className="flex items-center gap-3 rounded-xl border border-neutral-200/50 dark:border-neutral-800/50 bg-white/50 dark:bg-neutral-900/50 p-3 sm:p-4 text-sm shadow-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                      <CircleCheckIcon className="size-5 shrink-0 text-green-500" />
+                      <Icons.circleCheck className="size-5 shrink-0 text-green-500" />
                       <span className="font-medium text-neutral-900 dark:text-neutral-50">{a.platform}</span>
                       <code className="text-neutral-500 text-xs bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded">@{a.username}</code>
                       <span className="text-neutral-400 ml-auto text-xs hidden sm:inline-block">{a.status}</span>
@@ -198,11 +195,11 @@ export function BridgeConfig() {
               />
               <div className="flex gap-2">
                 <Button onClick={() => save(false)} disabled={saving || !key.trim()} className="h-11 rounded-xl bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 w-full sm:w-auto">
-                  {saving ? <LoaderIcon className="size-4 animate-spin mr-2" /> : null} Simpan
+                  {saving ? <Icons.spinner className="size-4 animate-spin mr-2" /> : null} Simpan
                 </Button>
                 {s?.configured && (
                   <Button variant="outline" onClick={() => save(true)} disabled={saving} className="h-11 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 border-red-200 dark:border-red-500/20 w-full sm:w-auto">
-                    <TrashIcon className="size-4 mr-2" /> Hapus
+                    <Icons.trash className="size-4 mr-2" /> Hapus
                   </Button>
                 )}
               </div>
@@ -215,7 +212,7 @@ export function BridgeConfig() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-0.5 text-primary hover:underline font-medium"
               >
-                app.woopsocial.com/api-access <ExternalLinkIcon className="size-3" />
+                app.woopsocial.com/api-access <Icons.externalLink className="size-3" />
               </a>
               . Akses API ada di paket berbayar.
             </p>
@@ -233,7 +230,7 @@ export function BridgeConfig() {
 
           <div className="flex gap-2 pt-4">
             <Button variant="outline" onClick={load} disabled={loading} className="h-11 rounded-xl">
-              <RefreshCwIcon className={`size-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Cek koneksi ulang
+              <Icons.refresh className={`size-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Cek koneksi ulang
             </Button>
           </div>
         </div>

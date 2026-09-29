@@ -2,14 +2,7 @@
 
 import * as React from "react";
 import { motion } from "motion/react";
-import {
-  BookOpen,
-  ChartNoAxesColumn,
-  CircleHelp,
-  CreditCard,
-  FileText,
-  MessagesSquare,
-} from "lucide-react";
+import { Icons } from '@/components/icons';
 
 import { cn } from "@/lib/utils";
 
@@ -26,15 +19,15 @@ export interface NavListCardProps {
 }
 
 export const PLANNING_NAV_ITEMS: NavListItem[] = [
-  { icon: <FileText />, label: "Documents" },
-  { icon: <CreditCard />, label: "Budget" },
-  { icon: <ChartNoAxesColumn />, label: "Reports" },
+  { icon: <Icons.post />, label: "Documents" },
+  { icon: <Icons.creditCard />, label: "Budget" },
+  { icon: <Icons.barChart />, label: "Reports" },
 ];
 
 export const SUPPORT_NAV_ITEMS: NavListItem[] = [
-  { icon: <CircleHelp />, label: "Help Center" },
-  { icon: <BookOpen />, label: "Docs" },
-  { icon: <MessagesSquare />, label: "Contact Us" },
+  { icon: <Icons.help />, label: "Help Center" },
+  { icon: <Icons.bookOpen />, label: "Docs" },
+  { icon: <Icons.chat />, label: "Contact Us" },
 ];
 
 export function NavListCard({

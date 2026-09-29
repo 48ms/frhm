@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { ChevronDownIcon, FolderIcon, InboxIcon, LoaderIcon, SendIcon, CheckIcon, CalendarIcon, ClapperboardIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 import { Markdown } from '@/components/markdown'
 import { PostDialog } from '@/components/calendar/post-dialog'
@@ -179,7 +179,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
       <CardContent className="pt-6">
         {outputs.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
-            <InboxIcon className="size-8" />
+            <Icons.inbox className="size-8" aria-hidden="true" />
             <p className="text-sm">Belum ada hasil skill. Jalankan skill lewat Pipeline, lalu simpan hasilnya.</p>
           </div>
         ) : (
@@ -191,12 +191,13 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
                   className="flex min-h-11 w-full items-center justify-between rounded-lg border bg-muted/30 px-3 py-2 text-left text-sm font-medium hover:bg-muted/50"
                 >
                   <span className="flex items-center gap-2">
-                    <FolderIcon className="size-4 text-muted-foreground" />
+                  <Icons.workspace className="size-4 text-muted-foreground" aria-hidden="true" />
                     {STAGE_LABEL[g.stage] ?? g.stage}
                     <Badge variant="secondary">{g.items.length}</Badge>
                   </span>
-                  <ChevronDownIcon
+                  <Icons.chevronDown
                     className={`size-4 transition-transform ${open[g.stage] ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
                   />
                 </button>
                 {open[g.stage] && (
@@ -228,18 +229,18 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
                           {!o.deliverable_id ? (
                             <>
                               <Button size="sm" variant="outline" className="h-11 lg:h-8" onClick={() => openSend(o)}>
-                                <SendIcon className="size-3.5" /> Kirim ke Client
+                                <Icons.send className="size-3.5" aria-hidden="true" /> Kirim ke Client
                               </Button>
                               <Button size="sm" variant="secondary" className="h-11 lg:h-8" onClick={() => openProduction(o)}>
-                                <ClapperboardIcon className="size-3.5" /> Production Board
+                                <Icons.clapperboard className="size-3.5" aria-hidden="true" /> Production Board
                               </Button>
                               <Button size="sm" variant="secondary" className="h-11 lg:h-8" onClick={() => openCalendar(o)}>
-                                <CalendarIcon className="size-3.5" /> Jadwalkan ke Kalender
+                                <Icons.calendar className="size-3.5" aria-hidden="true" /> Jadwalkan ke Kalender
                               </Button>
                             </>
                           ) : (
                             <Badge variant="secondary" className="gap-1">
-                              <CheckIcon className="size-3" /> Terkirim ke Deliverable
+                              <Icons.check className="size-3" aria-hidden="true" /> Terkirim ke Deliverable
                             </Badge>
                           )}
                         </div>
@@ -257,7 +258,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClapperboardIcon className="size-4" /> Kirim ke Production Board
+              <Icons.clapperboard className="size-4" aria-hidden="true" /> Kirim ke Production Board
             </DialogTitle>
             <DialogDescription>
               Buat task produksi baru dari hasil AI Skill ini di stage &quot;Ide&quot;.
@@ -271,7 +272,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
             <div className="space-y-2">
               <Label>Platform</Label>
               <Select value={prodPlatform} onValueChange={(v) => setProdPlatform(v || 'instagram')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Platform produksi"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="instagram">Instagram</SelectItem>
                   <SelectItem value="tiktok">TikTok</SelectItem>
@@ -286,7 +287,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
           <DialogFooter>
             <Button variant="outline" onClick={() => setProductionDraft(null)} disabled={prodSending}>Batal</Button>
             <Button onClick={confirmProduction} disabled={prodSending || !prodTitle}>
-              {prodSending ? <LoaderIcon className="size-4 animate-spin" /> : 'Kirim ke Board'}
+              {prodSending ? <Icons.spinner className="size-4 animate-spin" aria-hidden="true" /> : 'Kirim ke Board'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -298,7 +299,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <SendIcon className="size-4" /> Kirim ke Client
+              <Icons.send className="size-4" aria-hidden="true" /> Kirim ke Client
             </DialogTitle>
             <DialogDescription>
               Hasil ini akan menjadi deliverable: client akan melihat, menyetujui, atau minta revisi.
@@ -312,7 +313,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
             <div className="space-y-2">
               <Label>Tipe deliverable</Label>
               <Select value={sendType} onValueChange={(v) => setSendType(v as 'brief' | 'content' | 'report')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Tipe deliverable"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="brief">Brief, strategi & perencanaan</SelectItem>
                   <SelectItem value="content">Konten, materi siap tayang</SelectItem>
@@ -325,14 +326,14 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
             </div>
           </div>
           {sendMsg && (
-            <p className={`text-sm ${sendMsg.kind === 'err' ? 'text-destructive' : 'text-green-600'}`}>
+            <p className={`text-sm ${sendMsg.kind === 'err' ? 'text-destructive' : 'text-green-600'}`} role={sendMsg.kind === 'err' ? 'alert' : undefined}>
               {sendMsg.text}
             </p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDraft(null)} disabled={sending}>Batal</Button>
             <Button onClick={confirmSend} disabled={sending || !sendTitle.trim()}>
-              {sending ? <LoaderIcon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
+              {sending ? <Icons.spinner className="size-4 animate-spin" aria-hidden="true" /> : <Icons.send className="size-4" aria-hidden="true" />}
               {sending ? 'Mengirim…' : 'Kirim'}
             </Button>
           </DialogFooter>
@@ -346,7 +347,7 @@ export function HasilTab({ outputs, skillsByName, onSent }: {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CalendarIcon className="size-4" /> Jadwalkan ke Kalender
+              <Icons.calendar className="size-4" aria-hidden="true" /> Jadwalkan ke Kalender
             </DialogTitle>
             <DialogDescription>
               Pilih tanggal & platform untuk menjadwalkan output skill ini.

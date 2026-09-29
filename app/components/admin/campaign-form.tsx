@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 const campaignSchema = z.object({
   client_id: z.string().min(1, 'Klien wajib dipilih'),
@@ -161,7 +161,7 @@ export function CampaignForm() {
       <div className="flex justify-end gap-4">
         <Button variant="outline" type="button" onClick={() => router.back()} disabled={submitting}>Batal</Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : 'Simpan Kampanye'}
+          {submitting ? (<><Icons.spinner className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : 'Simpan Kampanye'}
         </Button>
       </div>
     </form>

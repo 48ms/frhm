@@ -3,7 +3,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js'
 
-export type { RealtimeChannel }
+export type { SupabaseClient, RealtimeChannel }
 
 /**
  * Browser Supabase client — module-level singleton.

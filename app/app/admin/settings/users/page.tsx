@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PlusIcon, UserCheckIcon, Loader2Icon, Edit2Icon, Trash2Icon, KeyRoundIcon, UsersIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 type User = {
@@ -131,19 +131,15 @@ export default function AdminUsersPage() {
 
   const roleBadge = (role: string) => (
     <Badge variant="outline" className="gap-1.5 h-6 px-2 text-xs">
-      {role === 'admin' ? <UserCheckIcon className="size-3" /> : <UsersIcon className="size-3" />}
+      {role === 'admin' ? <Icons.userCheck className="size-3" /> : <Icons.teams className="size-3" />}
       {role === 'admin' ? 'Admin' : 'Client'}
     </Badge>
   )
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Manajemen User</h1>
-          <p className="text-sm text-muted-foreground">Kelola akun admin & client</p>
-        </div>
-        <Button onClick={openCreate}><PlusIcon className="size-4" /> Tambah User</Button>
+      <div className="flex items-center justify-end">
+        <Button onClick={openCreate}><Icons.add className="size-4" /> Tambah User</Button>
       </div>
 
       {loading ? (
@@ -190,16 +186,16 @@ export default function AdminUsersPage() {
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" onClick={() => openEdit(u)} title="Edit" aria-label={`Edit user ${u.full_name || u.email}`}>
-                          <Edit2Icon className="size-4" />
+                          <Icons.edit className="size-4" />
                         </Button>
                         {
                           <Button variant="ghost" size="icon" onClick={() => handleDelete(u.id)} className="text-destructive" title="Hapus" aria-label={`Hapus user ${u.full_name || u.email}`}>
-                            <Trash2Icon className="size-4" />
+                            <Icons.trash className="size-4" />
                           </Button>
                         }
                         {u.role === 'client' && (
                           <Button variant="outline" size="sm" onClick={() => router.push(`/admin/clients/${u.client_id}?tab=reset`)} className="hidden sm:inline-flex h-11 rounded-xl">
-                            <KeyRoundIcon className="size-3.5" /> Reset Pass
+                            <Icons.keyRound className="size-3.5" /> Reset Pass
                           </Button>
                         )}
                       </div>
@@ -264,7 +260,7 @@ export default function AdminUsersPage() {
           <DialogFooter className="gap-2">
             <Button variant="outline" className="h-11 lg:h-8" onClick={() => setOpen(false)} disabled={saving}>Batal</Button>
             <Button className="h-11 lg:h-8" onClick={handleSubmit} disabled={saving}>
-              {saving ? <Loader2Icon className="size-4 animate-spin" /> : (editing ? 'Simpan Perubahan' : 'Buat User')}
+              {saving ? <Icons.spinner className="size-4 animate-spin" /> : (editing ? 'Simpan Perubahan' : 'Buat User')}
             </Button>
           </DialogFooter>
         </DialogContent>

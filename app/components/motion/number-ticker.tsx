@@ -54,7 +54,8 @@ export function NumberTicker({
   }, [startOnView, inView]);
 
   const text = useMemo(() => {
-    const rounded = Math.round(value);
+    const safeValue = Number.isFinite(value) ? value : 0;
+    const rounded = Math.round(safeValue);
     const formatted = format
       ? format(rounded)
       : locale

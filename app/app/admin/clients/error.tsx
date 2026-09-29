@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle } from 'lucide-react'
+import { Icons } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 
 export default function ErrorBoundary({
   error,
@@ -12,15 +13,12 @@ export default function ErrorBoundary({
   return (
     <div className="flex h-[60vh] items-center justify-center">
       <div className="flex max-w-md flex-col items-center gap-3 text-center">
-        <AlertTriangle className="h-8 w-8 text-destructive" />
+        <Icons.warning className="h-8 w-8 text-destructive" />
         <h2 className="text-lg font-semibold">Terjadi kesalahan</h2>
-        <p className="text-sm text-muted-foreground">{error.message || 'Gagal memuat halaman.'}</p>
-        <button
-          onClick={reset}
-          className="mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
+        <p className="text-sm text-muted-foreground">{error.message || 'Gagal memuat data klien.'}</p>
+        <Button onClick={reset} size="sm" className="mt-2">
           Coba lagi
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -9,16 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import {
-  UserIcon,
-  MailIcon,
-  Building2Icon,
-  KeyRoundIcon,
-  Trash2Icon,
-  BotIcon,
-  CheckCircle2Icon,
-  Loader2Icon,
-} from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 type ClientInfo = { id: string; name: string; telegram_notifications_enabled: boolean | null } | null
 
@@ -130,7 +121,7 @@ export default function SettingsClient({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <UserIcon className="size-4" /> Profil
+            <Icons.user className="size-4" /> Profil
           </CardTitle>
           <CardDescription>Informasi akun Anda</CardDescription>
         </CardHeader>
@@ -138,7 +129,7 @@ export default function SettingsClient({
           <div className="flex flex-col gap-2">
             <Label>Email</Label>
             <div className="flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-              <MailIcon className="size-4 shrink-0" />
+              <Icons.send className="size-4 shrink-0" />
               {initialProfile.email}
             </div>
           </div>
@@ -147,16 +138,16 @@ export default function SettingsClient({
             <div className="flex gap-2">
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" className="max-w-sm" />
               <Button onClick={handleNameUpdate} disabled={saving || isPending} size="sm">
-                {saving ? <Loader2Icon className="size-4 animate-spin" /> : nameSaved ? <CheckCircle2Icon className="size-4 text-green-600" /> : 'Simpan'}
+                {saving ? <Icons.spinner className="size-4 animate-spin" /> : nameSaved ? <Icons.circleCheck className="size-4 text-green-600" /> : 'Simpan'}
               </Button>
             </div>
-            {nameSaved && <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2Icon className="size-3" /> Tersimpan</p>}
+            {nameSaved && <p className="text-xs text-green-600 flex items-center gap-1"><Icons.circleCheck className="size-3" /> Tersimpan</p>}
           </div>
           {client && (
             <div className="flex flex-col gap-2">
               <Label>Client</Label>
               <div className="flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm">
-                <Building2Icon className="size-4 shrink-0" />
+                <Icons.building className="size-4 shrink-0" />
                 {client.name}
               </div>
             </div>
@@ -168,7 +159,7 @@ export default function SettingsClient({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <KeyRoundIcon className="size-4" /> Keamanan
+            <Icons.key className="size-4" /> Keamanan
           </CardTitle>
           <CardDescription>Ganti password akun Anda</CardDescription>
         </CardHeader>
@@ -183,7 +174,7 @@ export default function SettingsClient({
           </div>
           {pwError && <p className="text-sm text-destructive">{pwError}</p>}
           <Button onClick={handlePasswordChange} disabled={pwSaving} variant="outline" size="sm" className="self-start">
-            {pwSaving ? <Loader2Icon className="size-4 animate-spin" /> : 'Ubah Password'}
+            {pwSaving ? <Icons.spinner className="size-4 animate-spin" /> : 'Ubah Password'}
           </Button>
         </CardContent>
       </Card>
@@ -192,7 +183,7 @@ export default function SettingsClient({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BotIcon className="size-4" /> Notifikasi Telegram
+            <Icons.bot className="size-4" /> Notifikasi Telegram
           </CardTitle>
           <CardDescription>Terima notifikasi deliverable melalui Telegram</CardDescription>
         </CardHeader>
@@ -205,7 +196,7 @@ export default function SettingsClient({
               </Badge>
             </div>
             <Button onClick={handleTelegramToggle} disabled={telegramLoading || !client?.id} variant={telegramEnabled ? 'outline' : 'default'} size="sm">
-              {telegramLoading ? <Loader2Icon className="size-4 animate-spin" /> : telegramEnabled ? 'Matikan' : 'Nyalakan'}
+              {telegramLoading ? <Icons.spinner className="size-4 animate-spin" /> : telegramEnabled ? 'Matikan' : 'Nyalakan'}
             </Button>
           </div>
         </CardContent>
@@ -215,14 +206,14 @@ export default function SettingsClient({
       <Card className="border-destructive/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive">
-            <Trash2Icon className="size-4" /> Hapus Akun
+            <Icons.trash className="size-4" /> Hapus Akun
           </CardTitle>
           <CardDescription>Tindakan ini tidak dapat dibatalkan.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Input placeholder='Ketik "HAPUS AKUN" untuk konfirmasi' value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} className="max-w-xs text-sm" />
           <Button onClick={handleDelete} disabled={deleteConfirm !== 'HAPUS AKUN' || deleting} variant="destructive" size="sm" className="self-start">
-            {deleting ? <Loader2Icon className="size-4 animate-spin" /> : 'Hapus Akun'}
+            {deleting ? <Icons.spinner className="size-4 animate-spin" /> : 'Hapus Akun'}
           </Button>
         </CardContent>
       </Card>

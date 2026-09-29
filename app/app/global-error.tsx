@@ -2,7 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 export default function GlobalError({
   error,
@@ -20,7 +20,7 @@ export default function GlobalError({
       <body>
         <div className="flex h-[60vh] items-center justify-center">
           <div className="flex max-w-md flex-col items-center gap-3 text-center">
-            <AlertTriangle className="h-8 w-8 text-destructive" />
+            <Icons.warning className="h-8 w-8 text-destructive" />
             <h2 className="text-lg font-semibold">Terjadi kesalahan</h2>
             <p className="text-sm text-muted-foreground">
               {error.message || 'Gagal memuat aplikasi.'}

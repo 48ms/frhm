@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { SplitSquareHorizontal, Plus, Link as LinkIcon, Video, LayoutTemplate } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { ContentDraftForm } from '@/components/admin/content-draft-form'
 import { SlideOverSheet } from '@/components/ui/slide-over-sheet'
 import { motion, AnimatePresence } from "motion/react"
@@ -74,7 +74,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
           </div>
           {asset.raw_assets_url && (
             <Button variant="outline" size="sm" className="gap-2">
-              <LinkIcon className="h-4 w-4" />
+                            <Icons.externalLink className="h-4 w-4" />
               Drive Folder
             </Button>
           )}
@@ -83,7 +83,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <SplitSquareHorizontal className="h-5 w-5 text-primary" />
+              <Icons.kanban className="h-5 w-5 text-primary" />
               Child Posts (Distribusi)
             </h3>
             <Button 
@@ -91,7 +91,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
               disabled={isRepurposing || childPosts.length > 0}
               className="gap-2"
             >
-              <LayoutTemplate className="h-4 w-4" />
+              <Icons.dashboard className="h-4 w-4" />
               {isRepurposing ? 'Memecah Aset...' : 'Repurpose Asset'}
             </Button>
           </div>
@@ -107,7 +107,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
                   <div key={post.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="bg-primary/10 p-2 rounded-md">
-                        {post.platform === 'Instagram' ? <Video className="h-4 w-4 text-primary" /> : <SplitSquareHorizontal className="h-4 w-4 text-primary" />}
+                        {post.platform === 'Instagram' ? <Icons.video className="h-4 w-4 text-primary" /> : <Icons.kanban className="h-4 w-4 text-primary" />}
                       </div>
                       <div>
                         <p className="font-medium text-sm">{post.title}</p>
@@ -122,7 +122,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
                 ))}
                 
                 <Button variant="ghost" className="w-full mt-2 border border-dashed gap-2" onClick={() => setShowDraftSheet(true)}>
-                  <Plus className="h-4 w-4" />
+                  <Icons.add className="h-4 w-4" />
                   Tambah Child Post Manual
                 </Button>
               </motion.div>
@@ -147,7 +147,7 @@ export function HeroAssetCard({ asset }: HeroAssetProps) {
           <div className="flex gap-2 mt-2">
              {asset.raw_assets_url && (
               <a href={asset.raw_assets_url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
-                <LinkIcon className="h-3 w-3" /> Buka Raw Asset
+                <Icons.externalLink className="h-3 w-3" /> Buka Raw Asset
               </a>
              )}
           </div>

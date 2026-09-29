@@ -2,25 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'motion/react';
-import {
-  Bug,
-  CalendarClock,
-  ChartNoAxesColumn,
-  Clock,
-  Code2,
-  FileText,
-  Globe,
-  Handshake,
-  Headphones,
-  Kanban,
-  LineChart,
-  Mail,
-  Search,
-  Server,
-  ShieldCheck,
-  UserCheck,
-  Workflow,
-} from 'lucide-react';
+import { Icons } from '@/components/icons';
 
 import { cn } from '@/lib/utils';
 
@@ -44,101 +26,101 @@ export interface RecentActivityProps {
 
 const DEFAULT_ITEMS: ActivityItem[] = [
   {
-    icon: <Mail />,
+    icon: <Icons.mail />,
     title: 'Personalized Email',
     duration: '15s',
     description: 'Personalized Email sent to ••••• @gmail.com',
     timeAgo: '15H',
   },
   {
-    icon: <UserCheck />,
+    icon: <Icons.userCheck />,
     title: 'Peer Review',
     description: 'Reviewed and approved 2 outputs from Content Drafting Agent',
     timeAgo: '30H',
   },
   {
-    icon: <FileText />,
+    icon: <Icons.post />,
     title: 'Content Drafting',
     description: 'Generated draft campaign brief',
     timeAgo: '40M',
   },
   {
-    icon: <ShieldCheck />,
+    icon: <Icons.shield />,
     title: 'Admin Approval',
     description: 'Final approval of marketing copy before publishing',
     timeAgo: '20H',
   },
   {
-    icon: <ChartNoAxesColumn />,
+    icon: <Icons.barChart />,
     title: 'Weekly Campaign Report',
     duration: '2m',
     description: 'Generated campaign performance report',
     timeAgo: '18H',
   },
   {
-    icon: <Search />,
+    icon: <Icons.search />,
     title: 'SEO Audit',
     duration: '5m',
     description: 'Checked 50 web pages for SEO health and compliance',
     timeAgo: '12H',
   },
   {
-    icon: <LineChart />,
+    icon: <Icons.trendingUp />,
     title: 'Price Monitoring Agent',
     description: 'Checked competitor prices for top-selling products',
     timeAgo: '25H',
   },
   {
-    icon: <Globe />,
+    icon: <Icons.link />,
     title: 'Research',
     duration: '2m',
     description: 'Searched 25 webpages for industry trends',
     timeAgo: '25S',
   },
   {
-    icon: <CalendarClock />,
+    icon: <Icons.calendar />,
     title: 'Social Media Manager',
     duration: '25S',
     description: 'Scheduled posts for the next month',
     timeAgo: '10H',
   },
   {
-    icon: <Handshake />,
+    icon: <Icons.teams />,
     title: 'Sales Representative',
     duration: '25S',
     description: 'Closed 5 deals with new clients',
     timeAgo: '35H',
   },
   {
-    icon: <Headphones />,
+    icon: <Icons.phone />,
     title: 'Customer Support',
     duration: '25S',
     description: 'Resolved 100 support tickets',
     timeAgo: '20H',
   },
   {
-    icon: <Bug />,
+    icon: <Icons.alertCircle />,
     title: 'Quality Assurance',
     duration: '25S',
     description: 'Tested 20 features for bugs',
     timeAgo: '15H',
   },
   {
-    icon: <Code2 />,
+    icon: <Icons.code />,
     title: 'Frontend Developer',
     duration: '25S',
     description: 'Implemented 10 new UI components',
     timeAgo: '30H',
   },
   {
-    icon: <Server />,
+    icon: <Icons.layers />,
     title: 'Backend Developer',
     duration: '25S',
     description: 'Built 5 new API endpoints',
     timeAgo: '25H',
   },
   {
-    icon: <Kanban />,
+    icon: <Icons.kanban />,
     title: 'Project Manager',
     duration: '25S',
     description: 'Led the team through 3 project phases',
@@ -149,7 +131,7 @@ const DEFAULT_ITEMS: ActivityItem[] = [
 function TimeChip({ value }: { value: string }) {
   return (
     <span className="inline-flex h-5 shrink-0 items-center gap-[3px] rounded-md border border-border bg-white px-[5px] font-inter text-[10px] font-medium leading-none text-neutral-900/80 dark:bg-neutral-900 dark:text-neutral-100/80">
-      <Clock className="h-3 w-3 text-neutral-900/50 dark:text-neutral-100/50" />
+      <Icons.clock className="h-3 w-3 text-neutral-900/50 dark:text-neutral-100/50" />
       {value}
     </span>
   );
@@ -172,7 +154,7 @@ export function RecentActivity({
         {/* Header */}
         <div className="flex items-center gap-1.5 border-b border-neutral-200/80 px-[18px] py-[19px] dark:border-neutral-800">
           <span className="flex text-neutral-900/80 dark:text-neutral-100/80 [&_svg]:h-4 [&_svg]:w-4">
-            {titleIcon ?? <Workflow />}
+            {titleIcon ?? <Icons.workflow />}
           </span>
           <h3 className="text-[16px] font-semibold leading-none tracking-[-0.32px] text-neutral-900/80 dark:text-neutral-100/80">
             {title}

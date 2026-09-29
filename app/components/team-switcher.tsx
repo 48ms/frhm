@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { ChevronsUpDownIcon, PlusIcon } from "lucide-react"
+import { Icons } from '@/components/icons'
 
 export function TeamSwitcher({
   teams,
@@ -53,7 +53,7 @@ export function TeamSwitcher({
               <span className="truncate font-medium">{activeTeam.name}</span>
               <span className="truncate text-xs">{activeTeam.plan}</span>
             </div>
-            <ChevronsUpDownIcon className="ml-auto" />
+            <Icons.chevronsUpDown className="ml-auto" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-fit"
@@ -83,7 +83,7 @@ export function TeamSwitcher({
             <DropdownMenuGroup>
               <DropdownMenuItem className="gap-2 p-2">
                 <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                  <PlusIcon className="size-4" />
+                  <Icons.add className="size-4" />
                 </div>
                 <div className="font-medium text-muted-foreground">
                   Tambah tim

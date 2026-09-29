@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog'
-import { Star, MessageCircle, X } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface FeedbackDialogProps {
   clientId: string
@@ -73,7 +73,7 @@ export function FeedbackDialog({ clientId }: FeedbackDialogProps) {
                     form.rating === n ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/30 hover:border-muted-foreground'
                   }`}
                 >
-                  <Star className="size-5 fill-current" />
+                  <Icons.exclusive className="size-5 fill-current" />
                 </button>
               ))}
             </div>
@@ -103,7 +103,7 @@ export function FeedbackDialog({ clientId }: FeedbackDialogProps) {
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading} className="h-11 sm:h-9">
-              <X className="size-4 mr-2" /> Batal
+              <Icons.close className="size-4 mr-2" /> Batal
             </Button>
             <Button type="submit" disabled={loading} className="h-11 sm:h-9">
               {loading ? 'Mengirim...' : 'Kirim Feedback'}
@@ -114,7 +114,7 @@ export function FeedbackDialog({ clientId }: FeedbackDialogProps) {
       <DialogTrigger
         render={
           <Button variant="outline" size="sm" className="h-11 sm:h-9 shrink-0">
-            <MessageCircle className="size-4 mr-2" /> Kirim Feedback
+            <Icons.chat className="size-4 mr-2" /> Kirim Feedback
           </Button>
         }
       />

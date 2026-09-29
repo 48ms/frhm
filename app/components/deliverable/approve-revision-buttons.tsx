@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckIcon, RotateCcwIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface ApproveRevisionButtonsProps {
   deliverableId: string
@@ -69,7 +69,7 @@ export function ApproveRevisionButtons({
             </>
           ) : (
             <>
-              <CheckIcon className="size-5" />
+              <Icons.check className="size-5" />
               Disetujui
             </>
           )}
@@ -83,7 +83,7 @@ export function ApproveRevisionButtons({
         >
           {submitting || isLoading ? 'Memproses...' : (
             <>
-              <RotateCcwIcon className="size-5" />
+              <Icons.refresh className="size-5" />
               Minta Revisi
             </>
           )}

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   if (isResponse(ctx)) return ctx
   const { supabase } = ctx
 
-  const { action, client_id, id, name, niche, contact_info, rate_card } = await req.json()
+  const { action, client_id, id, name, niche, contact_info, rate_card, platforms, notes } = await req.json()
 
   if (!action) {
     return NextResponse.json({ error: 'action wajib diisi' }, { status: 400 })
@@ -58,6 +58,8 @@ export async function POST(req: Request) {
     niche: niche || null,
     contact_info: contact_info || null,
     rate_card: rate_card ? Number(rate_card) : 0,
+    platforms: platforms || [],
+    notes: notes || null,
   }
 
   if (action === 'update' && id) {

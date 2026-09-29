@@ -1,35 +1,53 @@
+import Link from "next/link"
+import type { ComponentProps } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { KanbanBoard } from "@/components/admin/kanban-board"
+import { PageContainer } from "@/components/layout/page-container"
+import { Button } from "@/components/ui/button"
+import { Icons } from "@/components/icons"
+import type { DeliverableWithClient } from "@/features/deliverables/api/types"
 
 export const dynamic = "force-dynamic"
 
 export default async function GlobalPipelinePage() {
   const supabase = await createClient()
 
-  // 1. Ambil daftar klien untuk filter
+  // 1. Ambil daftar klien riil untuk filter
   const { data: clients } = await supabase
     .from("clients")
     .select("id, name")
+    .not("name", "ilike", "Test%")
+    .not("name", "ilike", "probe%")
     .order("name")
 
-  // 2. Ambil semua deliverable lintas klien
+  const realClientIds = (clients ?? []).map((c) => c.id)
+
+  // 2. Ambil deliverable milik klien riil
   const { data: deliverables } = await supabase
     .from("deliverables")
     .select("id, title, status, type, client_id, updated_at, clients(name)")
+    .in("client_id", realClientIds.length > 0 ? realClientIds : ["00000000-0000-0000-0000-000000000000"])
     .order("updated_at", { ascending: false })
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="flex-none p-6 pb-2">
-        <h1 className="text-2xl font-bold tracking-tight">Global Pipeline</h1>
-        <p className="text-sm text-muted-foreground">Pantau seluruh deliverable lintas klien secara real-time</p>
-      </div>
-      <div className="flex-1 p-6 pt-0 overflow-hidden">
+    <PageContainer
+      pageTitle="Global Pipeline"
+      pageDescription="Pantau seluruh deliverable lintas klien dalam papan kanban real-time"
+      pageHeaderAction={
+        <Link href="/admin/deliverables/new">
+          <Button size="sm" className="h-9 px-4 text-xs font-semibold shadow-xs">
+            <Icons.add className="size-4 mr-1.5" />
+            Deliverable Baru
+          </Button>
+        </Link>
+      }
+    >
+      <div className="flex-1 overflow-hidden">
         <KanbanBoard 
-          initialDeliverables={(deliverables as any) ?? []} 
+          initialDeliverables={(deliverables as unknown as ComponentProps<typeof KanbanBoard>["initialDeliverables"]) ?? []} 
           clients={clients ?? []} 
         />
       </div>
-    </div>
+    </PageContainer>
   )
 }

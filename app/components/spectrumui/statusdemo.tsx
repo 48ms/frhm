@@ -1,54 +1,47 @@
-import {
-  CircleCheck,
-  CircleDashed,
-  CircleX,
-  Clock5,
-  ScanSearch,
-  Send,
-  TriangleAlert,
-} from "lucide-react";
+import { Icons } from '@/components/icons';
+import type { Icon } from '@/components/icons';
 
-const statuses = [
+const statuses: Array<{ label: string; icon: Icon; className: string; spin?: boolean }> = [
   {
     label: "Pending",
-    icon: TriangleAlert,
+    icon: Icons.warning,
     className:
       "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/25",
   },
   {
     label: "Failed",
-    icon: CircleX,
+    icon: Icons.circleX,
     className:
       "bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-400/10 dark:text-rose-300 dark:ring-rose-300/25",
   },
   {
     label: "Success",
-    icon: CircleCheck,
+    icon: Icons.circleCheck,
     className:
       "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-300/25",
   },
   {
     label: "In progress",
-    icon: CircleDashed,
+    icon: Icons.circleDashed,
     className:
       "bg-sky-50 text-sky-700 ring-sky-600/20 dark:bg-sky-400/10 dark:text-sky-300 dark:ring-sky-300/25",
     spin: true,
   },
   {
     label: "In review",
-    icon: ScanSearch,
+    icon: Icons.search,
     className:
       "bg-violet-50 text-violet-700 ring-violet-600/20 dark:bg-violet-400/10 dark:text-violet-300 dark:ring-violet-300/25",
   },
   {
     label: "Submitted",
-    icon: Send,
+    icon: Icons.send,
     className:
       "bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-400/10 dark:text-indigo-300 dark:ring-indigo-300/25",
   },
   {
     label: "Expired",
-    icon: Clock5,
+    icon: Icons.clock,
     className:
       "bg-neutral-100 text-neutral-600 ring-neutral-500/20 dark:bg-neutral-400/10 dark:text-neutral-300 dark:ring-neutral-300/20",
   },

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { motion } from "motion/react"
@@ -12,20 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Flame,
-  RefreshCw,
-  Loader2,
-  TrendingUp,
-  Sparkles,
-  CheckCircle2,
-  ShieldAlert,
-  ArrowRight,
-  ExternalLink,
-} from 'lucide-react'
+import { Icons } from '@/components/icons'
 import Link from 'next/link'
 import type { TrendRadarItem } from '@/lib/trends/radar'
 import { toast } from 'sonner'
+import { trendRadarQueryOptions } from '@/features/trends/api/queries'
+import type { TrendRadarFilter } from '@/features/trends/api/types'
 
 interface TrendRadarBoardProps {
   clientId: string
@@ -44,9 +37,7 @@ interface EvaluationData {
 }
 
 export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: TrendRadarBoardProps) {
-  const [trends, setTrends] = useState<TrendRadarItem[]>([])
-  const [filter, setFilter] = useState<'all' | 'fnb'>('all')
-  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<TrendRadarFilter>('all')
   const [generatingTopic, setGeneratingTopic] = useState<string | null>(null)
   const [resultDialog, setResultDialog] = useState<{
     open: boolean
@@ -60,24 +51,9 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
     passed: false,
   })
 
-  const fetchTrends = useCallback(async (category: 'all' | 'fnb') => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/trends/radar?filter=${category}`)
-      const data = await res.json()
-      if (Array.isArray(data.trends)) {
-        setTrends(data.trends)
-      }
-    } catch (err) {
-      console.error('[TrendRadar] Gagal memuat tren:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchTrends(filter)
-  }, [fetchTrends, filter])
+  const { data: trends = [], isLoading: loading, refetch, isFetching } = useQuery(
+    trendRadarQueryOptions(filter)
+  )
 
   async function handleGenerate(item: TrendRadarItem) {
     setGeneratingTopic(item.title)
@@ -132,7 +108,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Flame className="size-5 text-orange-500" />
+            <Icons.flame className="size-5 text-orange-500" />
             <h3 className="text-base font-semibold text-foreground">Radar Tren Harian Indonesia</h3>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -169,12 +145,12 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchTrends(filter)}
-            disabled={loading}
+            onClick={() => refetch()}
+            disabled={isFetching}
             className="h-11 sm:h-8 px-2.5 shrink-0"
             title="Muat Ulang Radar Tren"
           >
-            <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <Icons.refresh className={`size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline ml-1.5 text-xs">Segarkan</span>
           </Button>
         </div>
@@ -183,7 +159,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
       {/* Grid Kartu Tren */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <Loader2 className="size-8 animate-spin text-orange-500 mb-2" />
+          <Icons.spinner className="size-8 animate-spin text-orange-500 mb-2" />
           <p className="text-xs">Memindai tren pencarian Indonesia...</p>
         </div>
       ) : trends.length === 0 ? (
@@ -225,7 +201,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
 
                       {item.traffic && (
                         <span className="flex items-center gap-1 text-[11px] font-semibold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">
-                          <TrendingUp className="size-3" />
+                          <Icons.trendingUp className="size-3" />
                           {item.traffic}
                         </span>
                       )}
@@ -250,7 +226,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          Sumber <ExternalLink className="size-3" />
+                          Sumber <Icons.externalLink className="size-3" />
                         </a>
                       ) : (
                         <span className="text-[11px] text-muted-foreground">Google Trends ID</span>
@@ -264,12 +240,12 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
                       >
                         {isProcessing ? (
                           <>
-                            <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                            <Icons.spinner className="mr-1.5 size-3.5 animate-spin" />
                             Memproses...
                           </>
                         ) : (
                           <>
-                            <Sparkles className="mr-1.5 size-3.5" />
+                            <Icons.sparkles className="mr-1.5 size-3.5" />
                             Jadikan Konten
                           </>
                         )}
@@ -293,11 +269,11 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
             <div className="flex items-center gap-2 mb-1">
               {resultDialog.passed ? (
                 <div className="flex size-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-                  <CheckCircle2 className="size-5" />
+                  <Icons.circleCheck className="size-5" />
                 </div>
               ) : (
                 <div className="flex size-9 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
-                  <ShieldAlert className="size-5" />
+                  <Icons.shield className="size-5" />
                 </div>
               )}
               <div>
@@ -354,7 +330,7 @@ export function TrendRadarBoard({ clientId, clientName, onContentGenerated }: Tr
                     className="inline-flex h-11 sm:h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     Buka Deliverable & 3 Variasi Hook
-                    <ArrowRight className="size-4" />
+                    <Icons.arrowRight className="size-4" />
                   </Link>
                 </div>
               )}

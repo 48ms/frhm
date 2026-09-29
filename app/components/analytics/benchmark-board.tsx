@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, TrendingUp, Award } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import type { ClientBenchmark } from '@/lib/analytics/benchmark-types'
 
 export function BenchmarkBoard() {
@@ -30,7 +30,7 @@ export function BenchmarkBoard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <Icons.spinner className="size-6 animate-spin text-muted-foreground" />
         <span className="ml-2 text-sm text-muted-foreground">Memuat data benchmarking...</span>
       </div>
     )
@@ -68,7 +68,7 @@ export function BenchmarkBoard() {
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="p-5 flex items-start gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/15">
-              <Award className="size-5 text-emerald-600" />
+              <Icons.badgeCheck className="size-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Reach Tertinggi</p>
@@ -83,7 +83,7 @@ export function BenchmarkBoard() {
         <Card className="border-indigo-500/30 bg-indigo-500/5">
           <CardContent className="p-5 flex items-start gap-3">
             <div className="p-2 rounded-lg bg-indigo-500/15">
-              <TrendingUp className="size-5 text-indigo-600" />
+              <Icons.trendingUp className="size-5 text-indigo-600" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Konversi Terbaik</p>
@@ -100,7 +100,7 @@ export function BenchmarkBoard() {
       <Card className="border-border shadow-xs overflow-hidden">
         <CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="size-4 text-primary" />
+            <Icons.trendingUp className="size-4 text-primary" />
             Perbandingan Performa Antar Klien
           </CardTitle>
           <CardDescription className="text-xs">

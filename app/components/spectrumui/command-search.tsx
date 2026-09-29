@@ -2,14 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useInView } from "motion/react";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  CornerDownLeft,
-  Search,
-  SearchX,
-} from "lucide-react";
+import { Icons } from '@/components/icons';
 
 import { cn } from "@/lib/utils";
 
@@ -233,7 +226,7 @@ export function CommandSearch({
     >
       {/* Search field */}
       <div className="flex h-9 shrink-0 items-center gap-3 rounded-lg border border-border bg-neutral-200/50 px-3 dark:bg-neutral-800/50">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <Icons.search className="h-4 w-4 shrink-0 text-muted-foreground" />
         <div className="flex min-w-0 flex-1 items-center font-inter text-base text-[#020202] dark:text-neutral-50">
           <span className="whitespace-pre">{displayQuery}</span>
           <Caret />
@@ -293,7 +286,7 @@ export function CommandSearch({
                       transition={ROW_SPRING}
                       className="shrink-0 text-muted-foreground [&_svg]:h-4 [&_svg]:w-4"
                     >
-                      {item.icon ?? <ArrowRight />}
+                      {item.icon ?? <Icons.arrowRight />}
                     </motion.span>
                     <span
                       className={cn(
@@ -321,7 +314,7 @@ export function CommandSearch({
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="flex flex-col items-center gap-2 pt-10 text-center"
               >
-                <SearchX className="h-5 w-5 text-muted-foreground/60" />
+                <Icons.search className="h-5 w-5 text-muted-foreground/60" />
                 <p className="text-sm text-muted-foreground">
                   No results for&nbsp;
                   <span className="font-medium text-foreground">
@@ -336,16 +329,16 @@ export function CommandSearch({
       {/* Footer hints */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex h-11 items-center gap-2 rounded-b-[14px] border-t border-border bg-neutral-50 px-4 dark:bg-neutral-900/60">
         <kbd className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-border bg-white dark:bg-neutral-900">
-          <ArrowUp className="h-3 w-3 text-muted-foreground" />
+          <Icons.chevronUp className="h-3 w-3 text-muted-foreground" />
         </kbd>
         <kbd className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-border bg-white dark:bg-neutral-900">
-          <ArrowDown className="h-3 w-3 text-muted-foreground" />
+          <Icons.chevronDown className="h-3 w-3 text-muted-foreground" />
         </kbd>
         <span className="font-inter text-xs font-medium text-[#71717a] dark:text-neutral-400">
           Navigate
         </span>
         <kbd className="ml-2 flex h-[22px] w-[22px] items-center justify-center rounded-md border border-border bg-white dark:bg-neutral-900">
-          <CornerDownLeft className="h-3 w-3 text-muted-foreground" />
+          <Icons.arrowLeft className="h-3 w-3 text-muted-foreground" />
         </kbd>
         <span className="font-inter text-xs font-medium text-[#71717a] dark:text-neutral-400">
           Select

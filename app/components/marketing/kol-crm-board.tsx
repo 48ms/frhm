@@ -1,20 +1,36 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQueryState, parseAsString } from 'nuqs'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PlusIcon, SearchIcon, EditIcon, Trash2Icon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { KolFormModal, KOL } from './kol-form-modal'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 export function KolCrmBoard() {
   const [kols, setKols] = useState<KOL[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [clientId, setClientId] = useState<string>('')
+  const [search, setSearch] = useQueryState(
+    'q',
+    parseAsString.withDefault('').withOptions({ shallow: true })
+  )
+  const [clientId, setClientId] = useQueryState(
+    'client',
+    parseAsString.withDefault('').withOptions({ shallow: true })
+  )
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -74,10 +90,14 @@ export function KolCrmBoard() {
     }
   }
 
-  const filteredKols = kols.filter((k) => 
-    k.name.toLowerCase().includes(search.toLowerCase()) || 
-    (k.niche && k.niche.toLowerCase().includes(search.toLowerCase()))
-  )
+  const filteredKols = kols.filter((k) => {
+    const q = search.toLowerCase()
+    return (
+      k.name.toLowerCase().includes(q) ||
+      (k.niche?.toLowerCase().includes(q) ?? false) ||
+      (k.platforms?.some((p) => p.toLowerCase().includes(q)) ?? false)
+    )
+  })
 
   return (
     <div className="space-y-6">
@@ -104,7 +124,7 @@ export function KolCrmBoard() {
             </select>
           </div>
           <div className="relative w-full sm:w-64">
-            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Icons.search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Cari nama atau niche..."
@@ -114,7 +134,7 @@ export function KolCrmBoard() {
             />
           </div>
           <Button size="sm" onClick={handleOpenNew} disabled={!clientId} className="h-9 whitespace-nowrap">
-            <PlusIcon className="size-4 mr-2" /> Tambah KOL
+            <Icons.add className="size-4 mr-2" /> Tambah KOL
           </Button>
         </div>
       </div>
@@ -135,41 +155,60 @@ export function KolCrmBoard() {
                 {search ? 'Tidak ada KOL yang cocok dengan pencarian.' : 'Belum ada data KOL. Silakan tambah baru.'}
               </div>
             ) : (
-              <div className="relative w-full overflow-auto">
-                <table className="w-full caption-bottom text-sm">
-                  <thead className="[&_tr]:border-b">
-                    <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nama / Username</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Niche</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Kontak</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Rate Card</th>
-                      <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="[&_tr:last-child]:border-0">
-                    {filteredKols.map((kol) => (
-                      <tr key={kol.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                        <td className="p-4 align-middle font-medium">{kol.name}</td>
-                        <td className="p-4 align-middle">{kol.niche || '-'}</td>
-                        <td className="p-4 align-middle">{kol.contact_info || '-'}</td>
-                        <td className="p-4 align-middle">
-                          {kol.rate_card ? `IDR ${kol.rate_card.toLocaleString('id-ID')}` : '-'}
-                        </td>
-                        <td className="p-4 align-middle text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(kol)} className="h-8 w-8 text-muted-foreground hover:text-primary">
-                            <EditIcon className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(kol.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                            <Trash2Icon className="h-4 w-4" />
-                            <span className="sr-only">Hapus</span>
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama / Username</TableHead>
+                    <TableHead>Niche</TableHead>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>Kontak</TableHead>
+                    <TableHead>Rate Card</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredKols.map((kol) => (
+                    <TableRow key={kol.id}>
+                      <TableCell className="font-medium">
+                        <Link href={`/admin/crm/${kol.id}`} className="hover:text-primary hover:underline">
+                          {kol.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{kol.niche || '-'}</TableCell>
+                      <TableCell>
+                        {kol.platforms && kol.platforms.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {kol.platforms.map((p) => (
+                              <span
+                                key={p}
+                                className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium capitalize text-muted-foreground"
+                              >
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell>{kol.contact_info || '-'}</TableCell>
+                      <TableCell>
+                        {kol.rate_card ? `IDR ${kol.rate_card.toLocaleString('id-ID')}` : '-'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(kol)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                          <Icons.edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(kol.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Icons.trash className="h-4 w-4" />
+                          <span className="sr-only">Hapus</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

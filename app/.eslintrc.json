@@ -1,13 +1,22 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
-  "ignorePatterns": ["scripts/**", "e2e/**"],
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "ignorePatterns": [
+    "scripts/**",
+    "e2e/**",
+    "apply_migration.js"
+  ],
   "rules": {
     "no-restricted-imports": [
       "error",
       {
         "patterns": [
           {
-            "group": ["@supabase/supabase-js"],
+            "group": [
+              "@supabase/supabase-js"
+            ],
             "message": "Use lib/supabase/server.ts or lib/supabase/client.ts instead of direct import"
           }
         ],
@@ -26,7 +35,10 @@
   },
   "overrides": [
     {
-      "files": ["lib/supabase/service.ts", "lib/supabase/client.ts"],
+      "files": [
+        "lib/supabase/service.ts",
+        "lib/supabase/client.ts"
+      ],
       "rules": {
         "no-restricted-imports": "off"
       }

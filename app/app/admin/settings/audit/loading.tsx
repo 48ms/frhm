@@ -1,10 +1,10 @@
-import { Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 export default function Loading() {
   return (
     <div className="flex h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
         <p className="text-sm text-muted-foreground">Memuat aktivitas…</p>
       </div>
     </div>

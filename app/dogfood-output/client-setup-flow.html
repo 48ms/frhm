@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Setup Flow</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px 12px 24px;
+      color: var(--foreground);
+      font: 14px/1.45 ui-sans-serif, system-ui, sans-serif;
+    }
+    h1 { font-size: 18px; font-weight: 650; margin: 0 0 6px; }
+    .lede { color: var(--muted-foreground); margin: 0 0 18px; max-width: 62ch; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--foreground);
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-height: 44px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .n {
+      width: 22px; height: 22px; border-radius: 999px;
+      background: var(--accent); color: var(--foreground);
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 700; flex: none;
+    }
+    h2 { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); margin: 22px 0 8px; font-weight: 650; }
+    .grid { display: grid; gap: 8px; }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .card strong { display: block; margin-bottom: 4px; }
+    .muted { color: var(--muted-foreground); }
+    .ok { color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted-foreground); font-weight: 600; }
+    .split { display: grid; gap: 8px; }
+    @media (min-width: 720px) {
+      .split { grid-template-columns: 1fr 1fr; }
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Client Setup bukan kalender. Setup = gerbang kerja.</h1>
+  <p class="lede">Pain lo (planning, produksi, posting, evaluasi) hidup di tab lain. Setup yang bikin tab itu punya konteks brand, channel, dan skill yang boleh jalan. Tanpa gerbang ini, calendar/production/analytics tetap kosong atau generic.</p>
+
+  <h2>1. Alur sekali pas client baru</h2>
+  <div class="row">
+    <div class="chip"><span class="n">1</span> Onboard (niche, audience, USP)</div>
+    <div class="chip"><span class="n">2</span> Generate 5 file fondasi</div>
+    <div class="chip"><span class="n">3</span> Pilih pack + channel</div>
+    <div class="chip"><span class="n">4</span> Cek siap / belum</div>
+    <div class="chip"><span class="n">5</span> Kerja harian di tab lain</div>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <strong>Setup tab isi ini</strong>
+      <div class="muted">Konfigurasi, bukan eksekusi.</div>
+      <ul>
+        <li>File: <code>brand-profile.md</code> → <code>voice.md</code> → <code>audience.md</code> → <code>social-strategy.md</code> → <code>content-pillars.md</code></li>
+        <li>7 stage repo: Foundation → Plan → Create → Media → Publish → Grow → Measure</li>
+        <li>Skill aktif per client (status belum / jalan / selesai)</li>
+        <li>Channel: belum / terhubung / gagal</li>
+        <li>Guardrail + ground truth repo (jangan publish tanpa konfirmasi)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>Bukan isi Setup</strong>
+      <div class="muted">Itu tab operasional, setelah gerbang hijau.</div>
+      <ul>
+        <li>Kalender 2 minggu + campaign/event overlay → Content Calendar</li>
+        <li>Ide → script → shoot → edit → caption → approve → Production</li>
+        <li>Apa yang harus post hari ini / minggu ini → Pipeline + Publish</li>
+        <li>Konten mana yang perform + kait sales → Analytics</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>2. Contoh Taraju / Pawon — satu minggu</h2>
+  <table>
+    <thead>
+      <tr><th>Hari</th><th>Orang</th><th>Tab</th><th>Syarat dari Setup</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Senin</td>
+        <td>Admin buka client</td>
+        <td>Setup</td>
+        <td>5 file fondasi ada. IG+TikTok status terhubung. Pack F&amp;B aktif.</td>
+      </tr>
+      <tr>
+        <td>Senin</td>
+        <td>Jalankan <code>content-calendar</code></td>
+        <td>Skills / Pipeline</td>
+        <td>Skill Plan enabled. Baca pillars + audience. Tulis slot 14 hari.</td>
+      </tr>
+      <tr>
+        <td>Selasa–Kamis</td>
+        <td>Produksi (script, shoot, edit)</td>
+        <td>Production</td>
+        <td>Create+Media skills aktif. Asset brand ketemu di Brand Assets.</td>
+      </tr>
+      <tr>
+        <td>Jumat</td>
+        <td>Approve lalu schedule</td>
+        <td>Publish / Calendar</td>
+        <td>Channel terhubung. <code>scheduling-and-queue</code> butuh konfirmasi eksplisit.</td>
+      </tr>
+      <tr>
+        <td>Minggu depan</td>
+        <td>Baca insight native, tarik kesimpulan</td>
+        <td>Analytics</td>
+        <td>Measure skills aktif. Goal ada di <code>social-strategy.md</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Pain lo masuk di mana</h2>
+  <div class="grid">
+    <div class="card"><strong>Planning masih manual</strong><span class="muted">Setup cuma nyalain stage Plan + cek file pillars. View satu layar = tab Calendar, bukan Setup.</span></div>
+    <div class="card"><strong>Produksi paralel + urgent</strong><span class="muted">Setup nentuin skill Create/Media yang boleh jalan. Tracking status ide→approve = Production + client_skills.</span></div>
+    <div class="card"><strong>Lupa posting</strong><span class="muted">Setup ngecek channel terhubung. “Hari ini harus post apa” = Calendar/Publish. Reminder belum ada di kode.</span></div>
+    <div class="card"><strong>Analytics belum jadi kesimpulan</strong><span class="muted">Setup nyalain Measure. Hubungan campaign↔sales belum ada tabel. Jangan janji ROI di Setup.</span></div>
+  </div>
+
+  <h2>4. Urutan bangun (biar ga nyampur)</h2>
+  <ol>
+    <li>Setup: checklist 5 file + 7 stage + channel + skill aktif. Render data yang sudah di-query.</li>
+    <li>Generate fondasi dari UI (ganti <code>run_skill.py</code>).</li>
+    <li>Calendar view: slot dari Plan + overlay promo/event.</li>
+    <li>Production board: status mesin ide → siap post.</li>
+    <li>Hari ini / minggu ini + reminder.</li>
+    <li>Analytics → kesimpulan. Sales link belakangan (schema baru).</li>
+  </ol>
+  <p class="muted">Future-proof-nya di gerbang (file + skill + channel), bukan di janji dashboard all-in-one di tab Setup.</p>
+</body>
+</html>

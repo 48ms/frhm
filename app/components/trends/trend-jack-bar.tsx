@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Sparkles, Loader2, AlertCircle, CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import Link from 'next/link'
 
 interface TrendJackBarProps {
@@ -106,7 +106,7 @@ export function TrendJackBar({ clientId, clientName, onContentGenerated }: Trend
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex size-7 items-center justify-center rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                  <Zap className="size-4" />
+                  <Icons.sparkles className="size-4" />
                 </span>
                 <div>
                   <h4 className="text-sm font-semibold tracking-tight text-foreground">
@@ -150,12 +150,12 @@ export function TrendJackBar({ clientId, clientName, onContentGenerated }: Trend
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    <Icons.spinner className="mr-2 size-4 animate-spin" />
                     Validasi & Buat Konten
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 size-4" />
+                    <Icons.sparkles className="mr-2 size-4" />
                     Validasi & Buat Konten
                   </>
                 )}
@@ -164,7 +164,7 @@ export function TrendJackBar({ clientId, clientName, onContentGenerated }: Trend
 
             {errorMsg && (
               <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-2.5 text-xs text-destructive">
-                <AlertCircle className="size-4 shrink-0" />
+                <Icons.alertCircle className="size-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -182,11 +182,11 @@ export function TrendJackBar({ clientId, clientName, onContentGenerated }: Trend
             <div className="flex items-center gap-2 mb-1">
               {resultDialog.passed ? (
                 <div className="flex size-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-                  <CheckCircle2 className="size-5" />
+                  <Icons.circleCheck className="size-5" />
                 </div>
               ) : (
                 <div className="flex size-9 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
-                  <ShieldCheck className="size-5" />
+                  <Icons.shield className="size-5" />
                 </div>
               )}
               <div>
@@ -245,7 +245,7 @@ export function TrendJackBar({ clientId, clientName, onContentGenerated }: Trend
                     className="inline-flex h-11 sm:h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     Buka Deliverable & 3 Variasi Hook
-                    <ArrowRight className="size-4" />
+                    <Icons.arrowRight className="size-4" />
                   </Link>
                 </div>
               )}

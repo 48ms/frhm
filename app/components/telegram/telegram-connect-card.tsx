@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { SendIcon, CheckCircle2Icon, ExternalLinkIcon, RefreshCwIcon, BellIcon, BellOffIcon, ShieldCheckIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { motion } from "motion/react"
 
 interface TelegramConnectCardProps {
@@ -131,7 +131,7 @@ export function TelegramConnectCard({
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20">
-            <SendIcon className="h-6 w-6" aria-hidden="true" />
+            <Icons.send className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-1">Notifikasi Telegram</h3>
@@ -145,12 +145,12 @@ export function TelegramConnectCard({
         <div>
           {connectionStatus === 'connected' ? (
             <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 gap-1.5 h-7 px-3 rounded-full text-xs font-medium">
-              <CheckCircle2Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              <Icons.circleCheck className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Terhubung</span>
             </Badge>
           ) : connectionStatus === 'paused' ? (
             <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 gap-1.5 h-7 px-3 rounded-full text-xs font-medium">
-              <BellOffIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              <Icons.notification className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Dijeda</span>
             </Badge>
           ) : (
@@ -172,7 +172,7 @@ export function TelegramConnectCard({
               <div className="space-y-1.5">
                 <div className="text-neutral-500 text-xs font-medium uppercase tracking-wider">Penerima Notifikasi</div>
                 <div className="font-medium text-neutral-900 dark:text-neutral-50 flex items-center gap-2">
-                  <ShieldCheckIcon className="h-4 w-4 text-blue-500" aria-hidden="true" />
+                  <Icons.shield className="h-4 w-4 text-blue-500" aria-hidden="true" />
                   <span>{username ? `@${username}` : `Chat ID: ${chatId}`}</span>
                   <span className="text-xs text-neutral-500 font-normal">({name})</span>
                 </div>
@@ -187,7 +187,7 @@ export function TelegramConnectCard({
                     onClick={handleTestNotification}
                     className="h-9 rounded-xl text-xs px-3"
                   >
-                    <RefreshCwIcon className={`h-3.5 w-3.5 mr-1.5 ${isTesting ? 'animate-spin' : ''}`} aria-hidden="true" />
+                    <Icons.refresh className={`h-3.5 w-3.5 mr-1.5 ${isTesting ? 'animate-spin' : ''}`} aria-hidden="true" />
                     Uji Notifikasi
                   </Button>
                 )}
@@ -200,12 +200,12 @@ export function TelegramConnectCard({
                 >
                   {enabled ? (
                     <>
-                      <BellOffIcon className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+                      <Icons.notification className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                       Jeda
                     </>
                   ) : (
                     <>
-                      <BellIcon className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+                      <Icons.notification className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                       Aktifkan
                     </>
                   )}
@@ -258,9 +258,9 @@ export function TelegramConnectCard({
                 rel="noopener noreferrer"
                 className="inline-flex h-11 items-center justify-center rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-5 gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
-                <SendIcon className="h-4 w-4" aria-hidden="true" />
+                <Icons.send className="h-4 w-4" aria-hidden="true" />
                 Hubungkan Telegram
-                <ExternalLinkIcon className="h-3.5 w-3.5 opacity-80" aria-hidden="true" />
+                <Icons.externalLink className="h-3.5 w-3.5 opacity-80" aria-hidden="true" />
               </a>
 
               <span className="text-xs text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1.5 rounded-lg">

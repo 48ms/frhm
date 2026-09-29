@@ -1,0 +1,87 @@
+/* Multi-theme Presets for Frhm */
+
+/* Default (Vibrant Blue) */
+[data-theme="default"],
+:root {
+  --theme-name: "default";
+}
+
+/* Supabase (Emerald / Forest Green) */
+[data-theme="supabase"] {
+  --theme-name: "supabase";
+  --brand-accent: 158 64% 42%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 158 64% 42%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 158 64% 42%;
+}
+
+[data-theme="supabase"].dark,
+.dark[data-theme="supabase"],
+[data-theme="supabase"] .dark {
+  --brand-accent: 158 64% 48%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 158 64% 48%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 158 64% 48%;
+}
+
+/* Vercel (Pure Monochromatic Zinc) */
+[data-theme="vercel"] {
+  --theme-name: "vercel";
+  --brand-accent: 240 10% 10%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 240 10% 10%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 240 10% 10%;
+}
+
+[data-theme="vercel"].dark,
+.dark[data-theme="vercel"],
+[data-theme="vercel"] .dark {
+  --brand-accent: 0 0% 100%;
+  --brand-accent-foreground: 240 10% 10%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 240 10% 10%;
+  --ring: 0 0% 100%;
+}
+
+/* Claude (Terracotta Warm Ochre) */
+[data-theme="claude"] {
+  --theme-name: "claude";
+  --brand-accent: 20 80% 50%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 20 80% 50%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 20 80% 50%;
+}
+
+[data-theme="claude"].dark,
+.dark[data-theme="claude"],
+[data-theme="claude"] .dark {
+  --brand-accent: 24 85% 58%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 24 85% 58%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 24 85% 58%;
+}
+
+/* Sunset (Violet / Indigo Elegance) */
+[data-theme="sunset"] {
+  --theme-name: "sunset";
+  --brand-accent: 262 83% 58%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 262 83% 58%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 262 83% 58%;
+}
+
+[data-theme="sunset"].dark,
+.dark[data-theme="sunset"],
+[data-theme="sunset"] .dark {
+  --brand-accent: 263 85% 65%;
+  --brand-accent-foreground: 0 0% 100%;
+  --primary: 263 85% 65%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 263 85% 65%;
+}

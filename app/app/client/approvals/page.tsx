@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ApprovalBoard } from '@/components/client/approval-board'
+import { ApprovalBoard, type ApprovalPost } from "@/components/client/approval-board"
+import { PageContainer } from '@/components/layout/page-container'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export default async function ClientApprovalsPage() {
     .select('id, name')
     .eq('client_id', clientId)
 
-  let postsData: any[] = []
+  let postsData: ApprovalPost[] = []
 
   if (campaigns && campaigns.length > 0) {
     const campaignIds = campaigns.map(c => c.id)
@@ -78,9 +79,29 @@ export default async function ClientApprovalsPage() {
     }
   }
 
+  const approvalInfoContent = {
+    title: "Panduan Persetujuan Konten",
+    sections: [
+      {
+        title: "Alur Verifikasi Materi",
+        description: "Tinjau visual hook dan teks caption sebelum jadwal tayang. Konten yang disetujui akan otomatis dijadwalkan ke platform media sosial Anda.",
+      },
+      {
+        title: "Permintaan Revisi",
+        description: "Jika ada penyesuaian visual atau teks caption, klik Minta Revisi agar tim kami dapat segera melakukan revisi.",
+      },
+    ],
+  }
+
   return (
-    <div className="mx-auto max-w-5xl w-full">
-      <ApprovalBoard initialPosts={postsData} clientId={clientId} />
-    </div>
+    <PageContainer
+      pageTitle="Pusat Persetujuan"
+      pageDescription="Tinjau materi konten yang siap tayang untuk brand kamu."
+      infoContent={approvalInfoContent}
+    >
+      <div className="mx-auto max-w-5xl w-full">
+        <ApprovalBoard initialPosts={postsData} clientId={clientId} />
+      </div>
+    </PageContainer>
   )
 }

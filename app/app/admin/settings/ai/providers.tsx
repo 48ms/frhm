@@ -12,7 +12,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { PlusIcon, Trash2Icon, StarIcon, LoaderIcon, AlertTriangleIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { motion, AnimatePresence } from "motion/react"
 
 type Provider = {
@@ -126,7 +126,7 @@ export function AiProviders() {
           </p>
         </div>
         <Button onClick={() => setOpen(true)} className="h-11 rounded-xl bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 hover:scale-105 transition-transform shadow-sm">
-          <PlusIcon className="size-4 mr-2" /> Tambah Provider
+          <Icons.add className="size-4 mr-2" /> Tambah Provider
         </Button>
       </motion.div>
 
@@ -150,7 +150,7 @@ export function AiProviders() {
           className="border border-dashed border-neutral-200/50 dark:border-neutral-800/50 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl rounded-3xl p-10 text-center"
         >
           <div className="flex flex-col items-center justify-center gap-2 text-neutral-500">
-            <AlertTriangleIcon className="size-8 text-neutral-300 dark:text-neutral-700 mb-2" />
+            <Icons.warning className="size-8 text-neutral-300 dark:text-neutral-700 mb-2" />
             <p className="font-medium">Belum ada provider.</p>
             <p className="text-sm">Tambahkan minimal satu supaya skill bisa dijalankan.</p>
           </div>
@@ -173,12 +173,12 @@ export function AiProviders() {
                     <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{p.label}</h3>
                     {p.is_default && (
                       <Badge variant="secondary" className="gap-1.5 h-6 px-2.5 rounded-full text-xs font-medium">
-                        <StarIcon className="size-3" /> Default
+                        <Icons.exclusive className="size-3" /> Default
                       </Badge>
                     )}
                     {!p.has_key && p.kind !== 'custom' && (
                       <Badge variant="destructive" className="gap-1.5 h-6 px-2.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20">
-                        <AlertTriangleIcon className="size-3" /> Tanpa API key
+                        <Icons.warning className="size-3" /> Tanpa API key
                       </Badge>
                     )}
                   </div>
@@ -189,7 +189,7 @@ export function AiProviders() {
                       </Button>
                     )}
                     <Button variant="ghost" size="icon-sm" onClick={() => remove(p.id)} className="h-9 w-9 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10" aria-label={`Hapus provider ${p.kind}`}>
-                      <Trash2Icon className="size-4" />
+                      <Icons.trash className="size-4" />
                     </Button>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export function AiProviders() {
                 
                 <div className="pt-5 mt-auto">
                   <Button variant="outline" size="sm" onClick={() => testRun(p)} disabled={testing} className="w-full h-10 rounded-xl bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all active:scale-[0.98]">
-                    {testing ? <LoaderIcon className="size-4 animate-spin mr-2" /> : null} Tes jalankan skill
+                    {testing ? <Icons.spinner className="size-4 animate-spin mr-2" /> : null} Tes jalankan skill
                   </Button>
                 </div>
               </div>
@@ -289,14 +289,14 @@ export function AiProviders() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className="text-red-500 text-sm font-medium flex items-center gap-1.5"
               >
-                <AlertTriangleIcon className="size-4" /> {err}
+                <Icons.warning className="size-4" /> {err}
               </motion.p>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} className="h-11 rounded-xl">Batal</Button>
             <Button onClick={save} disabled={saving || !label || !model} className="h-11 rounded-xl">
-              {saving ? <LoaderIcon className="size-4 animate-spin" /> : null} Simpan
+              {saving ? <Icons.spinner className="size-4 animate-spin" /> : null} Simpan
             </Button>
           </DialogFooter>
         </DialogContent>

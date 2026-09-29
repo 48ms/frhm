@@ -83,7 +83,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { client_id, deliverable_id, title, content, platform, scheduled_at, status, notes, is_reserved, reserved_for, is_placeholder, priority, campaign_tag } = body
+  const { client_id, deliverable_id, title, content, platform, scheduled_at, status, notes, is_reserved, reserved_for, is_placeholder, priority, campaign_tag, production_id, skill_output_id } = body
 
   // Reserved placeholder rows only need client_id + platform + scheduled_at.
   // Full posts require title + content.
@@ -111,6 +111,8 @@ export async function POST(request: Request) {
       is_placeholder: is_placeholder ?? false,
       priority: priority || 'normal',
       campaign_tag: campaign_tag || null,
+      production_id: production_id || null,
+      skill_output_id: skill_output_id || null,
     })
     .select()
     .single()
@@ -152,7 +154,7 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json()
-  const { id, title, content, platform, scheduled_at, status, notes, is_reserved, reserved_for, is_placeholder, priority, campaign_tag } = body
+  const { id, title, content, platform, scheduled_at, status, notes, is_reserved, reserved_for, is_placeholder, priority, campaign_tag, production_id, skill_output_id } = body
 
   if (!id) {
     return NextResponse.json({ error: 'id wajib disertakan' }, { status: 400 })
@@ -173,6 +175,8 @@ export async function PUT(request: Request) {
   if (is_placeholder !== undefined) updates.is_placeholder = is_placeholder
   if (campaign_tag !== undefined) updates.campaign_tag = campaign_tag || null
   if (priority !== undefined) updates.priority = priority
+  if (production_id !== undefined) updates.production_id = production_id || null
+  if (skill_output_id !== undefined) updates.skill_output_id = skill_output_id || null
 
   const { data, error } = await supabase
     .from('scheduled_posts')

@@ -6,23 +6,20 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import {
-  RocketIcon, SendIcon, CheckCircle2Icon, MessageSquareIcon, KeyRoundIcon,
-  UserPlusIcon, PlayCircleIcon, HistoryIcon, SearchIcon, CircleAlertIcon,
-} from 'lucide-react'
+import { Icons, type Icon } from '@/components/icons'
 import type { AuditRow } from './page'
 
 // Icons chosen for their literal meaning: rocket = publish/ship, send = deliver,
 // check = approve, message = revision request, key = password reset, user+ = create,
-// play = bulk run. A generic action falls back to HistoryIcon (a timeline mark).
-const ACTION_ICONS: Record<string, typeof RocketIcon> = {
-  'deliverable.publish': RocketIcon,
-  'deliverable.send': SendIcon,
-  'deliverable.approve': CheckCircle2Icon,
-  'deliverable.revision_request': MessageSquareIcon,
-  'client.reset_password': KeyRoundIcon,
-  'client.create': UserPlusIcon,
-  'skill.bulk_run': PlayCircleIcon,
+// play = bulk run. A generic action falls back to Icons.history (a timeline mark).
+const ACTION_ICONS: Record<string, Icon> = {
+  'deliverable.publish': Icons.rocket,
+  'deliverable.send': Icons.send,
+  'deliverable.approve': Icons.circleCheck,
+  'deliverable.revision_request': Icons.messageSquare,
+  'client.reset_password': Icons.keyRound,
+  'client.create': Icons.userPlus,
+  'skill.bulk_run': Icons.playCircle,
 }
 
 function fmtWhen(iso: string) {
@@ -90,7 +87,7 @@ export function AuditLogList({
         </div>
         <div className="flex items-center gap-2 sm:ml-auto">
           <div className="relative w-full sm:w-72">
-            <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+            <Icons.search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
             <Input
               type="search"
               name="q"
@@ -116,12 +113,12 @@ export function AuditLogList({
           <CardContent className="text-muted-foreground flex flex-col items-center gap-3 py-12 text-sm">
             {totalAll === 0 ? (
               <>
-                <HistoryIcon className="size-8" />
+                <Icons.history className="size-8" />
                 <p>Belum ada aktivitas tercatat.</p>
               </>
             ) : (
               <>
-                <CircleAlertIcon className="size-8" />
+                <Icons.alertCircle className="size-8" />
                 <p>Tidak ada aktivitas yang cocok dengan filter ini.</p>
                 <Link
                   href={pathname}
@@ -139,7 +136,7 @@ export function AuditLogList({
             <div className="divide-y">
               {rows.map((r) => {
                 const client = r.client_id ? clientNames[r.client_id] : null
-                const Icon = ACTION_ICONS[r.action] ?? HistoryIcon
+                const Icon = ACTION_ICONS[r.action] ?? Icons.history
                 return (
                   <div key={r.id} className="flex items-start gap-3 p-4 hover:bg-muted/30 transition-colors">
                     <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

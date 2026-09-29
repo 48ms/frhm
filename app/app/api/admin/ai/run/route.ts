@@ -5,6 +5,14 @@ import { chatDetailed, type Provider } from '@/lib/ai/providers'
 import { logAiUsage } from '@/lib/ai/usage'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { loadClientFiles } from '@/lib/ai/server'
+import {
+  loadGroundTruths,
+  loadSkillGuardrails,
+  groundTruthsBlock,
+  guardrailsBlock,
+  VERIFY_QUARTERLY_RULE,
+} from '@/lib/ai/prompt-context'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -42,8 +50,15 @@ function brandBlock(name: string, bp: Record<string, unknown>): string {
   ].join('\n')
 }
 
-// Build the system prompt: the skill's ORIGINAL text, verbatim, plus brand context.
-function buildSystemPrompt(skillMd: string, brand: string): string {
+// Build the system prompt: the skill's ORIGINAL text, verbatim, plus the client's WHOLE workspace
+// (not just brand-profile.md — a create-stage skill needs voice.md and the pillars too) and the
+// repo rules. Mirrors the chat route so a batch run and an interview see the same context.
+function buildSystemPrompt(
+  skillMd: string,
+  workspace: string,
+  guardrailsBlockText: string = '',
+  truthsBlock: string = ''
+): string {
   return [
     'You are operating under the following skill. Follow its instructions exactly.',
     'The skill text below is the authoritative specification — do not summarise it, apply it.',
@@ -52,9 +67,12 @@ function buildSystemPrompt(skillMd: string, brand: string): string {
     skillMd,
     '--- END SKILL ---',
     '',
-    'The brand you are working for (always write in this brand voice):',
+    'The client workspace you are working from (always write in this brand voice):',
     '',
-    brand,
+    workspace,
+    guardrailsBlockText,
+    truthsBlock,
+    VERIFY_QUARTERLY_RULE,
   ].join('\n')
 }
 
@@ -108,23 +126,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Skill ${skill_id} tidak punya SKILL.md` }, { status: 400 })
   }
 
-  // The client's brand context. The repo is explicit that brand-profile.md is the source of
-  // truth ("Store brand-profile.md with the user's project files — it is the source of truth,
-  // and every skill reads it from there"), and the interactive chat route already reads it.
-  // Reading the same file here keeps one source of truth instead of a copy that drifts;
-  // the clients.brand_profile JSON is only a fallback for a client that has no .md yet.
+  // The client's WHOLE workspace. The repo is explicit that brand-profile.md is the source of
+  // truth ("every skill reads it from there"), but create-stage skills also read voice.md and the
+  // content pillars, and the chat route already serves all of them. Reading only brand-profile.md
+  // here made a batch run blind to the rest of the folder — this closes that gap (Gap #5).
   const { data: client } = await supabase
     .from('clients').select('name, brand_profile').eq('id', client_id).single()
   if (!client) return NextResponse.json({ error: 'Client tidak ditemukan' }, { status: 404 })
 
-  const { data: profileFile } = await supabase
-    .from('client_files').select('content')
-    .eq('client_id', client_id).eq('path', 'brand-profile.md').maybeSingle()
-
-  const brand = profileFile?.content?.trim()
-    ? profileFile.content
+  const files = await loadClientFiles(supabase, client_id)
+  const fileNames = Object.keys(files)
+  const workspace = fileNames.length
+    ? fileNames.map((f) => `### ${f}\n\n${files[f]}`).join('\n\n')
     : brandBlock(client.name, (client.brand_profile ?? {}) as Record<string, unknown>)
-  const system = buildSystemPrompt(skillFile.content, brand)
+
+  // Repo rules, shared with the chat route: this skill's guardrails + the AGENTS.md ground truths.
+  const guardrails = await loadSkillGuardrails(supabase, skill_id)
+  const truths = await loadGroundTruths(supabase)
+
+  const system = buildSystemPrompt(
+    skillFile.content,
+    workspace,
+    guardrailsBlock(guardrails),
+    groundTruthsBlock(truths)
+  )
 
   try {
     // Reuse the shared client so this route parses SSE the same way the chat route does

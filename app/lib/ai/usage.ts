@@ -35,6 +35,9 @@ export type AiUsageInput = {
  */
 export async function logAiUsage(input: AiUsageInput): Promise<void> {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return
+    }
     const admin = createSupabaseServiceClient()
 
     await admin.from('ai_usage_logs').insert({

@@ -14,7 +14,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { PlatformIcon, type ScheduledPost } from './calendar-view'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { cn } from '@/lib/utils'
+import { PlatformIcon } from './platform-icon'
+import { type ScheduledPost } from '@/features/calendar/types'
 
 const PLATFORM_OPTIONS = [
   { id: 'instagram', label: 'Instagram' },
@@ -150,7 +153,7 @@ export function PostDialog({
         reserved_for: isPlaceholder ? reservedFor || null : null,
         priority,
         campaign_tag: campaignTag || null,
-        production_id: editingPost ? undefined : (productionId || null),
+        production_id: editingPost ? editingPost.production_id : (productionId || null),
         skill_output_id: editingPost ? undefined : (skillOutputId || null),
       }
 
@@ -249,26 +252,37 @@ export function PostDialog({
             </div>
           </div>
 
-          {/* Platform Segmented Control */}
+          {/* Platform Radio Group (accessible) */}
           <div className="space-y-1.5">
-            <Label>Platform Tujuan</Label>
-            <div className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl">
+            <Label id="platform-label">Platform Tujuan</Label>
+            <RadioGroup
+              value={platform}
+              onValueChange={setPlatform}
+              className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl"
+              aria-labelledby="platform-label"
+            >
               {PLATFORM_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setPlatform(opt.id)}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
-                    platform === opt.id
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <PlatformIcon platform={opt.id} className="size-3.5" />
-                  <span>{opt.label}</span>
-                </button>
+                <div key={opt.id} className="relative flex items-center justify-center">
+                  <RadioGroupItem
+                    value={opt.id}
+                    id={`platform-${opt.id}`}
+                    className="sr-only"
+                  />
+                  <Label
+                    htmlFor={`platform-${opt.id}`}
+                    className={cn(
+                      "flex w-full cursor-pointer items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all",
+                      platform === opt.id
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <PlatformIcon platform={opt.id} className="size-3.5" />
+                    <span>{opt.label}</span>
+                  </Label>
+                </div>
               ))}
-            </div>
+            </RadioGroup>
           </div>
 
           {/* Reserved for (campaign name) */}
@@ -372,26 +386,37 @@ export function PostDialog({
             </div>
           )}
 
-          {/* Status Segmented Control (hidden if reserved) */}
+          {/* Status Radio Group (accessible) */}
           {!isCampaignMode && (
             <div className="space-y-1.5">
-              <Label>Status</Label>
-              <div className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl">
+              <Label id="status-label">Status</Label>
+              <RadioGroup
+                value={status}
+                onValueChange={(v) => setStatus(v as 'draft' | 'scheduled' | 'published')}
+                className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl"
+                aria-labelledby="status-label"
+              >
                 {STATUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setStatus(opt.id as 'draft' | 'scheduled' | 'published')}
-                    className={`min-h-[44px] sm:min-h-0 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                      status === opt.id
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
+                  <div key={opt.id} className="relative flex items-center justify-center">
+                    <RadioGroupItem
+                      value={opt.id}
+                      id={`status-${opt.id}`}
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor={`status-${opt.id}`}
+                      className={cn(
+                        "flex w-full cursor-pointer items-center justify-center py-2 text-xs font-medium rounded-lg transition-all",
+                        status === opt.id
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </Label>
+                  </div>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
           )}
 

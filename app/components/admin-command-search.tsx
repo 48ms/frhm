@@ -11,12 +11,17 @@ import { StatusBadge } from '@/components/deliverable/status-badge'
 import { Button } from '@/components/ui/button'
 import { KbdCombo } from '@/components/spectrumui/kbd-key'
 import { useCreateClient } from '@/components/client/create-client-provider'
-import { SearchIcon, FileTextIcon, Building2Icon, PlusIcon, Settings2Icon, Sparkles } from 'lucide-react'
+import { Icons } from '@/components/icons'
+import { cn } from '@/lib/utils'
 
 type DeliverableHit = { id: string; title: string; status: 'draft' | 'sent' | 'approved' | 'revision_requested' }
 type ClientHit = { id: string; name: string }
 
-export function AdminCommandSearch() {
+interface AdminCommandSearchProps {
+  className?: string
+}
+
+export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
   const router = useRouter()
   const supabase = createClient()
   const { openCreateClient } = useCreateClient()
@@ -54,9 +59,12 @@ export function AdminCommandSearch() {
         variant="outline"
         onClick={() => setOpen(true)}
         aria-label="Cari deliverable atau client"
-        className="ml-auto h-11 sm:h-9 w-full justify-start gap-2 text-muted-foreground sm:w-64"
+        className={cn(
+          "h-9 w-full justify-start gap-2 rounded-full border-white/60 bg-[hsl(var(--admin-surface-lowest))]/70 pl-4 pr-3 text-muted-foreground shadow-sm backdrop-blur-sm sm:w-72",
+          className
+        )}
       >
-        <SearchIcon className="size-4" />
+        <Icons.search className="size-4" />
         <span className="text-sm">Cari...</span>
         <span className="ml-auto hidden sm:block">
           <KbdCombo keys="meta+k" listen={false} size="sm" />
@@ -70,19 +78,19 @@ export function AdminCommandSearch() {
 
           <CommandGroup heading="Aksi">
             <CommandItem onSelect={() => { setOpen(false); openCreateClient() }}>
-              <Sparkles className="size-4 text-brand-accent" />
+              <Icons.sparkles className="size-4 text-brand-accent" />
               Tambah Client Baru
             </CommandItem>
             <CommandItem onSelect={() => go('/admin/deliverables/new')}>
-              <PlusIcon className="size-4" />
+              <Icons.add className="size-4" />
               Deliverable Baru
             </CommandItem>
             <CommandItem onSelect={() => go('/admin/clients')}>
-              <Building2Icon className="size-4" />
+              <Icons.building2 className="size-4" />
               Kelola Client
             </CommandItem>
             <CommandItem onSelect={() => go('/admin/settings')}>
-              <Settings2Icon className="size-4" />
+              <Icons.settings className="size-4" />
               Pengaturan Sistem
             </CommandItem>
           </CommandGroup>
@@ -93,7 +101,7 @@ export function AdminCommandSearch() {
               <CommandGroup heading="Client">
                 {clients.map((c) => (
                   <CommandItem key={c.id} value={`client ${c.name}`} onSelect={() => go(`/admin/deliverables?client=${c.id}`)}>
-                    <Building2Icon className="size-4" />
+                    <Icons.building2 className="size-4" />
                     {c.name}
                   </CommandItem>
                 ))}
@@ -107,7 +115,7 @@ export function AdminCommandSearch() {
               <CommandGroup heading="Deliverable">
                 {deliverables.map((d) => (
                   <CommandItem key={d.id} value={d.title} onSelect={() => go(`/admin/deliverables/${d.id}`)}>
-                    <FileTextIcon className="size-4" />
+                    <Icons.post className="size-4" />
                     <span className="flex-1 truncate">{d.title}</span>
                     <StatusBadge status={d.status} />
                   </CommandItem>

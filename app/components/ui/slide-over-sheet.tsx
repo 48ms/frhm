@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from "motion/react"
-import { X } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface SlideOverSheetProps {
   isOpen: boolean
@@ -53,7 +53,7 @@ export function SlideOverSheet({ isOpen, onClose, title, children }: SlideOverSh
                 className="rounded-full p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close"
               >
-                <X className="h-5 w-5" />
+                <Icons.close className="h-5 w-5" />
               </button>
             </div>
 

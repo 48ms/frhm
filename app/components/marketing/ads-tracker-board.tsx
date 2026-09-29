@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PlusIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { AdSpendFormModal } from './ad-spend-form-modal'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel } from '@/lib/supabase/client'
 
 type AdSpendLog = {
   id: string
@@ -72,7 +72,7 @@ export function AdsTrackerBoard({ clientId }: { clientId: string }) {
           </div>
           <AdSpendFormModal clientId={clientId} onSuccess={handleSuccess}>
             <Button size="sm" className="h-9">
-              <PlusIcon className="size-4 mr-2" /> Log Manual
+              <Icons.add className="size-4 mr-2" /> Log Manual
             </Button>
           </AdSpendFormModal>
         </CardHeader>

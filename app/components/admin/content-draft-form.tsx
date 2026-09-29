@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion, AnimatePresence } from 'motion/react'
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 const draftSchema = z.object({
@@ -204,7 +204,7 @@ export function ContentDraftForm({ assetId, clientId, platform: initialPlatform,
                   exit={{ opacity: 0, height: 0, marginTop: 0 }}
                   className="flex items-center gap-2 p-3 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-md dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800"
                 >
-                  <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                  <Icons.warning className="h-5 w-5 flex-shrink-0" />
                   <p className="text-sm">
                     <strong>Peringatan Algoritma:</strong> Anda meletakkan *link* di dalam *body* postingan LinkedIn. Ini akan menurunkan *reach* (jangkauan) Anda. Disarankan untuk menaruh *link* di komentar pertama.
                   </p>
@@ -230,7 +230,7 @@ export function ContentDraftForm({ assetId, clientId, platform: initialPlatform,
       <div className="flex justify-end gap-4">
         <Button variant="outline" type="button" onClick={() => form.reset()} disabled={submitting}>Reset</Button>
         <Button type="submit" disabled={submitting || !client_id}>
-          {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : 'Simpan Draft'}
+          {submitting ? (<><Icons.spinner className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : 'Simpan Draft'}
         </Button>
       </div>
     </form>

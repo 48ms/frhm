@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
@@ -178,7 +178,7 @@ export function ExpenseFormModal({ clientId, budgetId, children, onSuccess }: Ex
             <Button type="submit" disabled={isSubmitting || !budgetId}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                   Menyimpan...
                 </>
               ) : (

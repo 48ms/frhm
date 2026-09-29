@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, Target, PhoneCall, MessageCircle, ShieldCheck } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface ForecastData {
   target_month: string
@@ -36,18 +36,18 @@ export function ROIAnalyticalForecastCard({ clientId }: { clientId: string }) {
     <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <TrendingUp className="size-4 text-emerald-500" />
+          <Icons.trendingUp className="size-4 text-emerald-500" />
           Proyeksi Performa & Forecasting ROI (Bulan Depan)
         </CardTitle>
         <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-          <ShieldCheck className="size-3 mr-1" /> Confidence {Math.round(forecast.confidence_score * 100)}%
+          <Icons.shield className="size-3 mr-1" /> Confidence {Math.round(forecast.confidence_score * 100)}%
         </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
           <div className="p-3 bg-background rounded-lg border shadow-xs">
             <span className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-              <Target className="size-3 text-indigo-500" /> Target Reach
+              <Icons.activity className="size-3 text-indigo-500" /> Target Reach
             </span>
             <span className="text-lg font-bold text-foreground">
               {forecast.forecasted_reach.toLocaleString('id-ID')}
@@ -56,7 +56,7 @@ export function ROIAnalyticalForecastCard({ clientId }: { clientId: string }) {
 
           <div className="p-3 bg-background rounded-lg border shadow-xs">
             <span className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-              <TrendingUp className="size-3 text-emerald-500" /> Target ER
+              <Icons.trendingUp className="size-3 text-emerald-500" /> Target ER
             </span>
             <span className="text-lg font-bold text-foreground">
               {forecast.forecasted_er}%
@@ -65,7 +65,7 @@ export function ROIAnalyticalForecastCard({ clientId }: { clientId: string }) {
 
           <div className="p-3 bg-background rounded-lg border shadow-xs">
             <span className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-              <PhoneCall className="size-3 text-emerald-600" /> WA Inquiries
+              <Icons.phone className="size-3 text-emerald-600" /> WA Inquiries
             </span>
             <span className="text-lg font-bold text-emerald-600">
               +{forecast.forecasted_wa_inquiries}
@@ -74,7 +74,7 @@ export function ROIAnalyticalForecastCard({ clientId }: { clientId: string }) {
 
           <div className="p-3 bg-background rounded-lg border shadow-xs">
             <span className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-              <MessageCircle className="size-3 text-indigo-600" /> DM Inquiries
+              <Icons.chat className="size-3 text-indigo-600" /> DM Inquiries
             </span>
             <span className="text-lg font-bold text-indigo-600">
               +{forecast.forecasted_dm_inquiries}

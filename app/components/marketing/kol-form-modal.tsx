@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
@@ -24,6 +25,8 @@ const formSchema = z.object({
   niche: z.string().optional(),
   contact_info: z.string().optional(),
   rate_card: z.coerce.number().min(0, 'Rate card tidak boleh negatif'),
+  platforms: z.string().optional(), // comma-separated, converted to text[] on submit
+  notes: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -34,6 +37,21 @@ export type KOL = {
   niche: string | null
   contact_info: string | null
   rate_card: number | null
+  platforms?: string[] | null
+  notes?: string | null
+}
+
+/** "instagram, tiktok" -> ['instagram','tiktok'] (trimmed, de-duped, lowercased). */
+function parsePlatforms(raw?: string): string[] {
+  if (!raw) return []
+  return Array.from(
+    new Set(
+      raw
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+    )
+  )
 }
 
 interface KolFormModalProps {
@@ -59,7 +77,9 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
       name: '',
       niche: '',
       contact_info: '',
-      rate_card: 0
+      rate_card: 0,
+      platforms: '',
+      notes: '',
     }
   })
 
@@ -70,14 +90,18 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
           name: editingKol.name,
           niche: editingKol.niche || '',
           contact_info: editingKol.contact_info || '',
-          rate_card: editingKol.rate_card || 0
+          rate_card: editingKol.rate_card || 0,
+          platforms: (editingKol.platforms || []).join(', '),
+          notes: editingKol.notes || '',
         })
       } else {
         reset({
           name: '',
           niche: '',
           contact_info: '',
-          rate_card: 0
+          rate_card: 0,
+          platforms: '',
+          notes: '',
         })
       }
     }
@@ -98,6 +122,8 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
           niche: data.niche || null,
           contact_info: data.contact_info || null,
           rate_card: data.rate_card || 0,
+          platforms: parsePlatforms(data.platforms),
+          notes: data.notes || null,
         }),
       })
       const json = await res.json()
@@ -108,7 +134,7 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
       if (onSuccess && json.kol) {
         onSuccess(json.kol as KOL)
       } else if (!editingKol) {
-        onSuccess?.({ id: '', name: data.name, niche: data.niche || null, contact_info: data.contact_info || null, rate_card: data.rate_card || 0 } as KOL)
+        onSuccess?.({ id: '', name: data.name, niche: data.niche || null, contact_info: data.contact_info || null, rate_card: data.rate_card || 0, platforms: parsePlatforms(data.platforms), notes: data.notes || null } as KOL)
       }
     } catch (err) {
       console.error('Error saving KOL:', err)
@@ -151,9 +177,29 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
           </div>
           
           <div className="space-y-2">
+            <Label htmlFor="platforms">Platform</Label>
+            <Input
+              id="platforms"
+              placeholder="Misal: instagram, tiktok, youtube"
+              {...register('platforms')}
+            />
+            <p className="text-[11px] text-muted-foreground">Pisahkan dengan koma.</p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="rate_card">Rate Card (IDR)</Label>
             <Input id="rate_card" type="number" min="0" placeholder="Misal: 5000000" {...register('rate_card')} />
             {errors.rate_card && <p className="text-xs text-destructive">{errors.rate_card.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Catatan</Label>
+            <Textarea
+              id="notes"
+              placeholder="Catatan tambahan: preferensi konten, histori kerja sama, dsb."
+              rows={3}
+              {...register('notes')}
+            />
           </div>
           
           <DialogFooter className="pt-4">
@@ -163,7 +209,7 @@ export function KolFormModal({ children, open: controlledOpen, onOpenChange: con
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                   Menyimpan...
                 </>
               ) : (

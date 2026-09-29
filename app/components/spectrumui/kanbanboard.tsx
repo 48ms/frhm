@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, GripVertical, MessageCircle, Paperclip, Plus } from 'lucide-react';
+import { Icons } from '@/components/icons';
 
 
 
@@ -174,7 +174,7 @@ export default function KanbanBoard() {
                 </Badge>
               </div>
               <button className="p-1 rounded-full bg-white/30 dark:bg-neutral-800/30 hover:bg-white/50 dark:hover:bg-neutral-700/50 transition-colors">
-                <Plus className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+                <Icons.add className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
               </button>
             </div>
 
@@ -192,7 +192,7 @@ export default function KanbanBoard() {
                         <h4 className="font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">
                           {task.title}
                         </h4>
-                        <GripVertical className="w-5 h-5 text-neutral-500 dark:text-neutral-400 cursor-move" />
+                        <Icons.gripVertical className="w-5 h-5 text-neutral-500 dark:text-neutral-400 cursor-move" />
                       </div>
 
                       {task.description && (
@@ -218,19 +218,19 @@ export default function KanbanBoard() {
                         <div className="flex items-center gap-4 text-neutral-600 dark:text-neutral-400">
                           {task.dueDate && (
                             <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
+                              <Icons.calendar className="w-4 h-4" />
                               <span className="text-xs font-medium">Jan 15</span>
                             </div>
                           )}
                           {task.comments && (
                             <div className="flex items-center gap-1">
-                              <MessageCircle className="w-4 h-4" />
+                              <Icons.chat className="w-4 h-4" />
                               <span className="text-xs font-medium">{task.comments}</span>
                             </div>
                           )}
                           {task.attachments && (
                             <div className="flex items-center gap-1">
-                              <Paperclip className="w-4 h-4" />
+                              <Icons.paperclip className="w-4 h-4" />
                               <span className="text-xs font-medium">{task.attachments}</span>
                             </div>
                           )}

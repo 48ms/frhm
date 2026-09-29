@@ -144,23 +144,75 @@ export async function chat(
   return j?.choices?.[0]?.message?.content ?? ''
 }
 
-/** Ask the model for JSON. Returns null when the model answered in prose instead. */
+/** Detects agent/tool-call markup that some reasoning models emit instead of a plain answer. */
+function looksAgentic(s: string): boolean {
+  return /DSML|invoke name=|<\|.*calls|antml:|<\/?tool_/i.test(s)
+}
+
+/** Extract the first balanced JSON object from arbitrary text (tolerates surrounding prose). */
+function firstJsonObject(s: string): string | null {
+  let depth = 0
+  let start = -1
+  let inStr = false
+  let esc = false
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) {
+      if (esc) esc = false
+      else if (ch === '\\') esc = true
+      else if (ch === '"') inStr = false
+      continue
+    }
+    if (ch === '"') { inStr = true; continue }
+    if (ch === '{') { if (depth === 0) start = i; depth++ }
+    else if (ch === '}') {
+      depth--
+      if (depth === 0 && start >= 0) return s.slice(start, i + 1)
+    }
+  }
+  return null
+}
+
+function parseJsonLoose<T>(raw: string): T | null {
+  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  const candidate = (fence ? fence[1] : raw).trim()
+  const obj = firstJsonObject(candidate)
+  if (!obj) return null
+  try {
+    return JSON.parse(obj) as T
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Ask the model for JSON. Returns null when the model answered in prose instead.
+ *
+ * Some models (especially agentic/reasoning ones routed through a gateway) try to *call tools*
+ * — e.g. running `ls` — instead of answering. When we detect that, we retry once with a
+ * hard "no tools" directive so the pipeline degrades gracefully instead of silently failing.
+ */
 export async function chatJson<T>(
   p: Provider,
   system: string,
   messages: ChatMessage[]
 ): Promise<T | null> {
   const raw = await chat(p, system, messages)
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
-  const candidate = (fence ? fence[1] : raw).trim()
-  const start = candidate.indexOf('{')
-  const end = candidate.lastIndexOf('}')
-  if (start < 0 || end <= start) return null
-  try {
-    return JSON.parse(candidate.slice(start, end + 1)) as T
-  } catch {
-    return null
-  }
+  const parsed = parseJsonLoose<T>(raw)
+  if (parsed) return parsed
+  if (!looksAgentic(raw)) return null
+
+  // Model tried to use tools. Retry once with an explicit ban and a JSON-only primer.
+  const hardened =
+    system +
+    '\n\nCRITICAL: You are a JSON API. Do NOT run commands, read files, or call any tools. ' +
+    'Do NOT explain. Respond with the JSON object only.'
+  const retry = await chat(p, hardened, [
+    ...messages,
+    { role: 'assistant', content: '{"_ack":true}' },
+    { role: 'user', content: 'Now output the final JSON object only.' },
+  ])
+  return parseJsonLoose<T>(retry)
 }
 
 /**

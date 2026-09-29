@@ -43,6 +43,9 @@ function forensicFromRequest(request?: Request) {
 
 export async function logAudit(input: AuditInput): Promise<void> {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return
+    }
     const admin = createSupabaseServiceClient()
 
     // fill actor_name/role from the users row when only an id is known

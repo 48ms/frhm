@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { HomeIcon, RotateCcwIcon } from "lucide-react"
+import { Icons } from '@/components/icons'
 import { Button } from "@/components/ui/button"
 
 export default function NotFound() {
@@ -10,7 +10,7 @@ export default function NotFound() {
       <div className="w-full max-w-md text-center space-y-6">
         <div className="flex justify-center">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground">
-            <HomeIcon className="size-8" />
+            <Icons.page className="size-8" />
           </div>
         </div>
         <div>
@@ -25,7 +25,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            <HomeIcon className="mr-2 size-4" />
+            <Icons.page className="mr-2 size-4" />
             Kembali ke Beranda
           </Link>
           <Button
@@ -33,7 +33,7 @@ export default function NotFound() {
             onClick={() => window.history.back()}
             className="h-11 rounded-xl gap-2"
           >
-            <RotateCcwIcon className="size-4" />
+            <Icons.refresh className="size-4" />
             Kembali
           </Button>
         </div>

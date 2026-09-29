@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 interface SentimentOverviewProps {
   positiveCount: number
@@ -27,7 +27,7 @@ export function SentimentOverviewCard({
     <Card className="border-border shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <MessageSquare className="size-4 text-primary" />
+          <Icons.messageSquare className="size-4 text-primary" />
           Analisis Sentimen Komentar (NLP)
         </CardTitle>
         <Badge variant="outline" className="text-[10px] text-muted-foreground">
@@ -38,7 +38,7 @@ export function SentimentOverviewCard({
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-2 bg-emerald-500/10 rounded-md border border-emerald-500/20">
             <span className="text-xs text-emerald-600 font-medium flex items-center justify-center gap-1">
-              <ThumbsUp className="size-3" /> Positif
+              <Icons.trendingUp className="size-3" /> Positif
             </span>
             <span className="text-base font-bold text-emerald-600 block mt-0.5">{posPct}%</span>
             <span className="text-[10px] text-muted-foreground">{positiveCount} komentar</span>
@@ -46,7 +46,7 @@ export function SentimentOverviewCard({
 
           <div className="p-2 bg-muted/50 rounded-md border">
             <span className="text-xs text-muted-foreground font-medium flex items-center justify-center gap-1">
-              <Minus className="size-3" /> Netral
+              <Icons.minus className="size-3" /> Netral
             </span>
             <span className="text-base font-bold text-foreground block mt-0.5">{neuPct}%</span>
             <span className="text-[10px] text-muted-foreground">{neutralCount} komentar</span>
@@ -54,7 +54,7 @@ export function SentimentOverviewCard({
 
           <div className="p-2 bg-rose-500/10 rounded-md border border-rose-500/20">
             <span className="text-xs text-rose-600 font-medium flex items-center justify-center gap-1">
-              <ThumbsDown className="size-3" /> Negatif
+              <Icons.trendingDown className="size-3" /> Negatif
             </span>
             <span className="text-base font-bold text-rose-600 block mt-0.5">{negPct}%</span>
             <span className="text-[10px] text-muted-foreground">{negativeCount} komentar</span>

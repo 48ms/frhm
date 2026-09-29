@@ -1,36 +1,33 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import {
-  CircleDashedIcon, SendIcon, CircleCheckIcon, RotateCcwIcon,
-  FileTextIcon, PenLineIcon, ChartColumnIcon,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
+import type { Icon } from '@/components/icons'
 
 type DeliverableStatus = 'draft' | 'sent' | 'approved' | 'revision_requested'
 
 const statusConfig: Record<
   DeliverableStatus,
-  { label: string; icon: LucideIcon; className: string }
+  { label: string; icon: Icon; className: string }
 > = {
   draft: {
     label: 'Draft',
-    icon: CircleDashedIcon,
+    icon: Icons.circleDashed,
     className: 'bg-muted text-muted-foreground ring-muted-foreground/20',
   },
   sent: {
     label: 'Terkirim',
-    icon: SendIcon,
+    icon: Icons.send,
     className: 'bg-sky-50 text-sky-700 ring-sky-600/20 dark:bg-sky-400/10 dark:text-sky-300 dark:ring-sky-300/25',
   },
   approved: {
     label: 'Disetujui',
-    icon: CircleCheckIcon,
+    icon: Icons.circleCheck,
     className: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-300/25',
   },
   revision_requested: {
     label: 'Minta Revisi',
-    icon: RotateCcwIcon,
+    icon: Icons.refresh,
     className: 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/25',
   },
 }
@@ -53,10 +50,10 @@ export function StatusBadge({ status, className }: { status: DeliverableStatus; 
 
 type DeliverableType = 'brief' | 'content' | 'report'
 
-const typeConfig: Record<DeliverableType, { label: string; icon: LucideIcon }> = {
-  brief: { label: 'Brief', icon: FileTextIcon },
-  content: { label: 'Konten', icon: PenLineIcon },
-  report: { label: 'Laporan', icon: ChartColumnIcon },
+const typeConfig: Record<DeliverableType, { label: string; icon: Icon }> = {
+  brief: { label: 'Brief', icon: Icons.post },
+  content: { label: 'Konten', icon: Icons.pencil },
+  report: { label: 'Laporan', icon: Icons.barChart },
 }
 
 export function TypeBadge({ type, className }: { type: DeliverableType; className?: string }) {

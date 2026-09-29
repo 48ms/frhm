@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { motion } from "motion/react"
 
 export interface ClientTaskProps {
@@ -52,7 +52,7 @@ export function ClientTaskCard({
               </div>
               {dueDate && (
                 <div className="flex items-center text-xs font-semibold text-muted-foreground bg-muted/50 px-2 py-1 rounded-sm border border-border/50 tabular-nums">
-                  <Clock className="h-3 w-3 mr-1.5 opacity-70" />
+                  <Icons.clock className="h-3 w-3 mr-1.5 opacity-70" />
                   {dueDate}
                 </div>
               )}
@@ -73,7 +73,7 @@ export function ClientTaskCard({
                   className="rounded-xl border-border/50 text-muted-foreground hover:bg-muted font-semibold transition-colors"
                   onClick={() => onReject?.(id)}
                 >
-                  <XCircle className="h-4 w-4 mr-1.5 opacity-70" />
+                  <Icons.xCircle className="h-4 w-4 mr-1.5 opacity-70" />
                   Revisi
                 </Button>
                 <Button 
@@ -81,7 +81,7 @@ export function ClientTaskCard({
                   className="rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground font-semibold shadow-sm transition-colors"
                   onClick={() => onApprove?.(id)}
                 >
-                  <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                  <Icons.circleCheck className="h-4 w-4 mr-1.5" />
                   Setujui
                 </Button>
               </div>

@@ -66,10 +66,13 @@ async function safeQuery<T = any>(
 
 export default async function ClientWorkspacePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams?: Promise<{ interview?: string }>
 }) {
   const { id } = await params
+  const sp = await searchParams
   const supabase = await createClient()
 
   const { data: client } = await supabase
@@ -131,7 +134,7 @@ export default async function ClientWorkspacePage({
   const clientSkills: { skill_id: string; status: string; notes: string | null }[] = aClientSkills.data ?? []
   const files: { path: string }[] = aFiles.data ?? []
   const stages: { key: string; label: string; description: string | null; sort_order: number; chain?: string | null; skill_order?: string[] | null; publishes?: boolean | null }[] = aStages.data ?? []
-  const pSkills: { id: string; name: string; description: string | null; stage: string; reads_files: boolean; writes_files: boolean }[] = aPSkills.data ?? []
+  const pSkills: { id: string; name: string; description: string | null; stage: string; reads_files: string[] | null; writes_files: string[] | null }[] = aPSkills.data ?? []
   const guards: { skill_id: string; kind: string; heading: string; body: string }[] = aGuards.data ?? []
   const truths: { source: string; rule: string }[] = aTruths.data ?? []
   const channels: { platform: string | null; handle: string | null; status: string | null; note: string | null; confirmed_at: string | null }[] = aChannels.data ?? []
@@ -256,6 +259,11 @@ export default async function ClientWorkspacePage({
       groundTruths={truths}
       channels={channelRows}
       outputs={outputs as { id: string; client_id: string; skill_id: string; stage: string; title: string; status: string; content: string; deliverable_id: string | null; created_at: string }[]}
+      initialSkill={
+        sp?.interview && clientSkills.some((c) => c.skill_id === sp.interview)
+          ? sp.interview
+          : null
+      }
     />
     </>
   )

@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test'
 
+// Local dev server suffers cold-start delays; allow generous per-test timeout
+test.setTimeout(120_000)
+
 // Every admin route. Sweep them all and record: HTTP status, whether an error
 // boundary rendered, and any console/page errors.
 // Auth is done per-test (same proven pattern as e2e/audit-log.spec.ts) so no
@@ -49,7 +52,7 @@ function authBeforeEach(testFn: (ctx: { page: import('@playwright/test').Page })
     await page.getByLabel('Email').fill(EMAIL)
     await page.getByLabel('Password').fill(PASSWORD)
     await page.getByRole('button', { name: 'Masuk' }).click()
-    await page.waitForURL(/\/admin(\/|$)/, { timeout: 20000 })
+    await page.waitForURL(/\/admin(\/|$)/, { timeout: 60000 })
     await testFn({ page })
   }
 }
@@ -62,11 +65,12 @@ test.describe('Admin page sweep', () => {
       page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()) })
       page.on('pageerror', (e) => pageErrors.push(e.message))
 
-      const resp = await page.goto(route, { waitUntil: 'networkidle', timeout: 45000 })
+      const resp = await page.goto(route, { waitUntil: 'load', timeout: 45000 })
       const status = resp?.status() ?? 0
 
       // Must not 5xx and must not land on the login page
       expect(status, `HTTP status for ${route}`).toBeLessThan(500)
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {})
       expect(page.url(), `${route} should not bounce to login`).not.toMatch(/\/auth\/login/)
 
       const body = (await page.locator('body').innerText().catch(() => '')) || ''

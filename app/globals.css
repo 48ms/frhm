@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/themes/themes.css";
 
 @theme {
   --color-background: hsl(var(--background));
@@ -34,6 +35,59 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
   --color-brand-accent: hsl(var(--brand-accent));
   --color-brand-accent-foreground: hsl(var(--brand-accent-foreground));
+  /* Luminous Space tokens (login stage) */
+  --color-brand-chartreuse: hsl(var(--brand-chartreuse));
+  --color-brand-cobalt: hsl(var(--brand-cobalt));
+  --color-brand-lavender: hsl(var(--brand-lavender));
+  /* Login-stage typefaces: Syne (display), Hanken Grotesk (body copy). */
+  --font-sans: var(--font-hanken-src), ui-sans-serif, system-ui, sans-serif;
+  --font-syne: var(--font-syne-src), ui-sans-serif, sans-serif;
+  --font-hanken: var(--font-hanken-src), ui-sans-serif, sans-serif;
+  /**
+   * Frhm brand palette — extracted from logo-frhm.png (absolute rule, DESIGN.md §2).
+   * Do not substitute placeholders; these are the brand identity.
+   */
+  --color-brand-blue: hsl(var(--brand-blue));
+  --color-brand-red: hsl(var(--brand-red));
+  --color-brand-green: hsl(var(--brand-green));
+  --color-brand-yellow: hsl(var(--brand-yellow));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  /* Luminous Space palette — literal values from DESIGN.md (login stage only). */
+  --color-lum-primary: #d4ff32;
+  --color-lum-primary-fixed-dim: #aed500;
+  --color-lum-on-primary: #12131a;
+  --color-lum-secondary: #4353ff;
+  --color-lum-secondary-fixed-dim: #bdc2ff;
+  --color-lum-tertiary: #7d3ac0;
+  --color-lum-tertiary-fixed-dim: #dcb8ff;
+  --color-lum-tertiary-container: #f8eaff;
+  --color-lum-on-surface: #1a1b22;
+  --color-lum-ink: #12131a;
+
+  /**
+   * Dashboard "Campaign Hub" surface set — lifted verbatim from the Stitch
+   * screen's inline `tailwind.config`. Namespaced `lum-` because bare
+   * `secondary` / `outline` / `surface` would clobber the app's shadcn grays.
+   */
+  --color-lum-surface: #fbf8ff;
+  --color-lum-surface-low: #f4f2fd;
+  --color-lum-surface-lowest: #ffffff;
+  --color-lum-surface-container: #eeedf7;
+  --color-lum-surface-high: #e8e7f1;
+  --color-lum-surface-highest: #dad9e3;
+  --color-lum-outline: #5a5e6b;
+  --color-lum-outline-variant: #c5c9ad;
+  --color-lum-primary-deep: #485a00;
+  --color-lum-primary-container: #d4ff32;
+  --color-lum-on-primary-container: #3a4900;
+  --color-lum-cobalt: #2333e7;
+  --color-lum-cobalt-light: #4353ff;
+  --color-lum-error: #ba1a1a;
+  --color-lum-error-container: #ffdad6;
+  --font-display: var(--font-syne-src), ui-sans-serif, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -48,11 +102,28 @@
     --card-foreground: 240 10% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 10%;
-    
-    /* Brand Accent (Frhm Logo) - Using a vibrant blue as placeholder if not exactly known */
-    --brand-accent: 221 83% 53%; /* #2563eb */
-    --brand-accent-foreground: 210 40% 98%;
-    
+
+    /**
+     * Frhm brand palette — extracted from logo-frhm.png (DESIGN.md §2).
+     * Absolute rule: accent colors must come from the logo, never defaults.
+     *   blue   #0066E6  30% of logo (F, star)  → primary accent
+     *   red    #FF3D2E  25%  (R)                → destructive / alerts
+     *   green  #28A745  20%  (H)                → success
+     *   yellow #FFC107  20%  (M)                → warning
+     */
+    --brand-blue: 217 100% 45%;
+    --brand-red: 6 100% 59%;
+    --brand-green: 134 61% 40%;
+    --brand-yellow: 45 100% 52%;
+
+    /* Luminous Space decorative palette (mesh only, never the UI accent) */
+    --brand-chartreuse: 73 100% 60%;
+    --brand-cobalt: 235 100% 63%;
+    --brand-lavender: 269 96% 72%;
+
+    --brand-accent: var(--brand-blue);
+    --brand-accent-foreground: 0 0% 100%;
+
     --primary: var(--brand-accent);
     --primary-foreground: var(--brand-accent-foreground);
     --secondary: 240 5% 90%;
@@ -61,7 +132,11 @@
     --muted-foreground: 240 5% 45%;
     --accent: var(--brand-accent);
     --accent-foreground: var(--brand-accent-foreground);
-    --destructive: 0 84.2% 61.2%;
+    --destructive: var(--brand-red);
+    --success: var(--brand-green);
+    --success-foreground: 0 0% 100%;
+    --warning: var(--brand-yellow);
+    --warning-foreground: 0 0% 10%;
     --border: 240 5% 85%;
     --input: 240 5% 85%;
     --ring: var(--brand-accent);
@@ -76,9 +151,20 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
-    
-    --brand-accent: 221 83% 53%;
-    --brand-accent-foreground: 210 40% 98%;
+
+    --brand-accent: var(--brand-blue);
+    --brand-accent-foreground: 0 0% 100%;
+    /* Brand hues are identity — but lightness shifts up so they hold contrast
+       against the dark canvas (#09090B). */
+    --brand-blue: 217 100% 58%;
+    --brand-red: 6 100% 66%;
+    --brand-green: 134 61% 48%;
+    --brand-yellow: 45 100% 58%;
+
+    /* Luminous Space decorative palette (mesh only, never the UI accent) */
+    --brand-chartreuse: 73 100% 66%;
+    --brand-cobalt: 235 100% 68%;
+    --brand-lavender: 269 96% 76%;
 
     --primary: var(--brand-accent);
     --primary-foreground: var(--brand-accent-foreground);
@@ -89,8 +175,35 @@
     --accent: var(--brand-accent);
     --accent-foreground: var(--brand-accent-foreground);
     --destructive: 0 84.2% 70%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
     --border: 240 10% 15%;
     --input: 240 10% 15%;
     --ring: var(--brand-accent);
   }
+}
+
+/* View Transition Wave Animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
 }

@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2 } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
@@ -67,9 +67,9 @@ export function CreateEventModal({ clientId, children, onSuccess }: CreateEventM
       reset()
       setOpen(false)
       if (onSuccess) onSuccess()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating event:', err)
-      toast.error(`Gagal membuat event: ${err.message}`)
+      toast.error(`Gagal membuat event: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -77,7 +77,7 @@ export function CreateEventModal({ clientId, children, onSuccess }: CreateEventM
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger nativeButton={false} render={<span className="inline-flex" />}>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -118,7 +118,7 @@ export function CreateEventModal({ clientId, children, onSuccess }: CreateEventM
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                   Menyimpan...
                 </>
               ) : (

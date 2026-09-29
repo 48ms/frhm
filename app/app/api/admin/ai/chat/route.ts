@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin, isResponse, resolveProvider, loadSkillMd, loadClientFiles } from '@/lib/ai/server'
+import {
+  loadGroundTruths,
+  loadSkillGuardrails,
+  groundTruthsBlock,
+  guardrailsBlock,
+  VERIFY_QUARTERLY_RULE,
+  hasVolatileFacts,
+} from '@/lib/ai/prompt-context'
 import { chat, chatJson, chatWithToolEnvelope, type ChatMessage } from '@/lib/ai/providers'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import {
@@ -56,12 +64,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Skill ${skill_id} tidak punya SKILL.md` }, { status: 400 })
   }
 
+  // Load guardrails for this skill + the repo's AGENTS.md ground truths (shared helper so all
+  // AI routes inject the same rules instead of each building their own block).
+  const guardrails = await loadSkillGuardrails(supabase, skill_id)
+  const truths = await loadGroundTruths(supabase)
+
+  const guardrailsBlockText = guardrailsBlock(guardrails)
+
   const { data: skillRow } = await supabase
     .from('skills')
-    .select('writes_files, allowed_tools')
+    .select('writes_files, allowed_tools, stage')
     .eq('id', skill_id)
     .maybeSingle()
   const writes: string[] = Array.isArray(skillRow?.writes_files) ? skillRow.writes_files : []
+  const stage: string | null = (skillRow?.stage as string | null) ?? null
 
   // Does this skill declare bridge tools? The repo's scheduling-and-queue says
   // `allowed-tools: WoopSocial MCP (...)` — that declaration is what unlocks live publish tools.
@@ -107,17 +123,18 @@ export async function POST(request: NextRequest) {
       : '',
     '',
     'BEHAVIOUR:',
-    '- You already know the client above. Never ask "what is the client name" or "what do you want".',
-    '- Begin the skill\'s first step immediately.',
-    '- Ask in small batches of 2-4 questions, never a rigid form.',
-    '- Lead with what you already know; invite confirm-or-correct.',
-    '- Push vague answers toward specifics.',
-    '- Keep each message short — a few lines, not an essay.',
+    '- You already know the client above. Never ask "what is the client name".',
+    '- DO NOT state your internal thinking, inference, or process. Speak directly to the client.',
+    '- Begin with a professional opening that sets context.',
+    '- As soon as you have enough info for ANY section, emit it in \"preview\" right now. Do not wait.',
+    '- Ask max 1-2 questions per turn. Focus on progress, not just gathering info.',
+    '- \"preview\" is a live draft the admin watches build up. Keep updating it every turn.',
+    '- Keep messages extremely short (max 2 sentences).',
     '',
     'OUTPUT FORMAT — CRITICAL: reply with ONE JSON object and NOTHING else.',
     'No markdown fence, no prose before or after, no <thinking> blocks.',
     'While still interviewing:',
-    '{"reply":"<your 2-4 questions or short summary>","done":false,"output":null}',
+    '{"reply":"<1-2 questions>","done":false,"output":null,"preview":{"title":"<section or doc name>","content":"<the draft markdown written so far, partial is fine>"}}',
     writes.length
       ? 'When finished, produce the workspace file:'
       : 'When finished, produce the work result — the actual deliverable of this skill, complete:',
@@ -132,6 +149,9 @@ export async function POST(request: NextRequest) {
       : 'The "content" must be the complete work, written out in full — every list item, every' +
         ' variant, every section the skill calls for. Never answer with a summary, a promise, or' +
         ' "let me know if you want me to write it". If you are still interviewing, done stays false.',
+    guardrailsBlockText,
+    groundTruthsBlock(truths),
+    VERIFY_QUARTERLY_RULE,
   ]
     .filter(Boolean)
     .join('\n')
@@ -281,6 +301,7 @@ export async function POST(request: NextRequest) {
       done: boolean
       file?: { path: string; content: string } | null
       output?: { title?: string; content: string } | null
+      preview?: { title?: string; content?: string } | null
     }>(provider, system, convo)
 
     if (out) {
@@ -293,6 +314,15 @@ export async function POST(request: NextRequest) {
           : rawFile && writes.length > 0
             ? { path: writes[0], content: String(rawFile.content) } // trust content, fix the path
             : null
+      // Display-only live draft. NEVER persisted — the artefact only lands in client_files when
+      // done:true, so an incomplete draft can never corrupt the workspace the repo skills read.
+      const preview =
+        !out.done && out.preview?.content && String(out.preview.content).trim().length > 0
+          ? {
+              title: String(out.preview.title ?? '').trim() || skill_id,
+              content: String(out.preview.content),
+            }
+          : null
       // Non-Foundation skills return their work here. A title is required for the Hasil tab to be
       // readable, so fall back to the skill's own name rather than storing an untitled blob.
       const output =
@@ -302,8 +332,50 @@ export async function POST(request: NextRequest) {
               content: String(out.output.content),
             }
           : null
-      if (reply || file || output) {
-        return NextResponse.json({ reply, done: Boolean(out.done), file, output })
+      if (reply || file || output || preview) {
+        // Gap #3 — persist server-side, not just in the response.
+        // The client used to be the only thing that saved the artefact, so a closed tab lost the
+        // work. The repo's own rule is that the artefact is the deliverable; it must exist the
+        // moment the skill finishes. Writes are idempotent (upsert on the same key the files route
+        // uses), so a client-side save that follows is harmless.
+        if (file) {
+          const { error: saveErr } = await supabase.from('client_files').upsert(
+            {
+              client_id,
+              path: file.path,
+              content: file.content,
+              updated_at: new Date().toISOString(),
+              needs_verification: hasVolatileFacts(file.content),
+            },
+            { onConflict: 'client_id,path' }
+          )
+          if (saveErr) {
+            return NextResponse.json(
+              { error: `Gagal menyimpan ${file.path}: ${saveErr.message}` },
+              { status: 500 }
+            )
+          }
+        }
+        if (output) {
+          await supabase.from('skill_outputs').insert({
+            client_id,
+            skill_id,
+            stage: stage ?? null,
+            title: output.title,
+            content: output.content,
+            status: 'draft',
+            needs_verification: hasVolatileFacts(output.content),
+          })
+        }
+        // The skill has done its job — reflect that in the client's skill list so the workspace
+        // shows it as complete rather than pending.
+        if (out.done && (file || output)) {
+          await supabase.from('client_skills').upsert(
+            { client_id, skill_id, status: 'selesai' },
+            { onConflict: 'client_id,skill_id' }
+          )
+        }
+        return NextResponse.json({ reply, done: Boolean(out.done), file, output, preview })
       }
     }
 
@@ -312,7 +384,7 @@ export async function POST(request: NextRequest) {
     if (!raw) {
       return NextResponse.json({ error: 'AI mengembalikan jawaban kosong' }, { status: 502 })
     }
-    return NextResponse.json({ reply: raw, done: false, file: null, output: null })
+    return NextResponse.json({ reply: raw, done: false, file: null, output: null, preview: null })
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : 'Gagal memanggil AI' },
@@ -320,3 +392,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

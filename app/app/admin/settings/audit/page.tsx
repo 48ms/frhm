@@ -97,12 +97,6 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 md:p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Audit Log</h1>
-        <p className="text-muted-foreground text-sm">
-          Jejak tindakan penting: publish, kirim, persetujuan, revisi, dan reset password.
-        </p>
-      </div>
       <AuditLogList
         rows={(rows ?? []) as AuditRow[]}
         clientNames={Object.fromEntries(nameById)}

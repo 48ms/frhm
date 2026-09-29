@@ -6,6 +6,14 @@ import { logAiUsage } from '@/lib/ai/usage'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { loadClientFiles } from '@/lib/ai/server'
+import {
+  loadGroundTruths,
+  loadSkillGuardrailsBatch,
+  groundTruthsBlock,
+  VERIFY_QUARTERLY_RULE,
+  hasVolatileFacts,
+} from '@/lib/ai/prompt-context'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -55,7 +63,12 @@ function brandBlock(name: string, bp: Record<string, unknown>): string {
   ].join('\n')
 }
 
-function buildSystemPrompt(skillMd: string, brand: string): string {
+function buildSystemPrompt(
+  skillMd: string,
+  workspace: string,
+  guardrailsBlockText: string = '',
+  truthsBlock: string = ''
+): string {
   return [
     'You are operating under the following skill. Follow its instructions exactly.',
     'The skill text below is the authoritative specification — do not summarise it, apply it.',
@@ -64,9 +77,12 @@ function buildSystemPrompt(skillMd: string, brand: string): string {
     skillMd,
     '--- END SKILL ---',
     '',
-    'The brand you are working for (always write in this brand voice):',
+    'The client workspace you are working from (always write in this brand voice):',
     '',
-    brand,
+    workspace,
+    guardrailsBlockText,
+    truthsBlock,
+    VERIFY_QUARTERLY_RULE,
   ].join('\n')
 }
 
@@ -116,17 +132,22 @@ export async function POST(
     )
   }
 
-  // Brand context — batch fetch client + brand file
+  // The client's WHOLE workspace, not just brand-profile.md. Same reason as the run route: a
+  // create-stage skill in a batch still needs voice.md and the pillars, and the chat route already
+  // serves all of them. One source of truth across routes.
   const { data: client } = await supabase
     .from('clients').select('name, brand_profile').eq('id', clientId).single()
   if (!client) return NextResponse.json({ error: 'Client tidak ditemukan' }, { status: 404 })
 
-  const { data: profileFile } = await supabase
-    .from('client_files').select('content')
-    .eq('client_id', clientId).eq('path', 'brand-profile.md').maybeSingle()
-  const brand = profileFile?.content?.trim()
-    ? profileFile.content
+  const files = await loadClientFiles(supabase, clientId)
+  const fileNames = Object.keys(files)
+  const workspace = fileNames.length
+    ? fileNames.map((f) => `### ${f}\n\n${files[f]}`).join('\n\n')
     : brandBlock(client.name, (client.brand_profile ?? {}) as Record<string, unknown>)
+
+  // The AGENTS.md ground truths — identical for every skill in the batch.
+  const truths = await loadGroundTruths(supabase)
+  const truthsBlock = groundTruthsBlock(truths)
 
   // Look up stages once — denormalised into skill_outputs so the Hasil tab can group without a join
   const { data: skillRows } = await supabase
@@ -140,6 +161,10 @@ export async function POST(
     .eq('path', 'SKILL.md')
   const skillFilesMap = new Map((skillFiles ?? []).map(f => [f.skill_id, f.content]))
 
+  // Pre-fetch guardrails for all skills, then render each block with the same renderer the other
+  // routes use — so a guardrail block means the same thing everywhere.
+  const guardrailsBySkill = await loadSkillGuardrailsBatch(supabase, skillIds)
+
   // The batch brief
   const brief: string = (body?.brief ?? '').trim()
 
@@ -152,7 +177,12 @@ export async function POST(
         return { skill_id: skillId, ok: false, error: 'SKILL.md tidak ditemukan', latencyMs: 0, promptTokens: 0, completionTokens: 0 }
       }
 
-      const system = buildSystemPrompt(skillContent, brand)
+      const system = buildSystemPrompt(
+        skillContent,
+        workspace,
+        guardrailsBySkill.get(skillId) ?? '',
+        truthsBlock
+      )
       const userMsg = brief || 'Jalankan skill ini untuk brand di atas dan berikan hasilnya.'
 
       let text = ''
@@ -211,6 +241,7 @@ export async function POST(
       title: skillMeta?.name ?? skill_id,
       content: output,
       status: 'draft',
+      needs_verification: hasVolatileFacts(output),
     })
 
     // Mark the skill as done

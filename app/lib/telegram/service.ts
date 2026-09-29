@@ -419,3 +419,53 @@ export async function notifyZeroMetricsEscalation(params: {
     onBlocked: options?.onBlocked,
   })
 }
+
+/**
+ * Notifikasi pengingat H-1 / hari H untuk konten yang akan tayang.
+ */
+export async function notifyClientReminder(params: {
+  clientChatId: string
+  clientId: string
+  clientName: string
+  title: string
+  platform: string
+  scheduledAt: string
+  campaignTag?: string
+}, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const calendarUrl = `${appUrl}/app/client/calendar`
+
+  const dateStr = new Date(params.scheduledAt).toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+
+  const lines = [
+    `🔔 <b>Pengingat Jadwal Tayang</b>`,
+    ``,
+    `Halo tim <b>${params.clientName}</b>,`,
+    `Terdapat postingan yang dijadwalkan tayang pada <b>${dateStr}</b>:`,
+    ``,
+    `<b>Judul:</b> ${params.title}`,
+    `<b>Platform:</b> ${params.platform}`,
+    params.campaignTag ? `<b>Kampanye:</b> ${params.campaignTag}` : '',
+    ``,
+    `Silakan pastikan aset final sudah siap.`,
+  ].filter(Boolean).join('\n')
+
+  const buttons: TelegramButton[][] = [
+    [{ text: 'Lihat Kalender', url: calendarUrl }],
+  ]
+
+  return sendTelegramMessage({
+    chatId: params.clientChatId,
+    text: lines,
+    buttons,
+    recipientType: 'client',
+    recipientId: params.clientId,
+    eventType: 'publish_reminder',
+    onBlocked: options?.onBlocked,
+  })
+}

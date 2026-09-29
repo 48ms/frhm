@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
-import { TrendingUpIcon, MousePointerClickIcon, TargetIcon, DollarSignIcon, ReceiptIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel } from '@/lib/supabase/client'
 
 export function ROIDashboardBoard({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true)
@@ -170,7 +170,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card className="bg-brand-accent/5 border-transparent">
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2 font-medium text-brand-accent">
-              <DollarSignIcon className="size-4" />
+              <Icons.banknote className="size-4" />
               Total Pengeluaran
             </CardDescription>
           </CardHeader>
@@ -185,7 +185,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2 font-medium">
-              <TrendingUpIcon className="size-4 text-muted-foreground" />
+              <Icons.trendingUp className="size-4 text-muted-foreground" />
               Total Reach
             </CardDescription>
           </CardHeader>
@@ -200,7 +200,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2 font-medium">
-              <MousePointerClickIcon className="size-4 text-muted-foreground" />
+              <Icons.mousePointer className="size-4 text-muted-foreground" />
               Total Clicks (CPC)
             </CardDescription>
           </CardHeader>
@@ -217,7 +217,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2 font-medium">
-              <TargetIcon className="size-4 text-muted-foreground" />
+              <Icons.activity className="size-4 text-muted-foreground" />
               Conversions (CPA)
             </CardDescription>
           </CardHeader>
@@ -236,7 +236,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <ReceiptIcon className="size-4" /> Distribusi Pengeluaran
+              <Icons.forms className="size-4" /> Distribusi Pengeluaran
             </CardTitle>
           </CardHeader>
           <CardContent className="h-72">
@@ -264,7 +264,7 @@ export function ROIDashboardBoard({ clientId }: { clientId: string }) {
         <Card className="bg-zinc-50/50 dark:bg-zinc-900/20 border-dashed">
           <CardContent className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4">
             <div className="size-16 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent">
-              <TrendingUpIcon className="size-8" />
+              <Icons.trendingUp className="size-8" />
             </div>
             <div>
               <h4 className="font-semibold text-lg">Trendline ROAS Segera Hadir</h4>

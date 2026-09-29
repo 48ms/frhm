@@ -9,8 +9,8 @@ import {
   isSameMonth, isSameDay, addMonths, subMonths, parseISO, isToday
 } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react'
-import { PlatformIcon } from '@/components/calendar/calendar-view'
+import { Icons } from '@/components/icons'
+import { PlatformIcon } from '@/components/calendar/platform-icon'
 import type { RealtimeChannel } from '@/lib/supabase/client'
 
 type PlatformPost = {
@@ -51,7 +51,7 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
       setLoading(true)
       try {
         const { data: campaigns } = await supabase
-          .from('campaigns')
+          .from('content_campaigns')
           .select('id')
           .eq('client_id', clientId)
           
@@ -147,7 +147,9 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
 
       days.push(
         <div 
-          key={day.toString()} 
+          key={format(day, 'yyyy-MM-dd')} 
+          role="gridcell"
+          aria-label={`${format(day, 'd MMMM yyyy', { locale: id })}${dayPosts.length > 0 ? `, ${dayPosts.length} post` : ''}`}
           className={`min-h-[120px] p-2 border-r border-b border-border transition-colors ${
             !isSameMonth(day, monthStart) 
               ? 'bg-muted/30 text-muted-foreground' 
@@ -163,14 +165,16 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
             )}
           </div>
           
-          <div className="mt-2 space-y-1.5 flex flex-col">
+          <div className="mt-2 space-y-1.5 flex flex-col" role="list" aria-label={`Konten tanggal ${format(day, 'd MMMM yyyy', { locale: id })}`}>
             {dayPosts.map(post => (
               <div 
                 key={post.id} 
-                className={`text-xs p-1.5 rounded-md border flex items-start gap-1.5 cursor-pointer hover:opacity-80 transition-opacity shadow-sm ${getPlatformColor(post.platform)}`}
+                role="listitem"
+                aria-label={`${post.asset.title} di ${post.platform}, status ${post.status}`}
+                className={`text-xs p-1.5 rounded-md border flex items-start gap-1.5 shadow-sm ${getPlatformColor(post.platform)}`}
                 title={post.asset.title}
               >
-                <div className="mt-0.5 opacity-80">{getPlatformIcon(post.platform)}</div>
+                <div className="mt-0.5 opacity-80" aria-hidden="true">{getPlatformIcon(post.platform)}</div>
                 <div className="flex-1 truncate font-medium">
                   {post.asset.title}
                 </div>
@@ -182,7 +186,7 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
       day = addDays(day, 1)
     }
     rows.push(
-      <div className="grid grid-cols-7" key={day.toString()}>
+      <div className="grid grid-cols-7" role="row" key={format(startDate, 'yyyy-MM-dd') + '-row-' + rows.length}>
         {days}
       </div>
     )
@@ -196,7 +200,7 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
       <CardHeader className="flex flex-col sm:flex-row items-center justify-between space-y-2 pb-6 border-b">
         <div>
           <CardTitle className="text-xl flex items-center gap-2">
-            <CalendarIcon className="size-5 text-primary" />
+            <Icons.calendar className="size-5 text-primary" />
             Omni-Channel Calendar
           </CardTitle>
           <CardDescription>
@@ -207,13 +211,13 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
           <Button variant="outline" size="sm" onClick={goToToday}>Hari Ini</Button>
           <div className="flex items-center space-x-1 ml-2">
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={prevMonth}>
-              <ChevronLeft className="size-4" />
+              <Icons.chevronLeft className="size-4" />
             </Button>
             <div className="font-semibold min-w-[140px] text-center">
               {format(currentDate, 'MMMM yyyy', { locale: id })}
             </div>
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={nextMonth}>
-              <ChevronRight className="size-4" />
+              <Icons.chevronRight className="size-4" />
             </Button>
           </div>
         </div>
@@ -221,15 +225,15 @@ export function OmniCalendarBoard({ clientId }: { clientId: string }) {
       
       <CardContent className="p-0">
         {loading ? (
-          <div className="h-[600px] flex items-center justify-center text-muted-foreground">
+          <div className="h-[600px] flex items-center justify-center text-muted-foreground" role="status" aria-live="polite">
             Memuat kalender...
           </div>
         ) : (
-          <div className="w-full">
+          <div className="w-full" role="grid" aria-label="Kalender konten lintas platform">
             {/* Calendar Header */}
-            <div className="grid grid-cols-7 border-b border-border bg-muted/40">
+            <div className="grid grid-cols-7 border-b border-border bg-muted/40" role="row">
               {weekDays.map(day => (
-                <div key={day} className="py-3 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                <div key={day} role="columnheader" className="py-3 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
                   {day}
                 </div>
               ))}

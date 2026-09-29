@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2Icon, FileIcon, TrashIcon, DownloadIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 
 export function BrandAssetHub({ clientId }: { clientId: string }) {
   const [assets, setAssets] = useState<{ id: string; file_path: string; category: string }[]>([])
@@ -107,17 +107,17 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
             <Input type="file" onChange={handleFileUpload} disabled={uploading} className="w-full" />
-            {uploading && <Loader2Icon className="animate-spin size-4 text-muted-foreground" />}
+            {uploading && <Icons.spinner className="animate-spin size-4 text-muted-foreground" />}
           </div>
           
           <div className="space-y-2 mt-4">
             {loading ? (
-              <div className="flex justify-center p-4"><Loader2Icon className="animate-spin size-4" /></div>
+              <div className="flex justify-center p-4"><Icons.spinner className="animate-spin size-4" /></div>
             ) : (
               assets.filter(a => a.category !== 'guidelines').map((asset) => (
                 <div key={asset.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3 overflow-hidden">
-                    <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+                    <Icons.page className="size-4 shrink-0 text-muted-foreground" />
                     <span className="text-sm truncate">{asset.file_path.split('/').pop()}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -125,10 +125,10 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
                       const url = await getFileUrl(asset.file_path)
                       if (url) window.open(url, '_blank')
                     }}>
-                      <DownloadIcon className="size-4" />
+                      <Icons.download className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(asset.id)}>
-                      <TrashIcon className="size-4 text-destructive" />
+                      <Icons.trash className="size-4 text-destructive" />
                     </Button>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export function BrandAssetHub({ clientId }: { clientId: string }) {
             />
           </div>
           <Button onClick={handleSaveGuidelines} disabled={savingGuide}>
-            {savingGuide ? <Loader2Icon className="animate-spin mr-2 size-4" /> : null}
+            {savingGuide ? <Icons.spinner className="animate-spin mr-2 size-4" /> : null}
             Simpan Guidelines
           </Button>
         </CardContent>

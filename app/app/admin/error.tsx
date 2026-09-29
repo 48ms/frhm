@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import Link from 'next/link'
 
 /**
@@ -39,7 +39,7 @@ export default function AdminError({
     <div className="flex min-h-[60vh] items-center justify-center p-6">
       <div className="flex max-w-md flex-col items-center gap-4 text-center">
         <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-          <AlertTriangle className="size-6" />
+          <Icons.warning className="size-6" />
         </div>
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">Terjadi kesalahan di panel admin</h2>
@@ -55,13 +55,13 @@ export default function AdminError({
             onClick={reset}
             className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            <RotateCcw className="size-4" /> Coba lagi
+            <Icons.refresh className="size-4" /> Coba lagi
           </button>
           <Link
             href="/admin/dashboard"
             className="inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-muted"
           >
-            <Home className="size-4" /> Dashboard
+            <Icons.home className="size-4" /> Dashboard
           </Link>
         </div>
       </div>

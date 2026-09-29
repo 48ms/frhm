@@ -8,11 +8,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { StatusBadge, TypeBadge } from '@/components/deliverable/status-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { FileText, Link as LinkIcon, MessageSquareIcon, ArrowRightIcon, DownloadIcon, Loader2Icon } from 'lucide-react'
+import { PageContainer } from '@/components/layout/page-container'
+import { EmptyState, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty-state'
+import { Icons } from '@/components/icons'
 import type { Deliverable } from '@/lib/supabase/types'
 
 interface DeliverableWithClient extends Deliverable {
   clients?: { name: string; contact_email: string | null } | null
+}
+
+const deliverablesInfoContent = {
+  title: 'Panduan Deliverable',
+  sections: [
+    {
+      title: 'Tinjau Dokumen & Materi',
+      description:
+        'Klik pada kartu deliverable untuk melihat detail draft tulisan, link dokumen eksternal, atau materi kreatif yang disiapkan tim.',
+    },
+    {
+      title: 'Status & Diskusi',
+      description:
+        'Anda dapat memberikan komentar atau catatan revisi langsung pada masing-masing deliverable.',
+    },
+  ],
 }
 
 export default function ClientDeliverablesPage() {
@@ -88,96 +106,105 @@ export default function ClientDeliverablesPage() {
   useEffect(() => { loadDeliverables() }, [loadDeliverables])
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Deliverable Saya</h1>
-          <p className="text-sm text-muted-foreground">Semua deliverable dari tim untuk kamu review</p>
-        </div>
-        {deliverables.length > 0 && (
-          <Button variant="outline" onClick={exportAll} disabled={exporting} className="h-11 sm:h-9">
-            {exporting
-              ? <Loader2Icon className="size-4 animate-spin" />
-              : <DownloadIcon className="size-4" />}
+    <PageContainer
+      pageTitle="Deliverable Saya"
+      pageDescription="Semua deliverable dari tim Frhm untuk Anda review dan evaluasi."
+      infoContent={deliverablesInfoContent}
+      pageHeaderAction={
+        deliverables.length > 0 ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportAll}
+            disabled={exporting}
+            isLoading={exporting}
+            className="h-10 sm:h-9"
+          >
+            {!exporting && <Icons.download className="mr-2 size-4" />}
             Ekspor Semua
           </Button>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
-              <CardContent>
-                <Skeleton className="mb-2 h-4 w-1/2" />
-                <Skeleton className="h-4 w-1/4" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : deliverables.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
-            <FileText className="size-8" />
-            <p>Belum ada deliverable. Deliverable dari admin akan muncul di sini setelah dikirim.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {deliverables.map((d) => (
-            <Link key={d.id} href={`/client/deliverables/${d.id}`} className="block">
-              <Card className="transition-colors hover:bg-muted/50">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
-                        {d.title}
-                        <TypeBadge type={d.type} />
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        Diperbarui{' '}
-                        {new Date(d.updated_at).toLocaleDateString('id-ID', {
-                          day: 'numeric', month: 'short', year: 'numeric',
-                        })}
-                      </CardDescription>
-                    </div>
-                    <StatusBadge status={d.status} />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {d.content_md && (
-                    <p className="line-clamp-3 font-mono text-sm text-muted-foreground">{d.content_md}</p>
-                  )}
-                  {d.external_link && (
-                    <a
-                      href={d.external_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex min-h-11 items-center gap-2 text-sm text-primary hover:underline lg:min-h-0"
-                    >
-                      <LinkIcon className="size-4" />
-                      Buka link
-                    </a>
-                  )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    {(commentCounts[d.id] ?? 0) > 0 && (
-                      <span className="inline-flex items-center gap-1">
-                        <MessageSquareIcon className="size-3.5" />
-                        {commentCounts[d.id]} komentar
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1 text-primary">
-                      Lihat detail <ArrowRightIcon className="size-3.5" />
-                    </span>
-                  </div>
+        ) : undefined
+      }
+    >
+      <div className="flex flex-col gap-6">
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+                <CardContent>
+                  <Skeleton className="mb-2 h-4 w-1/2" />
+                  <Skeleton className="h-4 w-1/4" />
                 </CardContent>
               </Card>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        ) : deliverables.length === 0 ? (
+          <EmptyState className="my-8">
+            <EmptyMedia variant="icon">
+              <Icons.post className="size-6 text-muted-foreground" />
+            </EmptyMedia>
+            <EmptyTitle>Belum ada deliverable</EmptyTitle>
+            <EmptyDescription>
+              Deliverable dari tim Frhm akan muncul di sini segera setelah dikirim untuk review.
+            </EmptyDescription>
+          </EmptyState>
+        ) : (
+          <div className="space-y-4">
+            {deliverables.map((d) => (
+              <Link key={d.id} href={`/client/deliverables/${d.id}`} className="block">
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
+                          {d.title}
+                          <TypeBadge type={d.type} />
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Diperbarui{' '}
+                          {new Date(d.updated_at).toLocaleDateString('id-ID', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                          })}
+                        </CardDescription>
+                      </div>
+                      <StatusBadge status={d.status} />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {d.content_md && (
+                      <p className="line-clamp-3 font-mono text-sm text-muted-foreground">{d.content_md}</p>
+                    )}
+                    {d.external_link && (
+                      <a
+                        href={d.external_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-h-11 items-center gap-2 text-sm text-primary hover:underline lg:min-h-0"
+                      >
+                        <Icons.externalLink className="size-4" />
+                        Buka link
+                      </a>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {(commentCounts[d.id] ?? 0) > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <Icons.chat className="size-3.5" />
+                          {commentCounts[d.id]} komentar
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1 text-primary">
+                        Lihat detail <Icons.arrowRight className="size-3.5" />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </PageContainer>
   )
 }

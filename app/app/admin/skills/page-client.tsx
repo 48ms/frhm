@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { LayersIcon, BookOpenIcon, ChevronRightIcon } from 'lucide-react'
+import { Icons } from '@/components/icons'
 import { motion, AnimatePresence } from "motion/react"
 
 export function AdminSkillsClient({
@@ -9,8 +9,8 @@ export function AdminSkillsClient({
   skillsByPackObj,
   totalSkills,
 }: {
-  packs: any[]
-  skillsByPackObj: Record<string, any[]>
+  packs: { id: string; name: string; description: string | null; category: string | null; sort_order: number }[]
+  skillsByPackObj: Record<string, { id: string; name: string }[]>
   totalSkills: number
 }) {
   const totalPacks = packs.length
@@ -36,7 +36,7 @@ export function AdminSkillsClient({
           className="border border-dashed border-neutral-200/50 dark:border-neutral-800/50 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-xl rounded-3xl shadow-sm"
         >
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-neutral-500">
-            <LayersIcon className="size-10 text-neutral-300 dark:text-neutral-700" />
+            <Icons.layers2 className="size-10 text-neutral-300 dark:text-neutral-700" />
             <p className="text-center font-medium">Belum ada paket skill.</p>
             <p className="text-xs">Buat paket pertama lewat database atau CLI.</p>
           </div>
@@ -58,10 +58,10 @@ export function AdminSkillsClient({
                     <div className="h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50 rounded-3xl p-5 sm:p-6 transition-all duration-300 hover:shadow-lg hover:border-neutral-300 dark:hover:border-neutral-700 hover:-translate-y-0.5">
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                          <LayersIcon className="size-6" />
+                          <Icons.layers2 className="size-6" />
                         </div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800/50 text-xs font-medium text-neutral-600 dark:text-neutral-300 border border-neutral-200/50 dark:border-neutral-700/50 shadow-sm">
-                          <BookOpenIcon className="size-3.5" />
+                          <Icons.bookOpen className="size-3.5" />
                           {list.length} skill
                         </div>
                       </div>
@@ -70,7 +70,7 @@ export function AdminSkillsClient({
                       
                       <div className="mt-6 flex items-center gap-2 text-sm font-medium text-primary">
                         <span>Lihat detail</span>
-                        <ChevronRightIcon className="size-4 ml-auto group-hover:translate-x-1 transition-transform" />
+                        <Icons.chevronRight className="size-4 ml-auto group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </Link>

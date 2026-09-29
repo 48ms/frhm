@@ -1,15 +1,31 @@
 import { Suspense } from 'react'
-import DeliverablesPage from './page-client'
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
+import { getQueryClient } from '@/lib/query-client'
+import { createClient } from '@/lib/supabase/server'
+import { deliverablesListQueryOptions } from '@/features/deliverables/api/queries'
+import { DeliverableListing } from '@/features/deliverables/components/deliverable-listing'
+import { PageContainer } from '@/components/layout/page-container'
+import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton'
 
-export default function DeliverablesPageWrapper() {
+export default async function DeliverablesPage() {
+  const queryClient = getQueryClient()
+  const supabase = await createClient()
+
+  // Prefetch with the same params the client will use on first load
+  // (nuqs defaults page=1, pageSize=10) so the dehydrated cache key matches
+  // the client's useSuspenseQuery lookup — prevents a hydration mismatch.
+  void queryClient.prefetchQuery(deliverablesListQueryOptions({ page: 1, pageSize: 10 }, supabase))
+
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-20" role="status" aria-label="Memuat daftar deliverable">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true" />
-        <span className="sr-only">Memuat daftar deliverable...</span>
-      </div>
-    }>
-      <DeliverablesPage />
-    </Suspense>
+    <PageContainer
+      pageTitle="Deliverables"
+      pageDescription="Daftar deliverable yang sedang dikerjakan untuk setiap klien"
+    >
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <Suspense fallback={<DataTableSkeleton columnCount={4} rowCount={8} />}>
+          <DeliverableListing />
+        </Suspense>
+      </HydrationBoundary>
+    </PageContainer>
   )
 }
