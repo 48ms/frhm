@@ -1,4 +1,3 @@
-import { PageContainer } from "@/components/layout/page-container"
 import { DashboardStitchHero } from "@/components/dashboard-stitch/hero"
 import { DashboardStitchKpis } from "@/components/dashboard-stitch/kpi-grid"
 import { DashboardStitchChart } from "@/components/dashboard-stitch/performance-chart"

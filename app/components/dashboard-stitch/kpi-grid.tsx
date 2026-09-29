@@ -2,49 +2,56 @@
 
 import React from "react"
 import { Icons } from "@/components/icons"
-
-const KPIS = [
-  {
-    label: "TOTAL REACH",
-    icon: "trendingUp" as const,
-    iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
-    value: "1.4M",
-    growth: "+14.2%",
-    caption: "vs previous 7 days for active client",
-  },
-  {
-    label: "SCHEDULED QUEUE",
-    icon: "schedule" as const,
-    iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
-    value: "3 Posts",
-    growth: null,
-    caption: "Ready across connected channels",
-  },
-  {
-    label: "AVG. ENGAGEMENT",
-    icon: "thumb_up" as const,
-    iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
-    value: "5.8%",
-    growth: "+0.9%",
-    caption: "High-velocity viral cohort benchmark",
-  },
-  {
-    label: "ACTIVE CAMPAIGNS",
-    icon: "bolt" as const,
-    iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
-    value: "7 Live",
-    growth: null,
-    caption: "Summer Drop • Brand Collab • B2B",
-  },
-]
+import { useActiveDashboard } from "./dashboard-data"
 
 export function DashboardStitchKpis() {
+  const { client, profile } = useActiveDashboard()
+
+  const kpis = [
+    {
+      label: "TOTAL REACH",
+      icon: "trendingUp" as const,
+      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      value: profile.metrics[0].value,
+      growth: profile.metrics[0].delta,
+      growthUp: profile.metrics[0].trend === "up",
+      caption: `vs previous period · ${client.shortName}`,
+    },
+    {
+      label: "SCHEDULED QUEUE",
+      icon: "schedule" as const,
+      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      value: `${client.accounts.length + 1} Posts`,
+      growth: null,
+      growthUp: true,
+      caption: "Ready across connected channels",
+    },
+    {
+      label: "AVG. ENGAGEMENT",
+      icon: "thumb_up" as const,
+      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      value: profile.metrics[1].value,
+      growth: profile.metrics[1].delta,
+      growthUp: profile.metrics[1].trend === "up",
+      caption: "High-velocity viral cohort benchmark",
+    },
+    {
+      label: "CONTENT VELOCITY",
+      icon: "bolt" as const,
+      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      value: profile.metrics[2].value,
+      growth: profile.metrics[2].delta,
+      growthUp: profile.metrics[2].trend === "up",
+      caption: `${profile.velocity}% campaign velocity`,
+    },
+  ]
+
   return (
     <section
       aria-label="Key Performance Indicators"
       className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
     >
-      {KPIS.map((kpi, idx) => {
+      {kpis.map((kpi, idx) => {
         const IconCmp = Icons[kpi.icon]
         return (
           <div
@@ -67,7 +74,13 @@ export function DashboardStitchKpis() {
                   {kpi.value}
                 </span>
                 {kpi.growth && (
-                  <span className="text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded-full">
+                  <span
+                    className={
+                      kpi.growthUp
+                        ? "text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded-full"
+                        : "text-xs text-rose-700 font-bold bg-rose-50 border border-rose-200/50 px-2 py-0.5 rounded-full"
+                    }
+                  >
                     {kpi.growth}
                   </span>
                 )}
