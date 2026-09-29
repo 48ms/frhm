@@ -10,169 +10,27 @@ import {
   CAMPAIGN_TYPE_META,
   type Campaign,
   type CampaignClient,
-  type CampaignType,
 } from "./campaign-data"
-
-function CampaignModal({
-  open,
-  onClose,
-  editing,
-}: {
-  open: boolean
-  onClose: () => void
-  editing?: Campaign | null
-}) {
-  const [name, setName] = useState(editing?.name ?? "")
-  const [type, setType] = useState<CampaignType>(editing?.type ?? "campaign")
-  const [clientId, setClientId] = useState(editing?.clientId ?? CAMPAIGN_CLIENTS[0].id)
-
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-md"
-        onClick={onClose}
-      />
-      <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] flex items-center justify-center">
-              <Icons.campaign className="size-[18px]" />
-            </div>
-            <div>
-              <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
-                {editing ? "Edit Campaign" : "Create Campaign"}
-              </h3>
-              <p className="text-[10px] text-[hsl(var(--admin-outline))]">
-                {editing ? "Update campaign details" : "Launch a new client campaign"}
-              </p>
-            </div>
-          </div>
-          <button
-            className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))] transition-all cursor-pointer"
-            onClick={onClose}
-          >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-              Campaign Name
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
-              placeholder="e.g. Summer Drop 2026"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-              Client
-            </label>
-            <select
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
-            >
-              {CAMPAIGN_CLIENTS.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1.5">
-              Campaign Type
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(CAMPAIGN_TYPE_META) as CampaignType[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setType(t)}
-                  className={cn(
-                    "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer",
-                    type === t
-                      ? "bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] border-transparent"
-                      : "border-[hsl(var(--admin-outline-variant))]/40 text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))]"
-                  )}
-                >
-                  {CAMPAIGN_TYPE_META[t].label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-                Start Date
-              </label>
-              <input
-                type="date"
-                defaultValue={editing?.startDate}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-                End Date
-              </label>
-              <input
-                type="date"
-                defaultValue={editing?.endDate}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-              Notes
-            </label>
-            <textarea
-              defaultValue={editing?.notes}
-              rows={2}
-              className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))] resize-none"
-              placeholder="Campaign objectives, target audience, key messages..."
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
-            className="px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer">
-            <Icons.check className="size-4" />
-            {editing ? "Save Changes" : "Create Campaign"}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { CampaignModal } from "./campaign-modal"
+import { CampaignDetailModal } from "./campaign-detail-modal"
 
 function CampaignCard({
   campaign,
   client,
+  onOpen,
   onEdit,
 }: {
   campaign: Campaign
   client: CampaignClient
+  onOpen: (c: Campaign) => void
   onEdit: (c: Campaign) => void
 }) {
   const meta = CAMPAIGN_TYPE_META[campaign.type]
   return (
-    <div className="p-5 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm hover:border-[hsl(var(--brand-accent))]/40 transition-all group">
+    <div
+      onClick={() => onOpen(campaign)}
+      className="p-5 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm hover:border-[hsl(var(--brand-accent))]/40 transition-all group cursor-pointer"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div
@@ -249,7 +107,10 @@ function CampaignCard({
         </span>
         <button
           className="inline-flex items-center gap-1 text-[10px] font-bold text-[hsl(var(--admin-cobalt))] hover:underline cursor-pointer"
-          onClick={() => onEdit(campaign)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit(campaign)
+          }}
         >
           <Icons.edit className="size-3" />
           Edit
@@ -272,8 +133,10 @@ export function CampaignsBoard() {
     "q",
     parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
   )
+  const [campaigns, setCampaigns] = useState<Campaign[]>(CAMPAIGNS)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
+  const [detail, setDetail] = useState<Campaign | null>(null)
 
   const clientById = useMemo(
     () => Object.fromEntries(CAMPAIGN_CLIENTS.map((c) => [c.id, c])),
@@ -282,19 +145,19 @@ export function CampaignsBoard() {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
-    return CAMPAIGNS.filter((c) => {
+    return campaigns.filter((c) => {
       if (activeClientId !== "all" && c.clientId !== activeClientId) return false
       if (typeFilter !== "all" && c.type !== typeFilter) return false
       if (q && !c.name.toLowerCase().includes(q) && !c.notes.toLowerCase().includes(q))
         return false
       return true
     })
-  }, [activeClientId, typeFilter, query])
+  }, [campaigns, activeClientId, typeFilter, query])
 
-  const totalLive = CAMPAIGNS.length
-  const totalPosts = CAMPAIGNS.reduce((n, c) => n + c.posts, 0)
+  const totalLive = campaigns.length
+  const totalPosts = campaigns.reduce((n, c) => n + c.posts, 0)
   const avgProgress = Math.round(
-    CAMPAIGNS.reduce((n, c) => n + c.progress, 0) / CAMPAIGNS.length
+    campaigns.reduce((n, c) => n + c.progress, 0) / campaigns.length
   )
 
   function openCreate() {
@@ -304,6 +167,12 @@ export function CampaignsBoard() {
   function openEdit(c: Campaign) {
     setEditing(c)
     setModalOpen(true)
+  }
+  function handleSave(c: Campaign) {
+    setCampaigns((prev) => {
+      const exists = prev.some((x) => x.id === c.id)
+      return exists ? prev.map((x) => (x.id === c.id ? c : x)) : [c, ...prev]
+    })
   }
 
   return (
@@ -422,7 +291,7 @@ export function CampaignsBoard() {
             Try a different filter or create a new campaign.
           </p>
           <button
-            className="mt-3 text-xs text-[hsl(var(--admin-cobalt))] font-bold hover:underline"
+            className="mt-3 text-xs text-[hsl(var(--admin-cobalt))] font-bold hover:underline cursor-pointer"
             onClick={openCreate}
           >
             + Create Campaign
@@ -435,6 +304,7 @@ export function CampaignsBoard() {
               key={c.id}
               campaign={c}
               client={clientById[c.clientId]}
+              onOpen={setDetail}
               onEdit={openEdit}
             />
           ))}
@@ -445,6 +315,14 @@ export function CampaignsBoard() {
         open={modalOpen}
         editing={editing}
         onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+      />
+      <CampaignDetailModal
+        campaign={detail}
+        client={detail ? clientById[detail.clientId] : undefined}
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        onEdit={openEdit}
       />
     </div>
   )
