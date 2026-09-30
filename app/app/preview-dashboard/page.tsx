@@ -16,10 +16,11 @@ export default async function PreviewShell() {
       <div aria-hidden className="admin-orb admin-orb-lime" />
       <div aria-hidden className="admin-orb admin-orb-cobalt" />
       <SidebarProvider>
-        <AppSidebar
-          clients={[{ id: "1", name: "Taraju" }, { id: "2", name: "Pawon" }]}
-          user={{ name: "Auditor", email: "audit@frhm.com", avatar: "" }}
-        />
+        {/* nuqs uses useSearchParams; a Suspense boundary lets static prerender
+            bail out cleanly instead of throwing a prerender error. */}
+        <Suspense fallback={null}>
+          <AppSidebar user={{ name: "Auditor", email: "audit@frhm.com", avatar: "" }} />
+        </Suspense>
         <SidebarInset className="md:pl-64">
           <AdminHeader userName="Auditor" />
           <Suspense fallback={null}>{dashboard}</Suspense>

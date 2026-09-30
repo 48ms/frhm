@@ -133,11 +133,11 @@ export function CampaignsBoard() {
     "q",
     parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
   )
-  const { campaigns, addCampaign, updateCampaign } = useAppStore((s) => ({
-    campaigns: s.campaigns,
-    addCampaign: s.addCampaign,
-    updateCampaign: s.updateCampaign,
-  }))
+  // Zustand v5: one selector per value. Returning an object literal from the
+  // selector mints a new reference every render and loops useSyncExternalStore.
+  const campaigns = useAppStore((s) => s.campaigns)
+  const addCampaign = useAppStore((s) => s.addCampaign)
+  const updateCampaign = useAppStore((s) => s.updateCampaign)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)

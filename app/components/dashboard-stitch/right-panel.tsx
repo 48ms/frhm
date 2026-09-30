@@ -24,8 +24,13 @@ function platformIcon(name: string) {
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, setClientId, profile } = useActiveDashboard()
-  const accounts = useAppStore((s) => s.accountsByClient(client.id))
-  const clients = useAppStore((s) => s.clientsWithAccounts())
+  // Zustand v5: select the stable function reference, then call it during render.
+  // Calling it inside the selector returns a new array each time and trips
+  // useSyncExternalStore into an infinite update loop.
+  const accountsByClient = useAppStore((s) => s.accountsByClient)
+  const clientsWithAccounts = useAppStore((s) => s.clientsWithAccounts)
+  const accounts = accountsByClient(client.id)
+  const clients = clientsWithAccounts()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)

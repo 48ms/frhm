@@ -3,10 +3,12 @@
 import * as React from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useQueryState, parseAsString } from "nuqs"
 import { NavUser } from "@/components/nav-user"
 import { PostDialog } from "@/components/calendar/post-dialog"
 import { Icons } from "@/components/icons"
 import { isActiveFor } from "@/hooks/use-nav"
+import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
 
 export type AppUser = {
   name: string
@@ -36,7 +38,7 @@ function initials(name: string) {
 
 export function AppSidebar({
   user,
-  clients = [],
+  clients,
   ...props
 }: React.ComponentProps<"aside"> & {
   user: AppUser
@@ -44,20 +46,32 @@ export function AppSidebar({
 }) {
   const pathname = usePathname()
   const [clientsOpen, setClientsOpen] = React.useState(false)
-  const [activeClientId, setActiveClientId] = React.useState<string | null>(null)
   const [postDialogOpen, setPostDialogOpen] = React.useState(false)
 
-  // Default active client = first client (prototype: activeClientId = client-shell)
-  const activeClient = React.useMemo(() => {
-    if (clients.length === 0) return null
-    return clients.find((c) => c.id === activeClientId) ?? clients[0]
-  }, [clients, activeClientId])
+  // URL state (nuqs, Rule #4): the active client is deep-linkable and survives
+  // navigation/refresh. Falls back to the mock repository until Supabase is wired.
+  const [activeClientId, setActiveClientId] = useQueryState(
+    "clientId",
+    parseAsString.withDefault(SOCIAL_CLIENTS[0].id).withOptions({ shallow: false })
+  )
 
-  // If URL targets a client, prefer that
+  // Prefer server-provided clients (real DB), fall back to the mock repository so
+  // the switcher still works while Supabase clients are unavailable.
+  const options: ClientOption[] = React.useMemo(() => {
+    if (clients && clients.length > 0) return clients
+    return SOCIAL_CLIENTS.map((c) => ({ id: c.id, name: c.name }))
+  }, [clients])
+
+  const activeClient = React.useMemo(() => {
+    if (options.length === 0) return null
+    return options.find((c) => c.id === activeClientId) ?? options[0]
+  }, [options, activeClientId])
+
+  // If the route targets a client UUID, adopt it as the active client.
   React.useEffect(() => {
     const uuid = pathname.split("/").find((p) => p.length === 36)
-    if (uuid && clients.some((c) => c.id === uuid)) setActiveClientId(uuid)
-  }, [pathname, clients])
+    if (uuid && options.some((c) => c.id === uuid)) void setActiveClientId(uuid)
+  }, [pathname, options, setActiveClientId])
 
   function renderIcon(icon: keyof typeof Icons) {
     const IconCmp = Icons[icon]
@@ -143,20 +157,20 @@ export function AppSidebar({
                   <div className="mt-1.5 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-white/80 shadow-md space-y-1">
                     <div className="px-2 py-1 flex items-center justify-between text-[10px] font-bold text-[#757961] border-b border-[#c5c9ad]/30 pb-1 mb-1">
                       <span>MANAGED CLIENTS</span>
-                      <span className="text-[#5e7400] font-bold">{clients.length} ACTIVE</span>
+                      <span className="text-[#5e7400] font-bold">{options.length} ACTIVE</span>
                     </div>
                     <div className="space-y-1">
-                      {clients.length === 0 && (
+                      {options.length === 0 && (
                         <p className="px-2 py-1.5 text-xs text-[#757961]">No clients yet</p>
                       )}
-                      {clients.map((c) => {
+                      {options.map((c) => {
                         const isActive = activeClient?.id === c.id
                         return (
                           <button
                             key={c.id}
                             type="button"
                             onClick={() => {
-                              setActiveClientId(c.id)
+                              void setActiveClientId(c.id)
                               setClientsOpen(false)
                             }}
                             className={`w-full flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all text-left ${

@@ -30,7 +30,10 @@ function getPlatformIcon(platform: string) {
 
 export function DashboardStitchPostPipeline() {
   const { client } = useActiveDashboard()
-  const posts = useAppStore((s) => s.posts.filter((p) => p.clientId === client.id))
+  // Zustand v5: select the raw array (stable ref) and filter during render.
+  // Filtering inside the selector returns a new array each time -> update loop.
+  const allPosts = useAppStore((s) => s.posts)
+  const posts = allPosts.filter((p) => p.clientId === client.id)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const router = useRouter()
 
