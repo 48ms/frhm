@@ -30,3 +30,4 @@ sweep-result.txt
 run-output.txt
 run-e2e.sh
 .sentryclirc
+_archive_dead/

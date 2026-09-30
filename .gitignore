@@ -55,3 +55,4 @@ app/nul
 app/e2e/.auth/
 app/test-results/
 app/playwright-report/
+_archive_dead/
