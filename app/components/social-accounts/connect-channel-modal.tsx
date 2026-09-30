@@ -217,7 +217,7 @@ export function ConnectChannelModal({
           </div>
         )}
 
-        {/* STEP 1 — pick platform */}
+        {/* STEP 1 , pick platform */}
         {step === "platform" && (
           <div className="space-y-3">
             <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))]">
@@ -258,7 +258,7 @@ export function ConnectChannelModal({
           </div>
         )}
 
-        {/* STEP 2 — channel details */}
+        {/* STEP 2 , channel details */}
         {step === "details" && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-[hsl(var(--admin-outline-variant))]/30">
@@ -338,7 +338,7 @@ export function ConnectChannelModal({
           </div>
         )}
 
-        {/* STEP 3a — authorizing */}
+        {/* STEP 3a , authorizing */}
         {step === "authorizing" && !hasError && (
           <div className="py-8 flex flex-col items-center text-center space-y-3">
             <div className="w-14 h-14 rounded-full bg-[hsl(var(--admin-cobalt))]/10 flex items-center justify-center">
@@ -358,7 +358,7 @@ export function ConnectChannelModal({
           </div>
         )}
 
-        {/* STEP 3c — error state (R-27) */}
+        {/* STEP 3c , error state (R-27) */}
         {step === "authorizing" && hasError && (
           <div className="py-6 flex flex-col items-center text-center space-y-3">
             <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
@@ -375,7 +375,7 @@ export function ConnectChannelModal({
           </div>
         )}
 
-        {/* STEP 3b — success */}
+        {/* STEP 3b , success */}
         {step === "success" && (
           <div className="py-6 flex flex-col items-center text-center space-y-3">
             <div className="w-14 h-14 rounded-full bg-[hsl(var(--brand-accent))]/20 flex items-center justify-center">

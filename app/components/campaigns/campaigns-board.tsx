@@ -201,7 +201,7 @@ export function CampaignsBoard() {
             Campaign Hub
           </h1>
           <p className="text-sm text-[hsl(var(--admin-outline))] mt-1">
-            {totalLive} live campaigns across {CAMPAIGN_CLIENTS.length} managed clients — plan, track &amp; accelerate every drop.
+            {totalLive} live campaigns across {CAMPAIGN_CLIENTS.length} managed clients, plan, track &amp; accelerate every drop.
           </p>
         </div>
         <button

@@ -113,7 +113,7 @@ function LoginForm() {
   const redirect = safeRedirect(searchParams.get('redirect'), '/admin/dashboard')
   const supabase = createClient()
 
-  // Tab lives in the URL (?mode=signup) per Rule #4 — deep-linkable + survives refresh.
+  // Tab lives in the URL (?mode=signup) per Rule #4, deep-linkable + survives refresh.
   const [mode, setMode] = useQueryState(
     'mode',
     parseAsStringEnum(['login', 'signup']).withDefault('login')
@@ -134,7 +134,7 @@ function LoginForm() {
         loginForm.setFieldValue('email', stored)
       }
     } catch {
-      // localStorage unavailable (private mode) — non-fatal, skip silently.
+      // localStorage unavailable (private mode), non-fatal, skip silently.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -165,7 +165,7 @@ function LoginForm() {
           window.localStorage.removeItem('frhm:remember-email')
         }
       } catch {
-        // Storage full or blocked — non-fatal, continue to the redirect.
+        // Storage full or blocked, non-fatal, continue to the redirect.
       }
       router.push(redirect)
       router.refresh()

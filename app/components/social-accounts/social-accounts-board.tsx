@@ -140,7 +140,7 @@ export function SocialAccountsBoard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [tokenAccount, setTokenAccount] = useState<SocialAccount | null>(null)
   const [drawerAccount, setDrawerAccount] = useState<SocialAccount | null>(null)
-  // Dialog konfirmasi disconnect — R-26: tombol bahaya (disconnect) tidak boleh aksi langsung tanpa konfirmasi.
+  // Dialog konfirmasi disconnect , R-26: tombol bahaya (disconnect) tidak boleh aksi langsung tanpa konfirmasi.
   const [pendingDisconnect, setPendingDisconnect] = useState<SocialAccount | null>(null)
   
   const [isPending, startTransition] = useTransition()
@@ -225,7 +225,7 @@ export function SocialAccountsBoard() {
             Connected Channels
           </h1>
           <p className="text-sm text-[hsl(var(--admin-outline))] mt-1">
-            {totalAccounts} channels across {SOCIAL_CLIENTS.length} managed clients — publishing &amp; engagement telemetry in one hub.
+            {totalAccounts} channels across {SOCIAL_CLIENTS.length} managed clients, publishing &amp; engagement telemetry in one hub.
           </p>
         </div>
         <button
@@ -365,7 +365,7 @@ export function SocialAccountsBoard() {
         <Icons.badgeCheck className="size-4 text-[hsl(var(--admin-cobalt))]" />
         <span className="truncate">
           Channels belong to{" "}
-          <b className="text-[hsl(var(--admin-on-surface))]">{activeClient.shortName}</b> — {activeClient.tagline}
+          <b className="text-[hsl(var(--admin-on-surface))]">{activeClient.shortName}</b>, {activeClient.tagline}
         </span>
       </div>
 

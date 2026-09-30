@@ -8,7 +8,7 @@ import Link from 'next/link'
  * Admin-segment error boundary.
  *
  * The root `app/error.tsx` already catches every error below the root layout, but it replaces
- * the ENTIRE page — the admin sidebar/nav disappears. This segment boundary keeps the admin
+ * the ENTIRE page , the admin sidebar/nav disappears. This segment boundary keeps the admin
  * layout mounted so the user can navigate away instead of being stranded.
  */
 export default function AdminError({

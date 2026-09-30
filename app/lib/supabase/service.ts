@@ -1,7 +1,7 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 /**
- * Service role Supabase client — for admin-only operations that bypass RLS.
+ * Service role Supabase client , for admin-only operations that bypass RLS.
  * Use this instead of importing from @supabase/supabase-js directly.
  */
 export function createSupabaseServiceClient() {

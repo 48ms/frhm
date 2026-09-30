@@ -1,5 +1,5 @@
 /**
- * Product identity — change here, every place that references it stays correct.
+ * Product identity , change here, every place that references it stays correct.
  *
  * `clients.name` is the customer's brand (Taraju, Pawon Sengon, …). Do NOT confuse it
  * with this product's name. The client dashboard shows the customer's name so they know

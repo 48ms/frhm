@@ -1,5 +1,5 @@
 /**
- * Shared onboarding constants and helpers — deliberately NOT a 'use client' module,
+ * Shared onboarding constants and helpers , deliberately NOT a 'use client' module,
  * so both the client dialog and the server route can import it without pulling
  * client components into the server bundle.
  */

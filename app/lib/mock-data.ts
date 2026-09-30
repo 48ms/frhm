@@ -1,12 +1,12 @@
 /**
- * Mock Repository — Fast Prototype data source.
+ * Mock Repository , Fast Prototype data source.
  *
  * Single source of dummy data for the prototype phase. When real data is wired
  * in later, swap the exports in this file (or the call sites importing them)
  * without touching UI components.
  *
  * Numbers are generated deterministically (seeded by post id) so server and
- * client renders agree — no hydration mismatch, no flickering on refresh.
+ * client renders agree , no hydration mismatch, no flickering on refresh.
  */
 
 export type MockClient = {

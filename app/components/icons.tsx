@@ -292,7 +292,7 @@ export const Icons = {
   moreHorizontal: IconDots,
   galleryVerticalEnd: IconStack2,
 
-  // Extended — added for full icon-registry migration
+  // Extended , added for full icon-registry migration
   rocket: IconRocket,
   userCheck: IconUserCheck,
   userPlus: IconUserPlus,

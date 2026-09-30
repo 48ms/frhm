@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Icons } from '@/components/icons'
 
-// Always render per-request — never cache RSC payload (avoids stale session/role state)
+// Always render per-request , never cache RSC payload (avoids stale session/role state)
 export const dynamic = 'force-dynamic'
 
 export default async function WaitlistPage() {

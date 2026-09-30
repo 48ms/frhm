@@ -20,7 +20,7 @@ import { ToggleGroupField } from '@/components/forms/fields/toggle-group-field';
 import { SubmitButton } from '@/components/forms/submit-button';
 
 /**
- * App-wide form hook — TanStack's createFormHook with the field components
+ * App-wide form hook , TanStack's createFormHook with the field components
  * registered. Fields render inside `form.AppField`:
  *
  * ```tsx
@@ -30,7 +30,7 @@ import { SubmitButton } from '@/components/forms/submit-button';
  *   children={(field) => <field.TextField label='Email' type='email' />} />
  * ```
  *
- * Every component's markup is the shadcn TanStack Form doc anatomy — for
+ * Every component's markup is the shadcn TanStack Form doc anatomy , for
  * one-off custom fields, drop down to the raw `form.Field` render prop and
  * compose the `Field` primitives directly (see docs/forms.md).
  */

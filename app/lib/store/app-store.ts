@@ -1,12 +1,12 @@
 /**
- * Client Store — single source of truth untuk data MUTABLE selama sesi.
+ * Client Store , single source of truth untuk data MUTABLE selama sesi.
  *
  * Arsitektur 3 lapis:
  *   Layer 1 (data mentah)  : Mock Repository  (lib/mock-data.ts, deterministic seed)
  *   Layer 2 (mutable)      : STORE INI        (create/edit/delete, hidup 1 sesi SPA)
- *   Layer 3 (view state)   : URL state nuqs   (filter/tab/client — terpisah, di komponen)
+ *   Layer 3 (view state)   : URL state nuqs   (filter/tab/client , terpisah, di komponen)
  *
- * Ganti ke data asli nanti: cukup arahkan seed() ke Supabase query —
+ * Ganti ke data asli nanti: cukup arahkan seed() ke Supabase query ,
  * komponen & aksi di sini tidak berubah. Itulah kenapa mutasi diasuh
  * di satu tempat ini, bukan tersebar useState per-komponen.
  */

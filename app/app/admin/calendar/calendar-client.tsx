@@ -248,7 +248,7 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
               </span>
             </div>
 
-            {/* Countdown Pill — live ticking to the next scheduled release */}
+            {/* Countdown Pill, live ticking to the next scheduled release */}
             <div className="rounded-2xl bg-[hsl(var(--admin-cobalt))] text-white p-4 shadow-sm relative overflow-hidden">
               <div className="relative z-10 flex items-center justify-between">
                 <div className="min-w-0">
@@ -256,7 +256,7 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
                     Next Release In
                   </span>
                   <span className="block font-syne font-extrabold text-2xl tracking-tight">
-                    {release ? release.label : "—"}
+                    {release ? release.label : "-"}
                   </span>
                   {release && (
                     <span className="block text-[10px] text-white/80 truncate mt-0.5">

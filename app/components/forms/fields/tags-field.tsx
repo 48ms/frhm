@@ -10,7 +10,7 @@ import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/for
 
 /**
  * Free-text tag list over a `string[]` value. Use with `mode='array'` on the
- * `<form.AppField>` — Enter or the Add button pushes, badges remove.
+ * `<form.AppField>` , Enter or the Add button pushes, badges remove.
  */
 export function TagsField({
   label,

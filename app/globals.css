@@ -44,7 +44,7 @@
   --font-syne: var(--font-syne-src), ui-sans-serif, sans-serif;
   --font-hanken: var(--font-hanken-src), ui-sans-serif, sans-serif;
   /**
-   * Frhm brand palette — extracted from logo-frhm.png (absolute rule, DESIGN.md §2).
+   * Frhm brand palette , extracted from logo-frhm.png (absolute rule, DESIGN.md §2).
    * Do not substitute placeholders; these are the brand identity.
    */
   --color-brand-blue: hsl(var(--brand-blue));
@@ -55,7 +55,7 @@
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
-  /* Luminous Space palette — literal values from DESIGN.md (login stage only). */
+  /* Luminous Space palette , literal values from DESIGN.md (login stage only). */
   --color-lum-primary: #d4ff32;
   --color-lum-primary-fixed-dim: #aed500;
   --color-lum-on-primary: #12131a;
@@ -68,7 +68,7 @@
   --color-lum-ink: #12131a;
 
   /**
-   * Dashboard "Campaign Hub" surface set — lifted verbatim from the Stitch
+   * Dashboard "Campaign Hub" surface set , lifted verbatim from the Stitch
    * screen's inline `tailwind.config`. Namespaced `lum-` because bare
    * `secondary` / `outline` / `surface` would clobber the app's shadcn grays.
    */
@@ -104,7 +104,7 @@
     --popover-foreground: 240 10% 10%;
 
     /**
-     * Frhm brand palette — extracted from logo-frhm.png (DESIGN.md §2).
+     * Frhm brand palette , extracted from logo-frhm.png (DESIGN.md §2).
      * Absolute rule: accent colors must come from the logo, never defaults.
      *   blue   #0066E6  30% of logo (F, star)  → primary accent
      *   red    #FF3D2E  25%  (R)                → destructive / alerts
@@ -154,7 +154,7 @@
 
     --brand-accent: var(--brand-blue);
     --brand-accent-foreground: 0 0% 100%;
-    /* Brand hues are identity — but lightness shifts up so they hold contrast
+    /* Brand hues are identity , but lightness shifts up so they hold contrast
        against the dark canvas (#09090B). */
     --brand-blue: 217 100% 58%;
     --brand-red: 6 100% 66%;

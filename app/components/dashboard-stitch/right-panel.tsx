@@ -30,7 +30,7 @@ export function DashboardStitchConnectedHub() {
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
 
-  // (Removed local sync effect — useAppStore is always in sync)
+  // (Removed local sync effect , useAppStore is always in sync)
 
   return (
     <div className="space-y-6">
@@ -55,7 +55,7 @@ export function DashboardStitchConnectedHub() {
             </button>
           </div>
 
-          {/* Client Switcher Capsule — syncs the whole dashboard via URL */}
+          {/* Client Switcher Capsule , syncs the whole dashboard via URL */}
           <div className="relative">
             <button
               onClick={() => setPickerOpen((v) => !v)}

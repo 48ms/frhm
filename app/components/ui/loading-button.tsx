@@ -15,7 +15,7 @@ export interface LoadingButtonProps extends Omit<React.ComponentProps<typeof But
 
 /**
  * A `Button` with a built-in loading state. The spinner is overlaid on top of
- * the label, which stays in layout (`opacity-0`) while loading — so toggling
+ * the label, which stays in layout (`opacity-0`) while loading , so toggling
  * `loading` never changes the button's size and there's no layout shift.
  * Inherits every Button `variant` / `size` and the theme tokens.
  */

@@ -5,7 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
  *
  * Uses the service role: audit rows must be writable from API routes that already hold a
  * service client (publish, onboarding, resets) and there is deliberately no INSERT policy for
- * app roles — a client cannot forge history from the browser.
+ * app roles , a client cannot forge history from the browser.
  *
  * Never throws. An audit write must not fail the action it describes; a missing log line is
  * better than a failed publish. Errors are swallowed and reported on stderr only.

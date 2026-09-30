@@ -189,7 +189,7 @@ function parseJsonLoose<T>(raw: string): T | null {
  * Ask the model for JSON. Returns null when the model answered in prose instead.
  *
  * Some models (especially agentic/reasoning ones routed through a gateway) try to *call tools*
- * — e.g. running `ls` — instead of answering. When we detect that, we retry once with a
+ * , e.g. running `ls` , instead of answering. When we detect that, we retry once with a
  * hard "no tools" directive so the pipeline degrades gracefully instead of silently failing.
  */
 export async function chatJson<T>(

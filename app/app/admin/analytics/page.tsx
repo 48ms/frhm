@@ -179,7 +179,7 @@ export default async function AnalyticsPage() {
           </Card>
         </div>
 
-        {/* Audience Trajectory — reference #2 signature chart */}
+        {/* Audience Trajectory, reference #2 signature chart */}
         <AudienceTrajectory />
 
         {/* Section Performa Campaign */}

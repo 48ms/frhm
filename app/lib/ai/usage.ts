@@ -3,7 +3,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 export type AiUsageInput = {
   /** Caller's user id (the admin/client who triggered the call). Null for system/cron calls. */
   userId: string | null
-  /** Which client this belongs to — null for admin-wide calls. */
+  /** Which client this belongs to , null for admin-wide calls. */
   clientId?: string | null
   /** The route identifier, e.g. 'api/admin/clients/[id]/skills/bulk-run'. */
   route: string
@@ -17,9 +17,9 @@ export type AiUsageInput = {
   completionTokens: number
   /** Milliseconds the request took. */
   latencyMs?: number
-  /** Error message when the call failed (optional — success is assumed by default). */
+  /** Error message when the call failed (optional , success is assumed by default). */
   errorMessage?: string | null
-  /** Cost estimate in USD (optional — callers without a pricing table can omit). */
+  /** Cost estimate in USD (optional , callers without a pricing table can omit). */
   costEstimate?: number | null
 }
 
@@ -28,7 +28,7 @@ export type AiUsageInput = {
  *
  * Uses the service role so rows are written even when the caller holds only a
  * client public key (the service key is read from env at runtime). Errors are
- * swallowed — an audit gap is worse than a failed insert, but logging should
+ * swallowed , an audit gap is worse than a failed insert, but logging should
  * never break the calling flow.
  *
  * See O20: AI Usage Tracking (CRITICAL).

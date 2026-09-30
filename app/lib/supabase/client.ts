@@ -6,7 +6,7 @@ import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js'
 export type { SupabaseClient, RealtimeChannel }
 
 /**
- * Browser Supabase client — module-level singleton.
+ * Browser Supabase client , module-level singleton.
  *
  * `createBrowserClient` from @supabase/ssr already de-dupes internally, but calling
  * it on every render/import creates needless work and, more importantly, risks

@@ -3,7 +3,7 @@
 // Stitch MCP prototype `033fb5596cc4441c8cd77031206b2e22.html`
 // (window.appStore state.clients[]). The campaign records follow the real DB
 // schema `content_campaigns(id, client_id, name, type, start_date, end_date,
-// color, notes)` — see supabase/backup/full_backup_*.json.
+// color, notes)` , see supabase/backup/full_backup_*.json.
 
 export type CampaignType = "campaign" | "promo" | "event"
 
@@ -16,7 +16,7 @@ export type Campaign = {
   endDate: string
   color: string
   notes: string
-  /** Derived display metrics (static mock — Supabase wiring deferred). */
+  /** Derived display metrics (static mock , Supabase wiring deferred). */
   reach: string
   posts: number
   progress: number

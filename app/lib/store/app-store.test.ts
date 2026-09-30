@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest"
 
 /**
- * Fase 0 — Client Store (TDD, RED dulu).
+ * Fase 0 , Client Store (TDD, RED dulu).
  * Store ini adalah single source of truth untuk data MUTABLE sesi:
  * campaigns + social accounts + posts. Seed dari Mock Repository.
  */

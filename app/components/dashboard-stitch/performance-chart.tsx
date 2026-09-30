@@ -57,7 +57,7 @@ export function DashboardStitchChart() {
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
-        {/* Timeframe selector — URL state via nuqs */}
+        {/* Timeframe selector , URL state via nuqs */}
         <div className="inline-flex p-1 rounded-full bg-[hsl(var(--admin-surface-high))]/70 border border-[hsl(var(--admin-outline-variant))]/30">
           {TIMEFRAMES.map((t) => (
             <button
@@ -77,7 +77,7 @@ export function DashboardStitchChart() {
         </div>
       </div>
 
-      {/* SVG Chart Area — bezier waves, path animates on client + timeframe swap */}
+      {/* SVG Chart Area , bezier waves, path animates on client + timeframe swap */}
       <div
         className="relative h-60 w-full bg-[hsl(var(--admin-surface-low))]/40 rounded-2xl p-4 border border-white/50 flex flex-col justify-between overflow-hidden"
         onMouseMove={(e) => {
@@ -194,7 +194,7 @@ export function DashboardStitchChart() {
         </div>
       </div>
 
-      {/* Insight Cards — driven by the active client profile */}
+      {/* Insight Cards , driven by the active client profile */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
         {profile.insights.map((card, idx) => (
           <div

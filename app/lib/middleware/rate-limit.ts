@@ -66,12 +66,12 @@ export function getClientIp(headers: Headers): string {
 
 /** Preset limits for different route types. */
 export const RATE_LIMITS = {
-  /** Login / auth endpoints — tight. */
+  /** Login / auth endpoints , tight. */
   auth: { limit: 5, windowMs: 60_000 },     // 5 per minute
-  /** Write-heavy mutations — moderate. */
+  /** Write-heavy mutations , moderate. */
   mutation: { limit: 20, windowMs: 60_000 }, // 20 per minute
-  /** AI generation endpoints — expensive. */
+  /** AI generation endpoints , expensive. */
   ai: { limit: 3, windowMs: 60_000 },        // 3 per minute
-  /** General read endpoints — generous. */
+  /** General read endpoints , generous. */
   read: { limit: 60, windowMs: 60_000 },      // 60 per minute
 } as const

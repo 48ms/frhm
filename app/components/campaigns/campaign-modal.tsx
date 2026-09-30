@@ -65,7 +65,8 @@ export function CampaignModal({
         startDate: startDate || "2026-01-01",
         endDate: endDate || "2026-12-31",
         color,
-        notes: notes.trim() || "—",
+        notes: notes.trim() || "-"
+,
         reach: editing?.reach ?? "0",
         posts: editing?.posts ?? 0,
         progress: editing?.progress ?? 0,
@@ -143,7 +144,7 @@ export function CampaignModal({
           ))}
         </div>
 
-        {/* STEP 1 — basics */}
+        {/* STEP 1 , basics */}
         {step === "basics" && (
           <div className="space-y-4">
             <div>
@@ -222,7 +223,7 @@ export function CampaignModal({
           </div>
         )}
 
-        {/* STEP 2 — schedule */}
+        {/* STEP 2 , schedule */}
         {step === "schedule" && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -272,7 +273,7 @@ export function CampaignModal({
           </div>
         )}
 
-        {/* STEP 3 — review */}
+        {/* STEP 3 , review */}
         {step === "review" && (
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-[hsl(var(--admin-outline-variant))]/30">
@@ -299,7 +300,8 @@ export function CampaignModal({
               {[
                 { label: "Client", value: client.name },
                 { label: "Type", value: CAMPAIGN_TYPE_META[type].label },
-                { label: "Start", value: startDate || "—" },
+                { label: "Start", value: startDate || "-"
+ },
                 { label: "End", value: endDate || "Evergreen" },
               ].map((row) => (
                 <div

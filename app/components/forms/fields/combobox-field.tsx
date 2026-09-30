@@ -16,7 +16,7 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
 
-/** Searchable select — Popover + Command per the shadcn combobox pattern. */
+/** Searchable select , Popover + Command per the shadcn combobox pattern. */
 export function ComboboxField({
   label,
   description,

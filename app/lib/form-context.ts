@@ -18,6 +18,6 @@ export function useFieldInvalid() {
 export type BaseFieldProps = {
   label: string;
   description?: string;
-  /** Appends ' *' to the label. Purely visual — rules live in the schema. */
+  /** Appends ' *' to the label. Purely visual , rules live in the schema. */
   required?: boolean;
 };
