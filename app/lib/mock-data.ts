@@ -50,10 +50,9 @@ export type MockPostMetric = {
 // ─── Clients ────────────────────────────────────────────────────────────────
 
 export const MOCK_CLIENTS: MockClient[] = [
-  { id: 'client-taraju', name: 'Taraju' },
-  { id: 'client-pawon', name: 'Pawon Sengon' },
-  { id: 'client-kopi', name: 'Kopi Senja' },
-  { id: 'client-bloom', name: 'Bloom Floral' },
+  { id: 'client-shell', name: 'B2B Shell Representatives' },
+  { id: 'client-wizard', name: 'E2E Wizard Corp' },
+  { id: 'client-aura', name: 'Aura Luxury Group' },
 ]
 
 // ─── Campaigns ──────────────────────────────────────────────────────────────
@@ -77,7 +76,7 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
     end_date: isoDaysAhead(10),
     color: '#4335EF',
     notes: 'Boost menu paket buka puasa',
-    client_id: 'client-taraju',
+    client_id: 'client-shell',
   },
   {
     id: 'camp-lebaran',
@@ -87,7 +86,7 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
     end_date: isoDaysAhead(35),
     color: '#B775FC',
     notes: 'Pre-order hampers Lebaran',
-    client_id: 'client-taraju',
+    client_id: 'client-shell',
   },
   {
     id: 'camp-tani',
@@ -97,7 +96,7 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
     end_date: isoDaysAgo(10),
     color: '#526600',
     notes: 'Kisah petani sengon di balik produk',
-    client_id: 'client-pawon',
+    client_id: 'client-wizard',
   },
   {
     id: 'camp-brew',
@@ -107,7 +106,7 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
     end_date: isoDaysAhead(15),
     color: '#D4FF32',
     notes: 'Series edukasi seduh manual',
-    client_id: 'client-kopi',
+    client_id: 'client-aura',
   },
   {
     id: 'camp-wedding',
@@ -117,7 +116,7 @@ export const MOCK_CAMPAIGNS: MockCampaign[] = [
     end_date: isoDaysAhead(45),
     color: '#FB7185',
     notes: 'Paket bunga pernikahan',
-    client_id: 'client-bloom',
+    client_id: 'client-aura',
   },
 ]
 
@@ -133,21 +132,21 @@ type PostSeed = {
 }
 
 const POST_SEEDS: PostSeed[] = [
-  { id: 'post-001', client_id: 'client-taraju', title: 'Menu Buka Puasa Hemat', campaign_tag: 'ramadan promo', daysAgo: 30, platform: 'instagram' },
-  { id: 'post-002', client_id: 'client-taraju', title: 'Kolam Renang Family Package', campaign_tag: 'ramadan promo', daysAgo: 25, platform: 'tiktok' },
-  { id: 'post-003', client_id: 'client-taraju', title: 'Testimoni Pengunjung', campaign_tag: 'ramadan promo', daysAgo: 20, platform: 'instagram' },
-  { id: 'post-004', client_id: 'client-taraju', title: 'Behind The Scene Dapur', campaign_tag: null, daysAgo: 12, platform: 'facebook' },
-  { id: 'post-005', client_id: 'client-taraju', title: 'Pre Order Hampers', campaign_tag: 'lebaran hampers', daysAgo: -3, platform: 'instagram' },
+  { id: 'post-001', client_id: 'client-shell', title: 'Menu Buka Puasa Hemat', campaign_tag: 'ramadan promo', daysAgo: 30, platform: 'instagram' },
+  { id: 'post-002', client_id: 'client-shell', title: 'Kolam Renang Family Package', campaign_tag: 'ramadan promo', daysAgo: 25, platform: 'tiktok' },
+  { id: 'post-003', client_id: 'client-shell', title: 'Testimoni Pengunjung', campaign_tag: 'ramadan promo', daysAgo: 20, platform: 'instagram' },
+  { id: 'post-004', client_id: 'client-shell', title: 'Behind The Scene Dapur', campaign_tag: null, daysAgo: 12, platform: 'facebook' },
+  { id: 'post-005', client_id: 'client-shell', title: 'Pre Order Hampers', campaign_tag: 'lebaran hampers', daysAgo: -3, platform: 'instagram' },
 
-  { id: 'post-006', client_id: 'client-pawon', title: 'Kisah Pak Slamet', campaign_tag: 'petani lokal', daysAgo: 45, platform: 'instagram' },
-  { id: 'post-007', client_id: 'client-pawon', title: 'Proses Panen Sengon', campaign_tag: 'petani lokal', daysAgo: 35, platform: 'tiktok' },
-  { id: 'post-008', client_id: 'client-pawon', title: 'Resep Olahan Sengon', campaign_tag: null, daysAgo: 18, platform: 'facebook' },
+  { id: 'post-006', client_id: 'client-wizard', title: 'Kisah Pak Slamet', campaign_tag: 'petani lokal', daysAgo: 45, platform: 'instagram' },
+  { id: 'post-007', client_id: 'client-wizard', title: 'Proses Panen Sengon', campaign_tag: 'petani lokal', daysAgo: 35, platform: 'tiktok' },
+  { id: 'post-008', client_id: 'client-wizard', title: 'Resep Olahan Sengon', campaign_tag: null, daysAgo: 18, platform: 'facebook' },
 
-  { id: 'post-009', client_id: 'client-kopi', title: 'V60 Seduh Manual', campaign_tag: 'brewing 101', daysAgo: 20, platform: 'instagram' },
-  { id: 'post-010', client_id: 'client-kopi', title: 'Pilih Bijak Menggiling', campaign_tag: 'brewing 101', daysAgo: 8, platform: 'tiktok' },
+  { id: 'post-009', client_id: 'client-aura', title: 'V60 Seduh Manual', campaign_tag: 'brewing 101', daysAgo: 20, platform: 'instagram' },
+  { id: 'post-010', client_id: 'client-aura', title: 'Pilih Bijak Menggiling', campaign_tag: 'brewing 101', daysAgo: 8, platform: 'tiktok' },
 
-  { id: 'post-011', client_id: 'client-bloom', title: 'Bouquet Buket Wisuda', campaign_tag: 'wedding season', daysAgo: 14, platform: 'instagram' },
-  { id: 'post-012', client_id: 'client-bloom', title: 'Mekar di Pagi Hari', campaign_tag: null, daysAgo: 5, platform: 'facebook' },
+  { id: 'post-011', client_id: 'client-aura', title: 'Bouquet Buket Wisuda', campaign_tag: 'wedding season', daysAgo: 14, platform: 'instagram' },
+  { id: 'post-012', client_id: 'client-aura', title: 'Mekar di Pagi Hari', campaign_tag: null, daysAgo: 5, platform: 'facebook' },
 ]
 
 export const MOCK_SCHEDULED_POSTS: MockScheduledPost[] = POST_SEEDS.map((s) => {
