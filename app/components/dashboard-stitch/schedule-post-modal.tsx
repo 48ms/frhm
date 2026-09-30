@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { useAppStore } from "@/lib/store/app-store"
 import type { SocialClient } from "@/components/social-accounts/social-data"
 
 const CHANNEL_ICON: Record<string, string> = {
@@ -42,14 +43,23 @@ export function SchedulePostModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  const schedulePost = useAppStore((s) => s.schedulePost)
+
   useEffect(() => {
     if (phase !== "working") return
     const t = setTimeout(() => {
       setPhase("done")
+      schedulePost({
+        clientId: client.id,
+        title: title.trim() || "Untitled post",
+        caption: caption.trim() || "No caption",
+        channel: selected[0] ?? client.accounts[0]?.platform ?? "Instagram",
+        scheduledAt: when,
+      })
       onScheduled?.(title.trim() || "Untitled post")
     }, 1500)
     return () => clearTimeout(t)
-  }, [phase, title, onScheduled])
+  }, [phase, title, caption, selected, when, client, onScheduled, schedulePost])
 
   if (!open) return null
 

@@ -1,11 +1,25 @@
 "use client"
 
 import React from "react"
+import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
 import { useActiveDashboard } from "./dashboard-data"
 
 export function DashboardStitchKpis() {
   const { client, profile } = useActiveDashboard()
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0 }
+  }
 
   const kpis = [
     {
@@ -47,14 +61,18 @@ export function DashboardStitchKpis() {
   ]
 
   return (
-    <section
+    <motion.section
+      variants={container}
+      initial="hidden"
+      animate="show"
       aria-label="Key Performance Indicators"
       className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
     >
       {kpis.map((kpi, idx) => {
         const IconCmp = Icons[kpi.icon]
         return (
-          <div
+          <motion.div
+            variants={item}
             key={idx}
             className="p-5 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
           >
@@ -87,9 +105,9 @@ export function DashboardStitchKpis() {
               </div>
               <p className="text-xs text-[hsl(var(--admin-outline))] mt-1">{kpi.caption}</p>
             </div>
-          </div>
+          </motion.div>
         )
       })}
-    </section>
+    </motion.section>
   )
 }

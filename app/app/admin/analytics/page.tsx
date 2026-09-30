@@ -1,11 +1,11 @@
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
 import { PageContainer } from "@/components/layout/page-container"
 import { CampaignAnalyticsView, type CampaignItem } from "./campaign-analytics-view"
 import { AudienceTrajectory } from "@/components/analytics/audience-trajectory"
 import { Icons } from "@/components/icons"
+import { MOCK_CLIENTS, MOCK_CAMPAIGNS, MOCK_SCHEDULED_POSTS, generateMockMetrics } from "@/lib/mock-data"
 
 export const dynamic = "force-dynamic"
 
@@ -31,31 +31,10 @@ function getCampaignStatus(c: { start_date: string | null; end_date: string | nu
 }
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient()
-
-  // Eksekusi kueri secara paralel untuk eliminasi waterfall latency
-  const [clientsRes, campaignsRes, metricsRes] = await Promise.all([
-    supabase
-      .from("clients")
-      .select("id, name")
-      .not("name", "ilike", "Test%")
-      .not("name", "ilike", "probe%")
-      .order("name"),
-    supabase
-      .from("content_campaigns")
-      .select("*, clients(id, name)")
-      .not("name", "ilike", "Test%")
-      .not("name", "ilike", "CRUD%")
-      .not("name", "ilike", "Diag%")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("post_metrics")
-      .select("*, scheduled_posts(id, title, campaign_tag, client_id, scheduled_at, published_at)")
-  ])
-
-  const clientsList = clientsRes.data ?? []
-  const allCampaigns = campaignsRes.data ?? []
-  const allMetrics = metricsRes.data ?? []
+  const clientsList = MOCK_CLIENTS
+  const allCampaigns = MOCK_CAMPAIGNS
+  const allPosts = MOCK_SCHEDULED_POSTS
+  const allMetrics = generateMockMetrics(allPosts)
   
   let globalReach = 0
   let globalClicks = 0
@@ -87,16 +66,19 @@ export default async function AnalyticsPage() {
     let clicks = 0
     let inquiries = 0
     let contentCount = 0
+    const campName = c.name?.trim().toLowerCase()
 
     for (const m of allMetrics) {
-      const postTag = m.scheduled_posts?.campaign_tag?.trim().toLowerCase()
-      const campName = c.name?.trim().toLowerCase()
+      const post = allPosts.find((p) => p.id === m.post_id)
+      if (!post) continue
+
+      const postTag = post.campaign_tag?.trim().toLowerCase()
       const matchesTag = Boolean(postTag && campName && postTag === campName)
-      const isSameClient = m.client_id === c.client_id
+      const isSameClient = post.client_id === c.client_id
       
       let matches = matchesTag
-      if (!matches && isSameClient && c.start_date && c.end_date && m.scheduled_posts?.scheduled_at) {
-        const postDate = m.scheduled_posts.scheduled_at.split("T")[0]
+      if (!matches && isSameClient && c.start_date && c.end_date && post.scheduled_at) {
+        const postDate = post.scheduled_at.split("T")[0]
         if (postDate >= c.start_date && postDate <= c.end_date) {
           matches = true
         }
@@ -111,8 +93,8 @@ export default async function AnalyticsPage() {
       }
     }
 
-    const clientName = (c.clients as { id?: string; name?: string } | null)?.name ?? "Client"
-    const clientId = (c.clients as { id?: string; name?: string } | null)?.id ?? c.client_id
+    const clientObj = clientsList.find((cl) => cl.id === c.client_id)
+    const clientName = clientObj?.name ?? "Client"
 
     return {
       id: c.id,
@@ -122,7 +104,7 @@ export default async function AnalyticsPage() {
       end_date: c.end_date,
       color: c.color,
       notes: c.notes,
-      client_id: clientId,
+      client_id: c.client_id,
       clientName,
       status: getCampaignStatus(c),
       stats: { reach, engagement, clicks, inquiries, contentCount }
@@ -147,59 +129,59 @@ export default async function AnalyticsPage() {
 
         {/* 4 Balanced Highlight Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-transparent bg-brand-accent/5 shadow-sm transition-all hover:shadow-md hover:bg-brand-accent/10 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-brand-accent/10 rounded-full blur-2xl -mr-8 -mt-8 transition-transform group-hover:scale-110 pointer-events-none"></div>
+          <Card className="border-transparent bg-[hsl(var(--brand-accent))]/5 shadow-sm transition-all hover:shadow-md hover:bg-[hsl(var(--brand-accent))]/10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-28 h-28 bg-[hsl(var(--brand-accent))]/10 rounded-full blur-2xl -mr-8 -mt-8 transition-transform group-hover:scale-110 pointer-events-none"></div>
             <CardHeader className="pb-2 relative z-10">
-              <CardDescription className="flex items-center gap-1.5 font-medium text-brand-accent text-xs">
+              <CardDescription className="flex items-center gap-1.5 font-medium text-[hsl(var(--brand-accent))] text-xs">
                 <Icons.trendingUp className="size-3.5" />
                 Total Reach
               </CardDescription>
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold tabular-nums tracking-tight text-foreground">{formatNumber(globalReach)}</div>
-              <p className="text-[11px] text-muted-foreground/80 mt-1 font-medium">Jangkauan audiens seluruh konten</p>
+              <div className="text-3xl font-bold tabular-nums tracking-tight text-[hsl(var(--admin-on-surface))]">{formatNumber(globalReach)}</div>
+              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1 font-medium">Jangkauan audiens seluruh konten</p>
             </CardContent>
           </Card>
           
-          <Card className="border-none bg-background/80 backdrop-blur-xl shadow-sm transition-all hover:shadow-md group">
+          <Card className="border-none bg-[hsl(var(--admin-surface-low))] shadow-sm transition-all hover:shadow-md group">
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1.5 font-medium text-xs">
-                <Icons.layers className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <CardDescription className="flex items-center gap-1.5 font-medium text-xs text-[hsl(var(--admin-outline))]">
+                <Icons.layers className="size-3.5 group-hover:text-[hsl(var(--admin-on-surface))] transition-colors" />
                 Total Engagement
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tabular-nums tracking-tight">{formatNumber(globalEngagement)}</div>
-              <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+              <div className="text-3xl font-bold tabular-nums tracking-tight text-[hsl(var(--admin-on-surface))]">{formatNumber(globalEngagement)}</div>
+              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1 flex items-center gap-1">
                 <span>Rasio interaksi:</span>
-                <span className="font-semibold text-foreground">{globalEngagementRate}%</span>
+                <span className="font-semibold text-[hsl(var(--admin-on-surface))]">{globalEngagementRate}%</span>
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-none bg-background/80 backdrop-blur-xl shadow-sm transition-all hover:shadow-md group">
+          <Card className="border-none bg-[hsl(var(--admin-surface-low))] shadow-sm transition-all hover:shadow-md group">
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1.5 font-medium text-xs">
-                <Icons.mousePointer className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <CardDescription className="flex items-center gap-1.5 font-medium text-xs text-[hsl(var(--admin-outline))]">
+                <Icons.mousePointer className="size-3.5 group-hover:text-[hsl(var(--admin-on-surface))] transition-colors" />
                 Web Clicks
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tabular-nums tracking-tight">{formatNumber(globalClicks)}</div>
-              <p className="text-[11px] text-muted-foreground mt-1">Traffic link profil & promosi bio</p>
+              <div className="text-3xl font-bold tabular-nums tracking-tight text-[hsl(var(--admin-on-surface))]">{formatNumber(globalClicks)}</div>
+              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">Traffic link profil & promosi bio</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none bg-background/80 backdrop-blur-xl shadow-sm transition-all hover:shadow-md group">
+          <Card className="border-none bg-[hsl(var(--admin-surface-low))] shadow-sm transition-all hover:shadow-md group">
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1.5 font-medium text-xs">
-                <Icons.chat className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <CardDescription className="flex items-center gap-1.5 font-medium text-xs text-[hsl(var(--admin-outline))]">
+                <Icons.chat className="size-3.5 group-hover:text-[hsl(var(--admin-on-surface))] transition-colors" />
                 Inquiries Bisnis
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tabular-nums tracking-tight">{formatNumber(globalInquiries)}</div>
-              <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+              <div className="text-3xl font-bold tabular-nums tracking-tight text-[hsl(var(--admin-on-surface))]">{formatNumber(globalInquiries)}</div>
+              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1 flex items-center gap-1">
                 <span>Konversi klik:</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">{globalInquiryRate}%</span>
                 <span>(WA & DM)</span>
@@ -215,8 +197,8 @@ export default async function AnalyticsPage() {
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold tracking-tight">Performa per Campaign</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Analisis efektivitas kampanye tematik klien</p>
+              <h2 className="text-base font-semibold tracking-tight text-[hsl(var(--admin-on-surface))]">Performa per Campaign</h2>
+              <p className="text-xs text-[hsl(var(--admin-outline))] mt-0.5">Analisis efektivitas kampanye tematik klien</p>
             </div>
           </div>
 

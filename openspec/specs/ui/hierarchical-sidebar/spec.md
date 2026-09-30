@@ -6,11 +6,11 @@ Groups admin navigation into logical sections (Overview, Marketing, AI Core, Cli
 ## Requirements
 
 ### Requirement: Categorized navigation groups
-The system SHALL display the admin sidebar navigation items categorized into logical groups: Overview, Marketing, AI Core, Clients, and System.
+The system SHALL display the admin sidebar navigation items categorized into structured feature-based groups (Overview, Marketing, Production, Clients, System) driven dynamically by a centralized navigation configuration (`config/nav-config.ts`), with collapsible shell layout pattern, isolated completely from client portal views.
 
 #### Scenario: Admin views sidebar
 - **WHEN** an admin views the sidebar
-- **THEN** they see navigation links grouped under collapsible or distinct headers for each category
+- **THEN** navigation links are rendered dynamically from the centralized navigation configuration array with active route indicators and collapsible/mobile drawer support
 
 ### Requirement: Quick client creation action in sidebar
 The system SHALL display a quick action button (such as a '+' icon) on the CLIENTS navigation group header within the admin sidebar that triggers the client creation modal directly.

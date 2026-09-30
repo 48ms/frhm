@@ -6,11 +6,15 @@ Provides a global search and quick navigation mechanism via a command palette tr
 ## Requirements
 
 ### Requirement: Global keyboard shortcut activation
-The system SHALL open the command palette when the user presses Ctrl+K (Windows/Linux) or Cmd+K (macOS).
+The system SHALL open the command palette when the user presses Ctrl+K (Windows/Linux) or Cmd+K (macOS), and SHALL support direct two-letter navigation shortcuts (e.g. 'd d' for dashboard, 'c l' for clients).
 
 #### Scenario: User triggers command palette
 - **WHEN** the user presses Ctrl+K
 - **THEN** the command palette modal appears in the center of the screen, ready for input
+
+#### Scenario: User triggers two-letter navigation shortcut
+- **WHEN** the user enters a registered two-letter sequence outside of an input field
+- **THEN** the application navigates immediately to the associated route
 
 ### Requirement: Quick navigation and search
 The system SHALL allow users to search for specific features, clients, or deliverables and navigate to them directly from the command palette.

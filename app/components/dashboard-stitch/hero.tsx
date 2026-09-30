@@ -3,12 +3,15 @@
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { parseAsString, useQueryState } from "nuqs"
 import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
 
 export function DashboardStitchHero() {
-  const { client, clients, clientId, setClientId } = useActiveDashboard()
+  const { clients } = useActiveDashboard()
+  const [clientId, setClientId] = useQueryState("clientId", parseAsString.withDefault(clients[0]?.id ?? ""))
+  const client = clients.find((c) => c.id === clientId) ?? clients[0]
   const [pickerOpen, setPickerOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)

@@ -240,7 +240,7 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[hsl(var(--brand-accent))] animate-ping" />
                 <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-lg">
-                  Today's Dispatches
+                  Today&apos;s Dispatches
                 </h3>
               </div>
               <span className="text-[10px] font-bold tracking-widest uppercase bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))] px-2.5 py-1 rounded-full">

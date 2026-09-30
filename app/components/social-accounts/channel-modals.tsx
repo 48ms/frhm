@@ -219,11 +219,13 @@ export function ChannelDetailDrawer({
   client,
   open,
   onClose,
+  onManage,
 }: {
   account: SocialAccount | null
   client: SocialClient
   open: boolean
   onClose: () => void
+  onManage: (account: SocialAccount) => void
 }) {
   if (!open || !account) return null
 
@@ -331,11 +333,25 @@ export function ChannelDetailDrawer({
         </div>
 
         <div className="flex gap-2">
-          <button className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))] transition-all cursor-pointer">
+          <button
+            onClick={() =>
+              window.open(
+                `https://www.google.com/search?q=${encodeURIComponent(
+                  account.platform + " " + account.handle
+                )}`,
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))] transition-all cursor-pointer"
+          >
             <Icons.externalLink className="size-3.5" />
             Open profile
           </button>
-          <button className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <button
+            onClick={() => onManage(account)}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          >
             <Icons.settings className="size-3.5" />
             Manage
           </button>

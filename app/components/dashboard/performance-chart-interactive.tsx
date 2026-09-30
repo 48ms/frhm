@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from "react"
-import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 
 // Data structure mirroring the interactive prototype's datasets

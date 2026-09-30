@@ -2,11 +2,13 @@
 
 import React, { useMemo, useState } from "react"
 import { useQueryState, parseAsString, debounce } from "nuqs"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { SOCIAL_CLIENTS, type SocialAccount, type SocialClient } from "./social-data"
+import { SOCIAL_CLIENTS, type SocialAccount } from "./social-data"
 import { ConnectChannelModal } from "./connect-channel-modal"
 import { TokenHealthModal, ChannelDetailDrawer } from "./channel-modals"
+import { useAppStore } from "@/lib/store/app-store"
 
 function PlatformIcon({ icon, className }: { icon: string; className?: string }) {
   const Cmp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
@@ -108,12 +110,25 @@ export function SocialAccountsBoard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [tokenAccount, setTokenAccount] = useState<SocialAccount | null>(null)
   const [drawerAccount, setDrawerAccount] = useState<SocialAccount | null>(null)
-  const [clients, setClients] = useState<SocialClient[]>(SOCIAL_CLIENTS)
+  // Dialog konfirmasi disconnect — R-26: tombol bahaya (disconnect) tidak boleh aksi langsung tanpa konfirmasi.
+  const [pendingDisconnect, setPendingDisconnect] = useState<SocialAccount | null>(null)
+
+  const clientsWithAccounts = useAppStore((s) => s.clientsWithAccounts)
+  const connectAccount = useAppStore((s) => s.connectAccount)
+  const refreshAccount = useAppStore((s) => s.refreshAccount)
+  const disconnectAccount = useAppStore((s) => s.disconnectAccount)
+
+  const clients = clientsWithAccounts()
 
   const activeClient = useMemo(
     () => clients.find((c) => c.id === activeClientId) ?? clients[0],
     [clients, activeClientId]
   )
+
+  // KPI dihitung dari data store live (R-17: angka nyata, bukan invented).
+  const stats = useAppStore((s) => s.accountStats)()
+  const formatReach = (k: number) =>
+    k >= 1000 ? `${(k / 1000).toFixed(1)}M` : `${k}K`
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
@@ -127,32 +142,34 @@ export function SocialAccountsBoard() {
   const totalAccounts = clients.reduce((n, c) => n + c.accounts.length, 0)
 
   const handleConnected = (acc: SocialAccount) => {
-    setClients((prev) =>
-      prev.map((c) =>
-        c.id === activeClient.id ? { ...c, accounts: [...c.accounts, acc] } : c
-      )
-    )
+    connectAccount({
+      clientId: activeClient.id,
+      platform: acc.platform,
+      handle: acc.handle,
+      fans: acc.fans,
+      icon: acc.icon,
+      bg: acc.bg,
+      fg: acc.fg,
+    })
   }
 
   const handleRefreshed = (id: string) => {
-    setClients((prev) =>
-      prev.map((c) => ({
-        ...c,
-        accounts: c.accounts.map((a) => (a.id === id ? { ...a, status: "SYNCED" } : a)),
-      }))
-    )
-    setTokenAccount((prev) => (prev ? { ...prev, status: "SYNCED" } : prev))
+    refreshAccount(id)
+    toast.success("Channel synced", {
+      description: "Latest engagement telemetry has been pulled in.",
+    })
   }
 
-  const handleDisconnect = (acc: SocialAccount) => {
-    setClients((prev) =>
-      prev.map((c) => ({
-        ...c,
-        accounts: c.accounts.filter((a) => a.id !== acc.id),
-      }))
-    )
-    setDrawerAccount((prev) => (prev?.id === acc.id ? null : prev))
-    setTokenAccount((prev) => (prev?.id === acc.id ? null : prev))
+  const handleDisconnect = (acc: SocialAccount) => setPendingDisconnect(acc)
+
+  const confirmDisconnect = () => {
+    if (!pendingDisconnect) return
+    const { id, handle, platform } = pendingDisconnect
+    disconnectAccount(id)
+    setPendingDisconnect(null)
+    toast.success(`${platform} disconnected`, {
+      description: `${handle} was removed from ${activeClient.shortName}.`,
+    })
   }
 
   return (
@@ -180,10 +197,10 @@ export function SocialAccountsBoard() {
       {/* Stats strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Channels", value: String(totalAccounts) },
+          { label: "Total Channels", value: String(stats.totalChannels) },
           { label: "Managed Clients", value: String(clients.length) },
-          { label: "All Synced", value: "100%" },
-          { label: "Aggregate Reach", value: "4.5M" },
+          { label: "All Synced", value: `${stats.syncedPercent}%` },
+          { label: "Aggregate Reach", value: formatReach(stats.aggregateReachK) },
         ].map((s) => (
           <div
             key={s.label}
@@ -192,7 +209,10 @@ export function SocialAccountsBoard() {
             <span className="block text-[10px] font-bold tracking-wider uppercase text-[hsl(var(--admin-outline))]">
               {s.label}
             </span>
-            <span className="admin-stat-value block text-2xl text-[hsl(var(--admin-on-surface))] mt-1">
+            <span
+              className="admin-stat-value block text-2xl text-[hsl(var(--admin-on-surface))] mt-1"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {s.value}
             </span>
           </div>
@@ -420,7 +440,52 @@ export function SocialAccountsBoard() {
         client={activeClient}
         open={drawerAccount !== null}
         onClose={() => setDrawerAccount(null)}
+        onManage={(acc) => {
+          setDrawerAccount(null)
+          setTokenAccount(acc)
+        }}
       />
+
+      {/* Disconnect Confirmation Modal */}
+      {pendingDisconnect && (
+        <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-sm"
+            onClick={() => setPendingDisconnect(null)}
+          />
+          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Icons.warning className="size-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
+                  Disconnect Channel?
+                </h3>
+                <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
+                  You are about to remove <b>{pendingDisconnect.handle}</b> (
+                  {pendingDisconnect.platform}) from {activeClient.shortName}.
+                  Automated publishing and telemetry will stop immediately.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[hsl(var(--admin-outline-variant))]/20">
+              <button
+                onClick={() => setPendingDisconnect(null)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDisconnect}
+                className="px-4 py-2 rounded-full bg-red-600 text-white text-xs font-bold shadow-sm hover:bg-red-700 active:scale-95 transition-all cursor-pointer"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

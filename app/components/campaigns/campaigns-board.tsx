@@ -5,12 +5,12 @@ import { useQueryState, parseAsStringEnum, parseAsString, debounce } from "nuqs"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import {
-  CAMPAIGNS,
   CAMPAIGN_CLIENTS,
   CAMPAIGN_TYPE_META,
   type Campaign,
   type CampaignClient,
 } from "./campaign-data"
+import { useAppStore } from "@/lib/store/app-store"
 import { CampaignModal } from "./campaign-modal"
 import { CampaignDetailModal } from "./campaign-detail-modal"
 
@@ -133,7 +133,12 @@ export function CampaignsBoard() {
     "q",
     parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
   )
-  const [campaigns, setCampaigns] = useState<Campaign[]>(CAMPAIGNS)
+  const { campaigns, addCampaign, updateCampaign } = useAppStore((s) => ({
+    campaigns: s.campaigns,
+    addCampaign: s.addCampaign,
+    updateCampaign: s.updateCampaign,
+  }))
+
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [detail, setDetail] = useState<Campaign | null>(null)
@@ -156,9 +161,10 @@ export function CampaignsBoard() {
 
   const totalLive = campaigns.length
   const totalPosts = campaigns.reduce((n, c) => n + c.posts, 0)
-  const avgProgress = Math.round(
-    campaigns.reduce((n, c) => n + c.progress, 0) / campaigns.length
-  )
+  const avgProgress =
+    campaigns.length > 0
+      ? Math.round(campaigns.reduce((n, c) => n + c.progress, 0) / campaigns.length)
+      : 0
 
   function openCreate() {
     setEditing(null)
@@ -169,10 +175,20 @@ export function CampaignsBoard() {
     setModalOpen(true)
   }
   function handleSave(c: Campaign) {
-    setCampaigns((prev) => {
-      const exists = prev.some((x) => x.id === c.id)
-      return exists ? prev.map((x) => (x.id === c.id ? c : x)) : [c, ...prev]
-    })
+    // ID ada = update, tidak ada = create (dari modal)
+    if (editing) {
+      updateCampaign(c.id, c)
+    } else {
+      addCampaign({
+        clientId: c.clientId,
+        name: c.name,
+        type: c.type,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        color: c.color,
+        notes: c.notes,
+      })
+    }
   }
 
   return (

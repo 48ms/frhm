@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { ALL_PLATFORMS, type SocialAccount, type SocialClient } from "./social-data"
@@ -80,6 +81,10 @@ export function ConnectChannelModal({
   const [handle, setHandle] = useState("")
   const [fans, setFans] = useState("")
 
+  // Opsi error handling yang bisa di-toggle
+  const [forceError, setForceError] = useState(false)
+  const [hasError, setHasError] = useState(false)
+
   // Reset the wizard every time it is opened so each session starts clean.
   useEffect(() => {
     if (open) {
@@ -87,19 +92,31 @@ export function ConnectChannelModal({
       setPlatform(ALL_PLATFORMS[0])
       setHandle("")
       setFans("")
+      setForceError(false)
+      setHasError(false)
     }
   }, [open])
 
-  // Drive the simulated OAuth handshake: authorizing -> success.
+  // Drive the simulated OAuth handshake: authorizing -> success (or error).
   useEffect(() => {
     if (step !== "authorizing") return
-    const t = setTimeout(() => setStep("success"), 1600)
+    const t = setTimeout(() => {
+      if (forceError) {
+        setHasError(true)
+        toast.error(`${platform} connection rejected`, {
+          description: "OAuth permissions were declined or the account is locked.",
+        })
+      } else {
+        setStep("success")
+      }
+    }, 1600)
     return () => clearTimeout(t)
-  }, [step])
+  }, [step, forceError, platform])
 
   if (!open) return null
 
   const alreadyLinked = existingPlatforms.includes(platform)
+  const isValid = handle.trim().length >= 2 // Validasi real-time minimal 2 huruf
 
   const finish = () => {
     const meta = PLATFORM_META[platform] ?? {
@@ -116,6 +133,9 @@ export function ConnectChannelModal({
       icon: meta.icon,
       bg: meta.bg,
       fg: meta.fg,
+    })
+    toast.success(`${platform} connected`, {
+      description: `${handle.trim() || "@new.channel"} is now linked to ${client.shortName}.`,
     })
     onClose()
   }
@@ -256,12 +276,17 @@ export function ConnectChannelModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-                  Handle / Channel Name
+                  Handle / Channel Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   value={handle}
                   onChange={(e) => setHandle(e.target.value)}
-                  className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                  className={cn(
+                    "w-full rounded-xl border bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs outline-none text-[hsl(var(--admin-on-surface))]",
+                    !isValid && handle.length > 0
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-[hsl(var(--admin-outline-variant))]/40 focus:border-[hsl(var(--admin-cobalt))]"
+                  )}
                   placeholder="@username"
                 />
               </div>
@@ -290,11 +315,21 @@ export function ConnectChannelModal({
                 </span>
               </div>
             </div>
+
+            <label className="flex items-center gap-2 text-xs text-[hsl(var(--admin-on-surface))] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={forceError}
+                onChange={(e) => setForceError(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Simulate OAuth rejection (for testing)
+            </label>
           </div>
         )}
 
         {/* STEP 3a — authorizing */}
-        {step === "authorizing" && (
+        {step === "authorizing" && !hasError && (
           <div className="py-8 flex flex-col items-center text-center space-y-3">
             <div className="w-14 h-14 rounded-full bg-[hsl(var(--admin-cobalt))]/10 flex items-center justify-center">
               <Icons.refresh className="size-6 text-[hsl(var(--admin-cobalt))] animate-spin" />
@@ -309,6 +344,23 @@ export function ConnectChannelModal({
             </div>
             <div className="w-full max-w-xs h-1.5 rounded-full bg-[hsl(var(--admin-surface-high))] overflow-hidden">
               <div className="h-full w-2/3 bg-[hsl(var(--admin-cobalt))] rounded-full animate-pulse" />
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3c — error state (R-27) */}
+        {step === "authorizing" && hasError && (
+          <div className="py-6 flex flex-col items-center text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+              <Icons.warning className="size-7 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">
+                Connection Rejected
+              </p>
+              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
+                {platform} denied the OAuth request. The permissions might have been declined or the account is locked.
+              </p>
             </div>
           </div>
         )}
@@ -369,7 +421,8 @@ export function ConnectChannelModal({
                 Back
               </button>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                disabled={!isValid}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                 onClick={() => setStep("authorizing")}
               >
                 <Icons.link className="size-4" />
@@ -379,9 +432,24 @@ export function ConnectChannelModal({
           )}
 
           {step === "authorizing" && (
-            <span className="text-[10px] text-[hsl(var(--admin-outline))] mr-auto">
-              Do not close this window…
-            </span>
+            <>
+              {hasError ? (
+                <button
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))] transition-all cursor-pointer mr-auto"
+                  onClick={() => {
+                    setHasError(false)
+                    setStep("details")
+                  }}
+                >
+                  <Icons.arrowLeft className="size-4" />
+                  Try Again
+                </button>
+              ) : (
+                <span className="text-[10px] text-[hsl(var(--admin-outline))] mr-auto">
+                  Do not close this window…
+                </span>
+              )}
+            </>
           )}
 
           {step === "success" && (

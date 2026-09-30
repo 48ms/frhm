@@ -1,9 +1,10 @@
 'use client'
 
-import { Suspense, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useQueryState, parseAsStringEnum } from 'nuqs'
 import { safeRedirect } from '@/lib/safe-redirect'
 import { z } from 'zod'
 import { useAppForm } from '@/lib/form'
@@ -112,10 +113,31 @@ function LoginForm() {
   const redirect = safeRedirect(searchParams.get('redirect'), '/admin/dashboard')
   const supabase = createClient()
 
+  // Tab lives in the URL (?mode=signup) per Rule #4 — deep-linkable + survives refresh.
+  const [mode, setMode] = useQueryState(
+    'mode',
+    parseAsStringEnum(['login', 'signup']).withDefault('login')
+  )
+
   const [authError, setAuthError] = useState<string | null>(null)
   const [signupNotice, setSignupNotice] = useState<string | null>(null)
   const [googleLoading, setGoogleLoading] = useState(false)
+  // Remember me persists the last email locally (never the password) so the
+  // next visit pre-fills the username field.
   const [remember, setRemember] = useState(true)
+
+  // Hydrate the saved email once on mount.
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('frhm:remember-email')
+      if (stored) {
+        loginForm.setFieldValue('email', stored)
+      }
+    } catch {
+      // localStorage unavailable (private mode) — non-fatal, skip silently.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const loginForm = useAppForm({
     defaultValues: { email: '', password: '' },
@@ -134,6 +156,16 @@ function LoginForm() {
             : `Gagal masuk: ${error.message}`
         )
         return
+      }
+      // Persist the email for the next visit when "Remember me" is checked.
+      try {
+        if (remember) {
+          window.localStorage.setItem('frhm:remember-email', value.email)
+        } else {
+          window.localStorage.removeItem('frhm:remember-email')
+        }
+      } catch {
+        // Storage full or blocked — non-fatal, continue to the redirect.
       }
       router.push(redirect)
       router.refresh()
@@ -164,18 +196,19 @@ function LoginForm() {
     },
   })
 
-  const handleGoogle = async () => {
+  const handleOAuth = async (provider: 'google' | 'facebook' | 'linkedin_oidc') => {
     setAuthError(null)
     setSignupNotice(null)
     setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
       },
     })
     if (error) {
-      setAuthError(`Gagal masuk dengan Google: ${error.message}`)
+      const label = provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : 'LinkedIn'
+      setAuthError(`Gagal masuk dengan ${label}: ${error.message}`)
       setGoogleLoading(false)
     }
   }
@@ -250,7 +283,15 @@ function LoginForm() {
 
             {/* Recessed glass form card. */}
             <div className='auth-card my-6 rounded-[2rem] p-6 sm:p-7'>
-              <Tabs defaultValue='login' className='w-full'>
+              <Tabs
+                value={mode}
+                onValueChange={(v) => {
+                  setAuthError(null)
+                  setSignupNotice(null)
+                  void setMode(v as 'login' | 'signup')
+                }}
+                className='w-full'
+              >
                 <TabsList className='[&_[data-slot=motion-highlight]]:!bg-transparent [&_[data-slot=motion-highlight]]:shadow-none grid h-10 w-full grid-cols-2 rounded-full bg-white/60 p-1 ring-1 ring-white/60 backdrop-blur-sm dark:bg-white/5 dark:ring-white/10'>
                   <TabsTrigger
                     value='login'
@@ -279,9 +320,8 @@ function LoginForm() {
                     className='space-y-4'
                     noValidate
                   >
-                    <loginForm.Field
-                      name='email'
-                      children={(field) => (
+                    <loginForm.Field name='email'>
+                      {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
                             E-mail
@@ -311,11 +351,10 @@ function LoginForm() {
                           )}
                         </Field>
                       )}
-                    />
+                    </loginForm.Field>
 
-                    <loginForm.Field
-                      name='password'
-                      children={(field) => (
+                    <loginForm.Field name='password'>
+                      {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
                             Password
@@ -326,7 +365,7 @@ function LoginForm() {
                           )}
                         </Field>
                       )}
-                    />
+                    </loginForm.Field>
 
                     <div className='flex items-center justify-between px-1 pt-1 text-xs'>
                       <label className='flex cursor-pointer items-center gap-2 select-none'>
@@ -347,9 +386,8 @@ function LoginForm() {
                     </div>
 
                     <div className='pt-2'>
-                      <loginForm.Subscribe
-                        selector={(state) => state.isSubmitting}
-                        children={(isSubmitting) => (
+                      <loginForm.Subscribe selector={(state) => state.isSubmitting}>
+                        {(isSubmitting) => (
                           <LoadingButton
                             type='submit'
                             loading={isSubmitting}
@@ -359,7 +397,7 @@ function LoginForm() {
                             LOG IN
                           </LoadingButton>
                         )}
-                      />
+                      </loginForm.Subscribe>
                     </div>
                   </form>
                 </TabsContent>
@@ -377,9 +415,8 @@ function LoginForm() {
                     className='space-y-4'
                     noValidate
                   >
-                    <signupForm.Field
-                      name='full_name'
-                      children={(field) => (
+                    <signupForm.Field name='full_name'>
+                      {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
                             Full name
@@ -407,11 +444,10 @@ function LoginForm() {
                           )}
                         </Field>
                       )}
-                    />
+                    </signupForm.Field>
 
-                    <signupForm.Field
-                      name='email'
-                      children={(field) => (
+                    <signupForm.Field name='email'>
+                      {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
                             E-mail
@@ -441,11 +477,10 @@ function LoginForm() {
                           )}
                         </Field>
                       )}
-                    />
+                    </signupForm.Field>
 
-                    <signupForm.Field
-                      name='password'
-                      children={(field) => (
+                    <signupForm.Field name='password'>
+                      {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
                             Password
@@ -456,12 +491,11 @@ function LoginForm() {
                           )}
                         </Field>
                       )}
-                    />
+                    </signupForm.Field>
 
                     <div className='pt-2'>
-                      <signupForm.Subscribe
-                        selector={(state) => state.isSubmitting}
-                        children={(isSubmitting) => (
+                      <signupForm.Subscribe selector={(state) => state.isSubmitting}>
+                        {(isSubmitting) => (
                           <LoadingButton
                             type='submit'
                             loading={isSubmitting}
@@ -471,7 +505,7 @@ function LoginForm() {
                             SIGN UP
                           </LoadingButton>
                         )}
-                      />
+                      </signupForm.Subscribe>
                     </div>
                   </form>
                 </TabsContent>
@@ -488,40 +522,68 @@ function LoginForm() {
                 <div className='flex items-center justify-center gap-3'>
                   <button
                     type='button'
-                    onClick={handleGoogle}
+                    onClick={() => void handleOAuth('google')}
                     disabled={googleLoading}
                     aria-label='Login with Google'
-                    className='flex size-9 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 dark:bg-white/5'
+                    className='flex size-9 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100 dark:bg-white/5'
                   >
                     <GoogleMark />
                   </button>
-                  <span
-                    aria-hidden='true'
-                    className='flex size-9 items-center justify-center rounded-full bg-lum-secondary text-white shadow-sm transition-transform hover:scale-105'
+                  <button
+                    type='button'
+                    onClick={() => void handleOAuth('facebook')}
+                    disabled={googleLoading}
+                    aria-label='Login with Facebook'
+                    className='flex size-9 items-center justify-center rounded-full bg-lum-secondary text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <FacebookMark />
-                  </span>
-                  <span
-                    aria-hidden='true'
-                    className='flex size-9 items-center justify-center rounded-full bg-[#0077B5] text-white shadow-sm transition-transform hover:scale-105'
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => void handleOAuth('linkedin_oidc')}
+                    disabled={googleLoading}
+                    aria-label='Login with LinkedIn'
+                    className='flex size-9 items-center justify-center rounded-full bg-[#0077B5] text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <LinkedInMark />
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Footer / workspace link. */}
             <div className='pt-2 text-center'>
-              <p className='text-xs text-muted-foreground'>
-                Don&apos;t have account yet?{' '}
-                <Link
-                  href='/auth/login'
-                  className='ml-1 font-bold text-lum-tertiary underline-offset-2 hover:underline'
-                >
-                  Sign up
-                </Link>
-              </p>
+              {mode === 'login' ? (
+                <p className='text-xs text-muted-foreground'>
+                  Don&apos;t have account yet?{' '}
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setAuthError(null)
+                      setSignupNotice(null)
+                      void setMode('signup')
+                    }}
+                    className='ml-1 rounded font-bold text-lum-tertiary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
+                  >
+                    Sign up
+                  </button>
+                </p>
+              ) : (
+                <p className='text-xs text-muted-foreground'>
+                  Already have an account?{' '}
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setAuthError(null)
+                      setSignupNotice(null)
+                      void setMode('login')
+                    }}
+                    className='ml-1 rounded font-bold text-lum-tertiary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
+                  >
+                    Log in
+                  </button>
+                </p>
+              )}
             </div>
           </section>
 

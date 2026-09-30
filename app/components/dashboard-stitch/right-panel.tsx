@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
+import { useAppStore } from "@/lib/store/app-store"
 
 function platformIcon(name: string) {
   const key = name.toLowerCase().includes("instagram")
@@ -22,16 +23,14 @@ function platformIcon(name: string) {
 }
 
 export function DashboardStitchConnectedHub() {
-  const { client, clients, clientId, setClientId, profile } = useActiveDashboard()
+  const { client, clientId, setClientId, profile } = useActiveDashboard()
+  const accounts = useAppStore((s) => s.accountsByClient(client.id))
+  const clients = useAppStore((s) => s.clientsWithAccounts())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
-  const [accounts, setAccounts] = useState(client.accounts)
 
-  // Keep the local account list in sync when the active client changes.
-  React.useEffect(() => {
-    setAccounts(client.accounts)
-  }, [client])
+  // (Removed local sync effect — useAppStore is always in sync)
 
   return (
     <div className="space-y-6">
@@ -149,7 +148,7 @@ export function DashboardStitchConnectedHub() {
                   {ch.status}
                 </span>
                 <button
-                  onClick={() => setAccounts((prev) => prev.filter((a) => a.id !== ch.id))}
+                  onClick={() => useAppStore.getState().disconnectAccount(ch.id)}
                   className="text-[hsl(var(--admin-outline))] hover:text-red-500 transition-colors cursor-pointer"
                   title="Disconnect channel"
                 >
@@ -232,7 +231,13 @@ export function DashboardStitchConnectedHub() {
         client={client}
         existingPlatforms={accounts.map((a) => a.platform)}
         onClose={() => setConnectOpen(false)}
-        onConnected={(acc) => setAccounts((prev) => [...prev, acc])}
+        onConnected={(acc) =>
+          useAppStore.getState().connectAccount({
+            clientId: client.id,
+            platform: acc.platform,
+            handle: acc.handle,
+          })
+        }
       />
     </div>
   )

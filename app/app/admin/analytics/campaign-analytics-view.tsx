@@ -53,7 +53,6 @@ function formatPeriod(start: string | null, end: string | null): string {
 }
 
 export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsViewProps) {
-  const [tf, setTf] = useQueryState("tf", parseAsStringEnum(["7d", "30d", "90d", "all"]).withDefault("30d"))
   const [statusFilter, setStatusFilter] = useQueryState("status", parseAsStringEnum(["all", "active", "completed"]).withDefault("all"))
   const [clientFilter, setClientFilter] = useQueryState("client", parseAsString.withDefault("all"))
   const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) }))
