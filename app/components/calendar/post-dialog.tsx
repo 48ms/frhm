@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ import { PlatformIcon } from './platform-icon'
 import { type ScheduledPost } from '@/features/calendar/types'
 import { useAppStore } from '@/lib/store/app-store'
 import { toast } from 'sonner'
+import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
 
 const PLATFORM_OPTIONS = [
   { id: 'instagram', label: 'Instagram' },
@@ -59,6 +60,9 @@ export function PostDialog({
 }) {
   const schedulePost = useAppStore((s) => s.schedulePost)
   const removePost = useAppStore((s) => s.removePost)
+
+  useDialogA11y(isOpen, onClose)
+
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [platform, setPlatform] = useState('instagram')
@@ -75,18 +79,14 @@ export function PostDialog({
   // Content Planning fields
   const [priority, setPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal')
   const [campaignTag, setCampaignTag] = useState('')
-  const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([])
 
-  useEffect(() => {
-    if (isOpen && clientId) {
-      fetch(`/api/admin/clients/${clientId}/campaigns`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.campaigns) setCampaigns(data.campaigns)
-        })
-        .catch(err => console.error(err))
-    }
-  }, [isOpen, clientId])
+  // Campaign options come from the Zustand store (mock repository), scoped to
+  // the active client. No API call: /api/admin/clients/:id/campaigns is gone.
+  const allCampaigns = useAppStore((s) => s.campaigns)
+  const campaigns = useMemo(
+    () => allCampaigns.filter((c) => c.clientId === clientId).map((c) => ({ id: c.id, name: c.name })),
+    [allCampaigns, clientId]
+  )
 
   useEffect(() => {
     if (editingPost) {

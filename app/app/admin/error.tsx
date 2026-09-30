@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { Icons } from '@/components/icons'
 import Link from 'next/link'
 
@@ -20,19 +21,9 @@ export default function AdminError({
 }) {
   useEffect(() => {
     console.error('[admin error boundary]', error)
-    // Report to Telegram + structured log
-    fetch('/api/errors/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-        digest: error.digest,
-        url: window.location.href,
-        component: 'AdminError',
-      }),
-    }).catch(() => {})
+    // Report to Sentry (configured via sentry.*.config.ts). The old
+    // /api/errors/report route is archived.
+    Sentry.captureException(error, { tags: { boundary: 'AdminError' } })
   }, [error])
 
   return (

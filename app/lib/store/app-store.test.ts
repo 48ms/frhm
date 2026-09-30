@@ -244,4 +244,15 @@ describe("AppStore — posts (pipeline content queue)", () => {
     const created = after.find((p) => p.title === "Post Test")!
     expect(created.status).toBe("scheduled")
   })
+
+  it("addSocialClient menambahkan client baru ke socialClients", () => {
+    const before = useAppStore.getState().socialClients.length
+    useAppStore.getState().addSocialClient({
+      name: "Test Brand",
+    })
+    const after = useAppStore.getState().socialClients
+    expect(after.length).toBe(before + 1)
+    const created = after.find((c) => c.name === "Test Brand")!
+    expect(created.shortName).toBe("Test Brand")
+  })
 })

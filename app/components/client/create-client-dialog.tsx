@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/icons'
 import { NICHE_OPTIONS, type NicheId } from '@/lib/onboarding/niche-packs'
+import { useAppStore } from '@/lib/store/app-store'
+import { toast } from 'sonner'
 
 export { NICHE_OPTIONS }
 export type { NicheId }
@@ -23,6 +25,7 @@ interface CreateClientWizardProps {
 
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
+  const addSocialClient = useAppStore((s) => s.addSocialClient)
   const [step, setStep] = useState<1 | 2>(1)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -58,33 +61,21 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     setErr(null)
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          niche: form.niche as NicheId,
-          contact_email: form.contact_email.trim() || null,
-          contact_phone: form.contact_phone.trim() || null,
-          telegram_chat_id: form.telegram_chat_id.trim() || null,
-        }),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Gagal membuat client')
+      // Prototype: add to the in-memory store. The real /api/admin/clients
+      // route is archived until the backend is re-wired.
+      addSocialClient({ name: form.name.trim() })
+      toast.success('Client workspace dibuat.')
 
       setCreatedCredentials({
-        email: json.credentials?.email ?? '',
-        password: json.credentials?.password ?? '',
-        clientId: json.data.id,
+        email: form.contact_email.trim(),
+        password: '(prototype)',
+        clientId: `client-${form.name.trim().toLowerCase().replace(/\s+/g, '-')}`,
         clientName: form.name,
-        seededSkills: json.seededSkillCount ?? 0,
+        seededSkills: 0,
       })
 
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('client:created', { detail: json.data }))
-      }
-      if (onCreated && json.data) {
-        onCreated({ id: json.data.id, name: json.data.name })
+      if (onCreated) {
+        onCreated({ id: `client-${form.name.trim().toLowerCase().replace(/\s+/g, '-')}`, name: form.name })
       }
       router.refresh()
     } catch (e) {

@@ -7,6 +7,7 @@ import { AdminHeader } from "./header"
 import { InfobarProvider } from "@/components/ui/infobar"
 import { InfoSidebar } from "@/components/layout/info-sidebar"
 import { AdminFooter } from "@/components/layout/admin-footer"
+import { CreateClientProvider } from "@/components/client/create-client-provider"
 import "./admin-stage.css"
 
 export const dynamic = "force-dynamic"
@@ -53,6 +54,7 @@ export default async function AdminLayout({
         <SidebarInset id="main-content" className="min-h-svh md:pl-64">
           <SkipLink />
           <InfobarProvider defaultOpen={false}>
+            <CreateClientProvider>
             <div className="flex flex-1 flex-col min-w-0">
               <AdminHeader
                 userName={profile?.full_name || user.email || "Admin"}
@@ -63,6 +65,7 @@ export default async function AdminLayout({
                 <AdminFooter />
               </div>
             </div>
+            </CreateClientProvider>
             <InfoSidebar />
           </InfobarProvider>
         </SidebarInset>

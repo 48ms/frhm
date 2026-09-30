@@ -62,6 +62,7 @@ export type AppStore = {
   campaignByClient: (clientId: string) => Campaign[]
 
   // ---- account actions ----
+  addSocialClient: (input: { name: string }) => void
   connectAccount: (input: {
     clientId: string
     platform: string
@@ -202,6 +203,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   campaignByClient: (clientId) =>
     get().campaigns.filter((c) => c.clientId === clientId),
+
+  // clients
+  addSocialClient: (input) =>
+    set((state) => ({
+      socialClients: [
+        ...state.socialClients,
+        {
+          id: uid("client"),
+          name: input.name,
+          shortName: input.name,
+          initials: input.name.substring(0, 2).toUpperCase(),
+          tagline: "New Client Workspace",
+          accounts: [],
+        },
+      ],
+    })),
 
   // accounts
   connectAccount: (input) =>
