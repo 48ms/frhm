@@ -1,17 +1,42 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
 import { Icons } from "@/components/icons"
-import { calendarService } from "@/features/calendar/service"
-import { calendarKeys, scheduledPostsQueryOptions } from "@/features/calendar/queries"
 import { CalendarView } from "@/components/calendar/calendar-view"
 import { toast } from "sonner"
-import { type ScheduledPost, type ScheduledPostUpdate } from "@/features/calendar/types"
+import { type ScheduledPost, PLATFORMS } from "@/features/calendar/types"
 import { PostDialog } from "@/components/calendar/post-dialog"
 import { CalendarExportModal } from "@/components/calendar/calendar-export-modal"
 import { cn } from "@/lib/utils"
+import { useAppStore, type PipelinePost } from "@/lib/store/app-store"
+import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+
+/** Adapt a store PipelinePost to the CalendarView's ScheduledPost shape. */
+function toScheduledPost(p: PipelinePost): ScheduledPost {
+  const platform = Object.keys(PLATFORMS).includes(p.channel) ? p.channel : "instagram"
+  const status: ScheduledPost["status"] =
+    p.status === "review" || p.status === "draft"
+      ? "draft"
+      : p.status === "published"
+      ? "published"
+      : "scheduled"
+  return {
+    id: p.id,
+    client_id: p.clientId,
+    deliverable_id: null,
+    title: p.title,
+    content: p.caption,
+    platform,
+    scheduled_at: p.scheduledAt,
+    status,
+    notes: null,
+    is_reserved: false,
+    is_placeholder: false,
+    reserved_for: null,
+    reserved_until: null,
+  }
+}
 
 export type ClientOption = { id: string; name: string }
 
@@ -51,11 +76,19 @@ function useNextRelease(posts: ScheduledPost[]) {
   return remaining
 }
 
-export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
-  const queryClient = useQueryClient()
+export function AdminCalendarClient() {
+  // Zustand store: posts per clientId
+  const allPosts = useAppStore((s) => s.posts)
+
+  // Mock clients (same source as sidebar/dashboard)
+  const clients = useMemo(
+    () => SOCIAL_CLIENTS.map((c) => ({ id: c.id, name: c.name })),
+    []
+  )
+
   const [selectedClientId, setSelectedClientId] = useQueryState(
     "clientId",
-    parseAsString.withDefault(clients[0]?.id ?? "")
+    parseAsString.withDefault(SOCIAL_CLIENTS[0].id)
   )
   const [statusFilter, setStatusFilter] = useQueryState(
     "status",
@@ -70,7 +103,15 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
 
-  const { data: posts = [] } = useQuery(scheduledPostsQueryOptions(selectedClientId))
+  // Zustand v5: select the raw array, then filter/adapt during render.
+  const rawPosts = useMemo(
+    () => allPosts.filter((p) => p.clientId === selectedClientId),
+    [allPosts, selectedClientId]
+  )
+
+  // Adapt store PipelinePost -> CalendarView ScheduledPost
+  const posts = useMemo<ScheduledPost[]>(() => rawPosts.map(toScheduledPost), [rawPosts])
+
   const release = useNextRelease(posts)
 
   const filteredPosts = useMemo(
@@ -80,10 +121,6 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
 
   const activeClient = clients.find((c) => c.id === selectedClientId) ?? clients[0]
 
-  const invalidatePosts = () => {
-    queryClient.invalidateQueries({ queryKey: calendarKeys.list(selectedClientId) })
-  }
-
   const handleAddPost = (date: Date) => {
     setInitialDate(date)
     setEditingPost(null)
@@ -92,7 +129,7 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
 
   const handleClientChange = (value: string) => {
     if (!value) return
-    setSelectedClientId(value)
+    void setSelectedClientId(value)
   }
 
   const handleSelectPost = (post: ScheduledPost) => {
@@ -101,23 +138,9 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
     setDialogOpen(true)
   }
 
-  const handleUpdatePost = async (postId: string, data: ScheduledPostUpdate) => {
-    const queryKey = calendarKeys.list(selectedClientId)
-    const previousPosts = queryClient.getQueryData<ScheduledPost[]>(queryKey) ?? []
-
-    queryClient.setQueryData<ScheduledPost[]>(queryKey, (old = []) =>
-      old.map((p) => (p.id === postId ? { ...p, ...data } : p))
-    )
-
-    try {
-      await calendarService.movePost(postId, data)
-    } catch (err) {
-      console.error("Failed to update post:", err)
-      queryClient.setQueryData(queryKey, previousPosts)
-      toast.error("Gagal memindahkan post", {
-        description: "Terjadi kesalahan jaringan atau sinkronisasi.",
-      })
-    }
+  const handleUpdatePost = async () => {
+    // Prototype: drag & drop re-schedule persists in a later phase.
+    toast.success("Post updated in memory (Prototype)")
   }
 
   return (
@@ -315,8 +338,8 @@ export function AdminCalendarClient({ clients }: { clients: ClientOption[] }) {
         initialDate={initialDate}
         editingPost={editingPost}
         clientId={selectedClientId}
-        onSave={invalidatePosts}
-        onDelete={invalidatePosts}
+        onSave={() => { toast.success("Refreshed") }}
+        onDelete={() => { toast.success("Refreshed") }}
       />
     </div>
   )

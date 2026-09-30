@@ -18,6 +18,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
 import { type ScheduledPost } from '@/features/calendar/types'
+import { useAppStore } from '@/lib/store/app-store'
+import { toast } from 'sonner'
 
 const PLATFORM_OPTIONS = [
   { id: 'instagram', label: 'Instagram' },
@@ -44,8 +46,6 @@ export function PostDialog({
   onDelete,
   initialTitle,
   initialContent,
-  productionId,
-  skillOutputId,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -56,16 +56,15 @@ export function PostDialog({
   onDelete?: (id: string) => void
   initialTitle?: string
   initialContent?: string
-  productionId?: string
-  skillOutputId?: string
 }) {
+  const schedulePost = useAppStore((s) => s.schedulePost)
+  const removePost = useAppStore((s) => s.removePost)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [platform, setPlatform] = useState('instagram')
   const [status, setStatus] = useState<'draft' | 'scheduled' | 'published'>('scheduled')
   const [time, setTime] = useState('09:00')
   const [dateStr, setDateStr] = useState('')
-  const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -95,7 +94,6 @@ export function PostDialog({
       setContent(editingPost.content)
       setPlatform(editingPost.platform)
       setStatus(editingPost.status as 'draft' | 'scheduled' | 'published')
-      setNotes(editingPost.notes || '')
       setIsReserved(editingPost.is_reserved ?? false)
       setReservedFor(editingPost.reserved_for ?? '')
       setPriority(editingPost.priority || 'normal')
@@ -108,7 +106,6 @@ export function PostDialog({
       setContent(initialContent ?? '')
       setPlatform('instagram')
       setStatus('scheduled')
-      setNotes('')
       setIsReserved(false)
       setReservedFor('')
       setPriority('normal')
@@ -142,37 +139,20 @@ export function PostDialog({
     try {
       const scheduledAt = new Date(`${dateStr}T${time}:00`).toISOString()
 
-      const payload: Record<string, unknown> = {
-        client_id: clientId,
-        platform,
-        scheduled_at: scheduledAt,
-        status: isPlaceholder ? 'draft' : status,
-        notes: notes || null,
-        is_reserved: isReserved ?? false,
-        is_placeholder: isPlaceholder,
-        reserved_for: isPlaceholder ? reservedFor || null : null,
-        priority,
-        campaign_tag: campaignTag || null,
-        production_id: editingPost ? editingPost.production_id : (productionId || null),
-        skill_output_id: editingPost ? undefined : (skillOutputId || null),
-      }
-
-      if (!isPlaceholder) {
-        payload.title = title
-        payload.content = content || ''
+      if (editingPost) {
+        // Prototype: editing is not persisted yet, just close.
+        toast.info('Edit post belum disimpan (prototype).')
       } else {
-        payload.title = title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
-      }
-
-      const res = await fetch('/api/admin/scheduled-posts', {
-        method: editingPost ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingPost ? { ...payload, id: editingPost.id } : payload),
-      })
-
-      const json = await res.json()
-      if (!res.ok) {
-        throw new Error(json.error || 'Gagal menyimpan jadwal')
+        schedulePost({
+          clientId,
+          title: isPlaceholder
+            ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
+            : title,
+          caption: isPlaceholder ? '' : content || '',
+          channel: platform,
+          scheduledAt,
+        })
+        toast.success('Post dijadwalkan.')
       }
 
       onSave()
@@ -190,13 +170,8 @@ export function PostDialog({
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/scheduled-posts?id=${editingPost.id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) {
-        const j = await res.json()
-        throw new Error(j.error || 'Gagal menghapus')
-      }
+      removePost(editingPost.id)
+      toast.success('Post dihapus.')
       onDelete(editingPost.id)
       onClose()
     } catch (err: unknown) {
