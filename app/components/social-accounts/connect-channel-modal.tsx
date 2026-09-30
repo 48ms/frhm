@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { ALL_PLATFORMS, type SocialAccount, type SocialClient } from "./social-data"
+import { useDialogA11y } from "./use-dialog-a11y"
 
 type Step = "platform" | "details" | "authorizing" | "success"
 
@@ -84,6 +85,7 @@ export function ConnectChannelModal({
   // Opsi error handling yang bisa di-toggle
   const [forceError, setForceError] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const panelRef = useDialogA11y(open, onClose)
 
   // Reset the wizard every time it is opened so each session starts clean.
   useEffect(() => {
@@ -146,7 +148,14 @@ export function ConnectChannelModal({
         className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-md"
         onClick={step === "authorizing" ? undefined : onClose}
       />
-      <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Connect channel to ${client.name}`}
+        tabIndex={-1}
+        className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4 outline-none"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-3">
           <div className="flex items-center gap-2">

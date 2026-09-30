@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, useTransition } from "react"
+import React, { useMemo, useState, useTransition, useEffect } from "react"
 import { useQueryState, parseAsString, debounce } from "nuqs"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
@@ -21,14 +21,26 @@ function AccountRow({
   acc,
   onOpen,
   onToken,
+  onRefresh,
   onDisconnect,
 }: {
   acc: SocialAccount
   onOpen: () => void
   onToken: () => void
+  onRefresh: () => void
   onDisconnect: () => void
 }) {
   const isSynced = acc.status === "SYNCED"
+  const [refreshing, setRefreshing] = useState(false)
+
+  const handleRefresh = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (refreshing) return
+    setRefreshing(true)
+    onRefresh()
+    setTimeout(() => setRefreshing(false), 900)
+  }
+
   return (
     <div
       onClick={onOpen}
@@ -73,17 +85,34 @@ function AccountRow({
             {acc.fans}
           </p>
         </div>
+        {isSynced && (
+          <button
+            aria-label="Token health"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToken()
+            }}
+            className="p-1 rounded-full text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+            title="Token health"
+          >
+            <Icons.shield className="size-4" />
+          </button>
+        )}
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onToken()
-          }}
-          className="p-1 rounded-full text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
-          title="Token health"
+          aria-label={isSynced ? "Refresh telemetry" : "Reconnect channel"}
+          onClick={handleRefresh}
+          className={cn(
+            "p-1 rounded-full transition-all cursor-pointer",
+            isSynced
+              ? "text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-surface-high))]"
+              : "text-red-600 hover:bg-red-50"
+          )}
+          title={isSynced ? "Refresh telemetry" : "Reconnect channel"}
         >
-          <Icons.shield className="size-4" />
+          <Icons.refresh className={cn("size-4", refreshing && "animate-spin")} />
         </button>
         <button
+          aria-label="Disconnect channel"
           onClick={(e) => {
             e.stopPropagation()
             onDisconnect()
@@ -115,6 +144,16 @@ export function SocialAccountsBoard() {
   const [pendingDisconnect, setPendingDisconnect] = useState<SocialAccount | null>(null)
   
   const [isPending, startTransition] = useTransition()
+
+  // Escape key dismisses the disconnect confirmation modal
+  useEffect(() => {
+    if (!pendingDisconnect) return
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPendingDisconnect(null)
+    }
+    window.addEventListener("keydown", handleEsc)
+    return () => window.removeEventListener("keydown", handleEsc)
+  }, [pendingDisconnect])
 
   const clientsWithAccounts = useAppStore((s) => s.clientsWithAccounts)
   const connectAccount = useAppStore((s) => s.connectAccount)
@@ -379,6 +418,7 @@ export function SocialAccountsBoard() {
                     acc={acc}
                     onOpen={() => setDrawerAccount(acc)}
                     onToken={() => setTokenAccount(acc)}
+                    onRefresh={() => handleRefreshed(acc.id)}
                     onDisconnect={() => handleDisconnect(acc)}
                   />
                 ))
@@ -492,7 +532,13 @@ export function SocialAccountsBoard() {
             className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-sm"
             onClick={() => setPendingDisconnect(null)}
           />
-          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Disconnect ${pendingDisconnect.platform} ${pendingDisconnect.handle}`}
+            className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4"
+            tabIndex={-1}
+          >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <Icons.warning className="size-5 text-red-600" />
