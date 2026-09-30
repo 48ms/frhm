@@ -1,6 +1,4 @@
-import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
-import { buttonVariants } from "@/components/ui/button"
 import { PageContainer } from "@/components/layout/page-container"
 import { CampaignAnalyticsView, type CampaignItem } from "./campaign-analytics-view"
 import { AudienceTrajectory } from "@/components/analytics/audience-trajectory"
@@ -115,15 +113,6 @@ export default async function AnalyticsPage() {
     <PageContainer
       pageTitle="Analytics & Insights"
       pageDescription="Performa campaign, engagement rate, dan korelasi konten terhadap sales & inquiry bisnis"
-      pageHeaderAction={
-        <Link 
-          href="/admin/analytics/benchmark"
-          className={buttonVariants({ variant: "outline", size: "sm", className: "gap-2 text-xs" })}
-        >
-          <Icons.trendingUp className="size-3.5 text-primary" />
-          Benchmarking Klien
-        </Link>
-      }
     >
       <div className="flex flex-col gap-6">
 
