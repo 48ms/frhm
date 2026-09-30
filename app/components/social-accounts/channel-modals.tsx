@@ -220,14 +220,18 @@ export function ChannelDetailDrawer({
   open,
   onClose,
   onManage,
+  onReconnect,
 }: {
   account: SocialAccount | null
   client: SocialClient
   open: boolean
   onClose: () => void
   onManage: (account: SocialAccount) => void
+  onReconnect: (account: SocialAccount) => void
 }) {
   if (!open || !account) return null
+
+  const isSynced = account.status === "SYNCED"
 
   const events = [
     { icon: "check", tone: "ok", title: "Post published", meta: "Carousel · 2h ago" },
@@ -332,6 +336,19 @@ export function ChannelDetailDrawer({
           </div>
         </div>
 
+        {!isSynced && (
+          <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-red-50 border border-red-200">
+            <Icons.warning className="size-4 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-red-800">Action needed</p>
+              <p className="text-[11px] text-red-700 mt-0.5">
+                This channel stopped syncing. Publishing is paused until you
+                reconnect the account.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button
             onClick={() =>
@@ -348,13 +365,23 @@ export function ChannelDetailDrawer({
             <Icons.externalLink className="size-3.5" />
             Open profile
           </button>
-          <button
-            onClick={() => onManage(account)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            <Icons.settings className="size-3.5" />
-            Manage
-          </button>
+          {isSynced ? (
+            <button
+              onClick={() => onManage(account)}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              <Icons.settings className="size-3.5" />
+              Manage
+            </button>
+          ) : (
+            <button
+              onClick={() => onReconnect(account)}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-red-600 text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              <Icons.refresh className="size-3.5" />
+              Reconnect
+            </button>
+          )}
         </div>
       </div>
     </div>

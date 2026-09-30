@@ -66,7 +66,7 @@ export const SOCIAL_CLIENTS: SocialClient[] = [
         platform: "LinkedIn",
         handle: "FRHM Digital Group",
         fans: "45.2K peers",
-        status: "SYNCED",
+        status: "ACTION_NEEDED",
         icon: "work",
         bg: "bg-[hsl(var(--admin-cobalt))]",
         fg: "text-white",

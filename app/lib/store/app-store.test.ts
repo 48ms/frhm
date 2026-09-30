@@ -180,18 +180,47 @@ describe("AppStore — social accounts", () => {
     const stats = useAppStore.getState().accountStats()
     const accounts = useAppStore.getState().accounts
     expect(stats.totalChannels).toBe(accounts.length)
-    expect(stats.syncedPercent).toBe(100) // semua seed SYNCED
+    // seed punya 1 akun ACTION_NEEDED, jadi persen < 100 tapi > 0
+    expect(stats.syncedPercent).toBeGreaterThan(0)
+    expect(stats.syncedPercent).toBeLessThan(100)
     // reach agregat = jumlah fans numerik (dalam ribuan)
     expect(stats.aggregateReachK).toBeGreaterThan(0)
   })
 
+  it("accountStats melaporkan status FAILED sebagai tidak_SYNCED", () => {
+    useAppStore.getState().updateAccount("acc-shell-1", { status: "FAILED" })
+    const stats = useAppStore.getState().accountStats()
+    expect(stats.syncedPercent).toBeLessThan(100)
+    // restore seed
+    useAppStore.getState().updateAccount("acc-shell-1", { status: "SYNCED" })
+  })
+
+  it("Action Needed count = jumlah akun dengan status bukan SYNCED", () => {
+    const baseline = useAppStore.getState().actionNeededCount() // seed: 1 ACTION_NEEDED
+    useAppStore.getState().updateAccount("acc-shell-2", { status: "ACTION_NEEDED" })
+    useAppStore.getState().updateAccount("acc-wz-1", { status: "ACTION_NEEDED" })
+    const acn = useAppStore.getState().actionNeededCount()
+    expect(acn).toBe(baseline + 2)
+    // restore
+    useAppStore.getState().updateAccount("acc-shell-2", { status: "SYNCED" })
+    useAppStore.getState().updateAccount("acc-wz-1", { status: "SYNCED" })
+  })
+
+  it("actionNeededAccounts mengembalikan akun yang butuh penanganan", () => {
+    useAppStore.getState().updateAccount("acc-shell-3", { status: "FAILED" })
+    const needed = useAppStore.getState().actionNeededAccounts()
+    expect(needed.some((a) => a.id === "acc-shell-3")).toBe(true)
+    // restore
+    useAppStore.getState().updateAccount("acc-shell-3", { status: "SYNCED" })
+  })
+
   it("accountStats menurun saat akun disconnect (bukan angka statis)", () => {
     const before = useAppStore.getState().accountStats().totalChannels
-    const target = useAppStore.getState().accounts[0]
+    const target = useAppStore.getState().accounts.find((a) => a.status === "SYNCED")!
     useAppStore.getState().disconnectAccount(target.id)
     const after = useAppStore.getState().accountStats()
     expect(after.totalChannels).toBe(before - 1)
-    expect(after.syncedPercent).toBe(100)
+    expect(after.syncedPercent).toBeLessThan(100)
   })
 })
 

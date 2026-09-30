@@ -83,6 +83,10 @@ export type AppStore = {
     syncedPercent: number
     aggregateReachK: number
   }
+  /** Jumlah akun yang statusnya bukan SYNCED (butuh perhatian). */
+  actionNeededCount: () => number
+  /** Daftar akun yang butuh penanganan user (status ≠ SYNCED). */
+  actionNeededAccounts: () => (SocialAccount & { clientId: string })[]
 
   // ---- post actions ----
   schedulePost: (input: {
@@ -262,6 +266,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
       aggregateReachK: reachK,
     }
   },
+
+  actionNeededCount: () =>
+    get().accounts.filter((a) => a.status !== "SYNCED").length,
+
+  actionNeededAccounts: () =>
+    get().accounts.filter((a) => a.status !== "SYNCED"),
 
   // posts
   schedulePost: (input) =>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useTransition } from "react"
 import { useQueryState, parseAsString, debounce } from "nuqs"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
@@ -9,6 +9,7 @@ import { SOCIAL_CLIENTS, type SocialAccount } from "./social-data"
 import { ConnectChannelModal } from "./connect-channel-modal"
 import { TokenHealthModal, ChannelDetailDrawer } from "./channel-modals"
 import { useAppStore } from "@/lib/store/app-store"
+import { AccountSkeleton } from "./account-skeleton"
 
 function PlatformIcon({ icon, className }: { icon: string; className?: string }) {
   const Cmp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
@@ -57,16 +58,16 @@ function AccountRow({
               "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold",
               isSynced
                 ? "bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))]"
-                : "bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))]"
+                : "bg-red-100 text-red-700"
             )}
           >
             <span
               className={cn(
                 "w-1.5 h-1.5 rounded-full",
-                isSynced ? "bg-[#526600] animate-pulse" : "bg-[hsl(var(--admin-outline))]"
+                isSynced ? "bg-[#526600] animate-pulse" : "bg-red-600"
               )}
             />
-            {acc.status}
+            {isSynced ? "SYNCED" : "ACTION NEEDED"}
           </span>
           <p className="text-[11px] font-semibold text-[hsl(var(--admin-on-surface))] mt-0.5">
             {acc.fans}
@@ -112,6 +113,8 @@ export function SocialAccountsBoard() {
   const [drawerAccount, setDrawerAccount] = useState<SocialAccount | null>(null)
   // Dialog konfirmasi disconnect — R-26: tombol bahaya (disconnect) tidak boleh aksi langsung tanpa konfirmasi.
   const [pendingDisconnect, setPendingDisconnect] = useState<SocialAccount | null>(null)
+  
+  const [isPending, startTransition] = useTransition()
 
   const clientsWithAccounts = useAppStore((s) => s.clientsWithAccounts)
   const connectAccount = useAppStore((s) => s.connectAccount)
@@ -127,6 +130,7 @@ export function SocialAccountsBoard() {
 
   // KPI dihitung dari data store live (R-17: angka nyata, bukan invented).
   const stats = useAppStore((s) => s.accountStats)()
+  const actionNeeded = useAppStore((s) => s.actionNeededCount)()
   const formatReach = (k: number) =>
     k >= 1000 ? `${(k / 1000).toFixed(1)}M` : `${k}K`
 
@@ -219,6 +223,22 @@ export function SocialAccountsBoard() {
         ))}
       </div>
 
+      {/* Action-needed banner (R-27): muncul hanya bila ada channel bermasalah. */}
+      {actionNeeded > 0 && (
+        <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50 border border-red-200">
+          <Icons.warning className="size-4 text-red-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-bold text-red-800">
+              {actionNeeded} channel{actionNeeded > 1 ? "s" : ""} need attention
+            </p>
+            <p className="text-[11px] text-red-700 mt-0.5">
+              Publishing and telemetry are paused for these channels. Open a
+              channel and use <b>Reconnect</b> to restore access.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Client switcher + search */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative">
@@ -267,7 +287,9 @@ export function SocialAccountsBoard() {
                       : "hover:bg-[hsl(var(--admin-surface-low))] border border-transparent"
                   )}
                   onClick={() => {
-                    setActiveClientId(c.id)
+                    startTransition(() => {
+                      void setActiveClientId(c.id)
+                    })
                     setPickerOpen(false)
                   }}
                 >
@@ -331,7 +353,13 @@ export function SocialAccountsBoard() {
             </div>
 
             <div className="space-y-2.5 mt-4">
-              {filtered.length === 0 ? (
+              {isPending ? (
+                <>
+                  <AccountSkeleton />
+                  <AccountSkeleton />
+                  <AccountSkeleton />
+                </>
+              ) : filtered.length === 0 ? (
                 <div className="p-5 text-center rounded-2xl bg-[hsl(var(--admin-surface-low))]/40 border border-dashed border-[hsl(var(--admin-outline-variant))]/60">
                   <Icons.hub className="size-6 mx-auto text-[hsl(var(--admin-outline))]" />
                   <p className="text-xs font-semibold text-[hsl(var(--admin-on-surface))] mt-1">
@@ -411,7 +439,11 @@ export function SocialAccountsBoard() {
                 </span>
                 <button
                   className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))] hover:underline cursor-pointer"
-                  onClick={() => setActiveClientId(c.id)}
+                  onClick={() =>
+                    startTransition(() => {
+                      void setActiveClientId(c.id)
+                    })
+                  }
                 >
                   {c.id === activeClientId ? "ACTIVE" : "VIEW"}
                 </button>
@@ -443,6 +475,13 @@ export function SocialAccountsBoard() {
         onManage={(acc) => {
           setDrawerAccount(null)
           setTokenAccount(acc)
+        }}
+        onReconnect={(acc) => {
+          refreshAccount(acc.id)
+          setDrawerAccount(null)
+          toast.success(`${acc.platform} reconnected`, {
+            description: `${acc.handle} is syncing again. Publishing resumed.`,
+          })
         }}
       />
 
