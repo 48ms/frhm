@@ -227,7 +227,7 @@ export function AppSidebar({
               <span>Settings</span>
             </a>
             <a
-              href="/admin/audit"
+              href="/admin/support"
               className="flex items-center gap-3 px-3 py-2 rounded-xl text-[#757961] hover:text-[#1a1b22] hover:bg-[#e8e7f1] text-xs cursor-pointer transition-all"
             >
               <Icons.help className="size-[18px]" />
