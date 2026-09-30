@@ -166,7 +166,7 @@ export function ConnectChannelModal({
               <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
                 Connect Channel to Client
               </h3>
-              <p className="text-[10px] text-[hsl(var(--admin-outline))]">
+              <p className="text-[11px] text-[hsl(var(--admin-on-surface-variant))]">
                 Target client: {client.name}
               </p>
             </div>
@@ -292,10 +292,10 @@ export function ConnectChannelModal({
                   value={handle}
                   onChange={(e) => setHandle(e.target.value)}
                   className={cn(
-                    "w-full rounded-xl border bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs outline-none text-[hsl(var(--admin-on-surface))]",
+                    "w-full rounded-lg border bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs outline-none text-[hsl(var(--admin-on-surface))] focus:ring-2 focus:ring-[hsl(var(--admin-cobalt))]/30 focus:border-[hsl(var(--admin-cobalt))]",
                     !isValid && handle.length > 0
-                      ? "border-red-400 focus:border-red-500"
-                      : "border-[hsl(var(--admin-outline-variant))]/40 focus:border-[hsl(var(--admin-cobalt))]"
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
+                      : "border-[hsl(var(--admin-outline-variant))]/40"
                   )}
                   placeholder="@username"
                 />
@@ -307,7 +307,7 @@ export function ConnectChannelModal({
                 <input
                   value={fans}
                   onChange={(e) => setFans(e.target.value)}
-                  className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                  className="w-full rounded-lg border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] focus:ring-2 focus:ring-[hsl(var(--admin-cobalt))]/30 outline-none text-[hsl(var(--admin-on-surface))]"
                   placeholder="e.g. 12,400"
                 />
               </div>
@@ -319,7 +319,7 @@ export function ConnectChannelModal({
                 <span className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))]">
                   Direct OAuth 2.0 Auth
                 </span>
-                <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
+                <span className="block text-[11px] text-[hsl(var(--admin-on-surface-variant))]">
                   Connecting authorizes FRHM to publish posts and fetch real-time
                   engagement telemetry for this client.
                 </span>
@@ -331,7 +331,7 @@ export function ConnectChannelModal({
                 type="checkbox"
                 checked={forceError}
                 onChange={(e) => setForceError(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-[hsl(var(--admin-outline-variant))] bg-white accent-[hsl(var(--admin-cobalt))]"
               />
               Simulate OAuth rejection (for testing)
             </label>
@@ -406,17 +406,16 @@ export function ConnectChannelModal({
           {step === "platform" && (
             <>
               <button
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
                 onClick={onClose}
               >
                 Cancel
               </button>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 onClick={() => setStep("details")}
               >
                 Continue
-                <Icons.arrowRight className="size-4" />
               </button>
             </>
           )}
@@ -424,7 +423,7 @@ export function ConnectChannelModal({
           {step === "details" && (
             <>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
                 onClick={() => setStep("platform")}
               >
                 <Icons.arrowLeft className="size-4" />
@@ -432,7 +431,7 @@ export function ConnectChannelModal({
               </button>
               <button
                 disabled={!isValid}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                 onClick={() => setStep("authorizing")}
               >
                 <Icons.link className="size-4" />
