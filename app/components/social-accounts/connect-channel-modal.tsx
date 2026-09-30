@@ -173,7 +173,8 @@ export function ConnectChannelModal({
           </div>
           {step !== "authorizing" && (
             <button
-              className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))] transition-all cursor-pointer"
+              aria-label="Close connect channel dialog"
+              className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] transition-all cursor-pointer"
               onClick={onClose}
             >
               <Icons.close className="size-[18px]" />
