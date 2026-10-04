@@ -22,23 +22,18 @@ Checklist pindah mesin. Ditulis dari kondisi repo nyata per 2026-10-04.
 
 ## 1. Pilih cara pindah
 
-### Cara A — Git remote (paling rapi, disarankan)
-Di PC lama:
-```bash
-cd "Tools Frahma"
-git remote add origin <URL_REPO_PRIVAT>
-git push -u origin master
-```
+### ✅ Cara A — Git remote (SUDAH SIAP)
+Repo: **`https://github.com/48ms/frhm`** (Private, branch `main`).
 Di PC baru:
 ```bash
-git clone <URL_REPO_PRIVAT>
-cd "Tools Frahma"
+git clone https://github.com/48ms/frhm.git
+cd "frhm"
 ```
 Lanjut ke bagian **2**. Secret tetap harus dipindah manual (bagian 3).
 
 ### Cara B — Copy folder langsung (tanpa internet)
 Copy seluruh folder `Tools Frahma`, tapi **kecualikan**:
-- `app/node_modules/` (~189M+)
+- `app/node_modules/`
 - `node_modules/`
 - `app/.next/`
 
