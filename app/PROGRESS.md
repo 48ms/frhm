@@ -111,3 +111,240 @@
 
 *Last Updated: 2026-09-19*
 *CIS (Content Intelligence Suite) — All Milestones Completed*
+
+---
+
+## 2026-10-02 — Security Audit (ECC): API routes, RLS, cron
+
+### Fixed
+- **`/api/telegram/webhook` fail-open (CRITICAL).** Secret-token verification only ran when `TELEGRAM_BOT_SECRET_TOKEN` was set; if unset, any POST was accepted. Route uses the **service-role client** (RLS bypass) and handles `client_<id>`/`admin_<id>` linking, so a forged payload could hijack a client's Telegram linkage. Now **fail-closed** via `verifyTelegramWebhookSecret()` (`lib/telegram/verify-webhook.ts`, 5 unit tests). Verified runtime: `POST` without/with wrong header → **401**.
+- **`/api/trends/radar` public (HIGH).** Internal admin endpoint with no auth check and `Cache-Control: public`. Added `auth.getUser()` session guard + read rate limit, cache set to `private`. Verified runtime: `GET` without session → **401**.
+- **`vercel.json` dead cron jobs.** Declared 4 cron schedules (`publish` every minute, `reminders` hourly, `daily-insight` daily, `check-zero-metrics` daily) but all 4 routes exist only under `_archive_dead/` (excluded from build). Vercel would hit non-existent paths indefinitely with no observability. Set to `"crons": []` to reflect actual state.
+- **`supabase/migrations/999_wipe_all_clients.sql` removed.** Unreferenced `TRUNCATE TABLE clients CASCADE` tracked in git — one wrong `supabase db push` would wipe every client. No code referenced it.
+
+### Known limitation — scheduler is OFF (documented, intentional)
+> SUPERSEDED 2026-10-02 (later): cron routes were restored to `app/api/cron/*` and
+> `vercel.json` crons re-enabled. See the "Audit Round 2" section below.
+
+### Audit results — clean
+- **RLS:** 47/47 tables RLS-enabled, every table has ≥1 policy. Tenant isolation via `current_user_client_id()` / `is_admin()` (SECURITY DEFINER, `row_security=off` per project convention). No deny-all tables, no `USING(true)` on tenant data.
+- **API routes (7):** all authenticated routes verify session + ownership before service-role writes; `trends/generate` is admin-only + AI rate-limited; `auth/callback` rate-limited + `safeRedirect`.
+- **ECC gate:** TSC 0, ESLint clean, Vitest 77/77, `next build` OK.
+
+---
+
+## 2026-10-02 — Audit Round 2 (ECC): tenant isolation, cron correctness, observability
+
+### Fixed — correctness / security
+- **Cron publish cross-tenant publishing (CRITICAL).** `/api/cron/publish` called `listSocialAccounts(apiKey)` with **no project scope**, then filtered only by platform. A post for Client A could be published to Client B's account on the same platform. Fixed: added `clients.woopsocial_project_id` (Migration `043_clients_woopsocial_project_id.sql`) and a `getClientWooSocialProjectId()` helper; publish now scopes every bridge call to the post's own client project and **fails closed** when the client has no project.
+- **Cron jobs read with a session client (CRITICAL).** `check-zero-metrics` and `daily-insight` used `createClient()` (cookie/session client). A cron has no session, so `auth.uid()` is null and **RLS blocked every read** — both jobs silently processed 0 rows forever. Switched to `createSupabaseServiceClient()`.
+- **`daily-insight` wrong column name (HIGH).** Queried `telegram_notif_enabled`; the column is `telegram_notifications_enabled`. The query would error or match nothing. Corrected in both the batch query and the dispatch guard.
+- **`getBridgeKey()` unusable from cron (HIGH).** Read the key only via a cookie-bound server client, so any session-less context got `null` → publish always returned 503. Added a `process.env.BRIDGE_API_KEY` fallback ahead of the DB read.
+- **`trends/generate` returned a raw 403 (LOW).** Replaced the inline `NextResponse.json({status:403})` with `denyForbidden()` so the rejection is logged through the central security logger, and added a `logAudit` row for the forbidden attempt.
+
+### Fixed — rate limiting (HIGH)
+Authenticated but unthrottled mutation routes allowed abuse (notably `telegram/test`, which sends a **real** Telegram message per call). Added the shared sliding-window limiter (`RATE_LIMITS.mutation`, 20/min) to:
+`/api/telegram/test`, `/api/telegram/disconnect`, `/api/telegram/preferences`.
+The Telegram **webhook is intentionally left unthrottled** — it is server-to-server, already fail-closed via secret token, and IP throttling risks dropping legitimate Telegram retries.
+
+### Fixed — observability / forensics
+- `cron/publish`: added a `logAudit` row on **permanent failure** (retries exhausted) — previously a client-visible failure left no audit trail.
+- `cron/daily-insight`: added a `logAudit` row per **client-level failure** in the batch loop.
+- `cron/check-zero-metrics`: added a summary `logAudit` row for the run.
+- `trends/radar`: the `catch` returned 500 with no server-side log — added `logger.error` with route + userId.
+
+### New shared module
+- **`lib/cron/auth.ts` — `verifyCronSecret(secret, authHeader)` (fail-closed).** All 4 cron routes previously either fell back to a guessable literal (`CRON_SECRET || 'test_cron_secret'`) or skipped verification entirely when the secret was unset (`if (secret) { … }`). Both are fail-open. Now one helper: no secret configured → reject; mismatch → reject. Covered by 6 unit tests.
+
+### ✅ Resolved — Migration applied (2026-10-03)
+Migration **`048_clients_woopsocial_project.sql`** (catatan lama menyebut `043_...` — nama file fisiknya `048`) **sudah di-apply ke database produksi** via Supabase Management API.
+Verified: kolom `public.clients.woopsocial_project_id` (`text`, nullable) dan index `clients_woopsocial_project_idx` keduanya ada.
+Sisa langkah: isi `woopsocial_project_id` per client, jika tidak `cron/publish` tetap fail-closed untuk setiap post.
+
+### ECC gate
+- TSC 0, ESLint clean, Vitest 107/107 (21 files), `next build` OK.
+
+---
+
+## 2026-10-04 — Media Library (ECC): assets, batch ops, preview, AI caption
+
+### New feature — Media Library (`/admin/library`)
+Menyelesaikan 4 poin pengembangan berturut-turut di atas fondasi `assets` (Cloudinary via Adapter Pattern).
+
+**Poin 1 — Integrasi Calendar ("Use in Post")**
+- `calendar-client.tsx` + `post-dialog.tsx` membaca param `?mediaUrl=...&new=1` untuk auto-buka `PostDialog` dengan aset terisi.
+- Tombol "Jadwalkan dengan aset ini" di lightbox library.
+
+**Poin 2 — Batch Operations**
+- Migrasi **`049_assets_tags.sql`** (kolom `tags text[]` + GIN index) **sudah di-apply ke produksi**; diverifikasi via `information_schema.columns`.
+- `deleteAssets` & `tagAssets` di `features/library/api/service.ts`: tag memakai union array (tidak menimpa tag eksisting), batas 20 tag / 40 char, `MAX_BATCH` 100.
+- UI: checkbox per kartu, sticky action bar, chip filter tag.
+
+**Poin 3 — Preview & Optimization**
+- `lib/media/transform.ts`: `thumbnailUrl` (c_fill 200px) & `previewUrl` (kualitas otomatis). Provider-agnostic: URL non-Cloudinary dilewatkan apa adanya.
+- Kisi pakai `thumbnailUrl` + `loading="lazy"`; klik kartu membuka lightbox detail (pratinjau besar, metadata, 3 aksi).
+
+**Poin 4 — AI Caption**
+- `features/library/api/ai.ts`: server action `generateAssetCaption(clientId, assetUrl, assetType)` mengirim gambar ke endpoint OpenAI-compatible (9router/Ollama) dengan `previewUrl()`.
+- Panel "Caption AI" di lightbox: tombol Buat, 2 opsi caption, tombol Salin. Draf direset otomatis saat ganti aset.
+
+### Security / integrity
+- **Tenant isolation.** Semua jalur (`listAssets`, `uploadAsset`, `deleteAssets`, `tagAssets`, `generateAssetCaption`) lewat guard `authorizeFor`/`assertCanUseClient` yang melempar saat non-admin mengakses client lain. Diuji lintas tenant.
+- **Fail-closed, bukan teater.** Upload, OAuth callback, dan AI caption menolak operasi tanpa kredensial/koneksi — tidak pernah ada aset atau caption palsu yang ditampilkan.
+- **OAuth callback** memverifikasi `code` ke bridge sebelum mengklaim sukses; tanpa `WOOPSOCIAL_API_KEY` → redirect `error=bridge_not_configured`.
+
+### ECC gate
+- TSC 0, Vitest **135/135** (26 files; +6 `transform.test.ts`, +6 `ai.test.ts`), `next build` OK.
+- Server dev dimatikan, port 3000/3001 bebas.
+
+### Pending (butuh environment variables)
+> Operasi eksternal tetap **fail-closed** sampai `.env.local` diisi:
+> `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_UPLOAD_PRESET`, `WOOPSOCIAL_API_KEY`,
+> `AI_DEFAULT_MODEL`/`AI_DEFAULT_BASE_URL`/`AI_DEFAULT_API_KEY` (untuk caption vision).
+
+### Next options
+- Ambil aset langsung dari modal composer post (picker).
+- Lanjut ke modul lain (Analytics / Reports).
+
+---
+
+## 2026-10-04 — Media Library: drag-and-drop reorder (ECC)
+
+### Feature
+- Migrasi **`050_assets_sort_order.sql`** (kolom `sort_order integer not null default 0` + index `assets_client_sort_idx (client_id, sort_order)`) **sudah di-apply ke produksi**; diverifikasi via `information_schema.columns`.
+- Urutan listing: `ORDER BY sort_order ASC, created_at DESC` — aset baru tetap di atas sampai grid diatur manual.
+- `reorderAssets(clientId, orderedIds)` di `features/library/api/service.ts`: tulis `sort_order = index` per id, tenant-scoped (`.eq('client_id', clientId)`), tolak daftar kosong & id duplikat, audit `asset.reorder`.
+- UI: grid `@dnd-kit` (`rectSortingStrategy`), tile = drag handle, klik tetap membuka lightbox (activation distance 8px). Checkbox & tombol hover `stopPropagation` agar tidak memicu drag. Optimistik, dan bila server menolak grid **dimuat ulang** dari DB agar tidak menampilkan urutan palsu.
+- Aksesibilitas: `KeyboardSensor` + `accessibility.announcements` berbahasa Indonesia.
+
+### Keputusan desain (dijaga sadar)
+- **Drag dimatikan saat filter aktif** (`canReorder = !activeFileType && !activeTag`). Mengurutkan subset terfilter akan menulis posisi yang bertabrakan dengan aset tersembunyi — tidak ada makna yang jelas, jadi lebih baik dilarang daripada menebak.
+
+### Bug yang ditemukan & diperbaiki saat pengerjaan
+- **Laporan sukses palsu.** Versi pertama memakai `.forEach` + `.then` tanpa `await`, sehingga `failed`/`affected` dibaca sebelum query selesai dan fungsi selalu bilang sukses. Diganti `await Promise.all(...)`.
+- **TDZ.** `canReorder` awalnya dideklarasikan di atas `filteredAssets` → `ReferenceError`. Dipindah ke bawah.
+- **`gridLayout` tidak ada** di `@dnd-kit/sortable@10`; diganti `rectSortingStrategy`.
+- **Mock test rusak** akibat `.order().order()`: chain kini thenable.
+
++---
+
++## 2026-10-04 — Pembersihan workspace, babak 3 (final)
+
++Berdasarkan prinsip: **kecuali yang aktif dipakai di Frhm, hapus.**
++
++### Dihapus (tidak ada Frhm yang menggunakannya)
++- `_cleanup_backup_20261004/` (158 file) — backup semua pekerjaan sebelumnya.
++- `.bin/cloudflared.exe` (53M) — tunnel tooling, tidak dipakai Frhm.
++- `app/scripts/` (50 file, 0 tracked git, 0 ref) — script debugging satu kali.
++- `app/anti-slop/` (6 audit untracked) — riwayat antislop, sudah diarsip di root anti-slop/ (sebelumnya dihapus).
++- `app/docs/` — kosong setelah arsip dihapus.
++- `social-media-skills/` — dependensi `sync_repo_skills.py` yang sudah tidak relevan (skills kini di-supabase via migration).
++- `PROGRESS.foundation-setup.md`, `PLAN-interaction-wiring.md` — laporan lama.
++- `stitch_frhm/`, `stitch_extracted/`, `scratch_visual/`, `docs/archive/` (babak 2).
++- `WORKSPACE_TAB_FORM_ISSUES.md`, `CLIENT_PORTAL_ANALYSIS.md` (babak 2).
++
++### Tetap di-production DB tapi FRHM tidak pakai → Dibiarkan di DB
++- Tabel `client_feedback` (ada di produksi via migration `048_client_feedback.sql` root). Tidak ada route API, tidak ada handler Frhm. Dibiarkan ada (bukan zone kita untuk truncate).
++
++### Struktur akhir
++```
++Tools Frahma/
++├── app/                (6.1M)  ← Next.js app aktif
++├── openspec/           ← workflow opsx aktif
++├── AGENTS.md           ← aturan mutlak
++├── design.md           ← konvensi desain
++├── ROADMAP.md          ← roadmap produk
++├── package.json etc    ← root config
++└── .agents/ .hermes/ .github/ .specify/ .impeccable/  ← agent config (aktif)
++```
++
++### ECC gate
++- TSC 0, Vitest **138/138**, `next build` Compiled successfully.
+- Runtime: dev server 3004 bersih, `/admin/library` → 307 (redirect auth, bukan 500), 0 error kompilasi.
+- Verifikasi DB read-only untuk `ORDER BY sort_order ASC, created_at DESC` → PASS.
+- Tabel `assets` dikonfirmasi **kosong (0 baris)** setelah uji; tidak ada data dummy tertinggal.
+- Server dev dimatikan, port 3004 bebas.
+
+---
+
+## 2026-10-04 — Pembersihan workspace (repo hygiene)
+
+### Yang dihapus
+**Root:**
+- `animate-ui/`, `anti-slop/`, `e2e-playwright/` — embedded git repo pihak ketiga (klon publik, bisa di-klon ulang dari origin masing-masing).
+- `supabase/` (root) — duplikat `app/supabase/`; 60/62 file identik. 3 file unik diamankan ke backup.
+- `.next/` (root, 16M).
+
+**Di dalam `app/`:**
+- `_archive_dead/`, `mockups/`, `playwright-report/`, `test-results/`, `dogfood-output/` — artefak.
+- `anti-slop/`, `scripts/`, `registry/`, `openspec/` — lihat catatan di bawah.
+- File sampah: `a.txt` `b.txt` `c.txt` `nul` `login.html` `page.html` `audit_ui.txt` `lint-out.json` `tsc-out.txt` `migration_payload.json` `stitch-clients.json` `dashboard_screenshot.png` `tsconfig.tsbuildinfo`, dan script sekali-pakai (`extract_icons*.py`, `refactor.py`, `replace_icons.py`, `full-verify.sh`, `run-e2e.sh`, `audit-dashboard.mjs`, `shell-shot.mjs`, `take-screenshot.js`).
+- `.next/` (788M).
+
+### Yang SENGAJA disimpan
+- **`social-media-skills/`** — masih direferensikan `app/scripts/sync_repo_skills.py` (fitur Client Setup). Bukan sampah.
+- **`app/styles/`** — diimpor `app/globals.css` (`@import "./styles/themes/themes.css"`).
+- **`app/test/setup.ts`** — dipakai `vitest.config.mts`.
+- **`stitch_frhm/`**, **`stitch_extracted/`**, **`scratch_visual/`**, **`docs/archive/`** — referensi desain & riwayat, belum diputuskan untuk dihapus.
+
+### ⚠️ Temuan penting — pekerjaan belum di-commit
+`e2e-playwright/` (embedded repo) punya **12 test FRHM yang tidak ada di git mana pun**: `Analytics{Board,DeepDive,E2E,Export,ExportDebug,Phase2,Phase3,Phase4}.test.ts`, `FrhmFullAuth.test.ts`, `FrhmSmoke.test.ts`, `admin-sidebar.spec.ts`, `auth.setup.ts`, plus 3 config termodifikasi. Semuanya **diamankan lebih dulu** ke `_cleanup_backup_20261004/e2e-frhm-tests/` dan `.../e2e-configs/` sebelum repo dihapus.
+Begitu pula `app/scripts/` (50 file, **0 tracked git**), `app/anti-slop/` (6 audit), `app/openspec/changes/frhm-ui-redesign/`, dan `supabase/migrations/048_client_feedback.sql` (tabel `client_feedback` **ada di produksi** tapi migrasinya hanya ada di root `supabase/`).
+
+### Backup
+`_cleanup_backup_20261004/` — 158 file, 6.6M. Berisi: `root-supabase/`, `e2e-frhm-tests/`, `e2e-configs/`, `app-scripts/`, `app-anti-slop/`, `anti-slop-audits/`, `app-openspec/`, `app-docs/`, `048_client_feedback.sql`, `DESIGN.md`.
+
+### ECC gate setelah pembersihan
+- TSC 0, Vitest **138/138**, `next build` **Compiled successfully**.
+- Runtime: `/auth/login` → 200; `/admin/{dashboard,library,calendar,social-accounts,analytics}` → 307 (redirect auth, benar). 0 error kompilasi.
+- Server dev dimatikan, port 3004 bebas.
+
+### Belum diputuskan (perlu konfirmasi)
+`stitch_frhm/`, `stitch_extracted/`, `scratch_visual/`, `docs/archive/`, `WORKSPACE_TAB_FORM_ISSUES.md`, `CLIENT_PORTAL_ANALYSIS.md`, `PROGRESS.foundation-setup.md`, `PLAN-interaction-wiring.md`, `.specify/`, `.agents/`, `.hermes/`, `.github/`, `.impeccable/`, `.bin/cloudflared.exe` (55M).
+
+---
+
+## 2026-10-04 — Pembersihan workspace, babak 2
+
+### Dihapus (semua git-tracked & committed di HEAD, jadi bisa dipulihkan via `git checkout`)
+- `stitch_frhm/` (14M), `stitch_extracted/`, `scratch_visual/` (12M) — referensi desain/mockup, **0 referensi kode**.
+- `docs/archive/` lalu `docs/` (kosong).
+- `WORKSPACE_TAB_FORM_ISSUES.md`, `CLIENT_PORTAL_ANALYSIS.md`, `PROGRESS.foundation-setup.md`, `PLAN-interaction-wiring.md` — laporan lama.
+
+### Sengaja disimpan (masih dipakai)
+- `openspec/` — workflow OpenSpec/`/opsx`.
+- `.agents/`, `.hermes/`, `.github/`, `.specify/`, `.impeccable/` — config agent & skill.
+- `.bin/cloudflared.exe` — tunnel tooling.
+- `social-media-skills/` — dependensi `sync_repo_skills.py`.
+- `AGENTS.md`, `design.md`, `ROADMAP.md` — konvensi & spesifikasi inti.
+
+### ECC gate
+- TSC 0, Vitest **138/138**, `next build` **Compiled successfully**.
+- `app/` sekarang 6.1M (luar node_modules); backup `_cleanup_backup_20261004/` 6.6M (158 file).
+
+---
+
+## 2026-10-04 — Asset Picker di Composer (ECC: plan→test→implement→review→verify→remember→improve)
+
+**User journey:** Dari `PostDialog` klik "Pilih dari Library" → modal grid aset → pilih → media preview tersambung ke postingan.
+
+### Test (RED → GREEN)
+- `components/library/asset-picker.test.tsx` (6 test): tidak fetch saat tertutup, muat data per client, `onSelect(asset)`, empty state, **error state fail-closed**, filter pencarian.
+- `components/calendar/post-dialog.test.tsx` (8 test, +3): buka picker, pilih gambar → preview, pilih video → `<video>` player.
+- RED: 2 test gagal (komponen belum ada). GREEN: **147/147** (27 files).
+
+### Implementasi
+- **`components/library/asset-picker.tsx`** (baru) — modal reader murni. Fail-closed: tidak pernah memfabrikasi aset; kegagalan load tampil sebagai error, bukan grid kosong. Filter tipe (semua/gambar/video) + pencarian `publicId`/`tags`. Guard `cancelled` cegah respons client lama bocor ke grid.
+- **`components/calendar/post-dialog.tsx`** — tombol "Pilih dari Library" + tombol "Ganti" saat ada media. `onSelect` set `mediaUrl` + `mediaType`. Render bercabang: video → `<video controls>`, gambar → `<img>`.
+
+### Improve (bug ditemukan & diperbaiki saat review)
+- Bug: `PostDialog` selalu render `<img>`, jadi aset video tampil rusak. Diperbaiki lewat siklus RED→GREEN kedua (test video player).
+
+### Verify
+- `tsc --noEmit`: **0 error**
+- `npm test`: **147 passed** (27 files)
+- `npm run lint`: **0 error** (warning `no-img-element` sudah ada sebelumnya, konsisten se-codebase)
+- `npm run build`: **Compiled successfully (2.6s)**
+- Runtime dev 3004: `/admin/calendar` compile OK, 307 (auth redirect — benar); `/admin/library` 307; `/auth/login` 200. Tidak ada `module not found`.
+
+

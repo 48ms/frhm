@@ -7,6 +7,8 @@ import { useQueryState, parseAsString } from "nuqs"
 import { NavUser } from "@/components/nav-user"
 import { PostDialog } from "@/components/calendar/post-dialog"
 import { Icons } from "@/components/icons"
+import { BrandLogo } from "@/components/brand-logo"
+import { PRODUCT_NAME } from "@/lib/config"
 import { isActiveFor } from "@/hooks/use-nav"
 import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
 
@@ -20,6 +22,7 @@ export type ClientOption = { id: string; name: string }
 
 const NAV_ITEMS = [
   { title: "Overview", url: "/admin/dashboard", icon: "dashboard" as const },
+  { title: "Marketing ERP", url: "/admin/erp", icon: "layers" as const },
   { title: "Social Accounts", url: "/admin/social-accounts", icon: "hub" as const },
   { title: "Campaigns", url: "/admin/campaigns", icon: "campaign" as const },
   { title: "Content Calendar", url: "/admin/calendar", icon: "calendar_month" as const },
@@ -92,20 +95,13 @@ export function AppSidebar({
           
           <div>
             {/* Brand capsule */}
-            <div className="flex items-center gap-3 px-3 py-2.5 mb-5 bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-white/80">
-              <div className="w-9 h-9 rounded-xl bg-[#4353ff] flex items-center justify-center shadow-inner">
-                <Image
-                  src="/logo-frhm.png"
-                  alt="Frhm Logo"
-                  width={22}
-                  height={22}
-                  className="object-contain"
-                  unoptimized
-                />
+            <div className="flex items-center gap-3 px-3 py-2.5 mb-5 bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white/80">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner">
+                <BrandLogo size={24} />
               </div>
-              <div className="leading-none overflow-hidden">
-                <span className="block font-bold tracking-tight text-base text-[#1a1b22]">FRHM</span>
-                <span className="block text-xs text-[#757961] mt-0.5">Campaign Hub</span>
+              <div className="flex flex-col">
+                <span className="font-bold text-sm tracking-tight text-slate-900">{PRODUCT_NAME}</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Admin Hub</span>
               </div>
             </div>
 

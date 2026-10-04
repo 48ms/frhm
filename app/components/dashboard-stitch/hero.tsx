@@ -20,16 +20,23 @@ export function DashboardStitchHero() {
     <>
       <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-2xl border border-white/90 shadow-sm relative overflow-hidden group">
         {/* Decorative blurred shapes */}
-        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-[hsl(var(--admin-cobalt))]/15 transform -rotate-12 pointer-events-none blur-lg" />
-        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-[hsl(var(--brand-accent))]/30 transform rotate-6 pointer-events-none blur-md" />
+        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-[hsl(var(--admin-cobalt))]/10 transform -rotate-12 pointer-events-none blur-lg" />
+        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-[hsl(var(--brand-accent))]/20 transform rotate-6 pointer-events-none blur-md" />
         <div className="absolute right-10 top-5 text-[hsl(var(--brand-accent))] select-none pointer-events-none font-bold text-3xl">
           ✦
         </div>
 
         <div className="relative z-10 space-y-2">
           {/* WORKSPACE ACTIVE badge + inline client switcher */}
-          <div className="relative inline-flex">
+          <div 
+            className="relative inline-flex"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setPickerOpen(false)
+            }}
+          >
             <button
+              aria-haspopup="listbox"
+              aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[hsl(var(--admin-lavender-fixed))] text-[hsl(var(--admin-lavender))] text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer"
             >
@@ -48,13 +55,18 @@ export function DashboardStitchHero() {
             </button>
 
             {pickerOpen && (
-              <div className="absolute top-full left-0 mt-1.5 w-72 bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1">
+              <div 
+                role="listbox"
+                className="absolute top-full left-0 mt-1.5 w-72 bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
+              >
                 <div className="text-[10px] font-bold text-[hsl(var(--admin-outline))] px-2 py-1">
                   SWITCH ACTIVE CLIENT:
                 </div>
                 {clients.map((c) => (
                   <button
                     key={c.id}
+                    role="option"
+                    aria-selected={c.id === clientId}
                     onClick={() => {
                       setClientId(c.id)
                       setPickerOpen(false)

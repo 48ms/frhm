@@ -2,10 +2,21 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendTelegramMessage } from '@/lib/telegram/service'
 import { denyUnauthorized } from '@/lib/auth/guard'
+import { logAudit } from '@/lib/audit/log'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
+  // Throttle: this route sends a real Telegram message, so cap it to avoid spam.
+  const rl = checkRateLimit(getClientIp(request.headers), 'telegram/test', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi sebentar lagi.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
   const supabase = await createClient()
 
   const {
@@ -63,6 +74,13 @@ export async function POST(request: Request) {
     recipientType: 'admin',
     recipientId: user.id,
     eventType: 'admin_test_ping',
+  })
+
+  void logAudit({
+    action: 'telegram.test',
+    actorId: user.id,
+    summary: `Admin test notifikasi ke chat ${targetChatId}`,
+    request,
   })
 
   if (!result.success) {

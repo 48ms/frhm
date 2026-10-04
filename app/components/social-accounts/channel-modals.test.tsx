@@ -19,12 +19,12 @@ const account: SocialAccount = {
   fans: "428K fans",
   status: "SYNCED",
   icon: "photo_camera",
-  bg: "bg-[hsl(var(--admin-cobalt))]",
+  bg: "bg-black",
   fg: "text-white",
 }
 
 describe("TokenHealthModal — aksesibilitas & interaksi", () => {
-  it("render dengan role=dialog dan aria-modal", () => {
+  it("render dengan role=dialog dan nama aksesibel dari judul (aria-labelledby)", () => {
     render(
       <TokenHealthModal
         account={account}
@@ -34,10 +34,12 @@ describe("TokenHealthModal — aksesibilitas & interaksi", () => {
         onRefreshed={() => {}}
       />
     )
-    const dialog = screen.getByRole("dialog")
+    // shadcn/Base UI memberi nama aksesibel lewat aria-labelledby -> DialogTitle,
+    // bukan aria-label manual. getByRole({ name }) memvalidasi kontrak itu.
+    const dialog = screen.getByRole("dialog", { name: /token health/i })
     expect(dialog).toBeTruthy()
-    expect(dialog.getAttribute("aria-modal")).toBe("true")
-    expect(dialog.getAttribute("aria-label")).toContain("Instagram")
+    expect(dialog.getAttribute("data-slot")).toBe("dialog-content")
+    expect(dialog.textContent).toContain("Instagram")
   })
 
   it("menutup dialog saat tombol Escape ditekan", () => {
@@ -69,7 +71,7 @@ describe("TokenHealthModal — aksesibilitas & interaksi", () => {
     expect(container.querySelector('[role="dialog"]')).toBeNull()
   })
 
-  it("tombol close punya aria-label", () => {
+  it("punya tombol close dari primitive shadcn", () => {
     render(
       <TokenHealthModal
         account={account}
@@ -79,8 +81,9 @@ describe("TokenHealthModal — aksesibilitas & interaksi", () => {
         onRefreshed={() => {}}
       />
     )
-    const closeBtn = screen.getByLabelText("Close token health dialog")
+    const closeBtn = document.querySelector('[data-slot="dialog-close"]')
     expect(closeBtn).toBeTruthy()
+    expect(closeBtn?.textContent).toContain("Close")
   })
 
   it("menampilkan metrics deterministik yang BERBEDA antar akun (R-17)", () => {
@@ -124,7 +127,7 @@ describe("TokenHealthModal — aksesibilitas & interaksi", () => {
     expect(firstMetrics[0]).toBe("428")
   })
 
-  it("ChannelDetailDrawer: role=dialog, Escape menutup, tombol close ber-label", () => {
+  it("ChannelDetailDrawer: role=dialog, Escape menutup, tombol close dari primitive", () => {
     const onClose = vi.fn()
     render(
       <ChannelDetailDrawer
@@ -136,9 +139,9 @@ describe("TokenHealthModal — aksesibilitas & interaksi", () => {
         onReconnect={() => {}}
       />
     )
-    const dialog = screen.getByRole("dialog")
-    expect(dialog.getAttribute("aria-modal")).toBe("true")
-    expect(screen.getByLabelText("Close channel details")).toBeTruthy()
+    const dialog = screen.getByRole("dialog", { name: /instagram/i })
+    expect(dialog.getAttribute("data-slot")).toBe("sheet-content")
+    expect(document.querySelector('[data-slot="sheet-close"]')).toBeTruthy()
     fireEvent.keyDown(dialog, { key: "Escape" })
     expect(onClose).toHaveBeenCalledTimes(1)
   })

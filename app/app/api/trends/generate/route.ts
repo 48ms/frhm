@@ -8,7 +8,8 @@ import { notifyClientContentReady } from '@/lib/telegram/service'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
-import { denyUnauthorized } from '@/lib/auth/guard'
+import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,9 +47,16 @@ export async function POST(request: Request) {
     return denyUnauthorized()
   }
 
+  // Admin-only: only admins may trigger AI content generation.
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Hanya admin yang memiliki akses' }, { status: 403 })
+    void logAudit({
+      actorId: user.id,
+      action: 'trends.generate.forbidden',
+      summary: 'Non-admin user mencoba generate konten AI',
+      request,
+    })
+    return denyForbidden({ userId: user.id, role: profile?.role, route: 'api/trends/generate' })
   }
 
   const body = await request.json().catch(() => ({}))
@@ -110,6 +118,15 @@ export async function POST(request: Request) {
     voiceGuide,
     provider,
     campaignTag,
+  })
+
+  void logAudit({
+    action: 'trends.generate',
+    actorId: user.id,
+    clientId: clientId,
+    summary: `Generate konten tren untuk klien: ${client.name}`,
+    metadata: { trendTopic, campaignTag },
+    request,
   })
 
   // 6. Simpan materi ke tabel deliverables dengan status 'sent' dan campaign_tag

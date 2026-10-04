@@ -11,7 +11,9 @@ const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-[hsl(var(--admin-cobalt))]/15 text-[hsl(var(--admin-cobalt))] border border-[hsl(var(--admin-cobalt))]/20 uppercase",
   review: "bg-amber-100 text-amber-700 border border-amber-200 uppercase",
   draft: "bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] border border-[hsl(var(--admin-outline-variant))]/40 uppercase",
+  sent: "bg-sky-100 text-sky-700 border border-sky-200 uppercase",
   approved: "bg-[hsl(var(--brand-accent))]/30 text-[hsl(var(--brand-accent-foreground))] border border-[hsl(var(--brand-accent))]/30 uppercase",
+  revision_requested: "bg-orange-100 text-orange-700 border border-orange-200 uppercase",
   published: "bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase",
   failed: "bg-rose-100 text-rose-700 border border-rose-200 uppercase",
 }
@@ -81,7 +83,7 @@ export function DashboardStitchPostPipeline() {
               className="group flex items-center gap-4 p-3.5 rounded-2xl bg-white/60 border border-white/70 hover:bg-white hover:shadow-md transition-all cursor-pointer"
             >
               <div className="w-10 h-10 rounded-xl bg-[hsl(var(--admin-surface-base))] flex items-center justify-center text-[hsl(var(--admin-cobalt))] shrink-0">
-                {getPlatformIcon(post.channel)}
+                {getPlatformIcon(post.channel ?? "")}
               </div>
               <div className="flex-1 min-w-0">
                 <span className="block text-sm font-bold text-[hsl(var(--admin-on-surface))] truncate">

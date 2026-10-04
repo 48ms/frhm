@@ -3,10 +3,19 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function PATCH(request: Request) {
+  const rl = checkRateLimit(getClientIp(request.headers), 'telegram/preferences', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: 'Terlalu banyak permintaan. Coba lagi sebentar lagi.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
   const supabase = await createClient()
 
   const {

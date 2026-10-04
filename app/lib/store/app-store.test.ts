@@ -196,14 +196,14 @@ describe("AppStore — social accounts", () => {
   })
 
   it("Action Needed count = jumlah akun dengan status bukan SYNCED", () => {
-    const baseline = useAppStore.getState().actionNeededCount() // seed: 1 ACTION_NEEDED
-    useAppStore.getState().updateAccount("acc-shell-2", { status: "ACTION_NEEDED" })
-    useAppStore.getState().updateAccount("acc-wz-1", { status: "ACTION_NEEDED" })
+    const baseline = useAppStore.getState().actionNeededCount()
+    useAppStore.getState().updateAccount("acc-shell-1", { status: "ACTION_NEEDED" })
+    useAppStore.getState().updateAccount("acc-wiz-1", { status: "TOKEN_EXPIRING" })
     const acn = useAppStore.getState().actionNeededCount()
     expect(acn).toBe(baseline + 2)
     // restore
-    useAppStore.getState().updateAccount("acc-shell-2", { status: "SYNCED" })
-    useAppStore.getState().updateAccount("acc-wz-1", { status: "SYNCED" })
+    useAppStore.getState().updateAccount("acc-shell-1", { status: "SYNCED" })
+    useAppStore.getState().updateAccount("acc-wiz-1", { status: "SYNCED" })
   })
 
   it("actionNeededAccounts mengembalikan akun yang butuh penanganan", () => {

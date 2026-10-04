@@ -7,33 +7,26 @@ import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
 import { useAppStore } from "@/lib/store/app-store"
-
-function platformIcon(name: string) {
-  const key = name.toLowerCase().includes("instagram")
-    ? "photo_camera"
-    : name.toLowerCase().includes("tiktok")
-    ? "music_note"
-    : name.toLowerCase().includes("youtube")
-    ? "smart_display"
-    : name.toLowerCase().includes("linkedin")
-    ? "work"
-    : "hub"
-  const Cmp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[key]
-  return Cmp ? <Cmp className="size-5" /> : <Icons.hub className="size-5" />
-}
+import { useShallow } from "zustand/shallow"
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, setClientId, profile } = useActiveDashboard()
-  // Zustand v5: select the stable function reference, then call it during render.
-  // Calling it inside the selector returns a new array each time and trips
-  // useSyncExternalStore into an infinite update loop.
-  const accountsByClient = useAppStore((s) => s.accountsByClient)
-  const clientsWithAccounts = useAppStore((s) => s.clientsWithAccounts)
-  const accounts = accountsByClient(client.id)
-  const clients = clientsWithAccounts()
+  
+  // Optimasi ECC: Ambil list mentah saja, filter di level komponen agar getter store 
+  // tidak loop re-render React (karena getter Zustand mereturn array referensi baru tiap call).
+  const rawAccounts = useAppStore(s => s.accounts)
+  const rawClients = useAppStore(s => s.socialClients)
+  
+  const accounts = rawAccounts.filter((a) => a.clientId === client.id)
+  const clients = rawClients.map(c => ({
+    ...c,
+    accounts: rawAccounts.filter((a) => a.clientId === c.id)
+  }))
+  
   const [pickerOpen, setPickerOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
+  const [disconnectId, setDisconnectId] = useState<string | null>(null)
 
   // (Removed local sync effect , useAppStore is always in sync)
 
@@ -61,8 +54,15 @@ export function DashboardStitchConnectedHub() {
           </div>
 
           {/* Client Switcher Capsule , syncs the whole dashboard via URL */}
-          <div className="relative">
+          <div 
+            className="relative"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setPickerOpen(false)
+            }}
+          >
             <button
+              aria-haspopup="listbox"
+              aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
               className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-[hsl(var(--admin-surface-low))] border border-[hsl(var(--admin-outline-variant))]/40 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all cursor-pointer shadow-sm group"
             >
@@ -93,13 +93,18 @@ export function DashboardStitchConnectedHub() {
             </button>
 
             {pickerOpen && (
-              <div className="absolute top-full left-0 mt-1.5 w-full bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1">
+              <div 
+                role="listbox"
+                className="absolute top-full left-0 mt-1.5 w-full bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
+              >
                 <div className="text-[10px] font-bold text-[hsl(var(--admin-outline))] px-2 py-1">
                   SELECT MANAGED CLIENT:
                 </div>
                 {clients.map((c) => (
                   <button
                     key={c.id}
+                    role="option"
+                    aria-selected={c.id === clientId}
                     onClick={() => {
                       setClientId(c.id)
                       setPickerOpen(false)
@@ -127,39 +132,64 @@ export function DashboardStitchConnectedHub() {
               </div>
             )}
           </div>
+
+          {/* Client Verification Note */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))]/70 border border-[hsl(var(--admin-outline-variant))]/30 text-xs text-[hsl(var(--admin-outline))]">
+            <Icons.check className="size-4 text-[hsl(var(--admin-cobalt))] shrink-0" />
+            <span className="truncate">
+              Channels belong to{" "}
+              <b className="text-[hsl(var(--admin-on-surface))]">{client.shortName}</b>
+            </span>
+          </div>
         </div>
 
         <div className="mt-4 space-y-3">
           {accounts.map((ch) => (
             <div
               key={ch.id}
-              className="flex items-center justify-between p-3 rounded-2xl bg-[#eeedf7]/40 border border-white/60 hover:border-[hsl(var(--admin-cobalt))]/30 transition-all"
+              className="flex items-center justify-between p-3.5 rounded-2xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/80 hover:bg-[hsl(var(--admin-surface-lowest))] hover:border-[hsl(var(--secondary))]/40 transition-all cursor-pointer group shadow-sm hover:shadow"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[hsl(var(--admin-cobalt))]">
-                  {platformIcon(ch.platform)}
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm font-bold group-hover:scale-105 transition-transform",
+                  ch.bg
+                )}>
+                  <Icons.hub className="size-5" />
                 </div>
                 <div>
-                  <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))]">
+                  <h3 className="font-label-lg text-label-lg text-on-surface font-bold leading-tight group-hover:text-secondary transition-colors">
                     {ch.platform}
-                  </span>
-                  <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
+                  </h3>
+                  <p className="font-body-sm text-body-sm text-outline">
                     {ch.handle}
-                  </span>
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-[#5e7400] px-2 py-0.5 rounded-full bg-[hsl(var(--brand-accent))]/25 border border-[hsl(var(--brand-accent))]/20">
-                  {ch.status}
+              <div className="text-right">
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-label-caps font-bold",
+                  ch.status === "SYNCED" || ch.status === "LIVE_SYNC"
+                    ? "bg-primary-container text-on-primary-container"
+                    : "bg-amber-500/10 text-amber-600"
+                )}>
+                  {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                  )}
+                  {ch.status.replace('_', ' ')}
                 </span>
-                <button
-                  onClick={() => useAppStore.getState().disconnectAccount(ch.id)}
-                  className="text-[hsl(var(--admin-outline))] hover:text-red-500 transition-colors cursor-pointer"
-                  title="Disconnect channel"
-                >
-                  <Icons.close className="size-3.5" />
-                </button>
+                {ch.fans && (
+                  <p className="font-body-sm text-body-sm text-on-surface font-semibold mt-1">
+                    {ch.fans}
+                  </p>
+                )}
               </div>
+              <button
+                onClick={() => setDisconnectId(ch.id)}
+                className="ml-2 text-[hsl(var(--admin-outline))] hover:text-red-500 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                title="Disconnect channel"
+              >
+                <Icons.close className="size-3.5" />
+              </button>
             </div>
           ))}
 
@@ -230,19 +260,49 @@ export function DashboardStitchConnectedHub() {
         </button>
       </div>
 
+      {disconnectId && (
+        <div className="fixed inset-0 z-[60] p-4 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-sm"
+            onClick={() => setDisconnectId(null)}
+          />
+          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-2">
+              <Icons.warning className="size-6" />
+            </div>
+            <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-lg">
+              Disconnect Channel?
+            </h3>
+            <p className="text-sm text-[hsl(var(--admin-outline))]">
+              Are you sure you want to disconnect this channel? Data syncing will stop immediately.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setDisconnectId(null)}
+                className="flex-1 px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] text-[hsl(var(--admin-on-surface))] text-sm font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all shadow-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  useAppStore.getState().disconnectAccount(disconnectId)
+                  setDisconnectId(null)
+                }}
+                className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all shadow-sm cursor-pointer"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <StitchAiHookModal open={aiOpen} onOpenChange={setAiOpen} clientName={client.name} />
       <ConnectChannelModal
         open={connectOpen}
         client={client}
         existingPlatforms={accounts.map((a) => a.platform)}
         onClose={() => setConnectOpen(false)}
-        onConnected={(acc) =>
-          useAppStore.getState().connectAccount({
-            clientId: client.id,
-            platform: acc.platform,
-            handle: acc.handle,
-          })
-        }
       />
     </div>
   )

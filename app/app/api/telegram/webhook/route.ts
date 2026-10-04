@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 // eslint-disable-next-line no-restricted-imports
 import { createClient } from '@supabase/supabase-js'
 import { sendTelegramMessage } from '@/lib/telegram/service'
+import { verifyTelegramWebhookSecret } from '@/lib/telegram/verify-webhook'
 import { denyUnauthorized } from '@/lib/auth/guard'
+import { logger } from '@/lib/logger'
+import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,14 +30,18 @@ interface TelegramUpdate {
 }
 
 export async function POST(request: Request) {
-  // Verifikasi secret token Telegram webhook jika dikonfigurasi
-  const configuredSecret = process.env.TELEGRAM_BOT_SECRET_TOKEN
-  if (configuredSecret) {
-    const receivedSecret = request.headers.get('x-telegram-bot-api-secret-token')
-    if (receivedSecret !== configuredSecret) {
-      console.warn('[Telegram Webhook] Invalid secret token')
-      return denyUnauthorized()
-    }
+  // Verifikasi secret token Telegram webhook (fail-closed: tanpa secret
+  // terkonfigurasi, tolak request — jangan pernah terima webhook tanpa auth).
+  const verification = verifyTelegramWebhookSecret(
+    process.env.TELEGRAM_BOT_SECRET_TOKEN,
+    request.headers.get('x-telegram-bot-api-secret-token'),
+  )
+  if (!verification.ok) {
+    logger.warn('telegram.webhook.rejected', {
+      route: 'api/telegram/webhook',
+      reason: verification.reason,
+    })
+    return denyUnauthorized()
   }
 
   let body: TelegramUpdate
@@ -144,6 +151,15 @@ export async function POST(request: Request) {
         eventType: 'account_linked',
       })
 
+      void logAudit({
+        action: 'telegram.link.client',
+        entityType: 'client',
+        entityId: clientId,
+        clientId,
+        summary: `Telegram @${username ?? 'unknown'} ditautkan ke klien ${client.name}`,
+        request,
+      })
+
       return NextResponse.json({ ok: true, linked: 'client', clientId })
     }
 
@@ -203,6 +219,15 @@ export async function POST(request: Request) {
         recipientType: 'admin',
         recipientId: adminUserId,
         eventType: 'admin_linked',
+      })
+
+      void logAudit({
+        action: 'telegram.link.admin',
+        actorId: adminUserId,
+        entityType: 'user',
+        entityId: adminUserId,
+        summary: `Telegram @${username ?? 'unknown'} ditautkan ke akun admin`,
+        request,
       })
 
       return NextResponse.json({ ok: true, linked: 'admin', adminUserId })

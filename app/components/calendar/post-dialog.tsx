@@ -15,12 +15,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
 import { type ScheduledPost } from '@/features/calendar/types'
 import { useAppStore } from '@/lib/store/app-store'
 import { toast } from 'sonner'
 import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
+import { AssetPicker } from '@/components/library/asset-picker'
+import type { Asset, AssetFileType } from '@/features/library/api/types'
 
 const PLATFORM_OPTIONS = [
   { id: 'instagram', label: 'Instagram' },
@@ -47,6 +50,7 @@ export function PostDialog({
   onDelete,
   initialTitle,
   initialContent,
+  initialMediaUrl,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -57,9 +61,10 @@ export function PostDialog({
   onDelete?: (id: string) => void
   initialTitle?: string
   initialContent?: string
+  initialMediaUrl?: string
 }) {
-  const schedulePost = useAppStore((s) => s.schedulePost)
-  const removePost = useAppStore((s) => s.removePost)
+  const addPost = useAppStore((state) => state.addPost)
+  const removePost = useAppStore((state) => state.removePost)
 
   useDialogA11y(isOpen, onClose)
 
@@ -71,6 +76,9 @@ export function PostDialog({
   const [dateStr, setDateStr] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mediaUrl, setMediaUrl] = useState('')
+  const [mediaType, setMediaType] = useState<AssetFileType>('image')
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   // Reserved slot fields
   const [isReserved, setIsReserved] = useState(false)
@@ -98,6 +106,8 @@ export function PostDialog({
       setReservedFor(editingPost.reserved_for ?? '')
       setPriority(editingPost.priority || 'normal')
       setCampaignTag(editingPost.campaign_tag || '')
+      setMediaUrl('')
+      setMediaType('image')
       const d = new Date(editingPost.scheduled_at)
       setDateStr(d.toISOString().split('T')[0])
       setTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
@@ -110,12 +120,14 @@ export function PostDialog({
       setReservedFor('')
       setPriority('normal')
       setCampaignTag('')
+      setMediaUrl(initialMediaUrl ?? '')
+      setMediaType('image')
       const offset = initialDate.getTimezoneOffset()
       const d = new Date(initialDate.getTime() - offset * 60 * 1000)
       setDateStr(d.toISOString().split('T')[0])
       setTime('09:00')
     }
-  }, [editingPost, initialDate, initialTitle, initialContent, isOpen])
+  }, [editingPost, initialDate, initialTitle, initialContent, initialMediaUrl, isOpen])
 
   const isPlaceholder = isReserved
 
@@ -143,14 +155,17 @@ export function PostDialog({
         // Prototype: editing is not persisted yet, just close.
         toast.info('Edit post belum disimpan (prototype).')
       } else {
-        schedulePost({
+        addPost({
           clientId,
           title: isPlaceholder
             ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
             : title,
           caption: isPlaceholder ? '' : content || '',
-          channel: platform,
+          platform,
           scheduledAt,
+          status: "draft",
+          author: "Current User",
+          mediaUrl: mediaUrl || undefined,
         })
         toast.success('Post dijadwalkan.')
       }
@@ -361,6 +376,65 @@ export function PostDialog({
             </div>
           )}
 
+          {/* Media attachment preview (from Media Library) */}
+          {!isCampaignMode && (
+            <div className="space-y-1.5">
+              <Label>Media Terlampir</Label>
+              {mediaUrl ? (
+                <div className="relative w-full overflow-hidden rounded-lg border border-border">
+                  {mediaType === 'video' ? (
+                    <video
+                      src={mediaUrl}
+                      controls
+                      className="h-40 w-full object-cover bg-black"
+                    />
+                  ) : (
+                    <img
+                      src={mediaUrl}
+                      alt="Media terlampir"
+                      className="h-40 w-full object-cover"
+                    />
+                  )}
+                  <div className="absolute top-2 right-2 flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 text-xs"
+                      onClick={() => setPickerOpen(true)}
+                    >
+                      Ganti
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      className="h-7 text-xs"
+                      onClick={() => setMediaUrl('')}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-border px-3 py-4">
+                  <p className="text-xs text-muted-foreground">
+                    Belum ada media. Pilih aset dari Media Library, atau biarkan kosong untuk posting teks.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    onClick={() => setPickerOpen(true)}
+                  >
+                    <Icons.media className="size-3.5" /> Pilih dari Library
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Status Radio Group (accessible) */}
           {!isCampaignMode && (
             <div className="space-y-1.5">
@@ -424,6 +498,17 @@ export function PostDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Nested dialog: browsing the Media Library without leaving the composer. */}
+      <AssetPicker
+        clientId={clientId}
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelect={(asset: Asset) => {
+          setMediaUrl(asset.url)
+          setMediaType(asset.fileType)
+        }}
+      />
     </Dialog>
   )
 }

@@ -1,477 +1,465 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { toast } from "sonner"
+import * as React from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { ALL_PLATFORMS, type SocialAccount, type SocialClient } from "./social-data"
-import { useDialogA11y } from "./use-dialog-a11y"
+import { PLATFORM_SCOPES } from "./social-scopes"
+import { useAppStore } from "@/lib/store/app-store"
+import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
-type Step = "platform" | "details" | "authorizing" | "success"
+type PlatformId = (typeof ALL_PLATFORMS)[number]
 
-const PLATFORM_META: Record<string, { icon: string; bg: string; fg: string }> = {
+type PlatformMeta = {
+  available: boolean
+  icon: string
+  iconClass: string
+  blurb: string
+}
+
+/**
+ * Platform capability matrix. `available: false` renders a "Coming soon" tile
+ * instead of a dead button, so an admin never hits an action that cannot work.
+ */
+const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   Instagram: {
-    icon: "photo_camera",
-    bg: "bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600",
-    fg: "text-white",
+    available: true,
+    icon: "instagram",
+    iconClass: "text-rose-500",
+    blurb: "Reels, carousels, stories and insights",
   },
   TikTok: {
-    icon: "music_note",
-    bg: "bg-[hsl(var(--admin-on-surface))]",
-    fg: "text-[hsl(var(--brand-accent))]",
+    available: true,
+    icon: "tiktok",
+    iconClass: "text-foreground",
+    blurb: "Short video, Spark Ads and analytics",
   },
-  YouTube: { icon: "smart_display", bg: "bg-[#ba1a1a]", fg: "text-white" },
-  LinkedIn: { icon: "work", bg: "bg-[hsl(var(--admin-cobalt))]", fg: "text-white" },
-  "Twitter / X": {
+  YouTube: {
+    available: false,
+    icon: "play",
+    iconClass: "text-red-500",
+    blurb: "Long-form, Shorts and Studio analytics",
+  },
+  LinkedIn: {
+    available: false,
+    icon: "building",
+    iconClass: "text-sky-600",
+    blurb: "Company pages and sponsored content",
+  },
+  Twitter: {
+    available: false,
     icon: "twitter",
-    bg: "bg-[hsl(var(--admin-on-surface))]",
-    fg: "text-white",
+    iconClass: "text-foreground",
+    blurb: "Posts, threads and audience insights",
   },
-  Threads: {
-    icon: "hub",
-    bg: "bg-[hsl(var(--admin-on-surface))]",
-    fg: "text-white",
-  },
-  Facebook: { icon: "hub", bg: "bg-[#1877F2]", fg: "text-white" },
 }
 
-function PlatformTile({
-  platform,
-  className,
-}: {
-  platform: string
-  className?: string
-}) {
-  const meta = PLATFORM_META[platform] ?? {
-    icon: "hub",
-    bg: "bg-[hsl(var(--admin-on-surface))]",
-    fg: "text-white",
-  }
-  const Cmp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[
-    meta.icon
-  ]
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-xl shadow-sm shrink-0",
-        meta.bg,
-        meta.fg,
-        className
-      )}
-    >
-      {Cmp ? <Cmp className="size-[55%]" /> : <Icons.hub className="size-[55%]" />}
-    </div>
-  )
+function platformIcon(name: string) {
+  return (Icons as Record<string, React.ComponentType<{ className?: string }>>)[name]
 }
+
+function accountAppearance(platform: PlatformId) {
+  switch (platform) {
+    case "Instagram":
+      return {
+        bg: "bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600",
+        fg: "text-white",
+        icon: "photo_camera",
+      }
+    case "TikTok":
+      return { bg: "bg-foreground", fg: "text-background", icon: "music_note" }
+    case "YouTube":
+      return { bg: "bg-red-600", fg: "text-white", icon: "play" }
+    case "LinkedIn":
+      return { bg: "bg-sky-700", fg: "text-white", icon: "building" }
+    default:
+      return { bg: "bg-foreground", fg: "text-background", icon: "twitter" }
+  }
+}
+
+const CONNECT_STAGES = [
+  "Opening a secure OAuth window…",
+  "Waiting for authorization on the platform…",
+  "Exchanging the code for an access token…",
+  "Syncing profile, permissions & webhooks…",
+] as const
+
+export interface ConnectChannelModalProps {
+  open?: boolean
+  /** Legacy alias for `open`. */
+  isOpen?: boolean
+  client?: SocialClient
+  /** Legacy alias for `client`. */
+  clientId?: string
+  /** Already-connected platforms; only used to mark tiles as "Connected". */
+  existingPlatforms?: string[]
+  /** Fired after a channel is committed to the store. */
+  onConnected?: (acc: SocialAccount) => void
+  onClose: () => void
+}
+
+type Step = "platform" | "authorize" | "connecting" | "success"
 
 export function ConnectChannelModal({
   open,
+  isOpen,
   client,
-  existingPlatforms,
-  onClose,
+  clientId,
+  existingPlatforms = [],
   onConnected,
-}: {
-  open: boolean
-  client: SocialClient
-  existingPlatforms: string[]
-  onClose: () => void
-  onConnected: (acc: SocialAccount) => void
-}) {
-  const [step, setStep] = useState<Step>("platform")
-  const [platform, setPlatform] = useState(ALL_PLATFORMS[0])
-  const [handle, setHandle] = useState("")
-  const [fans, setFans] = useState("")
+  onClose,
+}: ConnectChannelModalProps) {
+  const visible = isOpen ?? open ?? false
+  const activeClientId = clientId ?? client?.id ?? ""
 
-  // Opsi error handling yang bisa di-toggle
-  const [forceError, setForceError] = useState(false)
-  const [hasError, setHasError] = useState(false)
-  const panelRef = useDialogA11y(open, onClose)
+  const [step, setStep] = React.useState<Step>("platform")
+  const [platform, setPlatform] = React.useState<PlatformId | null>(null)
+  const [handle, setHandle] = React.useState("")
+  const [stage, setStage] = React.useState(0)
+  const [connected, setConnected] = React.useState<SocialAccount | null>(null)
+  const finalized = React.useRef(false)
 
-  // Reset the wizard every time it is opened so each session starts clean.
-  useEffect(() => {
-    if (open) {
-      setStep("platform")
-      setPlatform(ALL_PLATFORMS[0])
-      setHandle("")
-      setFans("")
-      setForceError(false)
-      setHasError(false)
-    }
-  }, [open])
+  const addAccount = useAppStore((state) => state.addSocialAccount)
 
-  // Drive the simulated OAuth handshake: authorizing -> success (or error).
-  useEffect(() => {
-    if (step !== "authorizing") return
-    const t = setTimeout(() => {
-      if (forceError) {
-        setHasError(true)
-        toast.error(`${platform} connection rejected`, {
-          description: "OAuth permissions were declined or the account is locked.",
-        })
-      } else {
-        setStep("success")
-      }
-    }, 1600)
-    return () => clearTimeout(t)
-  }, [step, forceError, platform])
+  const reset = React.useCallback(() => {
+    setStep("platform")
+    setPlatform(null)
+    setHandle("")
+    setStage(0)
+    setConnected(null)
+    finalized.current = false
+  }, [])
 
-  if (!open) return null
-
-  const alreadyLinked = existingPlatforms.includes(platform)
-  const isValid = handle.trim().length >= 2 // Validasi real-time minimal 2 huruf
-
-  const finish = () => {
-    const meta = PLATFORM_META[platform] ?? {
-      icon: "hub",
-      bg: "bg-[hsl(var(--admin-on-surface))]",
-      fg: "text-white",
-    }
-    onConnected({
-      id: `acc-${client.id}-${Date.now()}`,
-      platform,
-      handle: handle.trim() || "@new.channel",
-      fans: fans.trim() ? `${fans.trim()} fans` : "0 fans",
-      status: "SYNCED",
-      icon: meta.icon,
-      bg: meta.bg,
-      fg: meta.fg,
-    })
-    toast.success(`${platform} connected`, {
-      description: `${handle.trim() || "@new.channel"} is now linked to ${client.shortName}.`,
-    })
+  const close = React.useCallback(() => {
     onClose()
+    window.setTimeout(reset, 150)
+  }, [onClose, reset])
+
+  const handleStartOAuth = async () => {
+    if (!platform || !activeClientId) return
+    try {
+      const res = await fetch("/api/social/oauth-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: activeClientId, platform }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error || "Failed to generate OAuth URL")
+      }
+    } catch {
+      toast.error("Network error while starting OAuth")
+    }
   }
 
+  const meta = platform ? PLATFORM_META[platform] : null
+  const canAuthorize = !!handle.trim()
+
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-md"
-        onClick={step === "authorizing" ? undefined : onClose}
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Connect channel to ${client.name}`}
-        tabIndex={-1}
-        className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4 outline-none"
+    <Dialog
+      open={visible}
+      onOpenChange={(o) => {
+        if (!o) close()
+      }}
+    >
+      <DialogContent
+        showCloseButton
+        className="max-w-lg gap-0 overflow-hidden p-0"
+        aria-label="Connect new channel"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[hsl(var(--admin-cobalt))]/15 text-[hsl(var(--admin-cobalt))] flex items-center justify-center">
-              <Icons.hub className="size-[18px]" />
-            </div>
-            <div>
-              <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
-                Connect Channel to Client
-              </h3>
-              <p className="text-[11px] text-[hsl(var(--admin-on-surface-variant))]">
-                Target client: {client.name}
+        <DialogHeader className="p-6 border-b">
+          <DialogTitle className="text-xl font-bold">Connect a channel</DialogTitle>
+          <DialogDescription className="text-xs">
+            Link a social account to this workspace through the platform&apos;s own sign-in.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="p-6">
+          {/* Choose platform */}
+          {step === "platform" && (
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Select a platform to authenticate:
               </p>
+              <div className="grid grid-cols-2 gap-3">
+                {ALL_PLATFORMS.map((p) => {
+                  const m = PLATFORM_META[p]
+                  const Icon = platformIcon(m.icon)
+                  const already = existingPlatforms.includes(p)
+                  const disabled = !m.available
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      disabled={disabled}
+                      aria-disabled={disabled}
+                      onClick={() => {
+                        setPlatform(p)
+                        setStep("authorize")
+                      }}
+                      className={cn(
+                        "relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all",
+                        disabled
+                          ? "cursor-not-allowed border-dashed border-border opacity-60"
+                          : "cursor-pointer border-border hover:border-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      )}
+                    >
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex size-11 items-center justify-center rounded-xl bg-muted">
+                          {Icon ? (
+                            <Icon className={cn("size-6", m.iconClass)} />
+                          ) : (
+                            <Icons.hub className="size-6 text-primary" />
+                          )}
+                        </div>
+                        {already && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                            <Icons.check className="size-3" />
+                            Connected
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="flex items-center gap-1.5 text-sm font-bold">
+                          {p}
+                          {disabled && (
+                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                              Soon
+                            </span>
+                          )}
+                        </span>
+                        <span className="block text-[11px] leading-snug text-muted-foreground">
+                          {m.blurb}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-          {step !== "authorizing" && (
-            <button
-              aria-label="Close connect channel dialog"
-              className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] transition-all cursor-pointer"
-              onClick={onClose}
-            >
-              <Icons.close className="size-[18px]" />
-            </button>
+          )}
+
+          {/* Review scopes and enter the handle */}
+          {step === "authorize" && meta && platform && (
+            <div className="space-y-5">
+              <button
+                type="button"
+                onClick={() => setStep("platform")}
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
+              >
+                <Icons.chevronLeft className="size-3" /> Back to platform
+              </button>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-border bg-muted/40 p-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+                  {(() => {
+                    const Icon = platformIcon(meta.icon)
+                    return Icon ? <Icon className={cn("size-5", meta.iconClass)} /> : null
+                  })()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{platform}</p>
+                  <p className="text-[11px] text-muted-foreground">{meta.blurb}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="connect-handle" className="text-sm font-bold">
+                  Account handle
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">
+                    @
+                  </span>
+                  <input
+                    id="connect-handle"
+                    type="text"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value.replace(/@/g, ""))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && canAuthorize) setStep("connecting")
+                    }}
+                    placeholder="username"
+                    className="w-full rounded-xl border border-input bg-background py-3 pl-8 pr-4 font-medium outline-none focus:ring-2 focus:ring-ring"
+                    autoFocus
+                  />
+                </div>
+                <p className="px-1 text-[10px] italic text-muted-foreground">
+                  The account must have a Professional / Business profile.
+                </p>
+              </div>
+
+              <div className="space-y-2 rounded-2xl border border-border p-4">
+                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                  <Icons.shield className="size-3.5" />
+                  Permissions requested
+                </p>
+                <ul className="space-y-1.5">
+                  {(PLATFORM_SCOPES[platform] ?? []).map((scope) => (
+                    <li key={scope.id} className="flex items-center gap-2 text-xs">
+                      <Icons.check className="size-3.5 shrink-0 text-emerald-600" />
+                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                        {scope.id}
+                      </code>
+                      <span className="text-muted-foreground">{scope.description}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="pt-1 text-[10px] leading-snug text-muted-foreground">
+                  You approve these on {platform}&apos;s own sign-in page. Frahma never
+                  sees or stores your password.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Connecting progress */}
+          {step === "connecting" && platform && (
+            <div className="space-y-5 py-2">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-muted">
+                  {(() => {
+                    const Icon = platformIcon(meta!.icon)
+                    return Icon ? <Icon className={cn("size-6", meta!.iconClass)} /> : null
+                  })()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Connecting {platform}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    @{handle.replace(/@/g, "")}
+                  </p>
+                </div>
+              </div>
+
+              <ol className="space-y-3" aria-live="polite">
+                {CONNECT_STAGES.map((label, i) => {
+                  const done = i < stage
+                  const active = i === stage
+                  return (
+                    <li key={label} className="flex items-center gap-3 text-xs">
+                      <span
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                          done && "border-emerald-500 bg-emerald-500 text-white",
+                          active && "border-primary text-primary",
+                          !done && !active && "border-border text-muted-foreground"
+                        )}
+                      >
+                        {done ? (
+                          <Icons.check className="size-3" />
+                        ) : active ? (
+                          <Icons.spinner className="size-3 animate-spin" />
+                        ) : (
+                          <span className="size-1.5 rounded-full bg-current" />
+                        )}
+                      </span>
+                      <span
+                        className={cn(
+                          done && "text-foreground",
+                          active && "font-semibold text-foreground",
+                          !done && !active && "text-muted-foreground"
+                        )}
+                      >
+                        {label}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ol>
+
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  style={{
+                    width: `${Math.min(100, (stage / CONNECT_STAGES.length) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Success */}
+          {step === "success" && connected && (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                <Icons.circleCheck className="size-7" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-bold">Channel connected</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">{connected.handle}</span>{" "}
+                  is now syncing under this workspace.
+                </p>
+              </div>
+              <div className="mt-1 flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                <Icons.shield className="size-3.5 text-emerald-600" />
+                Access token stored encrypted, refreshed automatically
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Step rail */}
-        {step !== "authorizing" && step !== "success" && (
-          <div className="flex items-center gap-2">
-            {(["platform", "details"] as const).map((s, i) => (
-              <React.Fragment key={s}>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
-                      step === s
-                        ? "bg-[hsl(var(--admin-cobalt))] text-white"
-                        : "bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))]"
-                    )}
-                  >
-                    {i + 1}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[10px] font-bold uppercase tracking-wide",
-                      step === s
-                        ? "text-[hsl(var(--admin-on-surface))]"
-                        : "text-[hsl(var(--admin-outline))]"
-                    )}
-                  >
-                    {s === "platform" ? "Platform" : "Channel Details"}
-                  </span>
-                </div>
-                {i === 0 && (
-                  <div className="flex-1 h-px bg-[hsl(var(--admin-outline-variant))]/40" />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        )}
-
-        {/* STEP 1 , pick platform */}
-        {step === "platform" && (
-          <div className="space-y-3">
-            <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))]">
-              Platform Channel
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {ALL_PLATFORMS.map((p) => {
-                const linked = existingPlatforms.includes(p)
-                const selected = platform === p
-                return (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPlatform(p)}
-                    className={cn(
-                      "flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer",
-                      selected
-                        ? "border-[hsl(var(--admin-cobalt))] bg-[hsl(var(--admin-cobalt))]/5 shadow-sm"
-                        : "border-[hsl(var(--admin-outline-variant))]/30 hover:border-[hsl(var(--admin-cobalt))]/50 hover:bg-[hsl(var(--admin-surface-low))]/50"
-                    )}
-                  >
-                    <PlatformTile platform={p} className="w-8 h-8" />
-                    <div className="min-w-0 flex-1">
-                      <span className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] truncate">
-                        {p}
-                      </span>
-                      <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
-                        {linked ? "Already linked" : "Not connected"}
-                      </span>
-                    </div>
-                    {selected && (
-                      <Icons.circleCheck className="size-4 text-[hsl(var(--admin-cobalt))] shrink-0" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2 , channel details */}
-        {step === "details" && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-[hsl(var(--admin-outline-variant))]/30">
-              <PlatformTile platform={platform} className="w-10 h-10" />
-              <div>
-                <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))]">
-                  {platform}
-                </span>
-                <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
-                  Connecting to {client.name}
-                </span>
-              </div>
-            </div>
-
-            {alreadyLinked && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                <Icons.warning className="size-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-800 leading-snug">
-                  <b>{client.shortName}</b> already has a {platform} channel. Linking
-                  another will keep both under the same client.
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-                  Handle / Channel Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  value={handle}
-                  onChange={(e) => setHandle(e.target.value)}
-                  className={cn(
-                    "w-full rounded-lg border bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs outline-none text-[hsl(var(--admin-on-surface))] focus:ring-2 focus:ring-[hsl(var(--admin-cobalt))]/30 focus:border-[hsl(var(--admin-cobalt))]",
-                    !isValid && handle.length > 0
-                      ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
-                      : "border-[hsl(var(--admin-outline-variant))]/40"
-                  )}
-                  placeholder="@username"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
-                  Audience Size
-                </label>
-                <input
-                  value={fans}
-                  onChange={(e) => setFans(e.target.value)}
-                  className="w-full rounded-lg border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] focus:ring-2 focus:ring-[hsl(var(--admin-cobalt))]/30 outline-none text-[hsl(var(--admin-on-surface))]"
-                  placeholder="e.g. 12,400"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/50 border border-[hsl(var(--admin-outline-variant))]/30">
-              <Icons.shield className="size-4 text-[hsl(var(--admin-cobalt))] shrink-0" />
-              <div>
-                <span className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))]">
-                  Direct OAuth 2.0 Auth
-                </span>
-                <span className="block text-[11px] text-[hsl(var(--admin-on-surface-variant))]">
-                  Connecting authorizes FRHM to publish posts and fetch real-time
-                  engagement telemetry for this client.
-                </span>
-              </div>
-            </div>
-
-            <label className="flex items-center gap-2 text-xs text-[hsl(var(--admin-on-surface))] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={forceError}
-                onChange={(e) => setForceError(e.target.checked)}
-                className="rounded border-[hsl(var(--admin-outline-variant))] bg-white accent-[hsl(var(--admin-cobalt))]"
-              />
-              Simulate OAuth rejection (for testing)
-            </label>
-          </div>
-        )}
-
-        {/* STEP 3a , authorizing */}
-        {step === "authorizing" && !hasError && (
-          <div className="py-8 flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-[hsl(var(--admin-cobalt))]/10 flex items-center justify-center">
-              <Icons.refresh className="size-6 text-[hsl(var(--admin-cobalt))] animate-spin" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">
-                Opening secure OAuth window…
-              </p>
-              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
-                Waiting for {platform} to confirm authorization for {client.shortName}.
-              </p>
-            </div>
-            <div className="w-full max-w-xs h-1.5 rounded-full bg-[hsl(var(--admin-surface-high))] overflow-hidden">
-              <div className="h-full w-2/3 bg-[hsl(var(--admin-cobalt))] rounded-full animate-pulse" />
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3c , error state (R-27) */}
-        {step === "authorizing" && hasError && (
-          <div className="py-6 flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-              <Icons.warning className="size-7 text-red-600" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">
-                Connection Rejected
-              </p>
-              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
-                {platform} denied the OAuth request. The permissions might have been declined or the account is locked.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3b , success */}
-        {step === "success" && (
-          <div className="py-6 flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-[hsl(var(--brand-accent))]/20 flex items-center justify-center">
-              <Icons.circleCheck className="size-7 text-[#526600]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">
-                Channel linked successfully
-              </p>
-              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
-                <b className="text-[hsl(var(--admin-on-surface))]">
-                  {handle.trim() || "@new.channel"}
-                </b>{" "}
-                is now publishing for {client.shortName}.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-[hsl(var(--admin-outline-variant))]/30">
-              <Icons.zap className="size-3.5 text-[hsl(var(--admin-cobalt))]" />
-              <span className="text-[10px] text-[hsl(var(--admin-outline))]">
-                Real-time telemetry will start flowing within 60 seconds.
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-2 pt-2">
+        {/* Footer actions per step */}
+        <DialogFooter className="flex-row justify-end gap-2 px-6 py-4">
           {step === "platform" && (
-            <>
-              <button
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-              <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                onClick={() => setStep("details")}
-              >
-                Continue
-              </button>
-            </>
+            <Button variant="outline" onClick={close}>
+              Cancel
+            </Button>
           )}
 
-          {step === "details" && (
+          {step === "authorize" && (
             <>
-              <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
-                onClick={() => setStep("platform")}
-              >
-                <Icons.arrowLeft className="size-4" />
+              <Button variant="outline" onClick={() => setStep("platform")}>
                 Back
-              </button>
-              <button
-                disabled={!isValid}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
-                onClick={() => setStep("authorizing")}
+              </Button>
+              <Button
+                disabled={!canAuthorize}
+                className="disabled:opacity-50"
+                onClick={() => {
+                  setStage(0)
+                  finalized.current = false
+                  setStep("connecting")
+                  void handleStartOAuth()
+                }}
               >
-                <Icons.link className="size-4" />
-                Authorize &amp; Link
-              </button>
+                <Icons.check className="size-4" />
+                Authorize connection
+              </Button>
             </>
           )}
 
-          {step === "authorizing" && (
-            <>
-              {hasError ? (
-                <button
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))] transition-all cursor-pointer mr-auto"
-                  onClick={() => {
-                    setHasError(false)
-                    setStep("details")
-                  }}
-                >
-                  <Icons.arrowLeft className="size-4" />
-                  Try Again
-                </button>
-              ) : (
-                <span className="text-[10px] text-[hsl(var(--admin-outline))] mr-auto">
-                  Do not close this window…
-                </span>
-              )}
-            </>
+          {step === "connecting" && (
+            <Button variant="outline" disabled>
+              <Icons.spinner className="size-4 animate-spin" />
+              Please wait…
+            </Button>
           )}
 
           {step === "success" && (
-            <button
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-              onClick={finish}
-            >
-              <Icons.check className="size-4" />
-              Done
-            </button>
+            <>
+              <Button variant="outline" onClick={reset}>
+                <Icons.add className="size-4" />
+                Connect another
+              </Button>
+              <Button onClick={close}>
+                <Icons.check className="size-4" />
+                Done
+              </Button>
+            </>
           )}
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

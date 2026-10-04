@@ -48,6 +48,12 @@ export const adminNavGroups: NavGroup[] = [
         shortcut: ['p', 'r']
       },
       {
+        title: 'Media Library',
+        url: '/admin/library',
+        icon: 'media',
+        shortcut: ['m', 'l']
+      },
+      {
         title: 'Deliverables',
         url: '/admin/deliverables',
         icon: 'post',

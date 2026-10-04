@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useQueryState, parseAsStringEnum } from 'nuqs'
@@ -238,6 +239,15 @@ function LoginForm() {
               href='/'
               className='flex items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
             >
+              <div className='relative size-8'>
+                <Image
+                  src='/logo-frhm.png'
+                  alt={PRODUCT_NAME}
+                  fill
+                  className='object-contain'
+                  priority
+                />
+              </div>
               <span className='font-syne text-2xl font-extrabold tracking-tight text-foreground'>
                 {PRODUCT_NAME}
               </span>

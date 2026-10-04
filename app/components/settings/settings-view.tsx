@@ -51,28 +51,22 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Segmented Tab Navigation */}
-      <div
-        role="tablist"
-        aria-label="Settings sections"
-        className="p-1.5 rounded-full bg-surface-container-high/50 backdrop-blur-xl border border-outline-variant/30 inline-flex items-center w-full sm:w-auto shadow-inner"
-      >
+      {/* Tab Navigation */}
+      <div role="tablist" aria-label="Settings sections" className="flex border-b border-outline-variant/20 gap-8">
         {TABS.map((t) => {
           const isActive = activeTab === t.id
           return (
             <button
               key={t.id}
-              type="button"
               role="tab"
-              onClick={() => setTab(t.id)}
               aria-selected={isActive}
-              className={`tab-button flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm transition-all duration-200 ${
+              onClick={() => setTab(t.id)}
+              className={`pb-4 text-sm font-bold transition-all border-b-2 ${
                 isActive
-                  ? "bg-surface-container-lowest text-on-surface font-bold shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface font-medium"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">{t.icon}</span>
               {t.label}
             </button>
           )
@@ -88,7 +82,7 @@ export function SettingsView() {
   )
 }
 
-/* ------------------------------ TAB 1: WORKSPACE ------------------------------ */
+/* TAB 1: WORKSPACE */
 
 function WorkspaceTab() {
   const [agencyName, setAgencyName] = React.useState("FRHM Creative Orchestrations Ltd.")
@@ -311,7 +305,7 @@ function WorkspaceTab() {
   )
 }
 
-/* ------------------------------- TAB 2: BILLING ------------------------------- */
+/* TAB 2: BILLING */
 
 function BillingTab() {
   return (
@@ -476,7 +470,7 @@ function BillingTab() {
   )
 }
 
-/* ---------------------------- TAB 3: INTEGRATIONS ---------------------------- */
+/* TAB 3: INTEGRATIONS */
 
 function IntegrationsTab() {
   const [secretVisible, setSecretVisible] = React.useState(false)
@@ -672,7 +666,7 @@ function IntegrationRow({
   )
 }
 
-/* ---------------------------- TAB 4: USER ACCESS ---------------------------- */
+/* TAB 4: USER ACCESS */
 
 function UserAccessTab() {
   const [enforce2fa, setEnforce2fa] = React.useState(true)
