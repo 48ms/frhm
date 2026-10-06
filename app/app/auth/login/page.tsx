@@ -111,7 +111,13 @@ function Notice({ tone, children }: { tone: 'error' | 'success'; children: React
 function LoginForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const redirect = safeRedirect(searchParams.get('redirect'), '/admin/dashboard')
+  // The middleware sets the original URL in the `next` query parameter. Accept
+  // it as the primary source and fall back to a `redirect` param (used by the
+  // auth callback) so neither sign-in path loses its destination.
+  const redirect = safeRedirect(
+    searchParams.get('next') ?? searchParams.get('redirect'),
+    '/admin/dashboard',
+  )
   const supabase = createClient()
 
   // Tab lives in the URL (?mode=signup) per Rule #4, deep-linkable + survives refresh.
