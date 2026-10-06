@@ -1,6 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PostDialog } from './post-dialog'
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
 
 const listAssetsMock = vi.fn()
 
@@ -19,7 +25,7 @@ beforeEach(() => {
 
 describe('PostDialog', () => {
   it('renders the dialog with the create-post title when open', () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -32,7 +38,7 @@ describe('PostDialog', () => {
   })
 
   it('renders the edit title when an editing post is provided', () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -61,7 +67,7 @@ describe('PostDialog', () => {
   })
 
   it('does not render dialog content when closed', () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={false}
         onClose={vi.fn()}
@@ -73,7 +79,7 @@ describe('PostDialog', () => {
   })
 
   it('shows a media preview when initialMediaUrl is provided', () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -88,7 +94,7 @@ describe('PostDialog', () => {
   })
 
   it('shows the empty-media hint when no media is attached', () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -101,7 +107,7 @@ describe('PostDialog', () => {
   })
 
   it('opens the asset picker from the media section', async () => {
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -127,7 +133,7 @@ describe('PostDialog', () => {
         createdAt: '2026-10-01T00:00:00.000Z',
       },
     ])
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
@@ -156,7 +162,7 @@ describe('PostDialog', () => {
         createdAt: '2026-10-01T00:00:00.000Z',
       },
     ])
-    render(
+    renderWithProviders(
       <PostDialog
         isOpen={true}
         onClose={vi.fn()}
