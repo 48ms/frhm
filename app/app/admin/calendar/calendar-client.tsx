@@ -124,7 +124,8 @@ export function AdminCalendarClient() {
     }
   }, [composeNew, setComposeNew])
 
-  // Merge fetched posts with the Stitch prototype seed so the board is never empty.
+  // Posts are now loaded strictly from the factual database (useScheduledPosts)
+
   const { data: fetchedPosts = [] } = useScheduledPosts(selectedClientId)
   
   const posts = useMemo<ScheduledPost[]>(() => {
@@ -630,19 +631,19 @@ export function AdminCalendarClient() {
               {/* Fast Action Buttons */}
               <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 relative z-10">
                 <button
-                  onClick={() => toast.success("Force publish queued (Prototype)")}
+                  onClick={() => toast.success("Force publish queued (Coming Soon)")}
                   className="bg-primary-container text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold hover:bg-primary-fixed transition-colors text-center cursor-pointer"
                 >
                   Force Publish
                 </button>
                 <button
-                  onClick={() => toast.info("Media editor (Prototype)")}
+                  onClick={() => toast.info("Media editor (Coming Soon)")}
                   className="bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-full text-[10px] uppercase font-bold transition-colors text-center cursor-pointer"
                 >
                   Edit Media
                 </button>
                 <button
-                  onClick={() => toast.info("Reschedule (Prototype)")}
+                  onClick={() => toast.info("Reschedule (Coming Soon)")}
                   className="bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-full text-[10px] uppercase font-bold transition-colors text-center cursor-pointer"
                 >
                   Reschedule
@@ -743,7 +744,7 @@ export function AdminCalendarClient() {
               tech content during that exact window.
             </p>
             <button
-              onClick={() => toast.success("Suggestion applied (Prototype)")}
+              onClick={() => toast.success("Suggestion applied (Coming Soon)")}
               className="w-full bg-primary-container hover:bg-primary-fixed text-on-primary-container text-[10px] uppercase py-2.5 rounded-full font-bold tracking-wider transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Icons.refresh className="size-4" />

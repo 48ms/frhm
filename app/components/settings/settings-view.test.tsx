@@ -1,14 +1,22 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { NuqsAdapter } from 'nuqs/adapters/react'
+import { screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
 import { SettingsView } from './settings-view'
+import { renderWithProviders } from '@/test/render-with-providers'
+
+// useActiveDashboard menarik client dari Supabase. Kita beri satu client
+// supaya header ter-render tanpa menyentuh jaringan.
+vi.mock('@/components/dashboard-stitch/dashboard-data', () => ({
+  useActiveDashboard: () => ({
+    clientId: 'client-shell',
+    setClientId: vi.fn(),
+    client: { id: 'client-shell', name: 'Shell Reps', channels: [] },
+    clients: [{ id: 'client-shell', name: 'Shell Reps', channels: [] }],
+    profile: null,
+  }),
+}))
 
 function renderView() {
-  return render(
-    <NuqsAdapter>
-      <SettingsView />
-    </NuqsAdapter>
-  )
+  return renderWithProviders(<SettingsView />)
 }
 
 describe('SettingsView', () => {

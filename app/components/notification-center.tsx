@@ -28,42 +28,8 @@ export function NotificationCenter({ role = 'admin', initialCount = 0 }: Notific
   const router = useRouter();
   const [filter, setFilter] = React.useState<'all' | 'unread'>('all');
 
-  // Realistic mock / state initialized with pending items
-  const [notifications, setNotifications] = React.useState<NotificationItem[]>([
-    {
-      id: 'notif-1',
-      title: role === 'admin' ? 'Klien Baru Menunggu Setup' : 'Konten Baru Perlu Disetujui',
-      description:
-        role === 'admin'
-          ? 'Brand Taraju berhasil onboard, lengkapi workspace campaign.'
-          : 'Terdapat 1 post Instagram siap review untuk minggu depan.',
-      timestamp: 'Baru saja',
-      read: false,
-      type: 'approval',
-      href: role === 'admin' ? '/admin/clients' : '/client/approvals'
-    },
-    {
-      id: 'notif-2',
-      title: role === 'admin' ? 'Deliverable Sent' : 'Jadwal Produksi Terupdate',
-      description:
-        role === 'admin'
-          ? 'Aset reel batch 1 terkirim ke klien untuk approval.'
-          : 'Video reel batch 2 sedang dalam proses editing tim kreatif.',
-      timestamp: '2 jam lalu',
-      read: false,
-      type: 'deliverable',
-      href: role === 'admin' ? '/admin/deliverables' : '/client/calendar'
-    },
-    {
-      id: 'notif-3',
-      title: 'Sinkronisasi Sistem',
-      description: 'Laporan metrik ROI dan analitik mingguan telah diperbarui.',
-      timestamp: '1 hari lalu',
-      read: true,
-      type: 'system',
-      href: role === 'admin' ? '/admin/analytics' : '/client/dashboard'
-    }
-  ]);
+  // Faktual: Fitur notifikasi di database / realtime belum diimplementasikan, state mulai kosong
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>([]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const count = initialCount > 0 ? initialCount : unreadCount;

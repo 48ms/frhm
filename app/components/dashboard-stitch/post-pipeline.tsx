@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
@@ -9,13 +9,13 @@ import { useRouter } from "next/navigation"
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-brand-accent/15 text-brand-accent border border-brand-accent/20 uppercase",
-  review: "bg-amber-100 text-amber-700 border border-amber-200 uppercase",
+  review: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 uppercase",
   draft: "bg-muted/70 text-muted-foreground border border-border/40 uppercase",
-  sent: "bg-sky-100 text-sky-700 border border-sky-200 uppercase",
+  sent: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 uppercase",
   approved: "bg-brand-accent/30 text-brand-accent-foreground border border-brand-accent/30 uppercase",
-  revision_requested: "bg-orange-100 text-orange-700 border border-orange-200 uppercase",
-  published: "bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase",
-  failed: "bg-rose-100 text-rose-700 border border-rose-200 uppercase",
+  revision_requested: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 uppercase",
+  published: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase",
+  failed: "bg-destructive/10 text-destructive dark:text-red-400 border border-destructive/20 uppercase",
 }
 
 function getPlatformIcon(platform: string) {
@@ -80,7 +80,7 @@ export function DashboardStitchPostPipeline() {
           posts.map((post) => (
             <div
               key={post.id}
-              className="group flex items-center gap-4 p-3.5 rounded-2xl bg-white/60 border border-white/70 hover:bg-white hover:shadow-md transition-all cursor-pointer"
+              className="group flex items-center gap-4 p-3.5 rounded-2xl bg-muted/40 border border-border/40 hover:bg-card hover:border-border hover:shadow-md transition-all cursor-pointer"
             >
               <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-brand-accent shrink-0">
                 {getPlatformIcon(post.channel ?? "")}

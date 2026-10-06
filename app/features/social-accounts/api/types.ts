@@ -47,6 +47,6 @@ export type ClientWithChannels = FrahmaClient & {
   channels: ClientChannel[]
   dashboard_profile?: {
     audience_size: string | number
-    [key: string]: any
+    [key: string]: unknown
   }
 }

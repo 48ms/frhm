@@ -20,13 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { socialQueries, useDisconnectChannel, useSyncChannel } from "@/features/social-accounts/api/queries"
-import type { ClientChannel, ClientWithChannels } from "@/features/social-accounts/api/types"
-
-function formatK(val: number): string {
-  if (val >= 1_000_000) return (val / 1_000_000).toFixed(2) + "M"
-  if (val >= 1_000) return (val / 1_000).toFixed(0) + "K"
-  return val.toString()
-}
+import type { ClientChannel } from "@/features/social-accounts/api/types"
 
 export function getPlatformUI(platform: string) {
   const p = (platform || "").toLowerCase()
@@ -55,7 +49,7 @@ const TABS = ["All Accounts", "Instagram", "TikTok", "Action Required"]
 
 export function ClientChannelsBoard() {
   const [tab, setTab] = useQueryState("tab", parseAsStringEnum(TABS).withDefault("All Accounts"))
-  const [clientId, setClientId] = useQueryState("clientId", parseAsString)
+  const [clientId] = useQueryState("clientId", parseAsString)
   const searchParams = useSearchParams()
   
   React.useEffect(() => {
@@ -129,6 +123,37 @@ export function ClientChannelsBoard() {
       }
     })
   }, [activeClient, syncMutation])
+
+  const handleBulkRefresh = React.useCallback((accounts: ClientChannel[]) => {
+    if (accounts.length === 0) {
+      toast.info("No accounts to refresh")
+      return
+    }
+    setSyncing(true)
+    Promise.allSettled(accounts.map(a => syncMutation.mutateAsync(a.id))).then((results) => {
+      setSyncing(false)
+      const failed = results.filter(r => r.status === 'rejected')
+      if (failed.length === 0) {
+        toast.success(`Refreshed ${accounts.length} account(s)`)
+      } else {
+        toast.warning(`Refreshed data, but ${failed.length} account(s) failed to sync.`)
+      }
+    })
+  }, [syncMutation])
+
+  const handleRefreshOne = React.useCallback((account: ClientChannel) => {
+    setSyncing(true)
+    syncMutation.mutate(account.id, {
+      onSuccess: () => {
+        setSyncing(false)
+        toast.success(`Refreshed ${account.handle || account.platform}`)
+      },
+      onError: (err) => {
+        setSyncing(false)
+        toast.error(`Failed to refresh: ${err.message}`)
+      },
+    })
+  }, [syncMutation])
 
   const handleReconnect = React.useCallback((account: ClientChannel) => {
     toast.loading(`Redirecting to reconnect ${account.platform}...`, { id: "reconnect" })
@@ -305,6 +330,8 @@ export function ClientChannelsBoard() {
             bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
+            onBulkRefresh={handleBulkRefresh}
+            onRefreshOne={handleRefreshOne}
           />
           <AccountSection
             title="TikTok"
@@ -315,6 +342,8 @@ export function ClientChannelsBoard() {
             bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
+            onBulkRefresh={handleBulkRefresh}
+            onRefreshOne={handleRefreshOne}
           />
           <AccountSection
             title="Other platforms"
@@ -325,6 +354,8 @@ export function ClientChannelsBoard() {
             bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
+            onBulkRefresh={handleBulkRefresh}
+            onRefreshOne={handleRefreshOne}
           />
       </div>
 
@@ -396,7 +427,7 @@ function KPICard({ label, value, badge, sub, icon, tone, onClick }: {
     )
 }
 
-function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel, onDisconnect, onReconnect }: {
+function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel, onDisconnect, onReconnect, onBulkRefresh, onRefreshOne }: {
   title: string
   subtitle: string
   accounts: ClientChannel[]
@@ -405,6 +436,8 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
   bulkLabel: string
   onDisconnect: (id: string, handle: string) => void
   onReconnect: (account: ClientChannel) => void
+  onBulkRefresh: (accounts: ClientChannel[]) => void
+  onRefreshOne: (account: ClientChannel) => void
 }) {
     const IconComponent = typeof Icons[icon as keyof typeof Icons] === 'function' ? Icons[icon as keyof typeof Icons] : null
 
@@ -427,7 +460,7 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
               </div>
               {accounts.length > 0 && (
                 <button
-                  onClick={() => toast.info(`${bulkLabel} action triggered for ${title}`)}
+                  onClick={() => onBulkRefresh(accounts)}
                   className="px-4 py-1.5 rounded-full bg-card border border-border/40 hover:bg-muted text-foreground text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto"
                 >
                   {bulkLabel}
@@ -448,7 +481,7 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {accounts.map(a => (
-                  <AccountCard key={a.id} account={a} onDisconnect={onDisconnect} onReconnect={onReconnect} />
+                  <AccountCard key={a.id} account={a} onDisconnect={onDisconnect} onReconnect={onReconnect} onRefreshOne={onRefreshOne} />
                 ))}
               </div>
             )}
@@ -456,7 +489,7 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
     )
 }
 
-export function AccountCard({ account: a, onDisconnect, onReconnect }: { account: ClientChannel; onDisconnect: (id: string, handle: string) => void; onReconnect: (account: ClientChannel) => void }) {
+export function AccountCard({ account: a, onDisconnect, onReconnect, onRefreshOne }: { account: ClientChannel; onDisconnect: (id: string, handle: string) => void; onReconnect: (account: ClientChannel) => void; onRefreshOne: (account: ClientChannel) => void }) {
   const badge = statusBadge(a.status)
   const isExpiring = a.status === "gagal"
   const platformUI = getPlatformUI(a.platform)
@@ -550,11 +583,7 @@ export function AccountCard({ account: a, onDisconnect, onReconnect }: { account
                 <Icons.more_vert className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => toast.info(`Detailed logs for ${a.handle}`)}>
-                  <Icons.monitoring className="size-4 mr-2" />
-                  View logs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => toast.success(`Refresh triggered for ${a.handle}`)}>
+                <DropdownMenuItem onClick={() => onRefreshOne(a)}>
                   <Icons.refresh className="size-4 mr-2" />
                   Refresh now
                 </DropdownMenuItem>

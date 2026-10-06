@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { 
   getScheduledPostsByClient,
+  getAllScheduledPosts,
   createScheduledPost,
   updateScheduledPost,
   deleteScheduledPost
@@ -15,6 +16,10 @@ export const postKeys = {
 
 /** Query options factory — dipakai untuk prefetch & useQuery non-hook. */
 export const scheduledPostQueries = {
+  listAll: () => ({
+    queryKey: postKeys.lists(),
+    queryFn: () => getAllScheduledPosts(),
+  }),
   listByClient: (clientId: string) => ({
     queryKey: postKeys.list(clientId),
     queryFn: () => getScheduledPostsByClient(clientId),

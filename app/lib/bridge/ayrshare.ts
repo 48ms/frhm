@@ -81,9 +81,9 @@ export type ValidateResult = {
  * Let's just simulate validate passing so cron works, Ayrshare returns errors natively on /post.
  */
 export async function validatePost(
-  apiKey: string,
-  body: unknown,
-  profileKey: string
+  _apiKey: string,
+  _body: unknown,
+  _profileKey: string
 ): Promise<BridgeResult<ValidateResult>> {
   return { ok: true, data: { isValid: true } }
 }

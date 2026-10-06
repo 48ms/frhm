@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { generateObject } from "ai"
 import { openai } from "@ai-sdk/openai"
-import { BrandProfileSchema, type FrahmaClient, type ClientChannel, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
+import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
 
 /**
  * Service Layer untuk Social Accounts
@@ -18,6 +18,8 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
   const { data: clients, error: clientsError } = await supabase
     .from("clients")
     .select("*")
+    .not("name", "ilike", "%Test Client%")
+    .order('created_at', { ascending: false })
     
   // Catatan faktual: service ini dipanggil dari `useSuspenseQuery` saat render.
   // Jika kita `throw`, React Query me-reject promise saat render dan memicu
@@ -39,18 +41,19 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
     return clients.map((client) => ({ ...client, channels: [] })) as ClientWithChannels[]
   }
 
-  // Fetch dashboard profiles for audience size
-  const { data: profiles, error: profilesError } = await supabase
+  // Fetch dashboard profiles
+  const { data: profiles } = await supabase
     .from("dashboard_profiles")
-    .select("client_id, audience_size")
+    .select("client_id, metrics")
 
   // Menggabungkan data
   return clients.map((client) => {
     const profile = profiles?.find((p) => p.client_id === client.id)
+    const metricsObj = profile?.metrics as Record<string, unknown> | undefined
     return {
       ...client,
       channels: (channels || []).filter((ch) => ch.client_id === client.id),
-      dashboard_profile: profile ? { audience_size: profile.audience_size } : undefined
+      dashboard_profile: profile ? { audience_size: metricsObj?.audience_size ?? 0 } : undefined
     }
   }) as ClientWithChannels[]
 }

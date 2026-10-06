@@ -23,6 +23,21 @@ export async function getScheduledPostsByClient(clientId: string): Promise<Sched
   return (data || []) as ScheduledPost[]
 }
 
+export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("scheduled_posts")
+    .select("*")
+    .order("scheduled_at", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching all scheduled posts:", error)
+    return []
+  }
+
+  return (data || []) as ScheduledPost[]
+}
+
 export async function createScheduledPost(input: CreateScheduledPostInput): Promise<ScheduledPost> {
   const supabase = await createClient()
   const { data, error } = await supabase

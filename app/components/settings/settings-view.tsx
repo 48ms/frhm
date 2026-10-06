@@ -1,9 +1,9 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { useQueryState, parseAsString } from "nuqs"
 import { Switch } from "@/components/ui/switch"
-import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
 
 const TABS = [
@@ -15,12 +15,7 @@ const TABS = [
 
 export function SettingsView() {
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("workspace"))
-  const [clientId] = useQueryState("clientId", parseAsString.withDefault(SOCIAL_CLIENTS[0].id))
-
-  const activeClient = React.useMemo(
-    () => SOCIAL_CLIENTS.find((c) => c.id === clientId) ?? SOCIAL_CLIENTS[0],
-    [clientId]
-  )
+  const { client: activeClient } = useActiveDashboard()
 
   const activeTab = TABS.some((t) => t.id === tab) ? tab : "workspace"
 

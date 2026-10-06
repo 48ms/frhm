@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useQueryState, parseAsString } from "nuqs"
-import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
 
 const STATUS_STYLES: Record<string, string> = {
@@ -94,11 +94,7 @@ const CHANNELS = [
 ]
 
 export function SupportView() {
-  const [clientId] = useQueryState("clientId", parseAsString.withDefault(SOCIAL_CLIENTS[0].id))
-  const activeClient = React.useMemo(
-    () => SOCIAL_CLIENTS.find((c) => c.id === clientId) ?? SOCIAL_CLIENTS[0],
-    [clientId]
-  )
+  const { client: activeClient } = useActiveDashboard()
 
   const [openFaq, setOpenFaq] = React.useState<number | null>(0)
   const [subject, setSubject] = React.useState("")
@@ -163,7 +159,7 @@ export function SupportView() {
               <span className="text-xs text-muted-foreground">{c.meta}</span>
               <button
                 type="button"
-                onClick={() => toast.info(`${c.title} — ${c.action} coming soon in this prototype.`)}
+                onClick={() => toast.info(`${c.title} — ${c.action} (Coming soon).`)}
                 className="text-xs font-semibold text-brand-accent hover:underline"
               >
                 {c.action}

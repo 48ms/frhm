@@ -24,6 +24,8 @@ import { toast } from 'sonner'
 import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
 import { AssetPicker } from '@/components/library/asset-picker'
 import type { Asset, AssetFileType } from '@/features/library/api/types'
+import { campaignQueries } from '@/features/campaigns/api/queries'
+import { useQuery } from '@tanstack/react-query'
 
 const PLATFORM_OPTIONS = [
   { id: 'instagram', label: 'Instagram' },
@@ -89,10 +91,8 @@ export function PostDialog({
   const [priority, setPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal')
   const [campaignTag, setCampaignTag] = useState('')
 
-  // Campaign options come from the Zustand store (mock repository), scoped to
-  // the active client. No API call: /api/admin/clients/:id/campaigns is gone.
-  // Campaign options simplified for Faktual Data
-  const campaigns = useMemo<{id: string; name: string}[]>(() => [], [])
+  const { data: fetchedCampaigns } = useQuery(campaignQueries.listByClient(clientId))
+  const campaigns = fetchedCampaigns || []
 
   useEffect(() => {
     if (editingPost) {

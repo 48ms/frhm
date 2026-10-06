@@ -10,7 +10,7 @@ import { PRODUCT_NAME } from "@/lib/config"
 import { isActiveFor } from "@/hooks/use-nav"
 import { cn } from "@/lib/utils"
 import { adminNavStitch } from "@/config/nav-config"
-import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 
 export type AppUser = {
   name: string
@@ -26,11 +26,7 @@ export function AppSidebar({
 }) {
   const pathname = usePathname()
 
-  // Deep-linkable client ID from nuqs (required for generating active client links)
-  const [activeClientId] = useQueryState(
-    "clientId",
-    parseAsString.withDefault(SOCIAL_CLIENTS[0].id).withOptions({ shallow: false })
-  )
+  const { clientId: activeClientId } = useActiveDashboard()
 
   function renderIcon(icon: string) {
     const IconCmp = Icons[icon as keyof typeof Icons]
@@ -60,8 +56,7 @@ export function AppSidebar({
           <nav className="space-y-1" aria-label="Main Navigation">
             {adminNavStitch.map((item) => {
               const active = isActiveFor(pathname, item.url)
-              // Ensure we propagate the active client ID if present
-              const targetUrl = activeClientId && activeClientId !== SOCIAL_CLIENTS[0].id 
+              const targetUrl = activeClientId
                 ? `${item.url}?clientId=${activeClientId}` 
                 : item.url
                 

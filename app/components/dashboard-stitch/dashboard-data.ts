@@ -62,16 +62,16 @@ export function useActiveDashboard() {
   }
 
   // PENTING (fakta): gunakan `useQuery` (BUKAN `useSuspenseQuery`) dengan
-  // `initialData`. Server prefetcher me-prefetch key berbasis clientId dari URL,
+  // `placeholderData`. Server prefetcher me-prefetch key berbasis clientId dari URL,
   // sedangkan `activeClientId` di sini dihitung dari daftar klien asli DB (bisa
   // berbeda). Ketika key tidak cocok, `useSuspenseQuery` akan memicu fetch SAAT
   // RENDER -> memanggil Server Action ('use server') saat render -> Next.js
   // update Router saat render -> warning React "Cannot update Router while
-  // rendering". `useQuery` + `initialData` mengembalikan data instan tanpa
+  // rendering". `useQuery` + `placeholderData` mengembalikan data instan tanpa
   // suspend, dan fetch tambahan berjalan di effect (setelah render).
   const { data: profileData } = useQuery({
     ...dashboardQueries.profile(activeClientId),
-    initialData: defaultProfile,
+    placeholderData: defaultProfile,
   })
 
   const profile = (profileData ?? defaultProfile) as DashboardProfile

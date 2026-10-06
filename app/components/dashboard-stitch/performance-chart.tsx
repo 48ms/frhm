@@ -1,11 +1,11 @@
-﻿"use client"
+"use client"
 
-import React, { useMemo, useState } from "react"
-import { motion } from "motion/react"
+import React, { useMemo } from "react"
 import { useQueryState, parseAsStringEnum } from "nuqs"
 import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { type Timeframe } from "@/features/dashboard/api/types"
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 const TIMEFRAMES: { id: Timeframe; label: string }[] = [
   { id: "7d", label: "7D" },
@@ -25,30 +25,23 @@ export function DashboardStitchChart() {
     "tf",
     parseAsStringEnum<Timeframe>(["7d", "30d", "90d"]).withDefault("30d")
   )
-  const [hoverX, setHoverX] = useState<number | null>(null)
 
-  const chart = profile.charts[tf]
   const labels = DAY_LABELS[tf]
 
-  // Evenly spaced sample points along the 600px viewBox for the hover readout.
-  const points = useMemo(() => labels.map((_, i) => (i / (labels.length - 1)) * 600), [labels])
-
-  const hoverIndex = useMemo(() => {
-    if (hoverX === null) return null
-    let nearest = 0
-    let best = Infinity
-    points.forEach((p, i) => {
-      const d = Math.abs(p - hoverX)
-      if (d < best) {
-        best = d
-        nearest = i
-      }
-    })
-    return nearest
-  }, [hoverX, points])
+  // Map to Recharts format. Sparkline data comes from the DB metrics; the
+  // fallback array keeps the chart drawable when a client has no metrics yet.
+  const chartData = useMemo(() => {
+    const reachData = profile.metrics[0]?.spark || [10, 20, 30, 40, 50, 60, 70]
+    const engageData = profile.metrics[1]?.spark || [5, 10, 15, 20, 25, 30, 35]
+    return labels.map((label, i) => ({
+      name: label,
+      reach: reachData[i] || 0,
+      engage: engageData[i] || 0,
+    }))
+  }, [labels, profile.metrics])
 
   return (
-    <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm">
+    <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm flex flex-col h-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <span className="text-xs font-bold text-muted-foreground tracking-wider block">
@@ -59,7 +52,7 @@ export function DashboardStitchChart() {
           </h2>
         </div>
         {/* Timeframe selector , URL state via nuqs */}
-        <div className="inline-flex p-1 rounded-full bg-muted/70/70 border border-border/30">
+        <div className="inline-flex p-1 rounded-full bg-muted/70 border border-border/30">
           {TIMEFRAMES.map((t) => (
             <button
               key={t.id}
@@ -68,7 +61,7 @@ export function DashboardStitchChart() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer",
                 tf === t.id
-                  ? "bg-white text-foreground shadow-sm"
+                  ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -78,129 +71,80 @@ export function DashboardStitchChart() {
         </div>
       </div>
 
-      {/* SVG Chart Area , bezier waves, path animates on client + timeframe swap */}
-      <div
-        className="relative h-60 w-full bg-muted/40 rounded-2xl p-4 border border-border/40 flex flex-col justify-between overflow-hidden"
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect()
-          setHoverX(((e.clientX - rect.left) / rect.width) * 600)
-        }}
-        onMouseLeave={() => setHoverX(null)}
-      >
-        <div className="absolute inset-0 flex items-center justify-center opacity-70 pointer-events-none">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 200">
+      <div className="flex-1 w-full min-h-[240px] bg-muted/20 rounded-2xl p-4 border border-border/40 relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="grad-wave" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#4353FF" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#D4FF32" stopOpacity="0.0" />
+              <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <motion.path
-              key={`fill-${client.id}-${tf}`}
-              d={`${chart.reach} L600,200 L0,200 Z`}
-              fill="url(#grad-wave)"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
+              dy={10}
             />
-            <motion.path
-              key={`reach-${client.id}-${tf}`}
-              d={chart.reach}
-              fill="none"
-              stroke="#2333E7"
-              strokeLinecap="round"
-              strokeWidth="3"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.9, ease: "easeInOut" }}
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             />
-            <motion.path
-              key={`engage-${client.id}-${tf}`}
-              d={chart.engage}
-              fill="none"
-              stroke="#aed500"
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--card))', 
+                borderRadius: '12px',
+                border: '1px solid hsl(var(--border))',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}
+              itemStyle={{ fontWeight: 600, fontSize: '13px' }}
+              labelStyle={{ color: 'hsl(var(--muted-foreground))', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="reach" 
+              name="Impressions (Reach)"
+              stroke="hsl(var(--primary))" 
+              strokeWidth={3}
+              fillOpacity={1} 
+              fill="url(#colorReach)" 
+            />
+            <Area 
+              type="monotone" 
+              dataKey="engage" 
+              name="Click Through & Saves"
+              stroke="hsl(var(--brand-accent))" 
+              strokeWidth={2.5}
               strokeDasharray="4 4"
-              strokeLinecap="round"
-              strokeWidth="2.5"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.9, ease: "easeInOut", delay: 0.1 }}
+              fill="none" 
             />
-            {hoverIndex !== null && (
-              <line
-                x1={points[hoverIndex]}
-                x2={points[hoverIndex]}
-                y1={0}
-                y2={200}
-                stroke="#2333E7"
-                strokeOpacity="0.25"
-                strokeWidth="1.5"
-                strokeDasharray="3 3"
-              />
-            )}
-          </svg>
-        </div>
-
-        {/* Hover readout */}
-        {hoverIndex !== null && (
-          <div className="absolute top-3 left-3 z-20 bg-card/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-sm border border-border/40">
-            <span className="block text-[10px] font-bold text-muted-foreground">
-              {labels[hoverIndex]} · {tf.toUpperCase()}
-            </span>
-            <span className="block text-xs font-bold text-foreground">
-              Peak interaction window
-            </span>
-          </div>
-        )}
-
-        {/* Axis Indicators */}
-        <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#2333E7]" /> Impressions (Reach)
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#aed500] border border-brand-accent" />{" "}
-            Click Through &amp; Saves
-          </span>
-          <span className="bg-white px-2.5 py-0.5 rounded-full text-[10px] font-bold text-foreground shadow-sm">
-            {profile.peak_label}
-          </span>
-        </div>
-
-        {/* Value readout */}
-        <div className="relative z-10 flex justify-end pr-4">
-          <div className="bg-white px-3 py-1.5 rounded-xl shadow-sm border border-border/40">
-            <span className="block text-[10px] font-bold text-muted-foreground">
-              {profile.peak_value}
-            </span>
-            <span className="block text-[9px] text-muted-foreground">
-              Interactions at peak · {tf.toUpperCase()}
-            </span>
-          </div>
-        </div>
-
-        {/* Period labels */}
-        <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium">
-          {labels.map((d, i) => (
-            <span
-              key={d}
-              className={cn(
-                i === 4 && "text-brand-accent-foreground font-bold",
-                hoverIndex === i && "text-brand-accent font-bold"
-              )}
-            >
-              {d}
-            </span>
-          ))}
-        </div>
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* Insight Cards , driven by the active client profile */}
+      {/* Axis Indicators */}
+      <div className="flex justify-between items-center text-xs text-muted-foreground font-medium mt-4">
+        <div className="flex gap-4">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-primary" /> Reach
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-brand-accent border border-brand-accent/50" /> Engagement
+          </span>
+        </div>
+        <span className="bg-background border border-border/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-foreground shadow-sm">
+          {profile.peak_label}: {profile.peak_value}
+        </span>
+      </div>
+
+      {/* Insight Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
         {profile.insights.map((card, idx) => (
           <div
             key={idx}
-            className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-white hover:shadow-sm transition-all"
+            className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-card hover:shadow-sm transition-all"
           >
             <p className="text-[10px] font-bold text-muted-foreground tracking-wider">
               {card.label}

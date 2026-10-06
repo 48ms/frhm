@@ -2,16 +2,29 @@
 
 import * as React from "react"
 import { Icons } from "@/components/icons"
-import { useAppStore } from "@/lib/store/app-store"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { socialQueries } from "@/features/social-accounts/api/queries"
+import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 
 export function ErpDashboardClient() {
-  const clients = useAppStore((s) => s.socialClients)
-  const posts = useAppStore((s) => s.posts)
+  const { data: rawClients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
+  const { data: posts } = useSuspenseQuery(scheduledPostQueries.listAll())
   
+  // Exclude test clients and map for UI compatibility
+  const clients = rawClients
+    .filter(c => !c.name.includes("Test Client") && !c.name.includes("E2E Wizard") && !c.name.includes("Headless Test Brand") && c.name !== "Test Client E2E")
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      shortName: "Client", // industry doesn't exist on real table
+      accounts: c.channels || []
+    }))
+
   const totalDeliverable = posts.length
-  const waitingReview = posts.filter(p => p.status === "review").length
+  // In the real scheduled_posts table, the status field is 'draft' | 'scheduled' | 'published' | 'failed' | 'cancelled'
+  const waitingReview = 0 // "review" status doesn't exist in actual DB
   const draft = posts.filter(p => p.status === "draft").length
-  const approved = posts.filter(p => p.status === "approved" || p.status === "scheduled").length
+  const approved = posts.filter(p => p.status === "scheduled" || p.status === "published").length
 
   return (
     <main className="flex-1 p-6 lg:p-8 space-y-6 max-w-[1440px] w-full mx-auto">

@@ -410,7 +410,7 @@ export function CampaignsBoard() {
             Filter Status
           </button>
           <button
-            onClick={() => toast.success("Campaign deck exported (Prototype)")}
+            onClick={() => toast.success("Campaign deck exported (Coming Soon)")}
             className="admin-pill admin-pill-ghost flex items-center gap-2 border"
           >
             <Icons.download className="size-4" />
@@ -712,14 +712,14 @@ export function CampaignsBoard() {
                     Manage Deliverables
                   </button>
                   <button
-                    onClick={() => toast.info("Creative assets (Prototype)")}
+                    onClick={() => toast.info("Creative assets (Coming Soon)")}
                     className="admin-pill admin-pill-ghost border border-border/50"
                   >
                     View Creative Assets
                   </button>
                 </div>
                 <button
-                  onClick={() => toast.warning("Flight paused (Prototype)")}
+                  onClick={() => toast.warning("Flight paused (Coming Soon)")}
                   disabled={!featured}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-destructive hover:bg-destructive/10 transition-colors text-[11px] uppercase font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -1003,7 +1003,7 @@ export function CampaignsBoard() {
                 </button>
               </div>
               <button
-                onClick={() => toast.success("Creative angles generated (Prototype)")}
+                onClick={() => toast.success("Creative angles generated (Coming Soon)")}
                 className="w-full mt-4 py-3 rounded-full bg-lime-400 text-black text-[10px] uppercase font-bold tracking-wider hover:bg-lime-500 transition-all active:scale-95 shadow-sm text-center cursor-pointer"
               >
                 Generate Creative Angles

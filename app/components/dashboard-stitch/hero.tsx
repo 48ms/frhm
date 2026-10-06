@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
@@ -8,7 +9,7 @@ import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
 
 export function DashboardStitchHero() {
-  const { clients, clientId, setClientId } = useActiveDashboard()
+  const { clients, clientId, setClientId, profile } = useActiveDashboard()
   // Safe client resolution: prefer explicit match, fall back to first available
   const client = clients.find((c) => c.id === clientId) ?? clients[0] ?? { id: clientId, name: "Client" }
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -17,13 +18,23 @@ export function DashboardStitchHero() {
 
   return (
     <>
-      <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-card/90 backdrop-blur-2xl border border-border/40 shadow-sm relative overflow-hidden group">
+      <motion.section 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-card/90 backdrop-blur-2xl border border-border/40 shadow-sm relative overflow-hidden group"
+      >
         {/* Decorative blurred shapes */}
-        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-brand-accent/10 transform -rotate-12 pointer-events-none blur-lg" />
-        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-brand-accent/20 transform rotate-6 pointer-events-none blur-md" />
-        <div className="absolute right-10 top-5 text-brand-accent select-none pointer-events-none font-bold text-3xl">
+        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-brand-accent/10 transform -rotate-12 pointer-events-none blur-lg transition-transform duration-700 group-hover:scale-110" />
+        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-brand-accent/20 transform rotate-6 pointer-events-none blur-md transition-transform duration-700 group-hover:-rotate-12" />
+        <motion.div 
+          initial={{ rotate: -45, scale: 0.5, opacity: 0 }}
+          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="absolute right-10 top-5 text-brand-accent select-none pointer-events-none font-bold text-3xl"
+        >
           ✦
-        </div>
+        </motion.div>
 
         <div className="relative z-10 space-y-2">
           {/* WORKSPACE ACTIVE badge + inline client switcher */}
@@ -37,7 +48,7 @@ export function DashboardStitchHero() {
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[brand-accent/20] text-brand-accent text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer border border-brand-accent/20"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
               <span>WORKSPACE ACTIVE</span>
@@ -95,7 +106,7 @@ export function DashboardStitchHero() {
           </div>
 
           <h1 className="font-syne font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
-            Good day, Creator.
+            {profile.greeting}
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground">
             Managing real-time campaign acceleration &amp; audience velocity for{" "}
@@ -119,7 +130,7 @@ export function DashboardStitchHero() {
             Schedule Post
           </button>
         </div>
-      </section>
+      </motion.section>
 
       <ExportReportModal
         open={exportOpen}

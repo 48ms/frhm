@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
@@ -169,7 +169,7 @@ export function DashboardStitchConnectedHub() {
                   "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-label-caps font-bold",
                   ch.status === "SYNCED" || ch.status === "LIVE_SYNC"
                     ? "bg-brand-accent/20 text-brand-accent"
-                    : "bg-amber-500/10 text-amber-600"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                 )}>
                   {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
@@ -194,7 +194,7 @@ export function DashboardStitchConnectedHub() {
 
           <button
             onClick={() => setConnectOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-[muted-foreground]/30 text-[10px] font-bold tracking-widest text-muted-foreground uppercase hover:bg-white/50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-[10px] font-bold tracking-widest text-muted-foreground uppercase hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
           >
             <Icons.hub className="size-3.5" />
             Connect Channel to Client

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React from "react"
 import { motion } from "motion/react"
@@ -77,7 +77,7 @@ export function DashboardStitchKpis() {
             className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-[muted-foreground] tracking-wider">
+              <span className="text-xs font-bold text-muted-foreground tracking-wider">
                 {kpi.label}
               </span>
               <div
@@ -88,22 +88,22 @@ export function DashboardStitchKpis() {
             </div>
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="font-syne font-bold text-2xl text-[foreground]">
+                <span className="font-syne font-bold text-2xl text-foreground">
                   {kpi.value}
                 </span>
                 {kpi.growth && (
                   <span
                     className={
                       kpi.growthUp
-                        ? "text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded-full"
-                        : "text-xs text-rose-700 font-bold bg-rose-50 border border-rose-200/50 px-2 py-0.5 rounded-full"
+                        ? "text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        : "text-xs font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20"
                     }
                   >
                     {kpi.growth}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[muted-foreground] mt-1">{kpi.caption}</p>
+              <p className="text-xs text-muted-foreground mt-1">{kpi.caption}</p>
             </div>
           </motion.div>
         )

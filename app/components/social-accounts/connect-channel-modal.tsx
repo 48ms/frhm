@@ -170,7 +170,7 @@ export function ConnectChannelModal({
                 {ALL_PLATFORMS.map((p) => {
                   const m = PLATFORM_META[p]
                   const Icon = platformIcon(m.icon)
-                  const already = existingPlatforms.includes(p)
+                  const already = existingPlatforms.some((ep) => ep.toLowerCase() === p.toLowerCase())
                   const disabled = !m.available
                   const isLoading = loadingPlatform === p
 

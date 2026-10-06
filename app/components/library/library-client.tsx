@@ -27,7 +27,7 @@ import { PageContainer } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileUploader } from "@/components/file-uploader"
-import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import {
   listAssets,
   uploadAsset,
@@ -47,9 +47,7 @@ import {
 
 export function LibraryClient() {
   const router = useRouter()
-  const [clientId] = useQueryState("clientId", {
-    defaultValue: SOCIAL_CLIENTS[0].id,
-  })
+  const { clientId, client: activeClient } = useActiveDashboard()
   const [fileType, setFileType] = useQueryState("fileType", {
     defaultValue: "all",
   })
@@ -126,11 +124,6 @@ export function LibraryClient() {
       setSortBusy(false)
     }
   }
-
-  const activeClient = React.useMemo(
-    () => SOCIAL_CLIENTS.find((c) => c.id === clientId) ?? SOCIAL_CLIENTS[0],
-    [clientId]
-  )
 
   const activeFileType = fileType === "all" ? undefined : (fileType as AssetFileType)
 
