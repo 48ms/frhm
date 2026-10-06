@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import {
-  CAMPAIGN_CLIENTS,
   CAMPAIGN_TYPE_META,
-  type Campaign,
   type CampaignType,
 } from "./campaign-data"
+import type { Campaign } from "@/features/campaigns/api/types"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 
 type Step = "basics" | "schedule" | "review"
 
@@ -25,9 +25,11 @@ export function CampaignModal({
   editing?: Campaign | null
   onSave: (c: Campaign) => void
 }) {
+  const { clients, clientId: activeDashboardClient } = useActiveDashboard()
+  
   const [step, setStep] = useState<Step>("basics")
   const [name, setName] = useState("")
-  const [clientId, setClientId] = useState(CAMPAIGN_CLIENTS[0].id)
+  const [clientId, setClientId] = useState(activeDashboardClient)
   const [type, setType] = useState<CampaignType>("campaign")
   const [color, setColor] = useState(COLOR_SWATCHES[0])
   const [startDate, setStartDate] = useState("")
@@ -41,39 +43,34 @@ export function CampaignModal({
     setStep("basics")
     setSaving(false)
     setName(editing?.name ?? "")
-    setClientId(editing?.clientId ?? CAMPAIGN_CLIENTS[0].id)
-    setType(editing?.type ?? "campaign")
+    setClientId(editing?.client_id ?? activeDashboardClient)
+    setType((editing?.type as CampaignType) ?? "campaign")
     setColor(editing?.color ?? COLOR_SWATCHES[0])
-    setStartDate(editing?.startDate ?? "")
-    setEndDate(editing?.endDate ?? "")
+    setStartDate(editing?.start_date ?? "")
+    setEndDate(editing?.end_date ?? "")
     setNotes(editing?.notes ?? "")
-  }, [open, editing])
+  }, [open, editing, activeDashboardClient])
 
   if (!open) return null
 
-  const client = CAMPAIGN_CLIENTS.find((c) => c.id === clientId) ?? CAMPAIGN_CLIENTS[0]
   const canContinue = name.trim().length > 0
 
   function save() {
     setSaving(true)
-    setTimeout(() => {
-      onSave({
-        id: editing?.id ?? `cmp-${clientId}-${Date.now()}`,
-        clientId,
-        name: name.trim(),
-        type,
-        startDate: startDate || "2026-01-01",
-        endDate: endDate || "2026-12-31",
-        color,
-        notes: notes.trim() || "-"
-,
-        reach: editing?.reach ?? "0",
-        posts: editing?.posts ?? 0,
-        progress: editing?.progress ?? 0,
-      })
-      setSaving(false)
-      onClose()
-    }, 900)
+    // Tidak pakai setTimeout, karena handleSave luar asinkron & men-dismiss toast.
+    onSave({
+      id: editing?.id ?? "", // akan digenerate DB
+      client_id: clientId,
+      name: name.trim(),
+      type,
+      start_date: startDate || null,
+      end_date: endDate || null,
+      color,
+      notes: notes.trim() || null,
+      created_at: editing?.created_at ?? "",
+    })
+    setSaving(false)
+    onClose()
   }
 
   const steps: { id: Step; label: string }[] = [
@@ -85,26 +82,26 @@ export function CampaignModal({
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-md"
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={saving ? undefined : onClose}
       />
-      <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-3">
+      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center justify-between border-b border-border/40 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center">
               <Icons.campaign className="size-[18px]" />
             </div>
             <div>
-              <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
+              <h3 className="font-syne font-bold text-foreground text-sm">
                 {editing ? "Edit Campaign" : "Create Campaign"}
               </h3>
-              <p className="text-[10px] text-[hsl(var(--admin-outline))]">
+              <p className="text-[10px] text-muted-foreground">
                 {editing ? "Update campaign details" : "Launch a new client campaign"}
               </p>
             </div>
           </div>
           <button
-            className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))] transition-all cursor-pointer"
+            className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             onClick={onClose}
           >
             <Icons.close className="size-[18px]" />
@@ -120,8 +117,8 @@ export function CampaignModal({
                   className={cn(
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
                     step === s.id
-                      ? "bg-[hsl(var(--admin-cobalt))] text-white"
-                      : "bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))]"
+                      ? "bg-brand-accent text-brand-accent-foreground"
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
                   {i + 1}
@@ -130,15 +127,15 @@ export function CampaignModal({
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-wide",
                     step === s.id
-                      ? "text-[hsl(var(--admin-on-surface))]"
-                      : "text-[hsl(var(--admin-outline))]"
+                      ? "text-foreground"
+                      : "text-muted-foreground"
                   )}
                 >
                   {s.label}
                 </span>
               </div>
               {i < steps.length - 1 && (
-                <div className="flex-1 h-px bg-[hsl(var(--admin-outline-variant))]/40" />
+                <div className="flex-1 h-px bg-border/40" />
               )}
             </React.Fragment>
           ))}
@@ -148,28 +145,28 @@ export function CampaignModal({
         {step === "basics" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Campaign Name
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
                 placeholder="e.g. Summer Drop 2026"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Client
               </label>
               <select
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
               >
-                {CAMPAIGN_CLIENTS.map((c) => (
+                {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -178,7 +175,7 @@ export function CampaignModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Campaign Type
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -189,8 +186,8 @@ export function CampaignModal({
                     className={cn(
                       "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer",
                       type === t
-                        ? "bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] border-transparent"
-                        : "border-[hsl(var(--admin-outline-variant))]/40 text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-low))]"
+                        ? "bg-brand-accent text-brand-accent-foreground border-transparent"
+                        : "border-border/40 text-foreground hover:bg-muted"
                     )}
                   >
                     {CAMPAIGN_TYPE_META[t].label}
@@ -200,7 +197,7 @@ export function CampaignModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Accent Color
               </label>
               <div className="flex gap-2">
@@ -210,7 +207,7 @@ export function CampaignModal({
                     onClick={() => setColor(c)}
                     className={cn(
                       "w-7 h-7 rounded-full transition-all cursor-pointer flex items-center justify-center",
-                      color === c ? "ring-2 ring-offset-2 ring-[hsl(var(--admin-cobalt))]" : ""
+                      color === c ? "ring-2 ring-offset-2 ring-brand-accent" : ""
                     )}
                     style={{ backgroundColor: c }}
                     aria-label={`Color ${c}`}
@@ -228,45 +225,45 @@ export function CampaignModal({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Start Date
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                  className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   End Date
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                  className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Notes / Objectives
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))] resize-none"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
                 placeholder="Campaign objectives, target audience, key messages..."
               />
             </div>
 
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/50 border border-[hsl(var(--admin-outline-variant))]/30">
-              <Icons.info className="size-4 text-[hsl(var(--admin-cobalt))] shrink-0" />
-              <span className="text-[10px] text-[hsl(var(--admin-outline))]">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/40">
+              <Icons.info className="size-4 text-brand-accent shrink-0" />
+              <span className="text-[10px] text-muted-foreground">
                 Leave dates empty for an evergreen campaign with no fixed end.
               </span>
             </div>
@@ -276,7 +273,7 @@ export function CampaignModal({
         {/* STEP 3 , review */}
         {step === "review" && (
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-[hsl(var(--admin-outline-variant))]/30">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/60 border border-border/40">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
                 style={{ backgroundColor: color }}
@@ -284,11 +281,11 @@ export function CampaignModal({
                 <Icons.campaign className="size-5 text-white" />
               </div>
               <div className="min-w-0">
-                <span className="block text-sm font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                <span className="block text-sm font-bold text-foreground truncate">
                   {name || "Untitled Campaign"}
                 </span>
-                <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
-                  {client.name}
+                <span className="block text-[10px] text-muted-foreground">
+                  {clients.find((c) => c.id === clientId)?.name ?? "Unknown"}
                 </span>
               </div>
               <span className={cn("admin-badge shrink-0 ml-auto", CAMPAIGN_TYPE_META[type].badge)}>
@@ -298,18 +295,17 @@ export function CampaignModal({
 
             <div className="space-y-2">
               {[
-                { label: "Client", value: client.name },
+                { label: "Client", value: clients.find((c) => c.id === clientId)?.name ?? "Unknown" },
                 { label: "Type", value: CAMPAIGN_TYPE_META[type].label },
-                { label: "Start", value: startDate || "-"
- },
+                { label: "Start", value: startDate || "-" },
                 { label: "End", value: endDate || "Evergreen" },
               ].map((row) => (
                 <div
                   key={row.label}
-                  className="flex items-center justify-between text-[11px] py-1.5 border-b border-[hsl(var(--admin-outline-variant))]/20 last:border-0"
+                  className="flex items-center justify-between text-[11px] py-1.5 border-b border-border/20 last:border-0"
                 >
-                  <span className="text-[hsl(var(--admin-outline))]">{row.label}</span>
-                  <span className="font-semibold text-[hsl(var(--admin-on-surface))]">
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="font-semibold text-foreground">
                     {row.value}
                   </span>
                 </div>
@@ -317,11 +313,11 @@ export function CampaignModal({
             </div>
 
             {notes.trim() && (
-              <div className="p-3 rounded-xl bg-[hsl(var(--admin-surface-low))]/50 border border-[hsl(var(--admin-outline-variant))]/30">
-                <span className="block text-[10px] font-bold text-[hsl(var(--admin-outline))] uppercase tracking-wide mb-1">
+              <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
+                <span className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
                   Notes
                 </span>
-                <p className="text-[11px] text-[hsl(var(--admin-on-surface))]">{notes}</p>
+                <p className="text-[11px] text-foreground">{notes}</p>
               </div>
             )}
           </div>
@@ -332,14 +328,14 @@ export function CampaignModal({
           {step === "basics" && (
             <>
               <button
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
                 onClick={onClose}
               >
                 Cancel
               </button>
               <button
                 disabled={!canContinue}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100"
                 onClick={() => setStep("schedule")}
               >
                 Continue
@@ -351,14 +347,14 @@ export function CampaignModal({
           {step === "schedule" && (
             <>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
                 onClick={() => setStep("basics")}
               >
                 <Icons.arrowLeft className="size-4" />
                 Back
               </button>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 onClick={() => setStep("review")}
               >
                 Review
@@ -370,7 +366,7 @@ export function CampaignModal({
           {step === "review" && (
             <>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
                 onClick={() => setStep("schedule")}
               >
                 <Icons.arrowLeft className="size-4" />
@@ -378,7 +374,7 @@ export function CampaignModal({
               </button>
               <button
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
                 onClick={save}
               >
                 {saving ? (

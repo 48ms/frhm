@@ -1,17 +1,16 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { useQueryState, parseAsString, parseAsStringEnum } from "nuqs"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { SOCIAL_CLIENTS, type SocialAccount } from "./social-data"
 import { ConnectChannelModal } from "./connect-channel-modal"
-import { WebhookLogs } from "./webhook-logs"
-import { AuditLogsModal } from "./audit-logs-modal"
-import { useAppStore } from "@/lib/store/app-store"
 import { toast } from "sonner"
 import { DisconnectDialog } from "./disconnect-dialog"
-import { ManageAccessDialog } from "./manage-access-dialog"
+import { useCreateClient } from "@/components/client/create-client-provider"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,16 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-function fansToK(fans: string): number {
-  const m = String(fans).replace(/,/g, "").match(/([\d.]+)\s*([KMB])?/i)
-  if (!m) return 0
-  const n = parseFloat(m[1])
-  if (Number.isNaN(n)) return 0
-  const unit = (m[2] ?? "").toUpperCase()
-  if (unit === "B") return n * 1_000_000
-  if (unit === "M") return n * 1_000
-  return n
-}
+import { socialQueries, useDisconnectChannel, useSyncChannel } from "@/features/social-accounts/api/queries"
+import type { ClientChannel, ClientWithChannels } from "@/features/social-accounts/api/types"
 
 function formatK(val: number): string {
   if (val >= 1_000_000) return (val / 1_000_000).toFixed(2) + "M"
@@ -37,168 +28,241 @@ function formatK(val: number): string {
   return val.toString()
 }
 
-/** Labels and colours come from the Stitch reference prototype. */
-function statusBadge(status: SocialAccount["status"]) {
+export function getPlatformUI(platform: string) {
+  const p = (platform || "").toLowerCase()
+  if (p === 'instagram') return { icon: 'instagram', bg: 'bg-pink-500', fg: 'text-white' }
+  if (p === 'tiktok') return { icon: 'tiktok', bg: 'bg-black', fg: 'text-white' }
+  if (p === 'youtube') return { icon: 'youtube', bg: 'bg-red-500', fg: 'text-white' }
+  if (p === 'linkedin') return { icon: 'linkedin', bg: 'bg-blue-600', fg: 'text-white' }
+  if (p === 'twitter' || p === 'x') return { icon: 'twitter', bg: 'bg-sky-500', fg: 'text-white' }
+  if (p === 'facebook') return { icon: 'facebook', bg: 'bg-blue-600', fg: 'text-white' }
+  return { icon: 'hub', bg: 'bg-gray-500', fg: 'text-white' }
+}
+
+function statusBadge(status: ClientChannel["status"]) {
   switch (status) {
-    case "SYNCED":
-      return { label: "Connected & Verified", className: "bg-primary text-primary-foreground", dot: "bg-primary animate-pulse" }
-    case "LIVE_SYNC":
-      return { label: "Live Data Feed", className: "bg-primary text-primary-foreground", dot: "bg-primary animate-ping" }
-    case "TOKEN_EXPIRING":
-      return { label: "Token Refresh Needed", className: "bg-amber-500 text-white", dot: "" }
-    case "ACTION_NEEDED":
-      return { label: "Action Required", className: "bg-amber-500 text-white", dot: "" }
-    case "FAILED":
-      return { label: "Connection Error", className: "bg-rose-500 text-white", dot: "" }
+    case "terhubung":
+      return { label: "Connected", className: "admin-badge admin-badge-lime", dot: "admin-dot-live" }
+    case "gagal":
+      return { label: "Connection Error", className: "admin-badge bg-destructive/15 text-destructive", dot: "" }
+    case "belum":
     default:
-      return { label: "Connected", className: "bg-muted text-foreground", dot: "bg-muted-foreground" }
+      return { label: "Not Connected", className: "admin-badge admin-badge-surface", dot: "bg-muted-foreground" }
   }
 }
 
 const TABS = ["All Accounts", "Instagram", "TikTok", "Action Required"]
 
-export function SocialAccountsBoard() {
+export function ClientChannelsBoard() {
   const [tab, setTab] = useQueryState("tab", parseAsStringEnum(TABS).withDefault("All Accounts"))
-  const [clientId, setClientId] = useQueryState("clientId", parseAsString.withDefault(SOCIAL_CLIENTS[0].id))
+  const [clientId, setClientId] = useQueryState("clientId", parseAsString)
+  const searchParams = useSearchParams()
+  
+  React.useEffect(() => {
+    const success = searchParams?.get("success")
+    const error = searchParams?.get("error")
+    
+    if (success === "connected") {
+      toast.success("Social account connected successfully")
+    } else if (error) {
+      toast.error(`Connection failed: ${decodeURIComponent(error)}`)
+    }
+
+    if (success || error) {
+      // Clear the query params from the URL without triggering a re-render
+      const url = new URL(window.location.href)
+      url.searchParams.delete("success")
+      url.searchParams.delete("error")
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams])
+  
   const [connectOpen, setConnectOpen] = React.useState(false)
-  const [auditOpen, setAuditOpen] = React.useState(false)
+  const { openCreateClient } = useCreateClient()
   const [syncing, setSyncing] = React.useState(false)
   const [pendingDisconnect, setPendingDisconnect] = React.useState<{ id: string; handle: string } | null>(null)
-  const [accessAccount, setAccessAccount] = React.useState<SocialAccount | null>(null)
 
-  const rawClients = useAppStore((s) => s.socialClients)
-  const rawAccounts = useAppStore((s) => s.accounts)
-  const refreshAccount = useAppStore((s) => s.refreshAccount)
-  const removeAccount = useAppStore((s) => s.removeSocialAccount)
+  const { data: rawClients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
+  
+  const disconnectMutation = useDisconnectChannel()
+  const syncMutation = useSyncChannel()
 
   const activeClient = React.useMemo(() => {
-    const found = rawClients.find((c) => c.id === clientId) ?? rawClients[0] ?? SOCIAL_CLIENTS[0]
-    return {
-      ...found,
-      accounts: rawAccounts.filter((a) => a.clientId === found.id),
-    }
-  }, [rawClients, rawAccounts, clientId])
+    if (!rawClients || rawClients.length === 0) return null
+    return rawClients.find((c) => c.id === clientId) ?? rawClients[0]
+  }, [rawClients, clientId])
 
   const handleDisconnect = React.useCallback((id: string, handle: string) => {
     setPendingDisconnect({ id, handle })
   }, [])
 
-  const handleManageAccess = React.useCallback((account: SocialAccount) => {
-    setAccessAccount(account)
-  }, [])
-
   const confirmDisconnect = React.useCallback(() => {
     if (!pendingDisconnect) return
-    removeAccount(pendingDisconnect.id)
-    toast.error(`${pendingDisconnect.handle} disconnected`)
-    setPendingDisconnect(null)
-  }, [pendingDisconnect, removeAccount])
+    disconnectMutation.mutate(pendingDisconnect.id, {
+      onSuccess: () => {
+        toast.success(`${pendingDisconnect.handle} disconnected successfully`)
+        setPendingDisconnect(null)
+      },
+      onError: (err) => {
+        toast.error(`Failed to disconnect: ${err.message}`)
+      }
+    })
+  }, [pendingDisconnect, disconnectMutation])
 
   const handleSyncAll = React.useCallback(() => {
-    const target = activeClient.accounts
+    if (!activeClient) return
+    const target = activeClient.channels
+    if (target.length === 0) {
+      toast.info("No accounts to refresh")
+      return
+    }
+    
     setSyncing(true)
-    target.forEach((a) => refreshAccount(a.id))
-    window.setTimeout(() => {
+    
+    Promise.allSettled(target.map(a => syncMutation.mutateAsync(a.id))).then((results) => {
       setSyncing(false)
-      toast.success(`Synced ${target.length} channels successfully`)
-    }, 1200)
-  }, [activeClient.accounts, refreshAccount])
+      const failed = results.filter(r => r.status === 'rejected')
+      if (failed.length === 0) {
+        toast.success(`Refreshed ${target.length} accounts`)
+      } else {
+        toast.warning(`Refreshed data, but ${failed.length} account(s) failed to sync.`)
+      }
+    })
+  }, [activeClient, syncMutation])
 
-  const totalFollowers = React.useMemo(() => {
-    const sum = activeClient.accounts.reduce((acc, a) => acc + fansToK(a.fans), 0)
-    return formatK(sum)
-  }, [activeClient.accounts])
+  const handleReconnect = React.useCallback((account: ClientChannel) => {
+    toast.loading(`Redirecting to reconnect ${account.platform}...`, { id: "reconnect" })
+    setTimeout(() => {
+      toast.dismiss("reconnect")
+      setConnectOpen(true)
+    }, 500)
+  }, [])
 
-  const syncedCount = React.useMemo(
-    () => activeClient.accounts.filter(a => a.status === 'SYNCED' || a.status === 'LIVE_SYNC' || a.status === 'ACTIVE').length,
-    [activeClient.accounts]
-  )
-  const expiringCount = React.useMemo(
-    () => activeClient.accounts.filter(a => a.status === 'TOKEN_EXPIRING').length,
-    [activeClient.accounts]
-  )
-  const actionNeededCount = React.useMemo(
-    () => activeClient.accounts.filter(a => a.status === 'ACTION_NEEDED' || a.status === 'FAILED').length,
-    [activeClient.accounts]
-  )
-  const avgGrowth = React.useMemo(() => {
-    const valid = activeClient.accounts.filter(a => a?.growth && /^\+?[\d.]+%$/.test(a.growth))
-    if (valid.length === 0) return '0%'
-    const nums = valid.map(a => parseFloat(a.growth!.replace('+', '').replace('%', '')))
-    const avg = nums.reduce((a, b) => a + b, 0) / nums.length
-    return `${avg.toFixed(1)}%`
-  }, [activeClient.accounts])
+  const stats = React.useMemo(() => {
+    if (!activeClient) {
+      return { totalFollowers: "0", syncedCount: 0, actionNeededCount: 0 }
+    }
+    
+    let synced = 0
+    let actionNeeded = 0
+
+    for (const a of activeClient.channels) {
+      if (a.status === 'terhubung') {
+        synced++
+      } else if (a.status === 'gagal') {
+        actionNeeded++
+      }
+    }
+    
+    const factualFollowers = activeClient.dashboard_profile?.audience_size 
+      ? Number(activeClient.dashboard_profile.audience_size).toLocaleString() 
+      : "0"
+
+    return {
+      totalFollowers: factualFollowers,
+      syncedCount: synced,
+      actionNeededCount: actionNeeded,
+    }
+  }, [activeClient])
+  
+  const { totalFollowers, syncedCount, actionNeededCount } = stats
 
   const filteredAccounts = React.useMemo(() => {
-    let accs = activeClient.accounts
-    if (tab === "Instagram") accs = accs.filter(a => a.platform === "Instagram")
-    if (tab === "TikTok") accs = accs.filter(a => a.platform === "TikTok")
-    if (tab === "Action Required") accs = accs.filter(a => a.status === "TOKEN_EXPIRING" || a.status === "ACTION_NEEDED" || a.status === "FAILED")
+    if (!activeClient) return []
+    let accs = activeClient.channels
+    if (tab === "Instagram") accs = accs.filter(a => a.platform.toLowerCase() === "instagram")
+    if (tab === "TikTok") accs = accs.filter(a => a.platform.toLowerCase() === "tiktok")
+    if (tab === "Action Required") accs = accs.filter(a => a.status === "gagal")
     return accs
   }, [activeClient, tab])
 
+  if (!activeClient) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center h-[50vh]">
+        <Icons.hub className="size-16 text-muted-foreground/30 mb-6" />
+        <h2 className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">No clients found</h2>
+        <p className="text-muted-foreground mt-2 max-w-sm mx-auto mb-8">
+          Add your first client to start connecting their social accounts, running campaigns, and tracking analytics.
+        </p>
+        <Button 
+          onClick={openCreateClient} 
+          className="bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all"
+        >
+          <Icons.add className="mr-2 size-4" />
+          Create First Client
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Social Accounts</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">
-            Every Instagram and TikTok account your clients have connected, with sync status and token health.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-            <button
+      {/* Action Toolbar */}
+      <div className="flex items-center justify-end gap-2">
+            <Button
               onClick={handleSyncAll}
               disabled={syncing}
-              className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm font-semibold hover:bg-secondary/40 transition-all cursor-pointer inline-flex items-center gap-2 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              isLoading={syncing}
+              variant="outline"
+              className="admin-pill admin-pill-ghost px-4 py-2.5 sm:px-5 border-none"
+              title="Refresh all accounts data"
             >
-              <Icons.refresh className={cn("size-4", syncing && "animate-spin")} />
-              {syncing ? "Syncing…" : "Sync all accounts"}
-            </button>
-            <button
-              onClick={() => setAuditOpen(true)}
-              className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm font-semibold hover:bg-secondary/40 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Audit Access Logs
-            </button>
-            <button
-              onClick={() => setConnectOpen(true)}
-              className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-                <Icons.add className="size-4" /> Connect channel
-            </button>
-        </div>
-      </div>
+              <Icons.refresh className="size-4 mr-2" />
+              <span className="hidden sm:inline">Refresh data</span>
+            </Button>
 
-      {/* Tabs */}
-      <div
-        role="tablist"
-        aria-label="Filter social accounts"
-        className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20"
-      >
-        {TABS.map(t => (
-            <button
-              key={t}
-              role="tab"
-              aria-selected={tab === t}
-              onClick={() => setTab(t)}
-              className={cn(
-                "px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
+            <Button
+              onClick={() => setConnectOpen(true)}
+              className="admin-pill admin-pill-lime px-4 py-2.5 sm:px-6 shadow-md hover:shadow-lg flex items-center gap-2"
             >
-                {t} {t === "All Accounts" && `(${activeClient.accounts.length})`}
-            </button>
-        ))}
+                <Icons.add className="size-4" /> 
+                <span className="hidden sm:inline">Connect account</span>
+                <span className="sm:hidden">Connect</span>
+            </Button>
+        </div>
+      <div 
+        className="w-full overflow-x-auto no-scrollbar pb-1 -mb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset rounded-full"
+        tabIndex={0}
+        role="region"
+        aria-label="Filter accounts horizontally"
+      >
+        <div
+          role="tablist"
+          aria-label="Filter social accounts"
+          className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20"
+        >
+          {TABS.map(t => {
+              if (t === "Action Required" && actionNeededCount === 0) return null;
+              
+              return (
+                <button
+                  key={t}
+                  role="tab"
+                  aria-selected={tab === t}
+                  onClick={() => setTab(t)}
+                  className={cn(
+                    "px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+                    tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                  )}
+                >
+                    {t} {t === "All Accounts" && `(${activeClient.channels.length})`}
+                    {t === "Action Required" && actionNeededCount > 0 && (
+                       <span className="ml-1.5 bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-full text-[10px]">
+                         {actionNeededCount}
+                       </span>
+                    )}
+                </button>
+              )
+          })}
+        </div>
       </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
-          label="Connected Handles"
-          value={String(activeClient.accounts.length)}
-          badge={avgGrowth.startsWith('-') ? avgGrowth : `+${avgGrowth}`}
+          label="Connected Accounts"
+          value={String(activeClient.channels.length)}
+          badge="Active"
           sub="Across IG & TikTok"
           icon="hub"
           tone="secondary"
@@ -213,19 +277,19 @@ export function SocialAccountsBoard() {
         />
         <KPICard
           label="Token & API Status"
-          value={`${syncedCount} / ${activeClient.accounts.length}`}
-          badge={expiringCount > 0 ? `${expiringCount} Expiring` : (actionNeededCount > 0 ? `${actionNeededCount} Failed` : "All Secure")}
-          sub={expiringCount > 0 ? "Re-authentication required" : "Automated Sync Active"}
+          value={`${syncedCount} / ${activeClient.channels.length}`}
+          badge={actionNeededCount > 0 ? `${actionNeededCount} Failed` : "All Secure"}
+          sub={actionNeededCount > 0 ? "Re-authentication required" : "Automated Sync Active"}
           icon="key"
-          tone={expiringCount > 0 || actionNeededCount > 0 ? "error" : "primary"}
+          tone={actionNeededCount > 0 ? "error" : "primary"}
         />
         <KPICard
           label="Needs Attention"
-          value={String(expiringCount + actionNeededCount)}
-          badge={expiringCount + actionNeededCount > 0 ? "Action" : "Clear"}
-          sub={expiringCount + actionNeededCount > 0 ? "Reconnect to resume posting" : "No tokens expiring"}
+          value={String(actionNeededCount)}
+          badge={actionNeededCount > 0 ? "Action" : "Clear"}
+          sub={actionNeededCount > 0 ? "Reconnect to resume posting" : "No tokens expiring"}
           icon="playCircle"
-          tone={expiringCount + actionNeededCount > 0 ? "error" : "tertiary"}
+          tone={actionNeededCount > 0 ? "error" : "tertiary"}
           onClick={() => setTab("Action Required")}
         />
       </div>
@@ -235,80 +299,41 @@ export function SocialAccountsBoard() {
         <AccountSection
             title="Instagram"
             subtitle="Connected through the Meta Graph API"
-            accounts={filteredAccounts.filter(a => a.platform === "Instagram")}
-            icon="photo_camera"
+            accounts={filteredAccounts.filter(a => a.platform.toLowerCase() === "instagram")}
+            icon="instagram"
             iconClass="bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white"
-            bulkLabel="Sync insights"
+            bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
-            onManageAccess={handleManageAccess}
+            onReconnect={handleReconnect}
           />
           <AccountSection
             title="TikTok"
             subtitle="Connected through the TikTok Business API"
-            accounts={filteredAccounts.filter(a => a.platform === "TikTok")}
-            icon="music_note"
+            accounts={filteredAccounts.filter(a => a.platform.toLowerCase() === "tiktok")}
+            icon="tiktok"
             iconClass="bg-foreground text-background"
-            bulkLabel="Sync insights"
+            bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
-            onManageAccess={handleManageAccess}
+            onReconnect={handleReconnect}
           />
           <AccountSection
             title="Other platforms"
             subtitle="YouTube, LinkedIn and other connected accounts"
-            accounts={filteredAccounts.filter(a => a.platform !== "Instagram" && a.platform !== "TikTok")}
+            accounts={filteredAccounts.filter(a => a.platform.toLowerCase() !== "instagram" && a.platform.toLowerCase() !== "tiktok")}
             icon="smart_display"
             iconClass="bg-primary text-primary-foreground"
-            bulkLabel="Sync insights"
+            bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
-            onManageAccess={handleManageAccess}
+            onReconnect={handleReconnect}
           />
-      </div>
-
-      <WebhookLogs />
-
-      {/* Footer Client Switcher Bar */}
-      <div className="pt-6 border-t border-border/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Switch client</span>
-          <span className="text-xs text-muted-foreground">Show another client&apos;s accounts</span>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {rawClients.map(c => {
-            const accCount = rawAccounts.filter(a => a.clientId === c.id).length
-            const active = clientId === c.id
-            return (
-              <button
-                key={c.id}
-                onClick={() => setClientId(c.id)}
-                className={cn(
-                  "px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition-all cursor-pointer",
-                  active
-                    ? "bg-primary text-primary-foreground text-primary-foreground shadow-sm ring-1 ring-primary/40"
-                    : "bg-secondary/60 hover:bg-muted text-foreground"
-                )}
-              >
-                <span className={cn("w-2 h-2 rounded-full", active ? "bg-primary" : "bg-muted-foreground/40")} />
-                {c.shortName} ({accCount})
-              </button>
-            )
-          })}
-        </div>
       </div>
 
       <ConnectChannelModal
         open={connectOpen}
         client={activeClient}
-        existingPlatforms={activeClient.accounts.map((a) => a.platform)}
+        existingPlatforms={activeClient.channels.map((a) => a.platform)}
         onClose={() => setConnectOpen(false)}
-      />
-
-      <AuditLogsModal open={auditOpen} onClose={() => setAuditOpen(false)} />
-
-      <ManageAccessDialog
-        open={accessAccount !== null}
-        account={accessAccount}
-        onClose={() => setAccessAccount(null)}
-      />
+      /> 
 
       <DisconnectDialog
         open={pendingDisconnect !== null}
@@ -324,7 +349,7 @@ const KPI_TONES: Record<string, string> = {
   primary: "bg-primary text-primary-foreground/60 text-primary-foreground",
   secondary: "bg-secondary/50 text-secondary-foreground",
   tertiary: "bg-muted text-foreground",
-  error: "bg-rose-500/15 text-rose-600",
+  error: "bg-destructive/15 text-destructive",
 }
 
 function KPICard({ label, value, badge, sub, icon, tone, onClick }: {
@@ -346,20 +371,20 @@ function KPICard({ label, value, badge, sub, icon, tone, onClick }: {
           onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } } : undefined}
           aria-label={onClick ? `Show ${label}` : undefined}
           className={cn(
-          "p-5 rounded-2xl bg-card/85 border shadow-sm backdrop-blur-xl flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all",
-          isError ? "border-rose-500/30" : "border-border/20",
+          "p-5 admin-card flex items-center justify-between relative overflow-hidden group transition-all",
+          isError ? "border-rose-500/30" : "admin-card-hover",
           onClick && "cursor-pointer hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         )}>
             <div className="space-y-1 min-w-0">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">{label}</span>
+                <span className="admin-section-label block">{label}</span>
                 <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-2xl font-extrabold text-foreground tabular-nums">{value}</span>
+                    <span className="text-2xl font-extrabold font-syne text-foreground tabular-nums">{value}</span>
                     <span className={cn(
-                      "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                      isError ? "bg-rose-500/15 text-rose-600" : "bg-primary text-primary-foreground/40 text-primary"
+                      "admin-badge",
+                      isError ? "bg-rose-500/15 text-rose-600" : "admin-badge-cobalt"
                     )}>{badge}</span>
                 </div>
-                <p className={cn("text-[11px] truncate", isError ? "text-rose-600" : "text-muted-foreground")}>{sub}</p>
+                <p className={cn("text-[11px] truncate", isError ? "text-destructive" : "text-muted-foreground")}>{sub}</p>
             </div>
             <div className={cn(
               "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
@@ -371,15 +396,15 @@ function KPICard({ label, value, badge, sub, icon, tone, onClick }: {
     )
 }
 
-function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel, onDisconnect, onManageAccess }: {
+function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel, onDisconnect, onReconnect }: {
   title: string
   subtitle: string
-  accounts: SocialAccount[]
+  accounts: ClientChannel[]
   icon: string
   iconClass: string
   bulkLabel: string
   onDisconnect: (id: string, handle: string) => void
-  onManageAccess: (account: SocialAccount) => void
+  onReconnect: (account: ClientChannel) => void
 }) {
     const IconComponent = typeof Icons[icon as keyof typeof Icons] === 'function' ? Icons[icon as keyof typeof Icons] : null
 
@@ -411,13 +436,19 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
             </div>
 
             {accounts.length === 0 ? (
-              <div className="p-6 rounded-2xl border border-dashed border-border/50 text-center text-sm font-medium text-muted-foreground">
-                No accounts connected on this platform yet.
+              <div className="p-8 rounded-2xl border border-dashed border-border/50 bg-card/30 flex flex-col items-center justify-center text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Icons.link className="size-5 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-foreground">No accounts connected</p>
+                  <p className="text-xs text-muted-foreground">Connect a {title} account to start syncing analytics and messages.</p>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {accounts.map(a => (
-                  <AccountCard key={a.id} account={a} onDisconnect={onDisconnect} onManageAccess={onManageAccess} />
+                  <AccountCard key={a.id} account={a} onDisconnect={onDisconnect} onReconnect={onReconnect} />
                 ))}
               </div>
             )}
@@ -425,83 +456,67 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
     )
 }
 
-export function AccountCard({ account: a, onDisconnect, onManageAccess }: { account: SocialAccount; onDisconnect: (id: string, handle: string) => void; onManageAccess: (account: SocialAccount) => void }) {
+export function AccountCard({ account: a, onDisconnect, onReconnect }: { account: ClientChannel; onDisconnect: (id: string, handle: string) => void; onReconnect: (account: ClientChannel) => void }) {
   const badge = statusBadge(a.status)
-  const isExpiring = a.status === "TOKEN_EXPIRING" || a.status === "ACTION_NEEDED" || a.status === "FAILED"
-  const metrics = a.metrics ?? {}
+  const isExpiring = a.status === "gagal"
+  const platformUI = getPlatformUI(a.platform)
 
   return (
     <div className={cn(
-      "rounded-2xl p-6 flex flex-col justify-between gap-5 transition-all duration-300 relative overflow-hidden bg-card/85 border backdrop-blur-xl",
-      isExpiring ? "border-rose-500/40 bg-rose-500/5" : "border-border/25 hover:shadow-xl hover:border-primary/30"
+      "p-6 flex flex-col justify-between gap-5 relative overflow-hidden admin-card",
+      isExpiring ? "border-destructive/40 bg-destructive/5" : "admin-card-hover"
     )}>
-      {isExpiring && <div className="absolute -right-10 -bottom-10 w-28 h-28 rounded-full bg-rose-500/10 blur-xl pointer-events-none" />}
+      {isExpiring && <div className="absolute -right-10 -bottom-10 w-28 h-28 rounded-full bg-destructive/10 blur-xl pointer-events-none" />}
 
       <div className="space-y-4 relative">
         {/* Card header */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-2 ring-white/70 shadow-sm", a.bg, a.fg)}>
-              {(() => {
-                const key = a.icon as keyof typeof Icons
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-2 ring-white/70 shadow-sm relative overflow-hidden", !a.avatar_url && platformUI.bg, !a.avatar_url && platformUI.fg)}>
+              {a.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={a.avatar_url} alt={`${a.handle} avatar`} className="w-full h-full object-cover" />
+              ) : (() => {
+                const key = platformUI.icon as keyof typeof Icons
                 const IconComp = typeof Icons[key] === 'function' ? Icons[key] : null
                 return IconComp ? <IconComp className="size-6" /> : <Icons.hub className="size-6" />
               })()}
+              
+              {a.avatar_url && (
+                <div className={cn("absolute -bottom-1 -right-1 w-5 h-5 rounded-md flex items-center justify-center shadow-sm border border-white", platformUI.bg, platformUI.fg)}>
+                  {(() => {
+                    const key = platformUI.icon as keyof typeof Icons
+                    const IconComp = typeof Icons[key] === 'function' ? Icons[key] : null
+                    return IconComp ? <IconComp className="size-3" /> : null
+                  })()}
+                </div>
+              )}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-foreground truncate">{a.handle}</span>
-                {(a.status === "SYNCED" || a.status === "LIVE_SYNC") && (
+                <span className="font-bold text-foreground truncate">{a.handle || 'Unknown'}</span>
+                {a.status === "terhubung" && (
                   <Icons.check className="size-4 text-primary shrink-0" aria-label="verified" />
                 )}
               </div>
-              <span className="text-xs text-muted-foreground truncate block">{a.name}</span>
+              <span className="text-xs text-muted-foreground truncate block capitalize">{a.platform}</span>
             </div>
           </div>
-          <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase shrink-0", badge.className)}>
-            {badge.dot && <span className={cn("w-2 h-2 rounded-full", badge.dot)} />}
+          <div className={cn("shrink-0", badge.className)}>
+            {badge.dot && <span className={cn(badge.dot)} />}
             {badge.label}
           </div>
         </div>
 
-        {/* Followers + growth */}
-        <div className="flex items-baseline justify-between pt-1">
-          <div>
-            <span className="text-2xl font-extrabold text-foreground tabular-nums">{a.fans}</span>
-            <span className="text-xs text-muted-foreground ml-1">Followers</span>
-          </div>
-          {a.growth && (
-            <span className={cn(
-              "text-[10px] font-bold px-2.5 py-1 rounded-full",
-              isExpiring ? "bg-rose-500/15 text-rose-600" : "bg-primary text-primary-foreground/50 text-primary"
-            )}>
-              {a.growth}
-            </span>
-          )}
-        </div>
-
-        {/* Quick metrics grid */}
-        {(metrics.reach || metrics.posts || metrics.likes || metrics.saves || metrics.watchTime || metrics.drift) && (
-          <div className="grid grid-cols-3 gap-2 py-3 px-3 rounded-xl bg-secondary/40 border border-white/60">
-            {metrics.reach && <MetricCell label="Reach" value={metrics.reach} />}
-            {metrics.posts && <MetricCell label="Posts" value={metrics.posts} bordered={!!metrics.reach} />}
-            {metrics.likes && <MetricCell label="Avg Likes" value={metrics.likes} bordered={!!metrics.posts} />}
-            {metrics.saves && <MetricCell label="Saves" value={metrics.saves} />}
-            {metrics.watchTime && <MetricCell label="Watch" value={metrics.watchTime} />}
-            {metrics.drift && <MetricCell label="Drift" value={metrics.drift} />}
-            {metrics.engagement && <MetricCell label="Engage" value={metrics.engagement} />}
-          </div>
-        )}
-
         {/* Warning block for expiring tokens */}
         {isExpiring && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 space-y-1">
+          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-xs">
               <Icons.warning className="size-4" />
-              {a.status === "TOKEN_EXPIRING" ? "Access expires soon" : "Connection needs attention"}
+              Connection needs attention
             </div>
             <p className="text-[11px] leading-tight opacity-90">
-              Scheduled posts are paused until you reconnect this account.
+              Data sync is paused until you reconnect this account.
             </p>
           </div>
         )}
@@ -509,14 +524,9 @@ export function AccountCard({ account: a, onDisconnect, onManageAccess }: { acco
         {/* Token validity row */}
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
           <span className="flex items-center gap-1">
-            <Icons.key className={cn("size-4", isExpiring ? "text-rose-500" : "text-primary")} />
-            {a.tokenExpiry ? `Access valid for ${a.tokenExpiry}` : "Access active"}
+            <Icons.key className={cn("size-4", isExpiring ? "text-destructive" : "text-primary")} />
+            Access active
           </span>
-          {a.bandwidth && (
-            <span className={cn("text-[10px] font-bold uppercase", isExpiring ? "text-rose-500" : "text-secondary")}>
-              {a.bandwidth}
-            </span>
-          )}
         </div>
       </div>
 
@@ -524,24 +534,18 @@ export function AccountCard({ account: a, onDisconnect, onManageAccess }: { acco
       <div className="pt-4 border-t border-border/20 flex items-center justify-between gap-2 relative">
         {isExpiring ? (
           <button
-            onClick={() => toast.error("Reconnect required. Opening authorization...")}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+            onClick={() => onReconnect(a)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
           >
             <Icons.warning className="size-4" />
             Reconnect account
           </button>
         ) : (
           <>
-            <button
-              onClick={() => onManageAccess(a)}
-              className="px-4 py-2 rounded-full bg-card border border-border/40 hover:bg-secondary/60 text-foreground text-xs font-semibold transition-all cursor-pointer"
-            >
-              Manage access
-            </button>
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={`More actions for ${a.handle}`}
-                className="p-2.5 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="p-2.5 rounded-full hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Icons.more_vert className="size-4" />
               </DropdownMenuTrigger>
@@ -550,18 +554,14 @@ export function AccountCard({ account: a, onDisconnect, onManageAccess }: { acco
                   <Icons.monitoring className="size-4 mr-2" />
                   View logs
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => toast.success(`Refreshed ${a.handle}`)}>
+                <DropdownMenuItem onClick={() => toast.success(`Refresh triggered for ${a.handle}`)}>
                   <Icons.refresh className="size-4 mr-2" />
                   Refresh now
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onManageAccess(a)}>
-                  <Icons.shield className="size-4 mr-2" />
-                  Manage access
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={() => onDisconnect(a.id, a.handle)}
+                  onClick={() => onDisconnect(a.id, a.handle || 'Unknown')}
                 >
                   <Icons.logout className="size-4 mr-2" />
                   Disconnect
@@ -571,15 +571,6 @@ export function AccountCard({ account: a, onDisconnect, onManageAccess }: { acco
           </>
         )}
       </div>
-    </div>
-  )
-}
-
-function MetricCell({ label, value, bordered }: { label: string; value: string; bordered?: boolean }) {
-  return (
-    <div className={cn("text-center", bordered && "border-l border-border/30")}>
-      <span className="text-[10px] text-muted-foreground block">{label}</span>
-      <span className="text-sm font-bold text-foreground">{value}</span>
     </div>
   )
 }

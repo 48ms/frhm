@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React from "react"
 import { motion } from "motion/react"
@@ -25,17 +25,17 @@ export function DashboardStitchKpis() {
     {
       label: "TOTAL REACH",
       icon: "trendingUp" as const,
-      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      iconClass: "bg-brand-accent/10 text-brand-accent",
       value: profile.metrics[0].value,
       growth: profile.metrics[0].delta,
       growthUp: profile.metrics[0].trend === "up",
-      caption: `vs previous period · ${client.shortName}`,
+      caption: `vs previous period · ${client.name.substring(0, 5)}`,
     },
     {
       label: "SCHEDULED QUEUE",
       icon: "schedule" as const,
-      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
-      value: `${client.accounts.length + 1} Posts`,
+      iconClass: "bg-brand-accent/10 text-brand-accent",
+      value: `${client.channels?.length + 1} Posts`,
       growth: null,
       growthUp: true,
       caption: "Ready across connected channels",
@@ -43,7 +43,7 @@ export function DashboardStitchKpis() {
     {
       label: "AVG. ENGAGEMENT",
       icon: "thumb_up" as const,
-      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      iconClass: "bg-brand-accent/10 text-brand-accent",
       value: profile.metrics[1].value,
       growth: profile.metrics[1].delta,
       growthUp: profile.metrics[1].trend === "up",
@@ -52,7 +52,7 @@ export function DashboardStitchKpis() {
     {
       label: "CONTENT VELOCITY",
       icon: "bolt" as const,
-      iconClass: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]",
+      iconClass: "bg-brand-accent/10 text-brand-accent",
       value: profile.metrics[2].value,
       growth: profile.metrics[2].delta,
       growthUp: profile.metrics[2].trend === "up",
@@ -74,10 +74,10 @@ export function DashboardStitchKpis() {
           <motion.div
             variants={item}
             key={idx}
-            className="p-5 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
+            className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+              <span className="text-xs font-bold text-[muted-foreground] tracking-wider">
                 {kpi.label}
               </span>
               <div
@@ -88,7 +88,7 @@ export function DashboardStitchKpis() {
             </div>
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="font-syne font-bold text-2xl text-[hsl(var(--admin-on-surface))]">
+                <span className="font-syne font-bold text-2xl text-[foreground]">
                   {kpi.value}
                 </span>
                 {kpi.growth && (
@@ -103,7 +103,7 @@ export function DashboardStitchKpis() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[hsl(var(--admin-outline))] mt-1">{kpi.caption}</p>
+              <p className="text-xs text-[muted-foreground] mt-1">{kpi.caption}</p>
             </div>
           </motion.div>
         )

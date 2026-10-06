@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { IconLoader2 } from '@tabler/icons-react';
+import { Icons } from '@/components/icons';
 
 function Spinner({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
-    <IconLoader2
+    <Icons.spinner
       data-slot='spinner'
       role='status'
       aria-label='Loading'

@@ -1,18 +1,16 @@
-'use client'
-
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { z } from 'zod'
 import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/icons'
 import { NICHE_OPTIONS, type NicheId } from '@/lib/onboarding/niche-packs'
 import { useAppStore } from '@/lib/store/app-store'
 import { toast } from 'sonner'
+import { useAppForm } from '@/lib/form'
 
 export { NICHE_OPTIONS }
 export type { NicheId }
@@ -23,11 +21,19 @@ interface CreateClientWizardProps {
   onCreated?: (client: { id: string; name: string }) => void
 }
 
+const createClientSchema = z.object({
+  name: z.string().min(1, 'Nama brand wajib diisi').max(50, 'Nama brand terlalu panjang'),
+  niche: z.string().min(1, 'Pilih niche/industri terlebih dahulu'),
+  contact_email: z.string().email('Format email tidak valid').or(z.literal('')),
+  contact_phone: z.string(),
+  telegram_chat_id: z.string(),
+})
+
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
   const addSocialClient = useAppStore((s) => s.addSocialClient)
+  
   const [step, setStep] = useState<1 | 2>(1)
-  const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
 
@@ -39,55 +45,63 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     seededSkills: number
   } | null>(null)
 
-  const [form, setForm] = useState({
-    name: '',
-    niche: '' as NicheId | '',
-    contact_email: '',
-    contact_phone: '',
-    telegram_chat_id: '',
-  })
+  const form = useAppForm({
+    defaultValues: {
+      name: '',
+      niche: '',
+      contact_email: '',
+      contact_phone: '',
+      telegram_chat_id: '',
+    },
+    validators: {
+      onSubmit: createClientSchema
+    },
+    onSubmit: async ({ value }) => {
+      setErr(null)
+      try {
+        const clientName = value.name.trim()
+        const clientId = `client-${clientName.toLowerCase().replace(/\s+/g, '-')}`
+        
+        // Simulate network delay for smooth UX transition
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        // Prototype: add to the in-memory store. 
+        addSocialClient({ name: clientName })
+        toast.success('Client workspace dibuat.')
 
-  const updateField = (key: string, value: string) =>
-    setForm(f => ({ ...f, [key]: value }))
+        setCreatedCredentials({
+          email: value.contact_email.trim(),
+          password: '(prototype)',
+          clientId,
+          clientName,
+          seededSkills: 0,
+        })
+
+        if (onCreated) {
+          onCreated({ id: clientId, name: clientName })
+        }
+        router.refresh()
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
+      }
+    }
+  })
 
   const handleNextStep = () => {
     setErr(null)
-    if (!form.name.trim()) { setErr('Nama brand wajib diisi'); return }
-    if (!form.niche) { setErr('Pilih niche/industri terlebih dahulu'); return }
+    const vals = form.state.values
+    if (!vals.name.trim() || !vals.niche) {
+      setErr('Mohon lengkapi Nama Brand dan Niche terlebih dahulu')
+      return
+    }
     setStep(2)
   }
 
-  const handleSubmit = async () => {
-    setErr(null)
-    setSaving(true)
-    try {
-      // Prototype: add to the in-memory store. The real /api/admin/clients
-      // route is archived until the backend is re-wired.
-      addSocialClient({ name: form.name.trim() })
-      toast.success('Client workspace dibuat.')
-
-      setCreatedCredentials({
-        email: form.contact_email.trim(),
-        password: '(prototype)',
-        clientId: `client-${form.name.trim().toLowerCase().replace(/\s+/g, '-')}`,
-        clientName: form.name,
-        seededSkills: 0,
-      })
-
-      if (onCreated) {
-        onCreated({ id: `client-${form.name.trim().toLowerCase().replace(/\s+/g, '-')}`, name: form.name })
-      }
-      router.refresh()
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleClose = () => {
+    form.reset()
     setStep(1)
     setShowAdvanced(false)
+    setErr(null)
     setCreatedCredentials(null)
     onOpenChange(false)
   }
@@ -102,29 +116,37 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
   return (
     <>
       <Dialog open={open && !createdCredentials} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md overflow-hidden p-0 gap-0">
+        <DialogContent className="max-w-md overflow-hidden p-0 gap-0 border-primary/20 shadow-2xl">
           {/* Header Progress Bar */}
           <div className="bg-muted/40 border-b p-6 pb-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Icons.sparkles className="size-3.5 text-brand-accent" />
+                <Icons.sparkles className="size-3.5 text-primary" />
                 Tambah Client Baru
               </span>
-              <span className="text-xs font-medium bg-brand-accent/10 text-brand-accent px-2 py-0.5 rounded-full">
+              <span className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20">
                 Langkah {step} dari 2
               </span>
             </div>
             
             {/* Stepper Indicator */}
             <div className="grid grid-cols-2 gap-2 h-1.5 bg-muted rounded-full overflow-hidden">
-              <div className="bg-brand-accent transition-all duration-300" />
-              <div className={`transition-all duration-300 ${step === 2 ? 'bg-brand-accent' : 'bg-transparent'}`} />
+              <div className="bg-primary transition-all duration-300" />
+              <div className={`transition-all duration-300 ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
             </div>
           </div>
 
-          <div className="p-6 space-y-4">
+          <form
+            id="create-client-form"
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              void form.handleSubmit()
+            }}
+            className="p-6 space-y-4"
+          >
             {step === 1 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-1">
                   <h3 className="font-semibold text-base">Identitas Brand Utama</h3>
                   <p className="text-xs text-muted-foreground">
@@ -132,39 +154,34 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="c-name" className="text-xs font-semibold">
-                    Nama Brand <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="c-name"
-                    value={form.name}
-                    onChange={(e) => updateField('name', e.target.value)}
-                    placeholder="Contoh: Pawon Sengon"
-                    className="h-10 rounded-lg text-sm"
-                    autoFocus
+                <div className="space-y-3">
+                  <form.AppField
+                    name="name"
+                    children={(field) => (
+                      <field.TextField
+                        label="Nama Brand"
+                        placeholder="Contoh: Pawon Sengon"
+                        autoFocus
+                        required
+                      />
+                    )}
                   />
-                </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="c-niche" className="text-xs font-semibold">
-                    Niche / Industri <span className="text-destructive">*</span>
-                  </Label>
-                  <select
-                    id="c-niche"
-                    value={form.niche}
-                    onChange={(e) => updateField('niche', e.target.value)}
-                    className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm"
-                  >
-                    <option value="">-- Pilih Niche --</option>
-                    {NICHE_OPTIONS.map((n) => (
-                      <option key={n.id} value={n.id}>{n.label}</option>
-                    ))}
-                  </select>
+                  <form.AppField
+                    name="niche"
+                    children={(field) => (
+                      <field.SelectField
+                        label="Niche / Industri"
+                        placeholder="-- Pilih Niche --"
+                        options={NICHE_OPTIONS.map(n => ({ value: n.id, label: n.label }))}
+                        required
+                      />
+                    )}
+                  />
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-1">
                   <h3 className="font-semibold text-base">Detail Kontak & Akses Client</h3>
                   <p className="text-xs text-muted-foreground">
@@ -172,29 +189,27 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
                   </p>
                 </div>
 
-                <div className="rounded-xl border bg-muted/20 p-3 space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="c-email" className="text-xs text-muted-foreground">Email Login Portal</Label>
-                      <Input
-                        id="c-email"
-                        type="email"
-                        value={form.contact_email}
-                        onChange={(e) => updateField('contact_email', e.target.value)}
-                        placeholder="owner@brand.id"
-                        className="h-9 rounded-lg text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="c-phone" className="text-xs text-muted-foreground">No. WhatsApp</Label>
-                      <Input
-                        id="c-phone"
-                        value={form.contact_phone}
-                        onChange={(e) => updateField('contact_phone', e.target.value)}
-                        placeholder="08xxxxxxxxxx"
-                        className="h-9 rounded-lg text-xs"
-                      />
-                    </div>
+                <div className="rounded-xl border bg-muted/20 p-4 space-y-4 shadow-sm">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <form.AppField
+                      name="contact_email"
+                      children={(field) => (
+                        <field.TextField
+                          label="Email Login Portal"
+                          placeholder="owner@brand.id"
+                          type="email"
+                        />
+                      )}
+                    />
+                    <form.AppField
+                      name="contact_phone"
+                      children={(field) => (
+                        <field.TextField
+                          label="No. WhatsApp"
+                          placeholder="08xxxxxxxxxx"
+                        />
+                      )}
+                    />
                   </div>
 
                   {!showAdvanced ? (
@@ -202,64 +217,79 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto"
+                      className="text-xs font-semibold text-primary/70 hover:text-primary p-0 h-auto hover:bg-transparent"
                       onClick={() => setShowAdvanced(true)}
                     >
                       + Tambah Telegram Chat ID (Opsional)
                     </Button>
                   ) : (
-                    <div className="space-y-1.5 pt-1">
-                      <Label htmlFor="c-telegram" className="text-xs text-muted-foreground">Telegram Chat ID</Label>
-                      <Input
-                        id="c-telegram"
-                        value={form.telegram_chat_id}
-                        onChange={(e) => updateField('telegram_chat_id', e.target.value)}
-                        placeholder="Contoh: 123456789"
-                        className="h-9 rounded-lg text-xs"
+                    <div className="pt-2 border-t border-muted-foreground/10 animate-in fade-in zoom-in-95 duration-200">
+                      <form.AppField
+                        name="telegram_chat_id"
+                        children={(field) => (
+                          <field.TextField
+                            label="Telegram Chat ID"
+                            placeholder="Contoh: 123456789"
+                          />
+                        )}
                       />
                     </div>
                   )}
                 </div>
 
-                <div className="rounded-lg bg-brand-accent/5 border border-brand-accent/20 p-3 text-xs flex gap-2.5 items-start">
-                  <Icons.sparkles className="size-4 text-brand-accent shrink-0 mt-0.5" />
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3.5 text-xs flex gap-3 items-start shadow-inner">
+                  <div className="bg-primary/10 p-1.5 rounded-md mt-0.5 shrink-0">
+                    <Icons.sparkles className="size-3.5 text-primary" />
+                  </div>
                   <div>
-                    <span className="font-semibold block text-foreground">Satu Langkah Lagi!</span>
-                    Setelah ini Anda akan langsung dipandu oleh AI untuk wawancara pembentukan brand profile.
+                    <span className="font-semibold block text-foreground mb-0.5">Satu Langkah Lagi!</span>
+                    <span className="text-muted-foreground leading-relaxed">
+                      Setelah ini Anda akan langsung dipandu oleh AI untuk wawancara pembentukan brand profile.
+                    </span>
                   </div>
                 </div>
               </div>
             )}
 
             {err && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-2.5 text-xs text-destructive flex items-center gap-2">
+              <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
                 <Icons.alertCircle className="size-4 shrink-0" />
-                {err}
+                <span className="font-medium">{err}</span>
               </div>
             )}
-          </div>
+            
+            {form.state.errors.length > 0 && !err && (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <Icons.alertCircle className="size-4 shrink-0" />
+                <span className="font-medium">Mohon periksa kembali isian formulir Anda.</span>
+              </div>
+            )}
+          </form>
 
-          <div className="bg-muted/30 border-t p-4 flex justify-between items-center">
+          <div className="bg-muted/30 border-t p-4 flex justify-between items-center rounded-b-lg">
             {step === 1 ? (
               <>
-                <Button variant="ghost" size="sm" onClick={handleClose}>
+                <Button variant="ghost" size="sm" onClick={handleClose} className="text-muted-foreground hover:text-foreground">
                   Batal
                 </Button>
-                <Button size="sm" className="bg-brand-accent hover:bg-brand-accent/90" onClick={handleNextStep}>
+                <Button size="sm" onClick={handleNextStep} className="font-semibold px-4 active:scale-95 transition-all">
                   Lanjut ke Kontak <Icons.arrowRight className="size-3.5 ml-1.5" />
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" size="sm" onClick={() => setStep(1)} disabled={saving}>
+                <Button variant="outline" size="sm" onClick={() => setStep(1)} disabled={form.state.isSubmitting} className="active:scale-95 transition-all">
                   <Icons.arrowLeft className="size-3.5 mr-1.5" /> Kembali
                 </Button>
-                <Button size="sm" className="bg-brand-accent hover:bg-brand-accent/90" onClick={handleSubmit} disabled={saving}>
-                  {saving ? (
-                    <><Icons.spinner className="size-4 mr-2 animate-spin" /> Mendaftarkan...</>
-                  ) : (
-                    <><Icons.userPlus className="size-4 mr-1.5" /> Siapkan Workspace Client</>
-                  )}
+                <Button 
+                  type="submit" 
+                  form="create-client-form" 
+                  size="sm" 
+                  className="font-semibold px-4 active:scale-95 transition-all"
+                  isLoading={form.state.isSubmitting}
+                  disabled={!form.state.canSubmit}
+                >
+                  <Icons.userPlus className="size-4 mr-1.5" /> Siapkan Workspace
                 </Button>
               </>
             )}
@@ -269,47 +299,50 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
 
       {/* Success Launchpad Dialog */}
       <Dialog open={createdCredentials !== null} onOpenChange={(o) => { if (!o) handleClose() }}>
-        <DialogContent className="max-w-md p-6">
+        <DialogContent className="max-w-md p-6 border-green-500/20 shadow-2xl">
           <div className="text-center space-y-3">
-            <div className="size-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto">
-              <Icons.check className="size-6 stroke-[3]" />
+            <div className="size-14 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 flex items-center justify-center mx-auto shadow-inner">
+              <Icons.check className="size-7 stroke-[3]" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Workspace Client Siap!</h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h3 className="text-lg font-bold tracking-tight">Workspace Client Siap!</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Klien <strong className="text-foreground">{createdCredentials?.clientName}</strong> berhasil didaftarkan.
               </p>
             </div>
           </div>
 
-          <div className="my-4 rounded-xl border bg-muted/30 p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Skill Tersedia:</span>
-              <span className="font-semibold text-brand-accent">{createdCredentials?.seededSkills} Skill Siap</span>
+          <div className="my-5 rounded-xl border bg-muted/40 p-4 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Skill Tersedia:</span>
+              <span className="font-bold text-primary flex items-center gap-1.5">
+                <Icons.sparkles className="size-3.5" />
+                {createdCredentials?.seededSkills} Skill Siap
+              </span>
             </div>
             {createdCredentials?.email && (
-              <div className="pt-2 border-t space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Email Portal:</span>
-                  <span className="font-mono">{createdCredentials.email}</span>
+              <div className="pt-3 border-t border-muted-foreground/10 space-y-1.5 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground font-medium">Email Portal:</span>
+                  <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.email}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Password:</span>
-                  <span className="font-mono">{createdCredentials.password}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground font-medium">Password:</span>
+                  <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.password}</span>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Button
-              className="w-full h-11 bg-brand-accent hover:bg-brand-accent/90 text-sm font-semibold shadow-md"
+              className="w-full h-11 text-sm font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all bg-primary text-primary-foreground"
               onClick={handleStartInterview}
             >
               <Icons.sparkles className="size-4 mr-2" />
-              Mulai Interview Brand Profile (Rekomendasi)
+              Mulai Interview Brand Profile
             </Button>
-            <Button variant="ghost" className="w-full h-9 text-xs text-muted-foreground" onClick={handleClose}>
+            <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground" onClick={handleClose}>
               Lanjut ke Dashboard Dulu
             </Button>
           </div>

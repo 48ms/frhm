@@ -1,15 +1,15 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useQueryState, parseAsString } from "nuqs"
 import { NavUser } from "@/components/nav-user"
-import { PostDialog } from "@/components/calendar/post-dialog"
 import { Icons } from "@/components/icons"
 import { BrandLogo } from "@/components/brand-logo"
 import { PRODUCT_NAME } from "@/lib/config"
 import { isActiveFor } from "@/hooks/use-nav"
+import { cn } from "@/lib/utils"
+import { adminNavStitch } from "@/config/nav-config"
 import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
 
 export type AppUser = {
@@ -18,231 +18,101 @@ export type AppUser = {
   avatar: string
 }
 
-export type ClientOption = { id: string; name: string }
-
-const NAV_ITEMS = [
-  { title: "Overview", url: "/admin/dashboard", icon: "dashboard" as const },
-  { title: "Marketing ERP", url: "/admin/erp", icon: "layers" as const },
-  { title: "Social Accounts", url: "/admin/social-accounts", icon: "hub" as const },
-  { title: "Campaigns", url: "/admin/campaigns", icon: "campaign" as const },
-  { title: "Content Calendar", url: "/admin/calendar", icon: "calendar_month" as const },
-  { title: "Analytics", url: "/admin/analytics", icon: "monitoring" as const },
-]
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
-}
-
 export function AppSidebar({
   user,
-  clients,
   ...props
 }: React.ComponentProps<"aside"> & {
   user: AppUser
-  clients?: ClientOption[]
 }) {
   const pathname = usePathname()
-  const [clientsOpen, setClientsOpen] = React.useState(false)
-  const [postDialogOpen, setPostDialogOpen] = React.useState(false)
 
-  // URL state (nuqs, Rule #4): the active client is deep-linkable and survives
-  // navigation/refresh. Falls back to the mock repository until Supabase is wired.
-  const [activeClientId, setActiveClientId] = useQueryState(
+  // Deep-linkable client ID from nuqs (required for generating active client links)
+  const [activeClientId] = useQueryState(
     "clientId",
     parseAsString.withDefault(SOCIAL_CLIENTS[0].id).withOptions({ shallow: false })
   )
 
-  // Prefer server-provided clients (real DB), fall back to the mock repository so
-  // the switcher still works while Supabase clients are unavailable.
-  const options: ClientOption[] = React.useMemo(() => {
-    if (clients && clients.length > 0) return clients
-    return SOCIAL_CLIENTS.map((c) => ({ id: c.id, name: c.name }))
-  }, [clients])
-
-  const activeClient = React.useMemo(() => {
-    if (options.length === 0) return null
-    return options.find((c) => c.id === activeClientId) ?? options[0]
-  }, [options, activeClientId])
-
-  // If the route targets a client UUID, adopt it as the active client.
-  React.useEffect(() => {
-    const uuid = pathname.split("/").find((p) => p.length === 36)
-    if (uuid && options.some((c) => c.id === uuid)) void setActiveClientId(uuid)
-  }, [pathname, options, setActiveClientId])
-
-  function renderIcon(icon: keyof typeof Icons) {
-    const IconCmp = Icons[icon]
+  function renderIcon(icon: string) {
+    const IconCmp = Icons[icon as keyof typeof Icons]
     return IconCmp ? <IconCmp className="size-5" /> : null
   }
 
   return (
-    <>
-      <aside
-        className="fixed left-0 top-0 h-screen w-64 z-30 backdrop-blur-2xl border-r hidden md:block overflow-y-auto"
-        style={{
-          background: "rgba(251,248,255,0.85)",
-          borderColor: "rgba(197,201,173,0.4)",
-        }}
-        {...props}
-      >
-        <div className="flex flex-col justify-between h-full p-4">
-          
-          <div>
-            {/* Brand capsule */}
-            <div className="flex items-center gap-3 px-3 py-2.5 mb-5 bg-white/95 backdrop-blur-md rounded-2xl shadow-sm border border-white/80">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner">
-                <BrandLogo size={24} />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-sm tracking-tight text-slate-900">{PRODUCT_NAME}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Admin Hub</span>
-              </div>
+    <aside
+      className="fixed left-0 top-0 h-screen w-64 z-30 backdrop-blur-2xl border-r border-border hidden md:block overflow-y-auto bg-background/85"
+      {...props}
+    >
+      <div className="flex flex-col justify-between h-full p-4">
+        
+        <div>
+          {/* Brand capsule */}
+          <div className="flex items-center gap-3 px-3 py-2.5 mb-8 bg-card/95 backdrop-blur-md rounded-2xl shadow-sm border border-border/50">
+            <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shadow-inner">
+              <BrandLogo size={24} />
             </div>
-
-            {/* Navigation */}
-            <nav className="space-y-1" aria-label="Main Navigation">
-              {NAV_ITEMS.map((item) => {
-                const active = isActiveFor(pathname, item.url)
-                return (
-                  <a
-                    key={item.title}
-                    href={item.url}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-full text-sm cursor-pointer transition-all ${
-                      active
-                        ? "bg-[#d4ff32] text-[#5e7400] font-semibold shadow-sm"
-                        : "text-[#757961] font-medium hover:text-[#1a1b22] hover:bg-[#e8e7f1]/60"
-                    }`}
-                  >
-                    <span className="flex items-center justify-center">{renderIcon(item.icon)}</span>
-                    <span>{item.title}</span>
-                  </a>
-                )
-              })}
-
-              
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setClientsOpen((v) => !v)}
-                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/80 border border-[#c5c9ad]/40 hover:border-[#4353ff] text-[#1a1b22] transition-all cursor-pointer group shadow-sm"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex items-center justify-center text-[#4353ff]">
-                      <Icons.business className="size-5" />
-                    </span>
-                    <div className="text-left leading-tight">
-                      <span className="block text-xs font-bold text-[#1a1b22]">Client</span>
-                      <span className="block text-[10px] text-[#757961] truncate max-w-[8rem]">
-                        {activeClient?.name ?? "Select Client"}
-                      </span>
-                    </div>
-                  </div>
-                  <Icons.chevronDown
-                    className={`size-[18px] text-[#757961] transition-transform ${clientsOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {/* Dropdown: MANAGED CLIENTS */}
-                {clientsOpen && (
-                  <div className="mt-1.5 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-white/80 shadow-md space-y-1">
-                    <div className="px-2 py-1 flex items-center justify-between text-[10px] font-bold text-[#757961] border-b border-[#c5c9ad]/30 pb-1 mb-1">
-                      <span>MANAGED CLIENTS</span>
-                      <span className="text-[#5e7400] font-bold">{options.length} ACTIVE</span>
-                    </div>
-                    <div className="space-y-1">
-                      {options.length === 0 && (
-                        <p className="px-2 py-1.5 text-xs text-[#757961]">No clients yet</p>
-                      )}
-                      {options.map((c) => {
-                        const isActive = activeClient?.id === c.id
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => {
-                              void setActiveClientId(c.id)
-                              setClientsOpen(false)
-                            }}
-                            className={`w-full flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all text-left ${
-                              isActive
-                                ? "bg-[#d4ff32] text-[#5e7400] font-bold"
-                                : "hover:bg-[#e8e7f1]/60 text-[#1a1b22]"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <div
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                                  isActive
-                                    ? "bg-[#1a1b22] text-[#fbf8ff]"
-                                    : "bg-[#eeedf7] text-[#1a1b22]"
-                                }`}
-                              >
-                                {initials(c.name)}
-                              </div>
-                              <span className="text-xs truncate">{c.name}</span>
-                            </div>
-                            {isActive && (
-                              <span className="w-2 h-2 rounded-full bg-[#526600] animate-pulse shrink-0" />
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </nav>
-
-            {/* New Post CTA → opens PostDialog for the active client */}
-            <div className="mt-5">
-              <button
-                type="button"
-                disabled={!activeClient}
-                onClick={() => setPostDialogOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[#4353ff] text-white font-semibold text-xs tracking-wider shadow-md hover:bg-[#2333e7] active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Icons.add className="size-4" />
-                New Post
-              </button>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm tracking-tight text-foreground">{PRODUCT_NAME}</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Admin Hub</span>
             </div>
           </div>
 
-          
-          <div className="pt-3 border-t border-[#c5c9ad]/30 space-y-1">
+          {/* Navigation */}
+          <nav className="space-y-1" aria-label="Main Navigation">
+            {adminNavStitch.map((item) => {
+              const active = isActiveFor(pathname, item.url)
+              // Ensure we propagate the active client ID if present
+              const targetUrl = activeClientId && activeClientId !== SOCIAL_CLIENTS[0].id 
+                ? `${item.url}?clientId=${activeClientId}` 
+                : item.url
+                
+              return (
+                <a
+                  key={item.title}
+                  href={targetUrl}
+                  className={cn(
+                    "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-sm cursor-pointer transition-all",
+                    active
+                      ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                      : "text-muted-foreground font-medium hover:text-foreground hover:bg-muted/60"
+                  )}
+                >
+                  <span className="flex items-center justify-center">{renderIcon(item.icon ?? "")}</span>
+                  <span>{item.title}</span>
+                </a>
+              )
+            })}
+          </nav>
+
+          {/* New Post CTA → opens Composer */}
+          <div className="mt-8">
             <a
-              href="/admin/settings"
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-[#757961] hover:text-[#1a1b22] hover:bg-[#e8e7f1] text-xs cursor-pointer transition-all"
+              href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ''}`}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs tracking-wider shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer"
             >
-              <Icons.settings className="size-[18px]" />
-              <span>Settings</span>
+              <Icons.add className="size-4" />
+              New Post
             </a>
-            <a
-              href="/admin/support"
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-[#757961] hover:text-[#1a1b22] hover:bg-[#e8e7f1] text-xs cursor-pointer transition-all"
-            >
-              <Icons.help className="size-[18px]" />
-              <span>Support</span>
-            </a>
-            <NavUser user={user} />
           </div>
         </div>
-      </aside>
-
-      {/* PostDialog wired to the active client (prototype: openPostModal('create')) */}
-      {activeClient && (
-        <PostDialog
-          isOpen={postDialogOpen}
-          onClose={() => setPostDialogOpen(false)}
-          clientId={activeClient.id}
-          onSave={() => setPostDialogOpen(false)}
-        />
-      )}
-    </>
+        
+        <div className="pt-3 border-t border-border/50 space-y-1">
+          <a
+            href="/admin/settings"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all"
+          >
+            <Icons.settings className="size-[18px]" />
+            <span>Settings</span>
+          </a>
+          <a
+            href="/admin/support"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all"
+          >
+            <Icons.help className="size-[18px]" />
+            <span>Support</span>
+          </a>
+          <NavUser user={user} />
+        </div>
+      </div>
+    </aside>
   )
 }

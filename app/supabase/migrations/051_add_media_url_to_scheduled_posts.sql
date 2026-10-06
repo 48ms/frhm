@@ -1,0 +1,1 @@
+ALTER TABLE public.scheduled_posts ADD COLUMN IF NOT EXISTS media_url TEXT; ALTER TABLE public.scheduled_posts ADD COLUMN IF NOT EXISTS author TEXT;

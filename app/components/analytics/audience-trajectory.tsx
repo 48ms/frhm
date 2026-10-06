@@ -64,17 +64,17 @@ export function AudienceTrajectory() {
   const data = useMemo(() => CHART_DATA[tf] ?? CHART_DATA["7D"], [tf])
 
   return (
-    <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm">
+    <div className="admin-card border-none bg-card/90 backdrop-blur-xl shadow-sm p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider block">
+          <span className="admin-section-label">
             AUDIENCE TRAJECTORY
           </span>
-          <h2 className="font-syne font-bold text-lg text-[hsl(var(--admin-on-surface))]">
+          <h2 className="font-syne font-bold text-lg text-foreground mt-1">
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
-        <div className="inline-flex p-1 rounded-full bg-[hsl(var(--admin-surface-high))]/70 border border-[hsl(var(--admin-outline-variant))]/30">
+        <div className="inline-flex p-1 rounded-full bg-muted border border-border/30">
           {TIMEFRAMES.map((t) => (
             <button
               key={t}
@@ -82,8 +82,8 @@ export function AudienceTrajectory() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer",
                 tf === t
-                  ? "bg-white text-[hsl(var(--admin-on-surface))] shadow-sm"
-                  : "text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))]"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t}
@@ -93,7 +93,7 @@ export function AudienceTrajectory() {
       </div>
 
       {/* SVG Chart Area */}
-      <div className="relative h-60 w-full bg-[hsl(var(--admin-surface-low))]/40 rounded-2xl p-4 border border-white/50 flex flex-col justify-between overflow-hidden cursor-crosshair">
+      <div className="relative h-60 w-full bg-muted/40 rounded-2xl p-4 border border-border/50 flex flex-col justify-between overflow-hidden cursor-crosshair">
         <div className="absolute inset-0 flex items-center justify-center opacity-70 pointer-events-none">
           <svg
             className="w-full h-full"
@@ -126,30 +126,30 @@ export function AudienceTrajectory() {
         </div>
 
         {/* Axis indicators */}
-        <div className="flex justify-between items-center relative z-10 text-xs text-[hsl(var(--admin-outline))] font-medium">
+        <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#2333E7]" /> Impressions (Reach)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#aed500] border border-[hsl(var(--brand-accent))]" />{" "}
+            <span className="w-2 h-2 rounded-full bg-[#aed500] border border-brand-accent" />{" "}
             Click Through &amp; Saves
           </span>
-          <span className="bg-white px-2.5 py-0.5 rounded-full shadow-sm text-[hsl(var(--primary))] font-bold">
+          <span className="bg-background px-2.5 py-0.5 rounded-full shadow-sm text-brand-accent font-bold">
             {data.peak}
           </span>
         </div>
 
         {/* Center floating readout */}
-        <div className="relative z-20 self-center bg-white/95 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-white flex items-center gap-2 text-xs">
-          <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-cobalt))] animate-ping" />
-          <span className="font-syne font-bold text-[hsl(var(--admin-on-surface))]">
+        <div className="relative z-20 self-center bg-background/95 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-border/50 flex items-center gap-2 text-xs">
+          <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+          <span className="font-syne font-bold text-foreground">
             {data.metric}
           </span>
-          <span className="text-[hsl(var(--admin-outline))]">{data.label}</span>
+          <span className="text-muted-foreground">{data.label}</span>
         </div>
 
         {/* Timeline axis */}
-        <div className="flex justify-between text-xs text-[hsl(var(--admin-outline))] relative z-10 pt-2 border-t border-[hsl(var(--admin-outline-variant))]/30 font-medium">
+        <div className="flex justify-between text-xs text-muted-foreground relative z-10 pt-2 border-t border-border/50 font-medium">
           {data.days.map((d) => (
             <span key={d}>{d}</span>
           ))}
@@ -158,36 +158,36 @@ export function AudienceTrajectory() {
 
       {/* Insight cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
-        <div className="p-3.5 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 hover:bg-white transition-all">
-          <p className="text-[10px] font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+        <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50 hover:bg-muted transition-all">
+          <p className="admin-section-label">
             TOP PERFORMING FORMAT
           </p>
-          <p className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-base mt-1">
+          <p className="font-syne font-bold text-foreground text-base mt-1">
             Short Reels
           </p>
-          <p className="text-xs text-[hsl(var(--primary))] font-semibold mt-0.5">
+          <p className="text-xs text-primary font-semibold mt-0.5">
             8.4x retention multiplier
           </p>
         </div>
-        <div className="p-3.5 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 hover:bg-white transition-all">
-          <p className="text-[10px] font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+        <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50 hover:bg-muted transition-all">
+          <p className="admin-section-label">
             VIRAL DRIFT SCORE
           </p>
-          <p className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-base mt-1">
+          <p className="font-syne font-bold text-foreground text-base mt-1">
             94 / 100
           </p>
-          <p className="text-xs text-[hsl(var(--admin-cobalt))] font-semibold mt-0.5">
+          <p className="text-xs text-blue-600 font-semibold mt-0.5">
             Algorithmic favoritism high
           </p>
         </div>
-        <div className="p-3.5 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 hover:bg-white transition-all">
-          <p className="text-[10px] font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+        <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50 hover:bg-muted transition-all">
+          <p className="admin-section-label">
             AUDIENCE REACTION
           </p>
-          <p className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-base mt-1">
+          <p className="font-syne font-bold text-foreground text-base mt-1">
             98.2% Positive
           </p>
-          <p className="text-xs text-[hsl(var(--brand-accent-foreground))] font-bold mt-0.5">
+          <p className="text-xs text-brand-accent-foreground font-bold mt-0.5">
             Sentiment peak
           </p>
         </div>

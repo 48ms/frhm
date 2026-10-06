@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
@@ -8,11 +8,11 @@ import { SchedulePostModal } from "./schedule-post-modal"
 import { useRouter } from "next/navigation"
 
 const STATUS_STYLES: Record<string, string> = {
-  scheduled: "bg-[hsl(var(--admin-cobalt))]/15 text-[hsl(var(--admin-cobalt))] border border-[hsl(var(--admin-cobalt))]/20 uppercase",
+  scheduled: "bg-brand-accent/15 text-brand-accent border border-brand-accent/20 uppercase",
   review: "bg-amber-100 text-amber-700 border border-amber-200 uppercase",
-  draft: "bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] border border-[hsl(var(--admin-outline-variant))]/40 uppercase",
+  draft: "bg-muted/70 text-muted-foreground border border-border/40 uppercase",
   sent: "bg-sky-100 text-sky-700 border border-sky-200 uppercase",
-  approved: "bg-[hsl(var(--brand-accent))]/30 text-[hsl(var(--brand-accent-foreground))] border border-[hsl(var(--brand-accent))]/30 uppercase",
+  approved: "bg-brand-accent/30 text-brand-accent-foreground border border-brand-accent/30 uppercase",
   revision_requested: "bg-orange-100 text-orange-700 border border-orange-200 uppercase",
   published: "bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase",
   failed: "bg-rose-100 text-rose-700 border border-rose-200 uppercase",
@@ -40,30 +40,30 @@ export function DashboardStitchPostPipeline() {
   const router = useRouter()
 
   return (
-    <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm">
+    <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider block">
+          <span className="text-xs font-bold text-muted-foreground tracking-wider block">
             POST PIPELINE
           </span>
-          <h2 className="font-syne font-bold text-lg text-[hsl(var(--admin-on-surface))]">
+          <h2 className="font-syne font-bold text-lg text-foreground">
             Content Queue &amp; Upcoming Dispatch
           </h2>
-          <p className="text-xs text-[hsl(var(--admin-outline))] mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Showing scheduled campaigns for {client.name}
           </p>
         </div>
         <div className="flex items-center gap-2.5">
           <button 
             onClick={() => setScheduleOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold hover:bg-[hsl(var(--brand-accent))]/80 transition-all cursor-pointer active:scale-95 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold hover:bg-brand-accent/80 transition-all cursor-pointer active:scale-95 shadow-sm"
           >
             <Icons.add className="size-4" />
             Add Post
           </button>
           <button 
             onClick={() => router.push(`/admin/calendar?clientId=${client.id}`)}
-            className="text-xs text-[hsl(var(--admin-cobalt))] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs text-brand-accent font-bold hover:underline flex items-center gap-1 cursor-pointer"
           >
             View Calendar
             <Icons.arrow_forward className="size-4" />
@@ -73,8 +73,8 @@ export function DashboardStitchPostPipeline() {
 
       <div className="space-y-3">
         {posts.length === 0 ? (
-          <div className="p-8 text-center border border-dashed border-[hsl(var(--admin-outline-variant))]/50 rounded-2xl">
-            <p className="text-sm text-[hsl(var(--admin-outline))]">No posts scheduled for this client.</p>
+          <div className="p-8 text-center border border-dashed border-border/50 rounded-2xl">
+            <p className="text-sm text-muted-foreground">No posts scheduled for this client.</p>
           </div>
         ) : (
           posts.map((post) => (
@@ -82,14 +82,14 @@ export function DashboardStitchPostPipeline() {
               key={post.id}
               className="group flex items-center gap-4 p-3.5 rounded-2xl bg-white/60 border border-white/70 hover:bg-white hover:shadow-md transition-all cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-xl bg-[hsl(var(--admin-surface-base))] flex items-center justify-center text-[hsl(var(--admin-cobalt))] shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-brand-accent shrink-0">
                 {getPlatformIcon(post.channel ?? "")}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="block text-sm font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                <span className="block text-sm font-bold text-foreground truncate">
                   {post.title}
                 </span>
-                <span className="block text-xs text-[hsl(var(--admin-outline))] truncate">
+                <span className="block text-xs text-muted-foreground truncate">
                   {post.caption}
                 </span>
               </div>
@@ -101,7 +101,7 @@ export function DashboardStitchPostPipeline() {
                 >
                   {post.status}
                 </span>
-                <span className="text-[10px] text-[hsl(var(--admin-outline))] font-medium whitespace-nowrap">
+                <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
                   {post.scheduledAt}
                 </span>
               </div>

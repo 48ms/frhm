@@ -44,7 +44,6 @@ export default async function AdminLayout({
 
       <SidebarProvider>
         <AppSidebar
-          clients={(clients ?? []).map((c) => ({ id: c.id, name: c.name }))}
           user={{
             name: profile?.full_name || user.email || "Admin",
             email: user.email || "",

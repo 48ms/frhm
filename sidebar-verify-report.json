@@ -1,0 +1,18 @@
+{
+  "navLabels": [
+    "Overview",
+    "Marketing ERP",
+    "Social Accounts",
+    "Composer",
+    "Campaigns",
+    "Content Calendar",
+    "Analytics"
+  ],
+  "navCount": 7,
+  "hasClientSwitcher": false,
+  "hasCreateClientButton": false,
+  "activeItemFound": true,
+  "activeItemClass": "flex items-center gap-3 px-3.5 py-2.5 rounded-full text-sm cursor-pointer transition-all bg-primary text-primary-foreground font-semibold shadow-sm",
+  "composerUrl": "http://localhost:3000/admin/composer",
+  "campaignsUrl": "http://localhost:3000/admin/campaigns"
+}

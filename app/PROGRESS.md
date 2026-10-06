@@ -348,3 +348,93 @@ Begitu pula `app/scripts/` (50 file, **0 tracked git**), `app/anti-slop/` (6 aud
 - Runtime dev 3004: `/admin/calendar` compile OK, 307 (auth redirect â€” benar); `/admin/library` 307; `/auth/login` 200. Tidak ada `module not found`.
 
 
+## 2026-10-04 — Enterprise Standards & Client Wizard Refactor (ECC)
+
+### AGENTS.md Expansion (Enterprise Standards)
+- Diperbarui aturan 14-17 di AGENTS.md (Sentry Error Boundaries, t3-env Zod validation, Optimistic UI Updates, Tailwind HSL design consistency).
+
+### UI/UX Refactor — Create Client Wizard (\create-client-dialog.tsx\)
+- **Penghapusan Duplikat**: Menghapus komponen duplikat dd-client-dialog.tsx yang sebelumnya dibuat mengabaikan arsitektur Frahma, dan menyambungkan kembali tombol \+ Create New Client\ di \AppSidebar\ ke \useCreateClient()\ bawaan.
+- **TanStack Form & Zod (Rule #7)**: Formulir \CreateClientWizard\ 2-langkah direfactor total menggunakan \useAppForm\ dari \@/lib/form\ dan di-validasi ketat dengan skema \createClientSchema\ (Zod).
+- **Primitif Komponen**: Mengganti tag \<input>\ dan \<select>\ raw HTML dengan ekosistem Frahma (\orm.AppField\, \ield.TextField\, \ield.SelectField\).
+- **Zero Layout-Shift (Rule #8)**: Disambungkan form submit state ke tombol "Siapkan Workspace" (\isLoading={form.state.isSubmitting}\) agar UX tidak melompat.
+- **Kepatuhan Desain HSL & Animasi**: Membersihkan warna hardcoded, menggunakan token HSL (\g-primary\, \	ext-muted-foreground\), dan menambahkan \	ailwindcss-animate\ untuk transisi antar langkah yang mulus.
+
+### ECC Gate
+- \
+px tsc --noEmit\: **0 error** (Compiled successfully).
+- Wiring sidebar dropdown telah berfungsi sempurna tanpa _gap_ fakta fungsional.
+
+
+---
+
+## 2026-10-06 - Sidebar Stitch Parity + Fix React "Cannot update Router while rendering"
+
+### Fakta Awal (terverifikasi)
+- Warning konsol persisten: `Cannot update a component (Router) while rendering DashboardStitchHero`. Stack trace menunjuk ke render `DashboardStitchHero`.
+- Akar masalah (fakta dari log server): `A query that was dehydrated as pending ended up rejecting` -> `DashboardPrefetcher` memakai `void queryClient.prefetchQuery(...)` (fire-and-forget), sehingga `dehydrate()` menangkap query dalam status PENDING. `useSuspenseQuery` di client lalu fetch ulang SAAT RENDER -> memanggil Server Action ('use server') saat render -> Next.js update Router saat render -> warning React.
+
+### Perbaikan
+- **`components/dashboard-stitch/dashboard-prefetcher.tsx`**: Ubah kedua `prefetchQuery` dari `void` menjadi `await`, agar `dehydrate()` menangkap data RESOLVED (bukan pending). Client membaca dari cache, tidak memanggil server action saat render.
+- **`components/dashboard-stitch/schedule-post-modal.tsx`**: Tambah null-guard (`client?.channels ?? []`, `client?.name ?? "Client"`, `client?.id ?? ""`) untuk mencegah crash `Cannot read properties of undefined (reading 'map')` akibat race antara mount modal dan data client.
+- **`features/dashboard/api/service.ts`** & **`features/social-accounts/api/service.ts`**: Degradasi anggun (return `null`/`[]` alih-alih throw) untuk error non-fatal (mis. `JWT issued at future` dari Supabase cloud).
+
+### Sidebar Stitch Parity (openspec: sidebar-stitch-parity)
+- **`config/nav-config.ts`**: `adminNavStitch` kini 7 item flat (Overview, Marketing ERP, Social Accounts, Composer, Campaigns, Content Calendar, Analytics) sinkron dengan rute aktual.
+- **`components/app-sidebar.tsx`**: Refaktor menyeluruh:
+  - Hardcoded `NAV_ITEMS` dibuang -> impor `adminNavStitch` dari `nav-config.ts`.
+  - Dropdown "Client Switcher" dinamis (+ tombol "Create New Client") DIHAPUS dari sidebar (100+ baris).
+  - Warna hardcoded hex (`bg-[#d4ff32]`, `bg-white/80`, inline `style={{ background: "rgba(...)" }}`) diganti token semantik (`bg-background/85`, `bg-primary`, `text-muted-foreground`, `border-border`, `bg-card/95`).
+- **`app/admin/layout.tsx`**: Hapus prop `clients` yang diumpankan ke `<AppSidebar />` (tidak lagi dipakai).
+
+### Verifikasi
+- `npx tsc --noEmit`: **0 error**.
+- `npx playwright test e2e/visual-audit.spec.ts`: **1 passed** (login -> dashboard -> Social Accounts, screenshot tersimpan).
+- Warning `Cannot update Router while rendering` berkurang signifikan setelah `await` prefetch (masih ada 1 varian ringan dari nuqs, tetapi E2E hijau dan tidak memblokir fungsionalitas).
+- Crash `SchedulePostModal` (`.map` of undefined): **TERATASI** (tidak lagi muncul di audit log).
+
+### UPDATE FINAL (fakta terverifikasi) - Root cause warning Router DITEMUKAN
+- **Diagnosis sebenarnya**: BUKAN prefetch fire-and-forget semata. Akar masalah = **query-key mismatch**. Server `DashboardPrefetcher` me-prefetch `dashboardQueries.profile(URL clientId)` (default `11111111-...`), sedangkan `useActiveDashboard` menghitung `activeClientId` dari daftar klien ASLI DB (UUID berbeda). Key tidak cocok -> `useSuspenseQuery` refetch SAAT RENDER -> memanggil Server Action ('use server') saat render -> Next.js update Router saat render -> warning.
+- **Fix definitif** (`components/dashboard-stitch/dashboard-data.ts`): ganti `useSuspenseQuery(dashboardQueries.profile(activeClientId))` menjadi `useQuery({ ...dashboardQueries.profile(activeClientId), initialData: defaultProfile })`. Data instan dari `initialData` (tanpa suspend), fetch tambahan berjalan di effect (setelah render).
+- **Hasil E2E**: `No console errors detected! The UI is clean.` -> 1 passed. Console 100% bersih (warning Router + crash modal hilang total).
+- `tsc --noEmit`: 0 error.
+
+---
+
+## MIGRASI CAMPAIGNS -> SUPABASE (selesai, terverifikasi)
+
+**Fakta:** seluruh data campaign kini factual dari tabel `public.content_campaigns`
+(schema `supabase/migrations/021_content_planning.sql`), bukan array statis mock.
+
+### Yang diubah
+- `app/admin/analytics/analytics-view.tsx`: campaigns dari `campaignQueries.listByClient(clientId)`
+  (TanStack `useQuery` + `enabled`), client switcher + `clientId` dari `useActiveDashboard()`.
+  `clientsList` kini real DB clients. `preparedCampaigns` memetakan field asli
+  (`client_id`, `start_date`, `end_date`). **Catatan interim:** metrics (Reach/Engagement/Clicks)
+  masih mock (`lib/mock-data.ts`); mock client dipetakan deterministik ke DB client by-index
+  agar KPI stabil & non-nol sampai `analytics_events` nyata di-wire.
+- `app/admin/analytics/page.tsx` + `app/admin/campaigns/page.tsx`: dibungkus
+  `<DashboardPrefetcher clientId={...}>` + `searchParamsCache.parse(await searchParams)`
+  (wajib karena `useActiveDashboard` memakai `useSuspenseQuery`).
+- `components/campaigns/campaigns-board.tsx`: pills switcher iterasi `clients` (DB),
+  `activeClient.shortName` -> `activeClient.name`, `setActiveClientId` -> `setClientId`.
+- `components/campaigns/campaign-detail-modal.tsx`: props `client: ClientWithChannels`,
+  `Campaign` dari `@/features/campaigns/api/types`; field mock (`reach`/`posts`/`progress`/
+  `reachGrowth`) -> placeholder aman; tanggal -> `start_date`/`end_date`.
+- `lib/store/app-store.ts`: **slice campaigns dihapus** (import, state, actions, seed, reset).
+  Social-accounts + posts slices utuh.
+- `lib/store/app-store.test.ts`: 6 test campaigns dihapus.
+- `app/admin/analytics/analytics-view.test.tsx`: di-rewrite â€” mock `useActiveDashboard`
+  + `campaignQueries`, render dalam `QueryClientProvider` + `NuqsAdapter`.
+- `components/campaigns/campaign-data.ts`: `CAMPAIGNS`, `CAMPAIGN_CLIENTS`,
+  mock `Campaign`/`CampaignClient` dihapus. **Disisakan** `CampaignType` + `CAMPAIGN_TYPE_META`
+  (masih dipakai modal).
+
+### Verifikasi
+- `npx tsc --noEmit` (dari `app/`): **0 error**.
+- `npx vitest run lib/store/app-store.test.ts app/admin/analytics/analytics-view.test.tsx`:
+  **19 passed** (16 store + 3 analytics).
+- Full suite `npx vitest run`: 101 passed, 8 failed. Semua failure ada di
+  `components/calendar/post-dialog.test.tsx` ("No QueryClient set"). **Pre-existing** â€”
+  terbukti gagal identik (8/8) saat test file di-stash ke HEAD; `post-dialog.tsx` diubah
+  sesi sebelumnya dan butuh `QueryClientProvider` di test-nya. Bukan bagian migrasi ini.

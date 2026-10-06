@@ -25,7 +25,7 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
       <DialogContent className="max-w-sm gap-0 overflow-hidden p-0">
-        <div className="p-6 space-y-3">
+        <div className="p-6 space-y-3 animate-in fade-in zoom-in-95 duration-300">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
               <Icons.warning className="size-5" />
@@ -38,8 +38,7 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
             </div>
           </div>
           <DialogDescription className="text-xs leading-relaxed">
-            The synced history, scheduled posts, and cached analytics for this account will be removed.
-            You will need to connect it again from scratch.
+            All synced history, scheduled posts, and cached analytics for this account will be permanently removed. You will need to reconnect from scratch to restore access.
           </DialogDescription>
         </div>
 

@@ -1,10 +1,11 @@
-"use client"
+﻿"use client"
 
 import React, { useMemo, useState } from "react"
 import { motion } from "motion/react"
 import { useQueryState, parseAsStringEnum } from "nuqs"
 import { cn } from "@/lib/utils"
-import { useActiveDashboard, type Timeframe } from "./dashboard-data"
+import { useActiveDashboard } from "./dashboard-data"
+import { type Timeframe } from "@/features/dashboard/api/types"
 
 const TIMEFRAMES: { id: Timeframe; label: string }[] = [
   { id: "7d", label: "7D" },
@@ -47,18 +48,18 @@ export function DashboardStitchChart() {
   }, [hoverX, points])
 
   return (
-    <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm">
+    <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider block">
-            AUDIENCE TRAJECTORY · {client.shortName.toUpperCase()}
+          <span className="text-xs font-bold text-muted-foreground tracking-wider block">
+            AUDIENCE TRAJECTORY · {client.name.substring(0, 5).toUpperCase()}
           </span>
-          <h2 className="font-syne font-bold text-lg text-[hsl(var(--admin-on-surface))]">
+          <h2 className="font-syne font-bold text-lg text-foreground">
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
         {/* Timeframe selector , URL state via nuqs */}
-        <div className="inline-flex p-1 rounded-full bg-[hsl(var(--admin-surface-high))]/70 border border-[hsl(var(--admin-outline-variant))]/30">
+        <div className="inline-flex p-1 rounded-full bg-muted/70/70 border border-border/30">
           {TIMEFRAMES.map((t) => (
             <button
               key={t.id}
@@ -67,8 +68,8 @@ export function DashboardStitchChart() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer",
                 tf === t.id
-                  ? "bg-white text-[hsl(var(--admin-on-surface))] shadow-sm"
-                  : "text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))]"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t.label}
@@ -79,7 +80,7 @@ export function DashboardStitchChart() {
 
       {/* SVG Chart Area , bezier waves, path animates on client + timeframe swap */}
       <div
-        className="relative h-60 w-full bg-[hsl(var(--admin-surface-low))]/40 rounded-2xl p-4 border border-white/50 flex flex-col justify-between overflow-hidden"
+        className="relative h-60 w-full bg-muted/40 rounded-2xl p-4 border border-border/40 flex flex-col justify-between overflow-hidden"
         onMouseMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect()
           setHoverX(((e.clientX - rect.left) / rect.width) * 600)
@@ -142,50 +143,50 @@ export function DashboardStitchChart() {
 
         {/* Hover readout */}
         {hoverIndex !== null && (
-          <div className="absolute top-3 left-3 z-20 bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-sm border border-white/80">
-            <span className="block text-[10px] font-bold text-[hsl(var(--admin-outline))]">
+          <div className="absolute top-3 left-3 z-20 bg-card/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-sm border border-border/40">
+            <span className="block text-[10px] font-bold text-muted-foreground">
               {labels[hoverIndex]} · {tf.toUpperCase()}
             </span>
-            <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))]">
+            <span className="block text-xs font-bold text-foreground">
               Peak interaction window
             </span>
           </div>
         )}
 
         {/* Axis Indicators */}
-        <div className="flex justify-between items-center relative z-10 text-xs text-[hsl(var(--admin-outline))] font-medium">
+        <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#2333E7]" /> Impressions (Reach)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#aed500] border border-[hsl(var(--brand-accent))]" />{" "}
+            <span className="w-2 h-2 rounded-full bg-[#aed500] border border-brand-accent" />{" "}
             Click Through &amp; Saves
           </span>
-          <span className="bg-white px-2.5 py-0.5 rounded-full text-[10px] font-bold text-[hsl(var(--admin-on-surface))] shadow-sm">
-            {profile.peakLabel}
+          <span className="bg-white px-2.5 py-0.5 rounded-full text-[10px] font-bold text-foreground shadow-sm">
+            {profile.peak_label}
           </span>
         </div>
 
         {/* Value readout */}
         <div className="relative z-10 flex justify-end pr-4">
-          <div className="bg-white px-3 py-1.5 rounded-xl shadow-sm border border-white/80">
-            <span className="block text-[10px] font-bold text-[hsl(var(--admin-outline))]">
-              {profile.peakValue}
+          <div className="bg-white px-3 py-1.5 rounded-xl shadow-sm border border-border/40">
+            <span className="block text-[10px] font-bold text-muted-foreground">
+              {profile.peak_value}
             </span>
-            <span className="block text-[9px] text-[hsl(var(--admin-outline))]">
+            <span className="block text-[9px] text-muted-foreground">
               Interactions at peak · {tf.toUpperCase()}
             </span>
           </div>
         </div>
 
         {/* Period labels */}
-        <div className="flex justify-between items-center relative z-10 text-xs text-[hsl(var(--admin-outline))] font-medium">
+        <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium">
           {labels.map((d, i) => (
             <span
               key={d}
               className={cn(
-                i === 4 && "text-[hsl(var(--brand-accent-foreground))] font-bold",
-                hoverIndex === i && "text-[hsl(var(--admin-cobalt))] font-bold"
+                i === 4 && "text-brand-accent-foreground font-bold",
+                hoverIndex === i && "text-brand-accent font-bold"
               )}
             >
               {d}
@@ -199,15 +200,15 @@ export function DashboardStitchChart() {
         {profile.insights.map((card, idx) => (
           <div
             key={idx}
-            className="p-3.5 rounded-xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 hover:bg-white hover:shadow-sm transition-all"
+            className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-white hover:shadow-sm transition-all"
           >
-            <p className="text-[10px] font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+            <p className="text-[10px] font-bold text-muted-foreground tracking-wider">
               {card.label}
             </p>
-            <p className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-base mt-1">
+            <p className="font-syne font-bold text-foreground text-base mt-1">
               {card.value}
             </p>
-            <p className="text-xs font-semibold mt-0.5 text-[hsl(var(--admin-cobalt))]">
+            <p className="text-xs font-semibold mt-0.5 text-brand-accent">
               {card.sub}
             </p>
           </div>

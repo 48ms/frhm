@@ -4,121 +4,29 @@ import { useMemo, useState, useEffect, useCallback } from "react"
 import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
 import { Icons } from "@/components/icons"
 import { toast } from "sonner"
-import { type ScheduledPost, PLATFORMS } from "@/features/calendar/types"
+import { PLATFORMS } from "@/features/calendar/types"
 import { PostDialog } from "@/components/calendar/post-dialog"
 import { CalendarExportModal } from "@/components/calendar/calendar-export-modal"
+import { BrainstormModal } from "@/components/calendar/brainstorm-modal"
+import { BatchPlanModal } from "@/components/calendar/batch-plan-modal"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { useAppStore, type PipelinePost } from "@/lib/store/app-store"
-import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
+import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 
-/* Seed data lifted verbatim from stitch_frhm Dispatch Hub prototype   */
-const STITCH_POSTS: ScheduledPost[] = [
-  {
-    id: "stitch-1",
-    client_id: "client-shell",
-    deliverable_id: "#SPAT-8829",
-    title: "Spatial Identity Teaser #04",
-    content:
-      '"The boundaries between organic brand form and spatial architecture are evaporating. Welcome to the new era of..."',
-    platform: "instagram",
-    scheduled_at: "2026-08-17T10:30:00+07:00",
-    status: "scheduled",
-    notes: "@shell.creative",
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  },
-  {
-    id: "stitch-2",
-    client_id: "client-shell",
-    deliverable_id: null,
-    title: "Berlin Fashion Week Jump Cuts #02",
-    content: "@alex.v",
-    platform: "tiktok",
-    scheduled_at: "2026-08-18T16:00:00+07:00",
-    status: "draft",
-    notes: "TIKTOK BTS",
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  },
-  {
-    id: "stitch-3",
-    client_id: "client-shell",
-    deliverable_id: null,
-    title: "3D Product Glassmorphism Breakdown",
-    content: "",
-    platform: "shorts",
-    scheduled_at: "2026-08-19T19:00:00+07:00",
-    status: "scheduled",
-    notes: "",
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  },
-  {
-    id: "stitch-4",
-    client_id: "client-shell",
-    deliverable_id: null,
-    title: "Executive Thought Leadership",
-    content: "Whitepaper Vol.4 — 12 Slides Carousel (PDF). Exec Sign-off.",
-    platform: "linkedin",
-    scheduled_at: "2026-08-21T09:00:00+07:00",
-    status: "published",
-    notes: "LINKEDIN",
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  },
-  {
-    id: "stitch-5",
-    client_id: "client-shell",
-    deliverable_id: null,
-    title: "Interactive UX for Enterprise CFOs",
-    content: "Copy hook pending A/B variant review",
-    platform: "tiktok",
-    scheduled_at: "2026-08-22T20:00:00+07:00",
-    status: "draft",
-    notes: "SPARK AD",
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  },
-]
+
 
 /* Helpers                                                             */
 
-/** Adapt a store PipelinePost to the CalendarView's ScheduledPost shape. */
-function toScheduledPost(p: PipelinePost): ScheduledPost {
-  const channel = p.platform || "instagram"
-  const platform = Object.keys(PLATFORMS).includes(channel) ? channel : "instagram"
-  const status: ScheduledPost["status"] =
-    p.status === "review" || p.status === "draft"
-      ? "draft"
-      : p.status === "published" || p.status === "approved"
-      ? "published"
-      : "scheduled"
-  return {
-    id: p.id,
-    client_id: p.clientId,
-    deliverable_id: null,
-    title: p.title,
-    content: p.caption,
-    platform,
-    scheduled_at: p.scheduledAt,
-    status,
-    notes: null,
-    is_reserved: false,
-    is_placeholder: false,
-    reserved_for: null,
-    reserved_until: null,
-  }
-}
+/** Legacy pipeline fallback helper removed */
 
 const PLATFORM_META: Record<
   string,
@@ -185,18 +93,8 @@ const VIEW_TABS = ["month", "week", "list"] as const
 const PLATFORM_FILTERS = ["all", "instagram", "tiktok", "shorts", "linkedin"] as const
 
 export function AdminCalendarClient() {
-  // Zustand store: posts per clientId
-  const allPosts = useAppStore((s) => s.posts)
+  const { clientId: selectedClientId, setClientId, client: activeClient, clients } = useActiveDashboard()
 
-  const clients = useMemo(
-    () => SOCIAL_CLIENTS.map((c) => ({ id: c.id, name: c.name })),
-    []
-  )
-
-  const [selectedClientId, setSelectedClientId] = useQueryState(
-    "clientId",
-    parseAsString.withDefault(SOCIAL_CLIENTS[0].id)
-  )
   const [platformFilter, setPlatformFilter] = useQueryState(
     "platform",
     parseAsStringEnum([...PLATFORM_FILTERS]).withDefault("all")
@@ -212,6 +110,8 @@ export function AdminCalendarClient() {
   const [initialDate, setInitialDate] = useState<Date | undefined>()
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [brainstormOpen, setBrainstormOpen] = useState(false)
+  const [batchPlanOpen, setBatchPlanOpen] = useState(false)
 
   // Arriving from Media Library ("Use in Post"): open the compose dialog with
   // the chosen asset pre-filled, then clear the transient query params.
@@ -224,14 +124,12 @@ export function AdminCalendarClient() {
     }
   }, [composeNew, setComposeNew])
 
-  // Merge store posts with the Stitch prototype seed so the board is never empty.
+  // Merge fetched posts with the Stitch prototype seed so the board is never empty.
+  const { data: fetchedPosts = [] } = useScheduledPosts(selectedClientId)
+  
   const posts = useMemo<ScheduledPost[]>(() => {
-    const storePosts = allPosts
-      .filter((p) => p.clientId === selectedClientId)
-      .map(toScheduledPost)
-    const seed = STITCH_POSTS.filter((p) => p.client_id === selectedClientId)
-    return [...storePosts, ...seed]
-  }, [allPosts, selectedClientId])
+    return [...fetchedPosts]
+  }, [fetchedPosts])
 
   const release = useNextRelease(posts)
 
@@ -241,10 +139,8 @@ export function AdminCalendarClient() {
     [posts, platformFilter]
   )
 
-  const activeClient = clients.find((c) => c.id === selectedClientId) ?? clients[0]
-
   /* week grid computation (Stitch sprint week) */
-  const [cursor, setCursor] = useState(() => new Date(2026, 7, 17))
+  const [cursor, setCursor] = useState(() => new Date())
 
   const weekDays = useMemo(() => {
     const start = new Date(cursor)
@@ -307,6 +203,42 @@ export function AdminCalendarClient() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95">
+              <Icons.sparkles className="size-[18px]" />
+              AI Copilot
+              <Icons.chevronDown className="size-3.5 opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
+              <DropdownMenuLabel className="text-xs text-indigo-700 font-bold flex items-center gap-2">
+                <Icons.sparkles className="size-3.5" /> Frahma AI Actions
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setBrainstormOpen(true)}
+                className="rounded-lg cursor-pointer py-2 text-xs font-medium"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-on-surface">Brainstorm Ideas</span>
+                  <span className="text-[10px] text-on-surface-variant">Hasilkan ide satuan (SPARK)</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setBatchPlanOpen(true)}
+                className="rounded-lg cursor-pointer py-2 text-xs font-medium"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-on-surface">Auto-Fill Batch Plan</span>
+                  <span className="text-[10px] text-on-surface-variant">Buat kalender sebulan sekaligus</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <BrainstormModal clientId={selectedClientId} open={brainstormOpen} onOpenChange={setBrainstormOpen} hideTrigger />
+          <BatchPlanModal clientId={selectedClientId} open={batchPlanOpen} onOpenChange={setBatchPlanOpen} hideTrigger />
+
           <button
             onClick={() => setExportOpen(true)}
             className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[hsl(var(--admin-outline-variant))]/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer"
@@ -490,7 +422,7 @@ export function AdminCalendarClient() {
                   className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold"
                 >
                   {d.toLocaleDateString("en-US", { weekday: "short" })}{" "}
-                  <span className={cn(d.getDate() === 17 ? "text-secondary" : "")}>{d.getDate()}</span>
+                  <span className={cn(d.getDate() === new Date().getDate() ? "text-secondary" : "")}>{d.getDate()}</span>
                 </div>
               ))}
             </div>
@@ -499,7 +431,8 @@ export function AdminCalendarClient() {
             <div className="grid grid-cols-7 gap-2 min-h-[560px]">
               {weekDays.map((d, i) => {
                 const dayPosts = postsByDay.get(d.toDateString()) ?? []
-                const isToday = d.getDate() === 17 && d.getMonth() === 6 + 1
+                const todayObj = new Date()
+                const isToday = d.getDate() === todayObj.getDate() && d.getMonth() === todayObj.getMonth() && d.getFullYear() === todayObj.getFullYear()
                 const isDarkFlight = i === 6 // Sunday
 
                 if (dayPosts.length === 0) {
@@ -596,32 +529,16 @@ export function AdminCalendarClient() {
                             {/* Thumbnail / media block */}
                             <div
                               className={cn(
-                                "relative rounded-lg overflow-hidden h-20 mb-2",
-                                p.platform === "linkedin" ? "bg-[#1e293b] p-2 flex flex-col justify-between text-white" : "bg-surface-container"
+                                "relative rounded-lg overflow-hidden h-20 mb-2 bg-surface-container",
+                                p.platform === "linkedin" ? "bg-[#1e293b] text-white" : ""
                               )}
                             >
-                              {p.platform === "linkedin" ? (
-                                <>
-                                  <span className="text-[10px] uppercase tracking-wider text-primary-container font-bold">
-                                    Whitepaper Vol.4
-                                  </span>
-                                  <p className="text-[11px] font-bold leading-tight">
-                                    The Death of Bland Corporate Branding
-                                  </p>
-                                  <span className="text-[9px] text-slate-300">12 Slides Carousel (PDF)</span>
-                                </>
-                              ) : p.platform === "tiktok" && p.status === "draft" ? (
-                                <div className="p-2 bg-surface-container-high h-full">
-                                  <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">
-                                    {p.title}
-                                  </p>
-                                  <p className="text-[10px] text-outline mt-1">{p.content}</p>
-                                </div>
-                              ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent flex items-center justify-center">
-                                  <Icons.play className="size-6 text-on-surface-variant/40" />
-                                </div>
-                              )}
+                              <div className="p-2 h-full flex flex-col justify-between">
+                                <p className="text-[11px] font-bold leading-tight line-clamp-2">
+                                  {p.title}
+                                </p>
+                                <p className="text-[10px] opacity-70 line-clamp-2 mt-1">{p.content}</p>
+                              </div>
                             </div>
                             <p className="text-[12px] font-bold text-on-surface line-clamp-2 leading-tight">
                               {p.title}
@@ -660,15 +577,14 @@ export function AdminCalendarClient() {
             <div className="mt-4 pt-3 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] uppercase text-on-surface-variant font-bold tracking-wider">
-                  Next Week Teaser:
+                  Upcoming:
                 </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-[12px] text-on-surface font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-[#E1306C]" /> Aug 24: Design System 2.0 Token Architecture
-                  (Instagram)
-                </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-[12px] text-on-surface font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-[#0077B5]" /> Aug 26: Agency Keynote Live Stream (LinkedIn)
-                </span>
+                {posts.slice(0, 2).map((p, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-[12px] text-on-surface font-semibold max-w-[250px] truncate">
+                    <span className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+                    <span className="truncate">{p.title || p.content?.slice(0,20)}</span>
+                  </span>
+                ))}
               </div>
               <button className="text-[10px] text-secondary hover:underline uppercase flex items-center gap-1 font-bold cursor-pointer">
                 <span>View Full Month Matrix</span>
@@ -742,16 +658,15 @@ export function AdminCalendarClient() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-bold text-on-surface truncate">
-                    {release?.title ?? "Spatial Identity Teaser #04"}
+                    {release?.title ?? "No upcoming posts"}
                   </p>
                   <p className="text-[11px] text-on-surface-variant truncate">
-                    Deliverable ID: #SPAT-8829
+                    Scheduled for delivery
                   </p>
                 </div>
               </div>
               <div className="text-[12px] text-on-surface-variant bg-surface-container/60 p-2.5 rounded-xl">
-                <span className="font-bold text-on-surface">Caption Hook:</span> &quot;The boundaries between organic
-                brand form and spatial architecture are evaporating. Welcome to the new era of...&quot;
+                <span className="font-bold text-on-surface">Content:</span> {release?.title || "No data"}
               </div>
             </div>
           </div>
@@ -766,73 +681,51 @@ export function AdminCalendarClient() {
                 <h3 className="text-lg font-bold text-on-surface">Approval Gate</h3>
               </div>
               <span className="text-[10px] uppercase bg-error-container text-error px-2 py-0.5 rounded-full font-bold">
-                2 Awaiting
+                {posts.filter(p => p.status === "draft").length} Awaiting
               </span>
             </div>
 
-            {/* Pending Item 1 */}
-            <div className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/30 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface text-[9px] font-bold">
-                      TIKTOK BTS
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant">Due Tomorrow</span>
-                  </div>
-                  <h4 className="text-[13px] font-bold text-on-surface">Berlin Fashion Week Jump Cuts</h4>
-                </div>
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-primary/20 flex items-center justify-center shrink-0">
-                  <Icons.clapperboard className="size-5 text-on-surface-variant" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20">
-                <button
-                  onClick={() => toast.info("Revision requested (Prototype)")}
-                  className="flex-1 bg-surface-container-high hover:bg-surface-variant text-on-surface py-1.5 rounded-full text-[10px] uppercase font-bold transition-all cursor-pointer"
-                >
-                  Request Revision
-                </button>
-                <button
-                  onClick={() => toast.success("Deliverable approved (Prototype)")}
-                  className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  Approve Deliverable
-                </button>
-              </div>
-            </div>
+            {posts.filter(p => p.status === "draft").length === 0 && (
+              <p className="text-[12px] text-on-surface-variant text-center py-4">
+                Tidak ada draft yang menunggu persetujuan.
+              </p>
+            )}
 
-            {/* Pending Item 2 */}
-            <div className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/30 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="px-2 py-0.5 rounded-full bg-[#dbeafe] text-[#1d4ed8] text-[9px] font-bold">
-                      LINKEDIN
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant">Due Aug 21</span>
+            {posts.filter(p => p.status === "draft").map((draft) => {
+               const meta = PLATFORM_META[draft.platform] ?? PLATFORM_META.instagram
+               return (
+                <div key={draft.id} className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/30 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold uppercase", meta.badge)}>
+                          {meta.label}
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant">Due {new Date(draft.scheduled_at).toLocaleDateString()}</span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-on-surface">{draft.title || "No title"}</h4>
+                    </div>
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-primary/20 flex items-center justify-center shrink-0">
+                      <Icons.page className="size-5 text-on-surface-variant" />
+                    </div>
                   </div>
-                  <h4 className="text-[13px] font-bold text-on-surface">Whitepaper Carousel Copy Slide #8</h4>
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20">
+                    <button
+                      onClick={() => toast.info("Fitur revisi sedang dikembangkan")}
+                      className="flex-1 bg-surface-container-high hover:bg-surface-variant text-on-surface py-1.5 rounded-full text-[10px] uppercase font-bold transition-all cursor-pointer"
+                    >
+                      Request Revision
+                    </button>
+                    <button
+                      onClick={() => toast.success("Approved!")}
+                      className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      Approve
+                    </button>
+                  </div>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
-                  <Icons.bookOpen className="size-5" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20">
-                <button
-                  onClick={() => toast.info("Diff inspector (Prototype)")}
-                  className="flex-1 bg-surface-container-high hover:bg-surface-variant text-on-surface py-1.5 rounded-full text-[10px] uppercase font-bold transition-all cursor-pointer"
-                >
-                  Inspect Diff
-                </button>
-                <button
-                  onClick={() => toast.success("Deliverable approved (Prototype)")}
-                  className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  Approve Deliverable
-                </button>
-              </div>
-            </div>
+               )
+            })}
           </div>
 
           {/* AI Optimization Recommendation Card */}
@@ -868,10 +761,10 @@ export function AdminCalendarClient() {
               Agency Client Switcher:
             </span>
             <div className="flex items-center gap-2 flex-wrap">
-              {SOCIAL_CLIENTS.map((c) => (
+              {clients.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedClientId(c.id)}
+                  onClick={() => setClientId(c.id)}
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer",
                     selectedClientId === c.id
@@ -880,7 +773,7 @@ export function AdminCalendarClient() {
                   )}
                 >
                   {selectedClientId === c.id && <span className="w-2 h-2 rounded-full bg-primary" />}
-                  {c.shortName}
+                  {c.name}
                 </button>
               ))}
             </div>

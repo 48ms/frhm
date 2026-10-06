@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { useQueryState, parseAsString } from "nuqs"
@@ -33,26 +33,26 @@ export function SettingsView() {
             <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
             Workspace Administration
           </div>
-          <h1 className="text-3xl font-bold text-on-surface tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             Agency Configuration &amp; Settings
           </h1>
-          <p className="text-sm text-on-surface-variant mt-1.5 max-w-3xl">
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-3xl">
             Manage workspace parameters, billing schedules, API integrations, and collaborative user
             permissions for{" "}
-            <span className="font-semibold text-on-surface">
+            <span className="font-semibold text-foreground">
               {activeClient?.name ?? "B2B Shell Reps"}
             </span>
             .
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-md px-3 py-2 rounded-full border border-outline-variant/30">
+        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/30">
           <span className="material-symbols-outlined text-[16px] text-primary">sync</span>
           <span>Last synced: Today at 14:32 WIB</span>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div role="tablist" aria-label="Settings sections" className="flex border-b border-outline-variant/20 gap-8">
+      <div role="tablist" aria-label="Settings sections" className="flex border-b border-border/20 gap-8">
         {TABS.map((t) => {
           const isActive = activeTab === t.id
           return (
@@ -64,7 +64,7 @@ export function SettingsView() {
               className={`pb-4 text-sm font-bold transition-all border-b-2 ${
                 isActive
                   ? "border-primary text-primary"
-                  : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {t.label}
@@ -98,11 +98,11 @@ function WorkspaceTab() {
   return (
     <div className="space-y-8">
       {/* Section 1.1: Agency Workspace Profile */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex items-start justify-between border-b border-outline-variant/20 pb-5 mb-6">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex items-start justify-between border-b border-border/20 pb-5 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">Agency Workspace Profile</h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <h2 className="text-xl font-bold text-foreground">Agency Workspace Profile</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               General organizational metadata, regional dispatch routing, and client billing
               identifiers.
             </p>
@@ -114,70 +114,70 @@ function WorkspaceTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-on-surface block">
+            <label className="text-sm font-semibold text-foreground block">
               Agency Legal Entity Name
             </label>
             <input
               type="text"
               value={agencyName}
               onChange={(e) => setAgencyName(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-surface-container-low/60 border border-outline-variant/40 text-on-surface text-sm focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
+              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
             />
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-xs text-muted-foreground">
               Used on legal statements, automated NDA dispatches, and commercial invoices.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-on-surface block">Workspace URL Slug</label>
-            <div className="flex items-center rounded-full bg-surface-container-low/60 border border-outline-variant/40 overflow-hidden focus-within:ring-2 focus-within:ring-secondary focus-within:bg-surface-container-lowest">
-              <span className="pl-5 pr-1 text-sm text-on-surface-variant select-none">
+            <label className="text-sm font-semibold text-foreground block">Workspace URL Slug</label>
+            <div className="flex items-center rounded-full bg-muted/60/60 border border-border/40 overflow-hidden focus-within:ring-2 focus-within:ring-secondary focus-within:bg-card">
+              <span className="pl-5 pr-1 text-sm text-muted-foreground select-none">
                 frhm.agency/
               </span>
               <input
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                className="flex-1 h-12 pr-5 pl-0 bg-transparent border-0 text-on-surface text-sm focus:ring-0 focus:outline-none"
+                className="flex-1 h-12 pr-5 pl-0 bg-transparent border-0 text-foreground text-sm focus:ring-0 focus:outline-none"
               />
             </div>
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-xs text-muted-foreground">
               Custom subdomain link for direct client review portals and proof approvals.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-on-surface block">
+            <label className="text-sm font-semibold text-foreground block">
               Default Dispatch Timezone
             </label>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-surface-container-low/60 border border-outline-variant/40 text-on-surface text-sm focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
             >
               <option>UTC+7 Bangkok/Jakarta (WIB)</option>
               <option>UTC+0 London / GMT</option>
               <option>UTC-5 New York / EST</option>
               <option>UTC+8 Singapore / SGT</option>
             </select>
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-xs text-muted-foreground">
               Determines scheduling slots, prime audience heatmaps, and content calendar drops.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-on-surface block">Primary Currency</label>
+            <label className="text-sm font-semibold text-foreground block">Primary Currency</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-surface-container-low/60 border border-outline-variant/40 text-on-surface text-sm focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
             >
               <option>USD ($) - United States Dollar</option>
               <option>EUR (€) - Eurozone</option>
               <option>GBP (£) - British Pound</option>
               <option>SGD (S$) - Singapore Dollar</option>
             </select>
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-xs text-muted-foreground">
               Standardized currency for media buying estimations and client budget tracking.
             </p>
           </div>
@@ -185,17 +185,17 @@ function WorkspaceTab() {
       </div>
 
       {/* Section 1.2: Media Operations & Auto-Publishing */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex items-start justify-between border-b border-outline-variant/20 pb-5 mb-6">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex items-start justify-between border-b border-border/20 pb-5 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">
+            <h2 className="text-xl font-bold text-foreground">
               Media Operations &amp; Auto-Publishing
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Safeguards, automated content pipelines, and retention lifecycle rules.
             </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/40 border border-primary-container text-on-surface text-[11px] font-semibold">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/40 border border-primary-container text-foreground text-[11px] font-semibold">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             Active Pipeline Guard
           </div>
@@ -203,17 +203,17 @@ function WorkspaceTab() {
 
         <div className="space-y-6">
           {/* Toggle 1 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-on-surface">
+                <span className="text-sm font-bold text-foreground">
                   Strict Client Approval Gate
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-on-surface">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-foreground">
                   Mandatory
                 </span>
               </div>
-              <p className="text-sm text-on-surface-variant">
+              <p className="text-sm text-muted-foreground">
                 Enforce explicit client sign-off before any Instagram Reel, YouTube Short, or TikTok
                 post is queued for final production dispatch.
               </p>
@@ -222,17 +222,17 @@ function WorkspaceTab() {
           </div>
 
           {/* Toggle 2 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-on-surface">
+                <span className="text-sm font-bold text-foreground">
                   AI Caption Auto-Optimization
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed">
                   Smart Dispatch
                 </span>
               </div>
-              <p className="text-sm text-on-surface-variant">
+              <p className="text-sm text-muted-foreground">
                 Enhance hashtags, engagement hooks, and audience-specific emojis dynamically upon
                 release dispatch based on real-time platform trends.
               </p>
@@ -241,17 +241,17 @@ function WorkspaceTab() {
           </div>
 
           {/* Toggle 3 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-on-surface">
+                <span className="text-sm font-bold text-foreground">
                   High-Bandwidth 4K Video Preservation
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary-fixed text-on-secondary-fixed">
                   Pro Quality
                 </span>
               </div>
-              <p className="text-sm text-on-surface-variant">
+              <p className="text-sm text-muted-foreground">
                 Retain original ProRes/MP4 bitrate for TikTok &amp; Instagram Reels uploads without
                 downstream compression degradation.
               </p>
@@ -260,8 +260,8 @@ function WorkspaceTab() {
           </div>
 
           {/* Retention Period Radio Selector */}
-          <div className="pt-4 border-t border-outline-variant/20">
-            <label className="text-sm font-semibold text-on-surface block mb-3">
+          <div className="pt-4 border-t border-border/20">
+            <label className="text-sm font-semibold text-foreground block mb-3">
               Default Content Retention Period
             </label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -278,7 +278,7 @@ function WorkspaceTab() {
                     className={`flex items-center gap-3 p-3 rounded-full cursor-pointer transition-colors ${
                       isActive
                         ? "bg-primary-container/20 border-2 border-primary-container"
-                        : "bg-surface-container-low/50 border border-outline-variant/30 hover:bg-surface-container-lowest"
+                        : "bg-muted/60/50 border border-border/30 hover:bg-card"
                     }`}
                   >
                     <input
@@ -290,7 +290,7 @@ function WorkspaceTab() {
                       className="w-4 h-4 ml-1 accent-primary"
                     />
                     <span
-                      className={`text-sm text-on-surface ${isActive ? "font-bold" : "font-medium"}`}
+                      className={`text-sm text-foreground ${isActive ? "font-bold" : "font-medium"}`}
                     >
                       {opt.label}
                     </span>
@@ -311,27 +311,27 @@ function BillingTab() {
   return (
     <div className="space-y-8">
       {/* Plan & Overview Card */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-outline-variant/20 pb-8">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-border/20 pb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-semibold uppercase mb-3">
               Active Subscription
             </div>
-            <h2 className="text-3xl font-bold text-on-surface">
+            <h2 className="text-3xl font-bold text-foreground">
               Enterprise Multi-Seat Agency Tier
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Next billing renewal scheduled on{" "}
-              <span className="font-semibold text-on-surface">August 14, 2026</span> via primary
+              <span className="font-semibold text-foreground">August 14, 2026</span> via primary
               payment source.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button className="px-5 py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/40 text-on-surface text-sm hover:bg-surface-container-high/40 transition-all flex items-center gap-2">
+            <button className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm hover:bg-surface-container-high/40 transition-all flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">receipt_long</span>
               Download Tax Invoices
             </button>
-            <button className="px-6 py-2.5 rounded-full bg-primary-container text-on-surface text-sm font-bold hover:shadow-md transition-all flex items-center gap-2">
+            <button className="px-6 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">bolt</span>
               Upgrade Quota
             </button>
@@ -340,14 +340,14 @@ function BillingTab() {
 
         {/* Payment Method & Invoice Quick Row */}
         <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/20">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/20">
             <div className="flex items-center gap-4">
               <div className="w-12 h-8 rounded bg-on-surface text-surface-container-lowest flex items-center justify-center font-bold text-xs tracking-wider">
                 MC
               </div>
               <div>
-                <p className="text-sm font-bold text-on-surface">Mastercard ending in 8842</p>
-                <p className="text-xs text-on-surface-variant">
+                <p className="text-sm font-bold text-foreground">Mastercard ending in 8842</p>
+                <p className="text-xs text-muted-foreground">
                   Expires 11/28 · Primary Corporate Billing Card
                 </p>
               </div>
@@ -355,17 +355,17 @@ function BillingTab() {
             <button className="text-xs text-secondary font-semibold hover:underline">Manage</button>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/20">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/20">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-tertiary text-[24px]">verified</span>
               <div>
-                <p className="text-sm font-bold text-on-surface">Tax Exemption #EU-88290-X</p>
-                <p className="text-xs text-on-surface-variant">
+                <p className="text-sm font-bold text-foreground">Tax Exemption #EU-88290-X</p>
+                <p className="text-xs text-muted-foreground">
                   Reverse Charge VAT Applied · Status Valid
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface text-xs font-semibold">
+            <span className="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-foreground text-xs font-semibold">
               Active
             </span>
           </div>
@@ -375,24 +375,24 @@ function BillingTab() {
       {/* Resource Metric Meters Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Metric 1: Connected Workspaces */}
-        <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Resource Meter
               </span>
-              <span className="p-2 rounded-full bg-surface-container-low text-on-surface">
+              <span className="p-2 rounded-full bg-muted/60 text-foreground">
                 <span className="material-symbols-outlined text-[18px]">group_work</span>
               </span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface">Connected Workspaces</h3>
-            <p className="text-xs text-on-surface-variant mt-1">
+            <h3 className="text-lg font-bold text-foreground">Connected Workspaces</h3>
+            <p className="text-xs text-muted-foreground mt-1">
               Multi-client isolated partitions.
             </p>
             <div className="my-6">
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-3xl font-bold text-on-surface">
-                  3 <span className="text-base font-normal text-on-surface-variant">/ 10</span>
+                <span className="text-3xl font-bold text-foreground">
+                  3 <span className="text-base font-normal text-muted-foreground">/ 10</span>
                 </span>
                 <span className="text-sm font-semibold text-secondary">30% Used</span>
               </div>
@@ -401,28 +401,28 @@ function BillingTab() {
               </div>
             </div>
           </div>
-          <p className="text-xs text-on-surface-variant pt-2 border-t border-outline-variant/20">
+          <p className="text-xs text-muted-foreground pt-2 border-t border-border/20">
             7 additional client seats available.
           </p>
         </div>
 
         {/* Metric 2: API Webhook Dispatches */}
-        <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Throughput
               </span>
-              <span className="p-2 rounded-full bg-primary-container text-on-surface">
+              <span className="p-2 rounded-full bg-primary-container text-foreground">
                 <span className="material-symbols-outlined text-[18px]">bolt</span>
               </span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface">API Webhook Dispatches</h3>
-            <p className="text-xs text-on-surface-variant mt-1">Monthly automated trigger events.</p>
+            <h3 className="text-lg font-bold text-foreground">API Webhook Dispatches</h3>
+            <p className="text-xs text-muted-foreground mt-1">Monthly automated trigger events.</p>
             <div className="my-6">
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-3xl font-bold text-on-surface">
-                  84.2k <span className="text-base font-normal text-on-surface-variant">/ 100k</span>
+                <span className="text-3xl font-bold text-foreground">
+                  84.2k <span className="text-base font-normal text-muted-foreground">/ 100k</span>
                 </span>
                 <span className="text-sm font-semibold text-primary">84% Used</span>
               </div>
@@ -431,28 +431,28 @@ function BillingTab() {
               </div>
             </div>
           </div>
-          <p className="text-xs text-error font-medium pt-2 border-t border-outline-variant/20">
+          <p className="text-xs text-error font-medium pt-2 border-t border-border/20">
             Approaching 85% soft threshold.
           </p>
         </div>
 
         {/* Metric 3: Cloud Video Storage */}
-        <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Object Vault
               </span>
               <span className="p-2 rounded-full bg-tertiary-container text-on-tertiary-container">
                 <span className="material-symbols-outlined text-[18px]">cloud</span>
               </span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface">Cloud Video Storage</h3>
-            <p className="text-xs text-on-surface-variant mt-1">High-bitrate master library.</p>
+            <h3 className="text-lg font-bold text-foreground">Cloud Video Storage</h3>
+            <p className="text-xs text-muted-foreground mt-1">High-bitrate master library.</p>
             <div className="my-6">
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-3xl font-bold text-on-surface">
-                  2.4 TB <span className="text-base font-normal text-on-surface-variant">/ 5 TB</span>
+                <span className="text-3xl font-bold text-foreground">
+                  2.4 TB <span className="text-base font-normal text-muted-foreground">/ 5 TB</span>
                 </span>
                 <span className="text-sm font-semibold text-tertiary">48% Used</span>
               </div>
@@ -461,7 +461,7 @@ function BillingTab() {
               </div>
             </div>
           </div>
-          <p className="text-xs text-on-surface-variant pt-2 border-t border-outline-variant/20">
+          <p className="text-xs text-muted-foreground pt-2 border-t border-border/20">
             ProRes &amp; 4K proxy cache optimized.
           </p>
         </div>
@@ -514,7 +514,7 @@ function IntegrationsTab() {
       desc: (
         <>
           Direct channel alerts configured to{" "}
-          <code className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono text-xs">
+          <code className="px-2 py-0.5 rounded bg-surface-container text-foreground font-mono text-xs">
             #client-b2b-shell-alerts
           </code>
           .
@@ -532,7 +532,7 @@ function IntegrationsTab() {
       desc: (
         <>
           Active gateway:{" "}
-          <span className="font-semibold text-on-surface">@FrhmAgencyDispatcherBot</span> for
+          <span className="font-semibold text-foreground">@FrhmAgencyDispatcherBot</span> for
           executive fast-path approvals.
         </>
       ),
@@ -543,10 +543,10 @@ function IntegrationsTab() {
   return (
     <div className="space-y-8">
       {/* Integrations List */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="border-b border-outline-variant/20 pb-5 mb-6">
-          <h2 className="text-xl font-bold text-on-surface">Connected Social &amp; Ops Channels</h2>
-          <p className="text-sm text-on-surface-variant mt-1">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="border-b border-border/20 pb-5 mb-6">
+          <h2 className="text-xl font-bold text-foreground">Connected Social &amp; Ops Channels</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Third-party platform authorization, direct feed links, and programmatic dispatch hooks.
           </p>
         </div>
@@ -559,13 +559,13 @@ function IntegrationsTab() {
       </div>
 
       {/* Webhook Signing Secret */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex items-start justify-between border-b border-outline-variant/20 pb-5 mb-6">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex items-start justify-between border-b border-border/20 pb-5 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">
+            <h2 className="text-xl font-bold text-foreground">
               Webhook Signing &amp; Cryptographic Keys
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Verify downstream dispatch authenticity on your custom agency middleware endpoint.
             </p>
           </div>
@@ -576,7 +576,7 @@ function IntegrationsTab() {
         </div>
 
         <div className="space-y-4">
-          <label className="text-sm font-semibold text-on-surface block">
+          <label className="text-sm font-semibold text-foreground block">
             Live Webhook Signing Secret (HMAC-SHA256)
           </label>
           <div className="flex items-center gap-3">
@@ -585,12 +585,12 @@ function IntegrationsTab() {
                 readOnly
                 type={secretVisible ? "text" : "password"}
                 value={secret}
-                className="w-full h-12 px-5 font-mono text-sm bg-surface-container-low/60 border border-outline-variant/40 rounded-full text-on-surface select-all focus:outline-none"
+                className="w-full h-12 px-5 font-mono text-sm bg-muted/60/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setSecretVisible((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label={secretVisible ? "Hide secret" : "Show secret"}
               >
                 <span className="material-symbols-outlined text-[20px]">
@@ -604,13 +604,13 @@ function IntegrationsTab() {
                 navigator.clipboard?.writeText(secret)
                 toast.success("Signing secret copied to clipboard.")
               }}
-              className="h-12 px-6 rounded-full bg-surface-container-lowest border border-outline-variant/60 hover:bg-surface-container-high/40 text-on-surface text-sm font-bold transition-all flex items-center gap-2"
+              className="h-12 px-6 rounded-full bg-card border border-border/60 hover:bg-surface-container-high/40 text-foreground text-sm font-bold transition-all flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">content_copy</span>
               Copy Secret
             </button>
           </div>
-          <p className="text-xs text-on-surface-variant">
+          <p className="text-xs text-muted-foreground">
             Never expose this secret in client-side code repositories. Rotate keys immediately if
             compromised.
           </p>
@@ -639,7 +639,7 @@ function IntegrationRow({
 }) {
   const [on, setOn] = React.useState(enabled)
   return (
-    <div className="p-5 rounded-2xl bg-surface-container-low/40 border border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-5 rounded-2xl bg-muted/60/40 border border-border/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-start gap-4">
         <div
           className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shrink-0 ${badgeClass}`}
@@ -648,16 +648,16 @@ function IntegrationRow({
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-on-surface">{title}</h3>
-            <span className="px-2.5 py-0.5 rounded-full bg-primary-container text-on-surface text-[11px] font-bold">
+            <h3 className="text-lg font-bold text-foreground">{title}</h3>
+            <span className="px-2.5 py-0.5 rounded-full bg-primary-container text-foreground text-[11px] font-bold">
               {status}
             </span>
           </div>
-          <p className="text-sm text-on-surface-variant mt-0.5">{desc}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
         </div>
       </div>
       <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
-        <button className="px-4 py-2 rounded-full border border-outline-variant/40 bg-surface-container-lowest text-on-surface text-xs font-semibold hover:bg-surface-container-high/40 transition-colors">
+        <button className="px-4 py-2 rounded-full border border-border/40 bg-card text-foreground text-xs font-semibold hover:bg-surface-container-high/40 transition-colors">
           {action}
         </button>
         <Switch checked={on} onCheckedChange={setOn} />
@@ -691,7 +691,7 @@ function UserAccessTab() {
     },
     {
       initials: "JC",
-      avatarClass: "bg-primary-container text-on-surface",
+      avatarClass: "bg-primary-container text-foreground",
       name: "Julian Chen",
       isYou: false,
       email: "julian.c@frhm.agency",
@@ -719,16 +719,16 @@ function UserAccessTab() {
     },
     {
       initials: "DH",
-      avatarClass: "bg-surface-container-highest text-on-surface",
+      avatarClass: "bg-surface-container-highest text-foreground",
       name: "Derrick Holt",
       isYou: false,
       email: "d.holt@shellreps-corp.com",
       role: "Client Guest Reviewer",
       roleLocked: true,
-      roleClass: "bg-surface-container-highest text-on-surface",
+      roleClass: "bg-surface-container-highest text-foreground",
       twofa: "SMS Backup (Pending App)",
       twofaIcon: "sms",
-      twofaClass: "text-on-surface-variant",
+      twofaClass: "text-muted-foreground",
       access: "Approval Gate Only",
       action: "Revoke",
     },
@@ -746,13 +746,13 @@ function UserAccessTab() {
   return (
     <div className="space-y-8">
       {/* SSO & Security Controls */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 mb-6">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/20 pb-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">
+            <h2 className="text-xl font-bold text-foreground">
               Security &amp; Single Sign-On (SSO)
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Enforce agency compliance protocols and multi-factor authentication mandates.
             </p>
           </div>
@@ -761,17 +761,17 @@ function UserAccessTab() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low/50 border border-outline-variant/30">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/50 border border-border/30">
           <div className="space-y-1 pr-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-on-surface">
+              <span className="text-sm font-bold text-foreground">
                 Mandatory Google Workspace 2FA for all team members
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-surface">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-foreground">
                 Enforced
               </span>
             </div>
-            <p className="text-sm text-on-surface-variant">
+            <p className="text-sm text-muted-foreground">
               Reject login requests from accounts lacking active physical security key or
               authenticator app 2FA.
             </p>
@@ -781,27 +781,27 @@ function UserAccessTab() {
       </div>
 
       {/* Team Roster & Invite */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 mb-6">
+      <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/20 pb-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">
+            <h2 className="text-xl font-bold text-foreground">
               Collaborator Matrix &amp; Permissions
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               4 active members provisioned for{" "}
-              <span className="font-semibold text-on-surface">B2B Shell Reps</span>.
+              <span className="font-semibold text-foreground">B2B Shell Reps</span>.
             </p>
           </div>
-          <button className="px-5 py-2.5 rounded-full bg-primary-container text-on-surface text-sm font-bold hover:shadow-md transition-all flex items-center gap-2 self-start sm:self-auto">
+          <button className="px-5 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2 self-start sm:self-auto">
             <span className="material-symbols-outlined text-[18px]">person_add</span>
             + Invite Collaborator
           </button>
         </div>
 
         {/* Quick Invite Input Bar */}
-        <div className="p-4 rounded-2xl bg-surface-container-low/40 border border-outline-variant/25 mb-6 flex flex-col md:flex-row items-center gap-3">
+        <div className="p-4 rounded-2xl bg-muted/60/40 border border-border/25 mb-6 flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground">
               mail
             </span>
             <input
@@ -809,14 +809,14 @@ function UserAccessTab() {
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="colleague@agency-or-client.com"
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-sm text-on-surface focus:ring-2 focus:ring-secondary focus:outline-none"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus:outline-none"
             />
           </div>
           <div className="relative w-full md:w-56">
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value)}
-              className="w-full h-11 px-4 rounded-full bg-surface-container-lowest border border-outline-variant/30 text-sm text-on-surface focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+              className="w-full h-11 px-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
             >
               <option>Content Creator</option>
               <option>Campaign Lead</option>
@@ -837,7 +837,7 @@ function UserAccessTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-outline-variant/30 text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider">
+              <tr className="border-b border-border/30 text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 <th className="py-3 px-4">Member Name &amp; Email</th>
                 <th className="py-3 px-4">Role Permission</th>
                 <th className="py-3 px-4">2FA Status</th>
@@ -847,7 +847,7 @@ function UserAccessTab() {
             </thead>
             <tbody className="divide-y divide-outline-variant/20 text-sm">
               {members.map((m) => (
-                <tr key={m.email} className="hover:bg-surface-container-low/30 transition-colors">
+                <tr key={m.email} className="hover:bg-muted/60/30 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div
@@ -856,13 +856,13 @@ function UserAccessTab() {
                         {m.initials}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-on-surface">
+                        <p className="text-sm font-bold text-foreground">
                           {m.name}
                           {m.isYou && (
                             <span className="ml-1 text-xs text-secondary font-normal">(You)</span>
                           )}
                         </p>
-                        <p className="text-xs text-on-surface-variant">{m.email}</p>
+                        <p className="text-xs text-muted-foreground">{m.email}</p>
                       </div>
                     </div>
                   </td>
@@ -876,7 +876,7 @@ function UserAccessTab() {
                     ) : (
                       <select
                         defaultValue={m.role}
-                        className="h-8 px-3 rounded-full bg-surface-container-low border border-outline-variant/30 text-xs font-medium text-on-surface cursor-pointer"
+                        className="h-8 px-3 rounded-full bg-muted/60 border border-border/30 text-xs font-medium text-foreground cursor-pointer"
                       >
                         <option>Campaign Lead</option>
                         <option>Content Creator</option>
@@ -897,17 +897,17 @@ function UserAccessTab() {
                       {m.twofa}
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-on-surface-variant text-xs">{m.access}</td>
+                  <td className="py-4 px-4 text-muted-foreground text-xs">{m.access}</td>
                   <td className="py-4 px-4 text-right">
                     {m.action === "Protected" ? (
-                      <span className="text-on-surface-variant/40 cursor-not-allowed text-xs font-semibold">
+                      <span className="text-muted-foreground/40 cursor-not-allowed text-xs font-semibold">
                         Protected
                       </span>
                     ) : (
                       <button
                         type="button"
                         title="Revoke Access"
-                        className="text-on-surface-variant hover:text-error transition-colors p-1"
+                        className="text-muted-foreground hover:text-error transition-colors p-1"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           person_remove

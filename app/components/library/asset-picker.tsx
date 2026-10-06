@@ -4,9 +4,11 @@ import * as React from "react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { listAssets } from "@/features/library/api/service"
+import { listAssets, uploadAsset } from "@/features/library/api/service"
 import type { Asset, AssetFileType } from "@/features/library/api/types"
 import { thumbnailUrl } from "@/lib/media/transform"
+import { FileUploader } from "@/components/file-uploader"
+import { toast } from "sonner"
 
 const TYPE_TABS = ["all", "image", "video"] as const
 type TypeTab = (typeof TYPE_TABS)[number]
@@ -35,6 +37,7 @@ export function AssetPicker({
   const [error, setError] = React.useState<string | null>(null)
   const [query, setQuery] = React.useState("")
   const [tab, setTab] = React.useState<TypeTab>(fileType ?? "all")
+  const [uploading, setUploading] = React.useState(false)
 
   const activeType = tab === "all" ? undefined : (tab as AssetFileType)
 
@@ -84,6 +87,30 @@ export function AssetPicker({
     onOpenChange(false)
   }
 
+  const handleUpload = async (files: File[]) => {
+    if (!files.length) return
+    setUploading(true)
+    let addedCount = 0
+    try {
+      for (const file of files) {
+        if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) continue
+        const result = await uploadAsset(clientId, file)
+        if (result.error) {
+          throw new Error(result.error ?? "Upload failed")
+        }
+        if (result.asset) {
+          setAssets(prev => [result.asset!, ...prev])
+          addedCount++
+        }
+      }
+      toast.success(`${addedCount} media berhasil di-upload!`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload gagal")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -123,8 +150,18 @@ export function AssetPicker({
           </div>
         </div>
 
+        {/* Upload Dropzone */}
+        <div className="mb-4">
+          <FileUploader
+            onUpload={handleUpload}
+            maxFiles={5}
+            maxSize={25 * 1024 * 1024}
+            disabled={uploading}
+          />
+        </div>
+
         {/* Grid body */}
-        <div className="max-h-[55vh] overflow-y-auto">
+        <div className="max-h-[40vh] overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Icons.spinner className="size-6 animate-spin text-muted-foreground" />

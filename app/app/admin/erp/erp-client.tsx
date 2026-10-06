@@ -26,11 +26,11 @@ export function ErpDashboardClient() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/80 hover:bg-white text-[hsl(var(--admin-on-surface-variant))] text-xs font-medium border border-[hsl(var(--admin-outline-variant))]/80 shadow-sm hover:border-[hsl(var(--admin-outline))]/50 transition-all cursor-pointer">
+          <button className="admin-pill admin-pill-ghost inline-flex items-center gap-2 px-4 py-2 cursor-pointer">
             <Icons.send className="size-4 text-[hsl(var(--admin-cobalt))]" />
             Notifikasi Telegram
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[hsl(var(--brand-accent))] hover:bg-[hsl(var(--brand-accent))]/90 text-[hsl(var(--brand-accent-foreground))] text-xs font-semibold shadow-sm active:scale-[0.98] transition-all cursor-pointer">
+          <button className="admin-pill admin-pill-lime inline-flex items-center gap-2 px-4 py-2 cursor-pointer">
             <Icons.add className="size-4" />
             Deliverable Baru
           </button>
@@ -40,8 +40,8 @@ export function ErpDashboardClient() {
       {/* TOP METRIC CARDS ROW */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Card: TOTAL DELIVERABLE */}
-        <div className="lg:col-span-8 p-6 rounded-2xl bg-[hsl(var(--admin-surface-lowest))]/80 backdrop-blur-xl border border-[hsl(var(--admin-outline-variant))]/30 shadow-sm flex flex-col justify-between">
-          <p className="text-[11px] font-bold tracking-wider text-[hsl(var(--admin-outline))] uppercase">
+        <div className="lg:col-span-8 p-6 admin-card flex flex-col justify-between">
+          <p className="admin-section-label">
             TOTAL DELIVERABLE
           </p>
           <div className="my-4">
@@ -55,7 +55,7 @@ export function ErpDashboardClient() {
         </div>
 
         {/* Right Card: Status Badges */}
-        <div className="lg:col-span-4 p-6 rounded-2xl bg-[hsl(var(--admin-surface-lowest))]/80 backdrop-blur-xl border border-[hsl(var(--admin-outline-variant))]/30 shadow-sm flex flex-col justify-center space-y-3">
+        <div className="lg:col-span-4 p-6 admin-card flex flex-col justify-center space-y-3">
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[hsl(var(--admin-cobalt))]/10 border border-[hsl(var(--admin-cobalt))]/20 text-[hsl(var(--admin-cobalt))]">
             <Icons.clock className="size-[18px]" />
             <span className="text-xs font-semibold">{waitingReview}</span>
@@ -75,7 +75,7 @@ export function ErpDashboardClient() {
       </section>
 
       {/* MIDDLE NOTICE BANNER: Jadwal Tayang Hari Ini */}
-      <section className="p-4 sm:px-6 sm:py-4 rounded-2xl bg-[hsl(var(--admin-surface-lowest))]/80 backdrop-blur-xl border border-[hsl(var(--admin-outline-variant))]/30 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <section className="p-4 sm:px-6 sm:py-4 admin-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="size-9 rounded-xl bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))] flex items-center justify-center shrink-0">
             <Icons.calendar className="size-5" />
@@ -95,7 +95,7 @@ export function ErpDashboardClient() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] font-headline-md tracking-tight">Per Client</h2>
-          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[hsl(var(--admin-surface-lowest))] hover:bg-[hsl(var(--admin-surface-low))] text-[hsl(var(--admin-on-surface))] text-xs font-medium border border-[hsl(var(--admin-outline-variant))]/50 shadow-sm transition-colors cursor-pointer">
+          <button className="admin-pill admin-pill-ghost inline-flex items-center gap-1 px-3 py-1.5 cursor-pointer">
             <Icons.add className="size-[15px]" />
             Tambah client
           </button>
@@ -105,7 +105,7 @@ export function ErpDashboardClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
            {clients.map(c => {
              return (
-               <div key={c.id} className="p-5 rounded-2xl bg-[hsl(var(--admin-surface-lowest))]/85 backdrop-blur-xl border border-[hsl(var(--admin-outline-variant))]/30 shadow-sm hover:shadow hover:border-[hsl(var(--admin-outline))]/50 transition-all flex flex-col justify-between min-h-[160px]">
+               <div key={c.id} className="p-5 admin-card admin-card-hover flex flex-col justify-between min-h-[160px]">
                  <div>
                    <h3 className="text-sm font-bold text-[hsl(var(--admin-on-surface))] tracking-tight">{c.name}</h3>
                    <p className="text-xs text-[hsl(var(--admin-outline))] mt-0.5">{c.shortName}</p>

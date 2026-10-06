@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frhm SaaS — Gleody Hub Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b',
+                        card: '#121215',
+                        border: '#27272a',
+                        primary: '#10b981',
+                        'primary-foreground': '#000000',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-zinc-100 font-sans antialiased min-h-screen flex selection:bg-primary selection:text-black">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 border-r border-border bg-card/50 backdrop-blur-xl flex flex-col justify-between hidden md:flex shrink-0">
+        <div class="p-6 space-y-8">
+            <!-- Brand -->
+            <div class="flex items-center gap-3">
+                <div class="size-8 rounded-xl bg-primary flex items-center justify-center font-bold text-black text-lg">F</div>
+                <div>
+                    <span class="font-extrabold tracking-tight text-white block">Frhm Hub</span>
+                    <span class="text-[10px] text-zinc-400">Enterprise Social SaaS</span>
+                </div>
+            </div>
+
+            <!-- Client Switcher Component -->
+            <div class="p-3 rounded-2xl bg-zinc-900 border border-border flex items-center justify-between cursor-pointer hover:border-primary/50 transition-all">
+                <div class="flex items-center gap-2.5">
+                    <div class="size-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs">T</div>
+                    <div>
+                        <p class="text-xs font-bold text-white">Taraju (Pak Adit)</p>
+                        <p class="text-[10px] text-zinc-400">4 Connected Accounts</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-down" class="size-4 text-zinc-400"></i>
+            </div>
+
+            <!-- Navigation -->
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider mb-2">Utama</p>
+                    <nav class="space-y-1">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="layout-dashboard" class="size-4"></i> Dashboard
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="pen-tool" class="size-4"></i> Compose
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="calendar" class="size-4"></i> Publishing
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="folder-kanban" class="size-4"></i> Library
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider mb-2">Akun</p>
+                    <nav class="space-y-1">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                            <i data-lucide="share2" class="size-4"></i> Social Accounts
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="globe" class="size-4"></i> Browser Profiles
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider mb-2">Sistem</p>
+                    <nav class="space-y-1">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="history" class="size-4"></i> Logs
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                            <i data-lucide="settings" class="size-4"></i> Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-border">
+            <div class="flex items-center gap-3">
+                <div class="size-9 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-300">DB</div>
+                <div class="min-w-0">
+                    <p class="text-xs font-bold text-white truncate">Dheia Buleud</p>
+                    <p class="text-[10px] text-zinc-400 truncate">dheia.buleud@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <!-- Top Header -->
+        <header class="h-16 border-b border-border bg-card/30 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-20">
+            <div class="flex items-center gap-2 text-xs font-medium text-zinc-400">
+                <span>Frhm</span>
+                <i data-lucide="chevron-right" class="size-3 text-zinc-600"></i>
+                <span class="text-white font-bold">Social Accounts</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                    <span class="size-2 rounded-full bg-emerald-400 animate-pulse"></span> Tenant Secured (RLS)
+                </span>
+            </div>
+        </header>
+
+        <!-- Container -->
+        <div class="p-8 space-y-8 max-w-7xl w-full mx-auto">
+            
+            <!-- Page Title -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-black text-white tracking-tight">Social Accounts & Browser Profiles</h1>
+                    <p class="text-xs text-zinc-400 mt-1">Kelola koneksi API resmi dan profil browser untuk klien <span class="text-white font-bold">Taraju</span>.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="px-4 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="size-3.5"></i> Sync All
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-primary hover:bg-primary/90 text-black text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/10">
+                        <i data-lucide="plus" class="size-4"></i> Connect Channel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bento KPI Strip (Gleody Inspired) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="p-5 rounded-2xl bg-card border border-border flex items-center justify-between">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Akun</span>
+                        <p class="text-2xl font-black text-white">4</p>
+                        <p class="text-[11px] text-emerald-400 font-medium">+1 profil baru bulan ini</p>
+                    </div>
+                    <div class="size-11 rounded-xl bg-zinc-900 border border-border flex items-center justify-center text-primary">
+                        <i data-lucide="share2" class="size-5"></i>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-card border border-border flex items-center justify-between">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Profil Browser</span>
+                        <p class="text-2xl font-black text-white">2</p>
+                        <p class="text-[11px] text-zinc-400">Aman & Terisolasi</p>
+                    </div>
+                    <div class="size-11 rounded-xl bg-zinc-900 border border-border flex items-center justify-center text-blue-400">
+                        <i data-lucide="globe" class="size-5"></i>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-card border border-border flex items-center justify-between">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Platform Aktif</span>
+                        <p class="text-2xl font-black text-white">3 / 4</p>
+                        <p class="text-[11px] text-emerald-400 font-medium">IG, TikTok, YouTube</p>
+                    </div>
+                    <div class="size-11 rounded-xl bg-zinc-900 border border-border flex items-center justify-center text-purple-400">
+                        <i data-lucide="check-circle-2" class="size-5"></i>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-card border border-border flex items-center justify-between">
+                    <div class="size-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                        <i data-lucide="alert-triangle" class="size-5"></i>
+                    </div>
+                    <div class="space-y-1 text-right">
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Needs Attention</span>
+                        <p class="text-2xl font-black text-amber-500">0</p>
+                        <p class="text-[11px] text-zinc-400">Semua token aman</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex items-center gap-1 p-1 bg-zinc-900/60 rounded-full w-max border border-border">
+                <button class="px-5 py-2 rounded-full text-xs font-bold bg-card text-white shadow-sm">All Accounts (4)</button>
+                <button class="px-5 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all">Instagram (2)</button>
+                <button class="px-5 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all">TikTok (1)</button>
+                <button class="px-5 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all">YouTube (1)</button>
+            </div>
+
+            <!-- Account Grid Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Card 1 -->
+                <div class="rounded-2xl p-6 bg-card border border-border hover:border-primary/50 transition-all flex flex-col justify-between gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="size-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white">
+                                    <i data-lucide="instagram" class="size-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white text-sm">@taraju.official</h3>
+                                    <p class="text-xs text-zinc-400">Taraju Official ID</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase border border-emerald-500/20">
+                                Connected
+                            </span>
+                        </div>
+                        <div class="flex items-baseline justify-between pt-2">
+                            <div>
+                                <span class="text-xl font-extrabold text-white">42.5K</span>
+                                <span class="text-xs text-zinc-400 ml-1">Followers</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/10 text-primary">+8.4%</span>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-border flex items-center justify-between">
+                        <button class="px-4 py-1.5 rounded-full bg-zinc-900 border border-border text-zinc-300 text-xs font-bold hover:bg-zinc-800 transition-all">Manage Access</button>
+                        <button class="text-xs font-bold text-zinc-400 hover:text-white transition-all">Disconnect</button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="rounded-2xl p-6 bg-card border border-border hover:border-primary/50 transition-all flex flex-col justify-between gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="size-12 rounded-2xl bg-zinc-900 border border-border flex items-center justify-center text-white">
+                                    <i data-lucide="video" class="size-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white text-sm">@taraju_id</h3>
+                                    <p class="text-xs text-zinc-400">TikTok Business</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase border border-emerald-500/20">
+                                Live Feed
+                            </span>
+                        </div>
+                        <div class="flex items-baseline justify-between pt-2">
+                            <div>
+                                <span class="text-xl font-extrabold text-white">18.2K</span>
+                                <span class="text-xs text-zinc-400 ml-1">Followers</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/10 text-primary">+12.1%</span>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-border flex items-center justify-between">
+                        <button class="px-4 py-1.5 rounded-full bg-zinc-900 border border-border text-zinc-300 text-xs font-bold hover:bg-zinc-800 transition-all">Manage Access</button>
+                        <button class="text-xs font-bold text-zinc-400 hover:text-white transition-all">Disconnect</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

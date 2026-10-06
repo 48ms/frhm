@@ -211,7 +211,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
             return (
               <Card 
                 key={c.id} 
-                className="border border-border/60 bg-card/90 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-border group flex flex-col justify-between"
+                className="admin-card transition-all duration-200 hover:shadow-md group flex flex-col justify-between"
               >
                 <CardHeader className="pb-3 border-b border-border/40">
                   <div className="flex items-start justify-between gap-3">

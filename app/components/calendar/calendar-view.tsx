@@ -13,7 +13,8 @@ import {
 } from '@dnd-kit/core'
 
 import { Icons } from '@/components/icons'
-import { ScheduledPost, PLATFORMS, ScheduledPostUpdate } from '@/features/calendar/types'
+import { PLATFORMS, ScheduledPostUpdate } from '@/features/calendar/types'
+import { type ScheduledPost } from '@/features/scheduled-posts/api/types'
 import { getDotColor } from '@/features/calendar/utils'
 import { cn } from '@/lib/utils'
 
@@ -26,11 +27,11 @@ const MONTH_NAMES = [
 const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: 'bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))]',
-  scheduled: 'bg-[hsl(var(--admin-cobalt))]/15 text-[hsl(var(--admin-cobalt))]',
-  published: 'bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))]',
-  failed: 'bg-[#ba1a1a]/15 text-[#ba1a1a]',
-  cancelled: 'bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))]',
+  draft: 'admin-badge admin-badge-surface',
+  scheduled: 'admin-badge admin-badge-cobalt',
+  published: 'admin-badge admin-badge-lime',
+  failed: 'admin-badge bg-red-500/15 text-red-500',
+  cancelled: 'admin-badge admin-badge-surface opacity-70',
 }
 
 function fmtTime(iso: string) {
@@ -48,7 +49,7 @@ function PlatformChip({ platform }: { platform: string }) {
     <span
       className={cn(
         'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider',
-        info?.bg ?? 'bg-[hsl(var(--admin-surface-high))]',
+        info?.bg ?? 'bg-muted',
         'text-white'
       )}
     >
@@ -76,7 +77,7 @@ function DraggablePostItem({ post, children }: { post: ScheduledPost; children: 
       {...attributes}
       className={cn(
         'relative cursor-grab active:cursor-grabbing transition-shadow',
-        isDragging && 'opacity-90 shadow-2xl ring-2 ring-[hsl(var(--admin-cobalt))]/50 rounded-lg'
+        isDragging && 'opacity-90 shadow-2xl ring-2 ring-blue-500/50 rounded-lg'
       )}
       onClick={(e) => e.stopPropagation()}
     >
@@ -112,12 +113,12 @@ function DroppableDayCell({
       className={cn(
         'min-h-[7rem] p-2 rounded-xl border text-left flex flex-col gap-1.5 transition-all group cursor-pointer',
         isOver
-          ? 'border-[hsl(var(--brand-accent))] ring-2 ring-[hsl(var(--brand-accent))]/40 bg-[hsl(var(--brand-accent))]/10'
+          ? 'border-lime-400 ring-2 ring-lime-400/40 bg-lime-400/10'
           : isSelected
-          ? 'border-[hsl(var(--admin-cobalt))] ring-2 ring-[hsl(var(--admin-cobalt))]/20 bg-[hsl(var(--admin-cobalt))]/5'
+          ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-500/5'
           : isToday
-          ? 'border-[hsl(var(--brand-accent))]/50 bg-[hsl(var(--brand-accent))]/5'
-          : 'border-[hsl(var(--admin-outline-variant))]/40 hover:border-[hsl(var(--admin-cobalt))]/40 bg-[hsl(var(--admin-surface-lowest))]/60'
+          ? 'border-lime-400/50 bg-lime-400/5'
+          : 'border-border/40 hover:border-blue-500/40 bg-card/60'
       )}
     >
       {children}
@@ -222,10 +223,10 @@ export function CalendarView({
           e.stopPropagation()
           onSelectPost?.(p)
         }}
-        className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[10px] font-semibold text-left bg-[hsl(var(--admin-surface-lowest))]/80 border border-[hsl(var(--admin-outline-variant))]/30 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all"
+        className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[10px] font-semibold text-left bg-card/80 border border-border/30 hover:border-blue-500/50 transition-all shadow-sm"
       >
-        <span className={cn('size-1.5 rounded-full shrink-0', getDotColor(p))} />
-        <span className="truncate flex-1 text-[hsl(var(--admin-on-surface))]">
+        <span className={cn('size-1.5 rounded-full shrink-0', getDotColor(p as any))} />
+        <span className="truncate flex-1 text-foreground">
           {p.is_placeholder ? p.reserved_for ?? 'Slot kosong' : p.title}
         </span>
       </button>
@@ -239,41 +240,41 @@ export function CalendarView({
         <div className="flex items-center gap-3">
           <button
             onClick={prevMonth}
-            className="w-9 h-9 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full border border-border/40 bg-card flex items-center justify-center text-foreground hover:bg-muted transition-colors cursor-pointer"
             aria-label="Previous month"
           >
             <Icons.chevronLeft className="size-4" />
           </button>
           <div className="flex items-center gap-2 min-w-44 justify-center">
-            <Icons.calendar_month className="size-4 text-[hsl(var(--admin-outline))]" />
-            <h2 className="text-lg font-syne font-bold tracking-tight text-[hsl(var(--admin-on-surface))]">
+            <Icons.calendar_month className="size-4 text-muted-foreground" />
+            <h2 className="text-lg font-syne font-bold tracking-tight text-foreground">
               {MONTH_NAMES[month]} {year}
             </h2>
           </div>
           <button
             onClick={nextMonth}
-            className="w-9 h-9 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full border border-border/40 bg-card flex items-center justify-center text-foreground hover:bg-muted transition-colors cursor-pointer"
             aria-label="Next month"
           >
             <Icons.chevronRight className="size-4" />
           </button>
           <button
             onClick={goToday}
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="admin-pill admin-pill-lime px-3.5 py-1.5 cursor-pointer"
           >
             Today
           </button>
         </div>
-        <div className="flex items-center gap-2 text-xs text-[hsl(var(--admin-outline))]">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="font-bold">{sortedPosts.length} posts</span>
-          <span className="text-[hsl(var(--brand-accent))] font-bold">+14% pace</span>
+          <span className="text-lime-500 font-bold">+14% pace</span>
         </div>
       </div>
 
       {/* Month View */}
       {viewMode === 'month' && (
         <DndContext id="frhm-calendar-dnd" sensors={sensors} onDragEnd={handleDragEnd}>
-          <div className="rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm p-4 sm:p-6">
+          <div className="admin-card p-4 sm:p-6">
             <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
               <div className="min-w-[680px]">
                 <div className="grid grid-cols-7 gap-1.5 text-center mb-2">
@@ -282,7 +283,7 @@ export function CalendarView({
                       key={d}
                       className={cn(
                         'text-[10px] font-bold uppercase tracking-wider py-2',
-                        idx >= 5 ? 'text-[hsl(var(--admin-outline))]' : 'text-[hsl(var(--admin-on-surface))]'
+                        idx >= 5 ? 'text-muted-foreground' : 'text-foreground'
                       )}
                     >
                       {d}
@@ -294,7 +295,7 @@ export function CalendarView({
                   {Array.from({ length: firstDayIndex }).map((_, idx) => (
                     <div
                       key={`empty-${idx}`}
-                      className="min-h-[7rem] rounded-xl bg-[hsl(var(--admin-surface-low))]/30 border border-transparent opacity-40"
+                      className="min-h-[7rem] rounded-xl bg-muted/30 border border-transparent opacity-40"
                     />
                   ))}
                   {Array.from({ length: totalDays }).map((_, idx) => {
@@ -320,16 +321,16 @@ export function CalendarView({
                             className={cn(
                               'text-xs font-bold rounded-full size-6 flex items-center justify-center',
                               isToday
-                                ? 'bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))]'
+                                ? 'bg-lime-400 text-[#1a1b22]'
                                 : isSelected
-                                ? 'bg-[hsl(var(--admin-cobalt))] text-white'
-                                : 'text-[hsl(var(--admin-outline))] group-hover:text-[hsl(var(--admin-on-surface))]'
+                                ? 'bg-blue-500 text-white'
+                                : 'text-muted-foreground group-hover:text-foreground'
                             )}
                           >
                             {day}
                           </span>
                           {dayPosts.length > 0 && (
-                            <span className="text-[9px] font-bold text-[hsl(var(--admin-outline))]">
+                            <span className="text-[9px] font-bold text-muted-foreground">
                               {dayPosts.length}
                             </span>
                           )}
@@ -337,7 +338,7 @@ export function CalendarView({
                         <div className="space-y-1 overflow-hidden w-full">
                           {dayPosts.slice(0, 2).map((p) => renderPostBadge(p))}
                           {dayPosts.length > 2 && (
-                            <p className="text-[9px] text-[hsl(var(--admin-outline))] font-medium text-center">
+                            <p className="text-[9px] text-muted-foreground font-medium text-center">
                               +{dayPosts.length - 2} more
                             </p>
                           )}
@@ -354,7 +355,7 @@ export function CalendarView({
 
       {/* Week View */}
       {viewMode === 'week' && (
-        <div className="rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm p-4 sm:p-6">
+        <div className="admin-card p-4 sm:p-6">
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map((d, i) => {
               const dayPosts = posts.filter((p) => {
@@ -369,33 +370,33 @@ export function CalendarView({
               return (
                 <div key={i} className="flex flex-col gap-2">
                   <div className="text-center">
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--admin-outline))]">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       {DAY_SHORT[i]}
                     </span>
                     <span
                       className={cn(
                         'inline-flex items-center justify-center size-7 rounded-full text-xs font-bold mt-1',
                         isToday
-                          ? 'bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))]'
-                          : 'text-[hsl(var(--admin-on-surface))]'
+                          ? 'bg-lime-400 text-[#1a1b22]'
+                          : 'text-foreground'
                       )}
                     >
                       {d.getDate()}
                     </span>
                   </div>
-                  <div className="space-y-1.5 min-h-[16rem] p-1.5 rounded-xl bg-[hsl(var(--admin-surface-lowest))]/50 border border-[hsl(var(--admin-outline-variant))]/30">
+                  <div className="space-y-1.5 min-h-[16rem] p-1.5 rounded-xl bg-card/50 border border-border/30">
                     {dayPosts.map((p) => (
                       <button
                         key={p.id}
                         type="button"
                         onClick={() => onSelectPost?.(p)}
-                        className="w-full text-left p-2 rounded-lg bg-[hsl(var(--admin-surface-lowest))]/80 border border-[hsl(var(--admin-outline-variant))]/30 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all"
+                        className="w-full text-left p-2 rounded-lg bg-card border border-border/40 hover:border-blue-500/50 transition-all shadow-sm"
                       >
                         <PlatformChip platform={p.platform} />
-                        <span className="block text-[11px] font-semibold text-[hsl(var(--admin-on-surface))] mt-1 line-clamp-2">
+                        <span className="block text-[11px] font-semibold text-foreground mt-1 line-clamp-2">
                           {p.title}
                         </span>
-                        <span className="block text-[9px] text-[hsl(var(--admin-outline))] mt-0.5">
+                        <span className="block text-[9px] text-muted-foreground mt-0.5">
                           {fmtTime(p.scheduled_at)}
                         </span>
                       </button>
@@ -410,23 +411,23 @@ export function CalendarView({
 
       {/* List / Gantt View */}
       {viewMode === 'list' && (
-        <div className="rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm p-6">
-          <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-4 mb-4">
+        <div className="admin-card p-6">
+          <div className="flex items-center justify-between border-b border-border/30 pb-4 mb-4">
             <div>
-              <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))]">
+              <h3 className="font-syne font-bold text-foreground">
                 Scheduled Flights (Month)
               </h3>
-              <p className="text-xs text-[hsl(var(--admin-outline))]">
+              <p className="text-xs text-muted-foreground">
                 {sortedPosts.length} posts in the dispatch timeline
               </p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-accent))]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-lime-500">
               +14% pace
             </span>
           </div>
           <div className="space-y-2">
             {sortedPosts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[hsl(var(--admin-outline))]">
+              <p className="py-8 text-center text-sm text-muted-foreground">
                 No posts match the current filter.
               </p>
             ) : (
@@ -435,18 +436,18 @@ export function CalendarView({
                   key={post.id}
                   type="button"
                   onClick={() => onSelectPost?.(post)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-lowest))]/60 border border-[hsl(var(--admin-outline-variant))]/30 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all text-left"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/40 hover:border-blue-500/50 transition-all text-left shadow-sm"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[hsl(var(--admin-surface-low))] flex items-center justify-center shrink-0">
-                    <Icons.clapperboard className="size-5 text-[hsl(var(--admin-cobalt))]" />
+                  <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center shrink-0">
+                    <Icons.clapperboard className="size-5 text-blue-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                    <span className="block text-xs font-bold text-foreground truncate">
                       {post.title}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
                       <PlatformChip platform={post.platform} />
-                      <span className="text-[10px] text-[hsl(var(--admin-outline))]">
+                      <span className="text-[10px] text-muted-foreground">
                         {new Date(post.scheduled_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -457,7 +458,7 @@ export function CalendarView({
                   </div>
                   <span
                     className={cn(
-                      'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0',
+                      'shrink-0',
                       STATUS_STYLES[post.status] ?? STATUS_STYLES.draft
                     )}
                   >
@@ -472,21 +473,21 @@ export function CalendarView({
 
       {/* Selected Day Panel (month view) */}
       {viewMode === 'month' && (
-        <div className="rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm flex flex-col">
-          <div className="p-4 border-b border-[hsl(var(--admin-outline-variant))]/30">
+        <div className="admin-card flex flex-col">
+          <div className="p-4 border-b border-border/30">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-syne font-bold text-sm text-[hsl(var(--admin-on-surface))]">
+                <h3 className="font-syne font-bold text-sm text-foreground">
                   {selectedDay ? `${selectedDay} ${MONTH_NAMES[month]} ${year}` : 'Select a date'}
                 </h3>
-                <p className="text-xs text-[hsl(var(--admin-outline))]">
+                <p className="text-xs text-muted-foreground">
                   {selectedDayPosts.length} posts scheduled
                 </p>
               </div>
               {role === 'admin' && selectedDay && onAddPost && (
                 <button
                   onClick={() => onAddPost(new Date(year, month, selectedDay))}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-[11px] font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  className="admin-pill admin-pill-lime px-3 py-1.5 cursor-pointer flex items-center gap-1"
                 >
                   <Icons.add className="size-3.5" />
                   Add slot
@@ -496,18 +497,18 @@ export function CalendarView({
           </div>
           <div className="flex-1 p-4 space-y-2 overflow-auto max-h-[32rem]">
             {!selectedDay ? (
-              <p className="py-8 text-center text-sm text-[hsl(var(--admin-outline))]">
+              <p className="py-8 text-center text-sm text-muted-foreground">
                 Click a date on the calendar to see its posts.
               </p>
             ) : selectedDayPosts.length === 0 ? (
               <div className="py-8 text-center space-y-2">
-                <p className="text-sm text-[hsl(var(--admin-outline))]">
+                <p className="text-sm text-muted-foreground">
                   No posts on this date.
                 </p>
                 {role === 'admin' && onAddPost && (
                   <button
                     onClick={() => onAddPost(new Date(year, month, selectedDay))}
-                    className="px-3 py-1.5 rounded-full border border-dashed border-[hsl(var(--admin-cobalt))]/50 text-[hsl(var(--admin-cobalt))] text-xs font-semibold hover:bg-[hsl(var(--admin-cobalt))]/5 transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-full border border-dashed border-blue-500/50 text-blue-500 text-xs font-semibold hover:bg-blue-500/5 transition-all cursor-pointer"
                   >
                     + Schedule post
                   </button>
@@ -519,22 +520,22 @@ export function CalendarView({
                   key={post.id}
                   type="button"
                   onClick={() => onSelectPost?.(post)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--admin-surface-lowest))]/60 border border-[hsl(var(--admin-outline-variant))]/30 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all text-left"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/40 hover:border-blue-500/50 transition-all text-left shadow-sm"
                 >
                   <div className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                    <span className="block text-xs font-bold text-foreground truncate">
                       {post.title}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
                       <PlatformChip platform={post.platform} />
-                      <span className="text-[10px] text-[hsl(var(--admin-outline))]">
+                      <span className="text-[10px] text-muted-foreground">
                         {fmtTime(post.scheduled_at)}
                       </span>
                     </div>
                   </div>
                   <span
                     className={cn(
-                      'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0',
+                      'shrink-0',
                       STATUS_STYLES[post.status] ?? STATUS_STYLES.draft
                     )}
                   >

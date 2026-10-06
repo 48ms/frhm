@@ -2,7 +2,9 @@ import { NavGroup, NavItem } from '@/types/nav';
 
 export const adminNavStitch: NavItem[] = [
   { title: 'Overview', url: '/admin/dashboard', icon: 'dashboard' },
+  { title: 'Marketing ERP', url: '/admin/erp', icon: 'layers' },
   { title: 'Social Accounts', url: '/admin/social-accounts', icon: 'hub' },
+  { title: 'Composer', url: '/admin/composer', icon: 'rocket' },
   { title: 'Campaigns', url: '/admin/campaigns', icon: 'campaign' },
   { title: 'Content Calendar', url: '/admin/calendar', icon: 'calendar_month' },
   { title: 'Analytics', url: '/admin/analytics', icon: 'monitoring' },

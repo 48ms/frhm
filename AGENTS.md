@@ -90,8 +90,20 @@ Setiap fitur baru atau refactor wajib mematuhi pemisahan 3 lapis:
 - Prinsip wajib: Plan-Before-Execute, Test-Driven (80%+ coverage), Agent-First, Security-First (cek secrets/input/SQLi/XSS sebelum commit), Immutability.
 - Sebelum task dianggap selesai: wajib lewat verification-loop (test jalan + build pass + hasil konkret). Klaim "done" tanpa bukti = dilarang.
 
----
+### 14. Global Error Boundary & Observability
+- **Wajib Sentry/ErrorBoundary:** Jika Server Component atau pemanggilan API (Supabase) gagal, UI tidak boleh merender "White Screen of Death". Gunakan `<ErrorBoundary>` terpusat dengan *fallback UI* yang elegan dan rekam *stack trace* (misal via Sentry) secara senyap.
 
+### 15. Manajemen Environment & Rahasia (Security-First)
+- **Zod Env Validation (`t3-env`):** Dilarang keras mengakses `process.env` tanpa validasi. Seluruh *environment variables* wajib melewati skema Zod.
+- Pisahkan secara mutlak token *public* (`NEXT_PUBLIC_`) dari *secret keys* (seperti token akses pihak ketiga). Dilarang membocorkan *secret* ke sisi klien.
+
+### 16. Mutasi Data (Optimistic UI Updates)
+- **Zero-Latency Feel:** Setiap kali ada mutasi data yang dipicu pengguna (contoh: hapus akun, sinkronisasi ulang), wajib mengimplementasikan **Optimistic Updates** melalui `onMutate` pada TanStack Query agar UI seketika bereaksi (0 ms) sebelum mendapat respons validasi dari Supabase di *background*.
+
+### 17. Desain Sistem & Konsistensi Tema
+- **Variabel CSS Dinamis:** Dilarang menggunakan warna *hardcoded* absolut Tailwind (seperti `bg-[#ff0000]` atau `bg-slate-900`). Seluruh pewarnaan wajib menggunakan variabel desain sistem HSL (misal: `bg-primary`, `text-muted-foreground`, `bg-card`) demi memastikan 100% kepatuhan pada adaptasi mode terang/gelap (Dark Mode) tanpa mengorbankan rasio kontras.
+
+---
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

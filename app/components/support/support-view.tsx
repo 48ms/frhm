@@ -6,10 +6,10 @@ import { SOCIAL_CLIENTS } from "@/components/social-accounts/social-data"
 import { toast } from "sonner"
 
 const STATUS_STYLES: Record<string, string> = {
-  Open: "bg-secondary-fixed text-on-secondary-fixed",
-  "In Progress": "bg-tertiary-fixed text-on-tertiary-fixed",
-  Resolved: "bg-primary-container text-on-surface",
-  Closed: "bg-surface-container-highest text-on-surface-variant",
+  Open: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  "In Progress": "bg-brand-accent/10 text-brand-accent",
+  Resolved: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  Closed: "bg-muted text-muted-foreground",
 }
 
 const FAQS = [
@@ -69,7 +69,7 @@ const TICKETS = [
 const CHANNELS = [
   {
     icon: "mail",
-    iconClass: "bg-secondary-fixed text-on-secondary-fixed",
+    iconClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     title: "Email Support",
     desc: "support@frhm.agency",
     meta: "Replies within 2 business hours",
@@ -77,7 +77,7 @@ const CHANNELS = [
   },
   {
     icon: "forum",
-    iconClass: "bg-primary-container text-on-surface",
+    iconClass: "bg-brand-accent/10 text-brand-accent",
     title: "Priority Live Chat",
     desc: "24/7 for Enterprise tier",
     meta: "Avg. wait under 3 minutes",
@@ -85,7 +85,7 @@ const CHANNELS = [
   },
   {
     icon: "menu_book",
-    iconClass: "bg-tertiary-fixed text-on-tertiary-fixed",
+    iconClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     title: "Knowledge Base",
     desc: "Guides & API references",
     meta: "120+ articles and playbooks",
@@ -124,21 +124,21 @@ export function SupportView() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold tracking-widest uppercase mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold tracking-widest uppercase mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             Help &amp; Support Center
           </div>
-          <h1 className="text-3xl font-bold text-on-surface tracking-tight">Support Center</h1>
-          <p className="text-sm text-on-surface-variant mt-1.5 max-w-3xl">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Support Center</h1>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-3xl">
             Get help with workspace configuration, publishing pipelines, and API integrations for{" "}
-            <span className="font-semibold text-on-surface">
+            <span className="font-semibold text-foreground">
               {activeClient?.name ?? "B2B Shell Reps"}
             </span>
             .
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-md px-3 py-2 rounded-full border border-outline-variant/30">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/40">
+          <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
           <span>All systems operational</span>
         </div>
       </div>
@@ -148,7 +148,7 @@ export function SupportView() {
         {CHANNELS.map((c) => (
           <div
             key={c.title}
-            className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex flex-col justify-between"
+            className="admin-card bg-card/90 backdrop-blur-2xl p-6 shadow-sm flex flex-col justify-between"
           >
             <div>
               <span
@@ -156,15 +156,15 @@ export function SupportView() {
               >
                 <span className="material-symbols-outlined text-[24px]">{c.icon}</span>
               </span>
-              <h3 className="text-lg font-bold text-on-surface">{c.title}</h3>
-              <p className="text-sm text-on-surface-variant mt-1">{c.desc}</p>
+              <h3 className="text-lg font-bold text-foreground">{c.title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{c.desc}</p>
             </div>
-            <div className="mt-6 pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-              <span className="text-xs text-on-surface-variant">{c.meta}</span>
+            <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{c.meta}</span>
               <button
                 type="button"
                 onClick={() => toast.info(`${c.title} — ${c.action} coming soon in this prototype.`)}
-                className="text-xs font-semibold text-secondary hover:underline"
+                className="text-xs font-semibold text-brand-accent hover:underline"
               >
                 {c.action}
               </button>
@@ -175,10 +175,10 @@ export function SupportView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* FAQ */}
-        <div className="lg:col-span-3 bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-          <div className="border-b border-outline-variant/20 pb-5 mb-6">
-            <h2 className="text-xl font-bold text-on-surface">Frequently Asked Questions</h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+        <div className="lg:col-span-3 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+          <div className="border-b border-border/60 pb-5 mb-6">
+            <h2 className="text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Quick answers to the most common workspace and publishing questions.
             </p>
           </div>
@@ -188,7 +188,7 @@ export function SupportView() {
               return (
                 <div
                   key={f.q}
-                  className="rounded-2xl bg-surface-container-low/40 border border-outline-variant/25 overflow-hidden"
+                  className="rounded-2xl bg-muted/40 border border-border/40 overflow-hidden"
                 >
                   <button
                     type="button"
@@ -196,9 +196,9 @@ export function SupportView() {
                     aria-expanded={isOpen}
                     className="w-full flex items-center justify-between gap-4 p-4 text-left"
                   >
-                    <span className="text-sm font-semibold text-on-surface">{f.q}</span>
+                    <span className="text-sm font-semibold text-foreground">{f.q}</span>
                     <span
-                      className={`material-symbols-outlined text-[20px] text-on-surface-variant transition-transform duration-200 ${
+                      className={`material-symbols-outlined text-[20px] text-muted-foreground transition-transform duration-200 ${
                         isOpen ? "rotate-180" : ""
                       }`}
                     >
@@ -206,7 +206,7 @@ export function SupportView() {
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-4 text-sm text-on-surface-variant leading-relaxed">
+                    <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
                       {f.a}
                     </div>
                   )}
@@ -217,16 +217,16 @@ export function SupportView() {
         </div>
 
         {/* Contact Form */}
-        <div className="lg:col-span-2 bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-          <div className="border-b border-outline-variant/20 pb-5 mb-6">
-            <h2 className="text-xl font-bold text-on-surface">Submit a Request</h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+        <div className="lg:col-span-2 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+          <div className="border-b border-border/60 pb-5 mb-6">
+            <h2 className="text-xl font-bold text-foreground">Submit a Request</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Our support team typically responds within 2 business hours.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface block" htmlFor="sup-subject">
+              <label className="text-sm font-semibold text-foreground block" htmlFor="sup-subject">
                 Subject
               </label>
               <input
@@ -235,19 +235,19 @@ export function SupportView() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Brief summary of the issue"
-                className="w-full h-12 px-5 rounded-full bg-surface-container-low/60 border border-outline-variant/40 text-sm text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
+                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus:outline-none transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface block" htmlFor="sup-priority">
+              <label className="text-sm font-semibold text-foreground block" htmlFor="sup-priority">
                 Priority
               </label>
               <select
                 id="sup-priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full h-12 px-5 rounded-full bg-surface-container-low/60 border border-outline-variant/40 text-sm text-on-surface focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:ring-2 focus:ring-brand-accent focus:outline-none cursor-pointer"
               >
                 <option>Low</option>
                 <option>Normal</option>
@@ -257,7 +257,7 @@ export function SupportView() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface block" htmlFor="sup-message">
+              <label className="text-sm font-semibold text-foreground block" htmlFor="sup-message">
                 Message
               </label>
               <textarea
@@ -266,13 +266,13 @@ export function SupportView() {
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
                 placeholder="Describe what happened, which client workspace is affected, and any steps to reproduce."
-                className="w-full px-5 py-3 rounded-2xl bg-surface-container-low/60 border border-outline-variant/40 text-sm text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary focus:outline-none transition-all resize-none"
+                className="w-full px-5 py-3 rounded-2xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus:outline-none transition-all resize-none"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 rounded-full bg-primary-container text-on-surface text-sm font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">send</span>
               Submit Request
@@ -282,18 +282,18 @@ export function SupportView() {
       </div>
 
       {/* Recent Tickets */}
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl rounded-2xl border border-outline-variant/30 p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 mb-6">
+      <div className="admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-on-surface">Your Recent Tickets</h2>
-            <p className="text-sm text-on-surface-variant mt-1">
+            <h2 className="text-xl font-bold text-foreground">Your Recent Tickets</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Track the status of requests raised by your agency team.
             </p>
           </div>
           <button
             type="button"
             onClick={() => toast.info("Ticket history export queued.")}
-            className="px-5 py-2.5 rounded-full bg-surface-container-lowest border border-outline-variant/40 text-on-surface text-sm font-semibold hover:bg-surface-container-high/40 transition-all flex items-center gap-2 self-start sm:self-auto"
+            className="px-5 py-2.5 rounded-full bg-muted border border-border/40 text-foreground text-sm font-semibold hover:bg-background transition-all flex items-center gap-2 self-start sm:self-auto"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
             Export History
@@ -303,7 +303,7 @@ export function SupportView() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-outline-variant/30 text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider">
+              <tr className="border-b border-border/40 text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
                 <th className="py-3 px-4">Ticket</th>
                 <th className="py-3 px-4">Subject</th>
                 <th className="py-3 px-4">Priority</th>
@@ -311,19 +311,19 @@ export function SupportView() {
                 <th className="py-3 px-4 text-right">Last Updated</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/20 text-sm">
+            <tbody className="divide-y divide-border/20 text-sm">
               {TICKETS.map((t) => (
-                <tr key={t.id} className="hover:bg-surface-container-low/30 transition-colors">
-                  <td className="py-4 px-4 font-mono text-xs text-on-surface-variant">{t.id}</td>
-                  <td className="py-4 px-4 font-semibold text-on-surface">{t.subject}</td>
+                <tr key={t.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="py-4 px-4 font-mono text-xs text-muted-foreground">{t.id}</td>
+                  <td className="py-4 px-4 font-semibold text-foreground">{t.subject}</td>
                   <td className="py-4 px-4">
                     <span
                       className={`text-xs font-semibold ${
                         t.priority === "High"
-                          ? "text-error"
+                          ? "text-red-500"
                           : t.priority === "Low"
-                            ? "text-on-surface-variant"
-                            : "text-on-surface"
+                            ? "text-muted-foreground"
+                            : "text-foreground"
                       }`}
                     >
                       {t.priority}
@@ -336,7 +336,7 @@ export function SupportView() {
                       {t.status}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-right text-xs text-on-surface-variant">
+                  <td className="py-4 px-4 text-right text-xs text-muted-foreground">
                     {t.updated}
                   </td>
                 </tr>

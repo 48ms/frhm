@@ -52,6 +52,7 @@ describe('PostDialog', () => {
           is_placeholder: false,
           reserved_for: null,
           reserved_until: null,
+          created_at: new Date().toISOString(),
         }}
       />
     )

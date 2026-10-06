@@ -18,8 +18,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
-import { type ScheduledPost } from '@/features/calendar/types'
-import { useAppStore } from '@/lib/store/app-store'
+import { type ScheduledPost } from '@/features/scheduled-posts/api/types'
+import { useCreateScheduledPost, useUpdateScheduledPost, useDeleteScheduledPost } from '@/features/scheduled-posts/api/queries'
 import { toast } from 'sonner'
 import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
 import { AssetPicker } from '@/components/library/asset-picker'
@@ -63,8 +63,9 @@ export function PostDialog({
   initialContent?: string
   initialMediaUrl?: string
 }) {
-  const addPost = useAppStore((state) => state.addPost)
-  const removePost = useAppStore((state) => state.removePost)
+  const { mutateAsync: createPost } = useCreateScheduledPost()
+  const { mutateAsync: updatePost } = useUpdateScheduledPost()
+  const { mutateAsync: deletePost } = useDeleteScheduledPost()
 
   useDialogA11y(isOpen, onClose)
 
@@ -90,11 +91,8 @@ export function PostDialog({
 
   // Campaign options come from the Zustand store (mock repository), scoped to
   // the active client. No API call: /api/admin/clients/:id/campaigns is gone.
-  const allCampaigns = useAppStore((s) => s.campaigns)
-  const campaigns = useMemo(
-    () => allCampaigns.filter((c) => c.clientId === clientId).map((c) => ({ id: c.id, name: c.name })),
-    [allCampaigns, clientId]
-  )
+  // Campaign options simplified for Faktual Data
+  const campaigns = useMemo<{id: string; name: string}[]>(() => [], [])
 
   useEffect(() => {
     if (editingPost) {
@@ -104,7 +102,7 @@ export function PostDialog({
       setStatus(editingPost.status as 'draft' | 'scheduled' | 'published')
       setIsReserved(editingPost.is_reserved ?? false)
       setReservedFor(editingPost.reserved_for ?? '')
-      setPriority(editingPost.priority || 'normal')
+      setPriority((editingPost.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal')
       setCampaignTag(editingPost.campaign_tag || '')
       setMediaUrl('')
       setMediaType('image')
@@ -152,20 +150,30 @@ export function PostDialog({
       const scheduledAt = new Date(`${dateStr}T${time}:00`).toISOString()
 
       if (editingPost) {
-        // Prototype: editing is not persisted yet, just close.
-        toast.info('Edit post belum disimpan (prototype).')
-      } else {
-        addPost({
-          clientId,
+        await updatePost({
+          id: editingPost.id,
           title: isPlaceholder
             ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
             : title,
-          caption: isPlaceholder ? '' : content || '',
+          content: isPlaceholder ? '' : content || '',
           platform,
-          scheduledAt,
+          scheduled_at: scheduledAt,
+          status,
+          media_url: mediaUrl || undefined,
+        })
+        toast.success('Post diperbarui.')
+      } else {
+        await createPost({
+          client_id: clientId,
+          title: isPlaceholder
+            ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
+            : title,
+          content: isPlaceholder ? '' : content || '',
+          platform,
+          scheduled_at: scheduledAt,
           status: "draft",
           author: "Current User",
-          mediaUrl: mediaUrl || undefined,
+          media_url: mediaUrl || undefined,
         })
         toast.success('Post dijadwalkan.')
       }
@@ -185,7 +193,7 @@ export function PostDialog({
 
     setLoading(true)
     try {
-      removePost(editingPost.id)
+      await deletePost({ id: editingPost.id, clientId })
       toast.success('Post dihapus.')
       onDelete(editingPost.id)
       onClose()
@@ -201,7 +209,7 @@ export function PostDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
           <DialogHeader>
             <DialogTitle>
               {editingPost

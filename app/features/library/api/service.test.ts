@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { uploadAsset, deleteAsset, listAssets, deleteAssets, tagAssets, reorderAssets } from '@/features/library/api/service'
+import { uploadAsset, deleteAsset, listAssets, tagAssets, reorderAssets } from '@/features/library/api/service'
 
 // Shared tracked rows.
 const inserted: Array<Record<string, unknown>> = []
@@ -19,7 +19,7 @@ function createAssetRow(row: Record<string, unknown>) {
 function mockSupabase() {
   const chain: Record<string, unknown> = {
     select: () => chain,
-    eq: (_field: string, value: unknown) => chain,
+    eq: () => chain,
     insert: (row: Record<string, unknown>) => {
       const asset = createAssetRow(row)
       inserted.push(asset)
@@ -52,7 +52,7 @@ vi.mock('@/lib/supabase/server', () => ({
 function mockServiceChain() {
   const chain = {
     select: () => chain,
-    eq: (_field: string, value: unknown) => chain,
+    eq: () => chain,
     insert: (row: Record<string, unknown>) => {
       const asset = createAssetRow(row)
       inserted.push(asset)

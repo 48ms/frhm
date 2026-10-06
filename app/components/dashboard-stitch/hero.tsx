@@ -3,26 +3,25 @@
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { parseAsString, useQueryState } from "nuqs"
 import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
 
 export function DashboardStitchHero() {
-  const { clients } = useActiveDashboard()
-  const [clientId, setClientId] = useQueryState("clientId", parseAsString.withDefault(clients[0]?.id ?? ""))
-  const client = clients.find((c) => c.id === clientId) ?? clients[0]
+  const { clients, clientId, setClientId } = useActiveDashboard()
+  // Safe client resolution: prefer explicit match, fall back to first available
+  const client = clients.find((c) => c.id === clientId) ?? clients[0] ?? { id: clientId, name: "Client" }
   const [pickerOpen, setPickerOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
 
   return (
     <>
-      <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-2xl border border-white/90 shadow-sm relative overflow-hidden group">
+      <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-card/90 backdrop-blur-2xl border border-border/40 shadow-sm relative overflow-hidden group">
         {/* Decorative blurred shapes */}
-        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-[hsl(var(--admin-cobalt))]/10 transform -rotate-12 pointer-events-none blur-lg" />
-        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-[hsl(var(--brand-accent))]/20 transform rotate-6 pointer-events-none blur-md" />
-        <div className="absolute right-10 top-5 text-[hsl(var(--brand-accent))] select-none pointer-events-none font-bold text-3xl">
+        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-brand-accent/10 transform -rotate-12 pointer-events-none blur-lg" />
+        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-brand-accent/20 transform rotate-6 pointer-events-none blur-md" />
+        <div className="absolute right-10 top-5 text-brand-accent select-none pointer-events-none font-bold text-3xl">
           ✦
         </div>
 
@@ -38,13 +37,13 @@ export function DashboardStitchHero() {
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[hsl(var(--admin-lavender-fixed))] text-[hsl(var(--admin-lavender))] text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[brand-accent/20] text-brand-accent text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--admin-lavender))] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
               <span>WORKSPACE ACTIVE</span>
               <span className="opacity-40">•</span>
-              <span className="text-[hsl(var(--admin-cobalt))] font-extrabold">
-                CLIENT: {client.shortName.toUpperCase()}
+              <span className="text-brand-accent font-extrabold">
+                CLIENT: {client.name.substring(0, 5).toUpperCase()}
               </span>
               <Icons.chevronDown
                 className={cn(
@@ -57,9 +56,9 @@ export function DashboardStitchHero() {
             {pickerOpen && (
               <div 
                 role="listbox"
-                className="absolute top-full left-0 mt-1.5 w-72 bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
+                className="absolute top-full left-0 mt-1.5 w-72 bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
               >
-                <div className="text-[10px] font-bold text-[hsl(var(--admin-outline))] px-2 py-1">
+                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
                   SWITCH ACTIVE CLIENT:
                 </div>
                 {clients.map((c) => (
@@ -74,19 +73,19 @@ export function DashboardStitchHero() {
                     className={cn(
                       "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
                       c.id === clientId
-                        ? "bg-[hsl(var(--brand-accent))]/15 border border-[hsl(var(--brand-accent))]/30"
-                        : "hover:bg-[hsl(var(--admin-surface-low))] border border-transparent"
+                        ? "bg-brand-accent/15 border border-brand-accent/30"
+                        : "hover:bg-muted border border-transparent"
                     )}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-[hsl(var(--admin-cobalt))] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                      {c.initials}
+                    <div className="w-7 h-7 rounded-lg bg-brand-accent text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="truncate leading-tight">
-                      <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                      <span className="block text-xs font-bold text-foreground truncate">
                         {c.name}
                       </span>
-                      <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
-                        {c.accounts.length} channels
+                      <span className="block text-[10px] text-muted-foreground">
+                        {c.channels?.length || 0} channels
                       </span>
                     </div>
                   </button>
@@ -95,10 +94,10 @@ export function DashboardStitchHero() {
             )}
           </div>
 
-          <h1 className="font-syne font-extrabold text-2xl md:text-3xl text-[hsl(var(--admin-on-surface))] tracking-tight">
+          <h1 className="font-syne font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
             Good day, Creator.
           </h1>
-          <p className="text-xs md:text-sm text-[hsl(var(--admin-outline))]">
+          <p className="text-xs md:text-sm text-muted-foreground">
             Managing real-time campaign acceleration &amp; audience velocity for{" "}
             {client.name}.
           </p>
@@ -107,14 +106,14 @@ export function DashboardStitchHero() {
         <div className="relative z-10 flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setExportOpen(true)}
-            className="px-4 py-2 rounded-full bg-white border border-[hsl(var(--admin-outline-variant))]/50 text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-full bg-white border border-border/50 text-foreground text-xs font-semibold hover:bg-muted/70 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Icons.ios_share className="size-4" />
             Export Report
           </button>
           <button
             onClick={() => setScheduleOpen(true)}
-            className="px-4 py-2 rounded-full bg-[hsl(var(--admin-cobalt))] text-white text-xs font-semibold hover:bg-[hsl(var(--admin-cobalt))]/90 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-full bg-brand-accent text-white text-xs font-semibold hover:bg-brand-accent/90 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <Icons.send className="size-4" />
             Schedule Post

@@ -1,18 +1,11 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import {
-  SOCIAL_CLIENTS,
   type SocialAccount,
   type SocialClient,
 } from "@/components/social-accounts/social-data"
-import {
-  CAMPAIGNS,
-  type Campaign,
-  type CampaignType,
-} from "@/components/campaigns/campaign-data"
-import { MOCK_SCHEDULED_POSTS } from "@/lib/mock-data"
 
-export type { Campaign, CampaignType }
+export type CampaignType = "campaign" | "promo" | "event"
 export type CampaignStatus = "Active" | "Scheduled" | "Completed" | "Draft"
 
 export type PostStatus =
@@ -43,19 +36,12 @@ export interface PipelinePost {
 type AccountRecord = SocialAccount & { clientId: string }
 
 interface AppStore {
-  campaigns: Campaign[]
   socialClients: SocialClient[]
   accounts: AccountRecord[]
   posts: PipelinePost[]
 
   // lifecycle
   reset: () => void
-
-  // campaign actions
-  addCampaign: (input: Omit<Campaign, "id" | "reach" | "posts" | "progress">) => void
-  updateCampaign: (id: string, patch: Partial<Omit<Campaign, "id">>) => void
-  removeCampaign: (id: string) => void
-  campaignByClient: (clientId: string) => Campaign[]
 
   // social account actions
   addSocialClient: (input: { name: string }) => void
@@ -116,72 +102,30 @@ function fansToK(fans: string): number {
 }
 
 function seedAccounts(): AccountRecord[] {
-  const out: AccountRecord[] = []
-  for (const client of SOCIAL_CLIENTS) {
-    for (const acc of client.accounts) out.push({ ...acc, clientId: client.id })
-  }
-  return out
+  return []
 }
 
 function seedPosts(): PipelinePost[] {
-  return MOCK_SCHEDULED_POSTS.map((p) => ({
-    id: p.id,
-    clientId: p.client_id,
-    title: p.title,
-    caption: p.campaign_tag ?? "",
-    platform: p.platform,
-    channel: p.platform,
-    status: "scheduled" as PostStatus,
-    scheduledAt: p.scheduled_at,
-    author: "Studio",
-  }))
-}
-
-function seedCampaigns(): Campaign[] {
-  return CAMPAIGNS.map((c) => ({ ...c }))
+  return []
 }
 
 function seedClients(): SocialClient[] {
-  return SOCIAL_CLIENTS.map((c) => ({ ...c, accounts: [...c.accounts] }))
+  return []
 }
 
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      campaigns: seedCampaigns(),
       socialClients: seedClients(),
       accounts: seedAccounts(),
       posts: seedPosts(),
 
       reset: () =>
         set({
-          campaigns: seedCampaigns(),
           socialClients: seedClients(),
           accounts: seedAccounts(),
           posts: seedPosts(),
         }),
-
-      /* campaigns */
-
-      addCampaign: (input) =>
-        set((state) => ({
-          campaigns: [
-            ...state.campaigns,
-            { ...input, id: uid("camp"), reach: "0", posts: 0, progress: 0 },
-          ],
-        })),
-
-      updateCampaign: (id, patch) =>
-        set((state) => ({
-          campaigns: state.campaigns.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-        })),
-
-      removeCampaign: (id) =>
-        set((state) => ({
-          campaigns: state.campaigns.filter((c) => c.id !== id),
-        })),
-
-      campaignByClient: (clientId) => get().campaigns.filter((c) => c.clientId === clientId),
 
       /* social accounts */
 

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { getBridgeKey } from '@/lib/bridge/config'
-import { listSocialAccounts, validatePost, createPost, toBridgePlatform } from '@/lib/bridge/woopsocial'
-import { getClientWooSocialProjectId } from '@/lib/bridge/client-project'
+import { getActivePlatforms, validatePost, createPost, toBridgePlatform } from '@/lib/bridge/ayrshare'
+import { getClientAyrshareProfileKey } from '@/lib/bridge/client-project'
 import { notifyAdminPublishStatus } from '@/lib/telegram/service'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 import { logger } from '@/lib/logger'
@@ -13,8 +13,7 @@ import { verifyCronSecret } from '@/lib/cron/auth'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
-  // Fail-closed cron auth: no secret configured = reject (never fall back to
-  // a guessable literal).
+  // Fail-closed cron auth
   const cronAuth = verifyCronSecret(process.env.CRON_SECRET, request.headers.get('authorization'))
   if (!cronAuth.ok) {
     logger.warn('cron.publish.rejected', { route: 'api/cron/publish', reason: cronAuth.reason })
@@ -27,20 +26,20 @@ export async function POST(request: Request) {
     request,
   })
 
-  // Kill-switch: if auto-publish is disabled, do nothing (Phase 13 feature flag)
+  // Kill-switch
   const autoPublishEnabled = await isFeatureEnabled('auto_publish_enabled')
   if (!autoPublishEnabled) {
     logger.info('Auto-publish disabled by feature flag — skipping cron run')
     return NextResponse.json({ message: 'Auto-publish is disabled', processed: 0 })
   }
 
-  // Use service role to bypass RLS for background job
   const supabase = createSupabaseServiceClient()
 
-  // Fetch posts due for publishing
+  // Fetch posts due for publishing (also fetch media_url if joined, but wait, schema doesn't have media_url inside scheduled_posts yet, or does it? Wait, migration 051 added media_url_to_scheduled_posts).
+  // I will just select media_url as well.
   const { data: duePosts, error } = await supabase
     .from('scheduled_posts')
-    .select('id, client_id, platform, title, content, scheduled_at, deliverable_id, publish_retry_count')
+    .select('id, client_id, platform, title, content, scheduled_at, deliverable_id, publish_retry_count, media_url')
     .eq('status', 'scheduled')
     .lte('scheduled_at', new Date().toISOString())
 
@@ -52,64 +51,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'No posts due for publishing', processed: 0 })
   }
 
-  const apiKey = await getBridgeKey()
+  // Use AYRSHARE API key
+  const apiKey = process.env.AYRSHARE_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: 'Bridge API Key missing' }, { status: 503 })
+    return NextResponse.json({ error: 'Ayrshare API Key missing' }, { status: 503 })
   }
 
-  // Group by client to avoid fetching social accounts multiple times
-  const clientAccountsCache: Record<string, { id: string; platform: string; [key: string]: unknown }[]> = {}
-
+  const clientAccountsCache: Record<string, string[]> = {}
   const results = []
 
   for (const post of duePosts) {
     try {
       const bridgePlatform = toBridgePlatform(post.platform)
       if (!bridgePlatform) {
-        throw new Error(`Platform ${post.platform} not supported by bridge`)
+        throw new Error(`Platform ${post.platform} not supported by Ayrshare`)
       }
 
-      // Ensure we have this client's connected accounts
+      // Fetch client profile key
+      const profileKey = await getClientAyrshareProfileKey(post.client_id)
+      if (!profileKey) {
+        throw new Error(`Client has no Ayrshare profileKey configured`)
+      }
+
       if (!clientAccountsCache[post.client_id]) {
-        // True multi-tenant isolation: fetch accounts scoped strictly to this client's project
-        const projectId = await getClientWooSocialProjectId(post.client_id)
-        if (!projectId) {
-          throw new Error(`Client has no WoopSocial project configured`)
-        }
-        
-        const accountsRes = await listSocialAccounts(apiKey, projectId)
+        const accountsRes = await getActivePlatforms(apiKey, profileKey)
         clientAccountsCache[post.client_id] = accountsRes.ok ? accountsRes.data : []
       }
 
-      const connected = clientAccountsCache[post.client_id].filter(
-        a => a.platform === bridgePlatform
-      )
-
-      if (connected.length === 0) {
-        throw new Error(`No connected accounts for platform: ${bridgePlatform}`)
+      const connected = clientAccountsCache[post.client_id].includes(bridgePlatform)
+      if (!connected) {
+        throw new Error(`Account not connected in Ayrshare for platform: ${bridgePlatform}`)
       }
 
       const text = post.content || post.title || ''
-      if (!text.trim()) {
-        throw new Error('Post content is empty')
+      if (!text.trim() && !post.media_url) {
+        throw new Error('Post content and media are both empty')
       }
 
       const postBody = {
-        content: [{ text, media: [] }],
-        schedule: { type: 'PUBLISH_NOW' },
-        socialAccounts: connected.map(a => ({
-          platform: a.platform,
-          socialAccountId: a.id,
-          postType: 'FEED'
-        }))
+        post: text,
+        platforms: [bridgePlatform],
+        mediaUrls: post.media_url ? [post.media_url] : undefined
       }
 
-      const val = await validatePost(apiKey, postBody)
+      const val = await validatePost(apiKey, postBody, profileKey)
       if (!val.ok || !val.data.isValid) {
         throw new Error('Bridge validation failed')
       }
 
-      const created = await createPost(apiKey, postBody)
+      const created = await createPost(apiKey, postBody, profileKey)
       if (!created.ok) {
         throw new Error(`Bridge creation failed: ${created.error}`)
       }

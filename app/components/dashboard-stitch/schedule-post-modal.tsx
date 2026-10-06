@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/lib/store/app-store"
-import type { SocialClient } from "@/components/social-accounts/social-data"
+import type { ClientWithChannels } from "@/features/social-accounts/api/types"
 
 const CHANNEL_ICON: Record<string, string> = {
   Instagram: "photo_camera",
@@ -21,11 +21,14 @@ export function SchedulePostModal({
   onScheduled,
 }: {
   open: boolean
-  client: SocialClient
+  client: ClientWithChannels | undefined
   onClose: () => void
   onScheduled?: (title: string) => void
 }) {
-  const channels = client.accounts.map((a) => a.platform)
+  // Guard: jangan render jika client belum tersedia atau channels tidak terdefinisi
+  // (race condition antara useSuspenseQuery dan modal mount)
+  const safeChannels = client?.channels ?? []
+  const channels = safeChannels.map((a) => a.platform)
   const [title, setTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [selected, setSelected] = useState<string[]>(channels.slice(0, 2))
@@ -50,10 +53,10 @@ export function SchedulePostModal({
     const t = setTimeout(() => {
       setPhase("done")
       schedulePost({
-        clientId: client.id,
+        clientId: client?.id ?? "",
         title: title.trim() || "Untitled post",
         caption: caption.trim() || "No caption",
-        channel: selected[0] ?? client.accounts[0]?.platform ?? "Instagram",
+        channel: selected[0] ?? client?.channels?.[0]?.platform ?? "Instagram",
         scheduledAt: when,
       })
       onScheduled?.(title.trim() || "Untitled post")
@@ -71,27 +74,27 @@ export function SchedulePostModal({
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-md"
+        className="absolute inset-0 bg-[foreground]/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={phase === "working" ? undefined : onClose}
       />
-      <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-[hsl(var(--admin-outline-variant))]/30 pb-3">
+      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center justify-between border-b border-border/30 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[hsl(var(--admin-cobalt))]/15 text-[hsl(var(--admin-cobalt))] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center">
               <Icons.send className="size-[18px]" />
             </div>
             <div>
-              <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-sm">
+              <h3 className="font-syne font-bold text-foreground text-sm">
                 Schedule a Post
               </h3>
-              <p className="text-[10px] text-[hsl(var(--admin-outline))]">
-                Publishing for {client.name}
+              <p className="text-[10px] text-muted-foreground">
+                Publishing for {client?.name ?? "Client"}
               </p>
             </div>
           </div>
           {phase !== "working" && (
             <button
-              className="p-1 rounded-full hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-outline))] transition-all cursor-pointer"
+              className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground transition-all cursor-pointer"
               onClick={onClose}
             >
               <Icons.close className="size-[18px]" />
@@ -100,16 +103,16 @@ export function SchedulePostModal({
         </div>
 
         {phase === "done" ? (
-          <div className="py-6 flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-[hsl(var(--brand-accent))]/20 flex items-center justify-center">
+          <div className="py-6 flex flex-col items-center text-center space-y-3 animate-in fade-in zoom-in-75 duration-300">
+            <div className="w-14 h-14 rounded-full bg-brand-accent/20 flex items-center justify-center">
               <Icons.circleCheck className="size-7 text-[#526600]" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">
+              <p className="text-sm font-bold text-foreground">
                 Post scheduled
               </p>
-              <p className="text-[11px] text-[hsl(var(--admin-outline))] mt-1">
-                <b className="text-[hsl(var(--admin-on-surface))]">
+              <p className="text-[11px] text-muted-foreground mt-1">
+                <b className="text-foreground">
                   {title.trim() || "Untitled post"}
                 </b>{" "}
                 will publish at {when} to {selected.length} channel
@@ -117,7 +120,7 @@ export function SchedulePostModal({
               </p>
             </div>
             <button
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold transition-all cursor-pointer"
               onClick={onClose}
             >
               <Icons.check className="size-4" />
@@ -125,34 +128,34 @@ export function SchedulePostModal({
             </button>
           </div>
         ) : (
-          <>
+          <div className="space-y-4 animate-in fade-in duration-300">
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Post Title
               </label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))]"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
                 placeholder="e.g. Spatial Identity Teaser #05"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Caption
               </label>
               <textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-low))] px-3 py-2 text-xs focus:border-[hsl(var(--admin-cobalt))] outline-none text-[hsl(var(--admin-on-surface))] resize-none"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
                 placeholder="Write the caption that will accompany this post…"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Channels
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -170,8 +173,8 @@ export function SchedulePostModal({
                       className={cn(
                         "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-semibold transition-all cursor-pointer",
                         on
-                          ? "border-[hsl(var(--admin-cobalt))] bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]"
-                          : "border-[hsl(var(--admin-outline-variant))]/40 text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))]"
+                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                          : "border-border/40 text-muted-foreground hover:text-foreground"
                       )}
                     >
                       {IconCmp ? <IconCmp className="size-3.5" /> : <Icons.hub className="size-3.5" />}
@@ -184,7 +187,7 @@ export function SchedulePostModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[hsl(var(--admin-on-surface))] mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Publish Time
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -195,8 +198,8 @@ export function SchedulePostModal({
                     className={cn(
                       "px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer",
                       when === t
-                        ? "border-[hsl(var(--admin-cobalt))] bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]"
-                        : "border-[hsl(var(--admin-outline-variant))]/40 text-[hsl(var(--admin-outline))] hover:text-[hsl(var(--admin-on-surface))]"
+                        ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                        : "border-border/40 text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {t}
@@ -207,14 +210,14 @@ export function SchedulePostModal({
 
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                 onClick={onClose}
               >
                 Cancel
               </button>
               <button
                 disabled={phase === "working" || selected.length === 0}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
                 onClick={() => setPhase("working")}
               >
                 {phase === "working" ? (
@@ -230,7 +233,7 @@ export function SchedulePostModal({
                 )}
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

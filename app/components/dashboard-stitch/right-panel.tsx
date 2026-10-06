@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
@@ -7,7 +7,6 @@ import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
 import { useAppStore } from "@/lib/store/app-store"
-import { useShallow } from "zustand/shallow"
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, setClientId, profile } = useActiveDashboard()
@@ -33,20 +32,20 @@ export function DashboardStitchConnectedHub() {
   return (
     <div className="space-y-6">
       {/* Connected Hub Panel */}
-      <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/90 shadow-sm transition-all">
-        <div className="space-y-3 border-b border-[hsl(var(--admin-outline-variant))]/30 pb-4">
+      <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all">
+        <div className="space-y-3 border-b border-border/30 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-syne font-bold text-lg text-[hsl(var(--admin-on-surface))]">
+              <h2 className="font-syne font-bold text-lg text-foreground">
                 Connected Hub
               </h2>
-              <p className="text-xs text-[hsl(var(--admin-outline))]">
+              <p className="text-xs text-muted-foreground">
                 {accounts.length} accounts connected
               </p>
             </div>
             <button
               onClick={() => setConnectOpen(true)}
-              className="w-8 h-8 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] flex items-center justify-center hover:scale-105 active:scale-90 transition-transform shadow-sm cursor-pointer"
+              className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center hover:scale-105 active:scale-90 transition-transform shadow-sm cursor-pointer"
               title="Connect New Account for Active Client"
             >
               <Icons.add className="size-5" />
@@ -64,28 +63,28 @@ export function DashboardStitchConnectedHub() {
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
-              className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-[hsl(var(--admin-surface-low))] border border-[hsl(var(--admin-outline-variant))]/40 hover:border-[hsl(var(--admin-cobalt))]/50 transition-all cursor-pointer shadow-sm group"
+              className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-muted border border-border/40 hover:border-brand-accent/50 transition-all cursor-pointer shadow-sm group"
             >
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-xl bg-[hsl(var(--admin-cobalt))] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                  {client.initials}
+                <div className="w-8 h-8 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                  {client.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="truncate leading-tight text-left">
-                  <span className="block text-[10px] font-bold text-[hsl(var(--admin-outline))]">
+                  <span className="block text-[10px] font-bold text-muted-foreground">
                     LINKED CLIENT ACCOUNT
                   </span>
-                  <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                  <span className="block text-xs font-bold text-foreground truncate">
                     {client.name}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0 pl-2">
-                <span className="px-2 py-0.5 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-brand-accent text-brand-accent-foreground text-[10px] font-bold">
                   SWITCH
                 </span>
                 <Icons.chevronDown
                   className={cn(
-                    "size-[18px] text-[hsl(var(--admin-outline))] group-hover:text-[hsl(var(--admin-on-surface))] transition-transform",
+                    "size-[18px] text-muted-foreground group-hover:text-foreground transition-transform",
                     pickerOpen && "rotate-180"
                   )}
                 />
@@ -95,9 +94,9 @@ export function DashboardStitchConnectedHub() {
             {pickerOpen && (
               <div 
                 role="listbox"
-                className="absolute top-full left-0 mt-1.5 w-full bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
+                className="absolute top-full left-0 mt-1.5 w-full bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
               >
-                <div className="text-[10px] font-bold text-[hsl(var(--admin-outline))] px-2 py-1">
+                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
                   SELECT MANAGED CLIENT:
                 </div>
                 {clients.map((c) => (
@@ -112,18 +111,18 @@ export function DashboardStitchConnectedHub() {
                     className={cn(
                       "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
                       c.id === clientId
-                        ? "bg-[hsl(var(--brand-accent))]/15 border border-[hsl(var(--brand-accent))]/30"
-                        : "hover:bg-[hsl(var(--admin-surface-low))] border border-transparent"
+                        ? "bg-brand-accent/15 border border-brand-accent/30"
+                        : "hover:bg-muted border border-transparent"
                     )}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-[hsl(var(--admin-cobalt))] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                      {c.initials}
+                    <div className="w-7 h-7 rounded-lg bg-brand-accent text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="truncate leading-tight">
-                      <span className="block text-xs font-bold text-[hsl(var(--admin-on-surface))] truncate">
+                      <span className="block text-xs font-bold text-foreground truncate">
                         {c.name}
                       </span>
-                      <span className="block text-[10px] text-[hsl(var(--admin-outline))]">
+                      <span className="block text-[10px] text-muted-foreground">
                         {c.accounts.length} channels
                       </span>
                     </div>
@@ -134,11 +133,11 @@ export function DashboardStitchConnectedHub() {
           </div>
 
           {/* Client Verification Note */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))]/70 border border-[hsl(var(--admin-outline-variant))]/30 text-xs text-[hsl(var(--admin-outline))]">
-            <Icons.check className="size-4 text-[hsl(var(--admin-cobalt))] shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/70 border border-border/30 text-xs text-muted-foreground">
+            <Icons.check className="size-4 text-brand-accent shrink-0" />
             <span className="truncate">
               Channels belong to{" "}
-              <b className="text-[hsl(var(--admin-on-surface))]">{client.shortName}</b>
+              <b className="text-foreground">{client.name.substring(0, 5)}</b>
             </span>
           </div>
         </div>
@@ -147,7 +146,7 @@ export function DashboardStitchConnectedHub() {
           {accounts.map((ch) => (
             <div
               key={ch.id}
-              className="flex items-center justify-between p-3.5 rounded-2xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/80 hover:bg-[hsl(var(--admin-surface-lowest))] hover:border-[hsl(var(--secondary))]/40 transition-all cursor-pointer group shadow-sm hover:shadow"
+              className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/60 border border-border/40 hover:bg-muted/50 hover:border-[hsl(var(--secondary))]/40 transition-all cursor-pointer group shadow-sm hover:shadow"
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
@@ -157,7 +156,7 @@ export function DashboardStitchConnectedHub() {
                   <Icons.hub className="size-5" />
                 </div>
                 <div>
-                  <h3 className="font-label-lg text-label-lg text-on-surface font-bold leading-tight group-hover:text-secondary transition-colors">
+                  <h3 className="font-label-lg text-label-lg text-foreground font-bold leading-tight group-hover:text-secondary transition-colors">
                     {ch.platform}
                   </h3>
                   <p className="font-body-sm text-body-sm text-outline">
@@ -169,7 +168,7 @@ export function DashboardStitchConnectedHub() {
                 <span className={cn(
                   "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-label-caps font-bold",
                   ch.status === "SYNCED" || ch.status === "LIVE_SYNC"
-                    ? "bg-primary-container text-on-primary-container"
+                    ? "bg-brand-accent/20 text-brand-accent"
                     : "bg-amber-500/10 text-amber-600"
                 )}>
                   {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
@@ -178,14 +177,14 @@ export function DashboardStitchConnectedHub() {
                   {ch.status.replace('_', ' ')}
                 </span>
                 {ch.fans && (
-                  <p className="font-body-sm text-body-sm text-on-surface font-semibold mt-1">
+                  <p className="font-body-sm text-body-sm text-foreground font-semibold mt-1">
                     {ch.fans}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => setDisconnectId(ch.id)}
-                className="ml-2 text-[hsl(var(--admin-outline))] hover:text-red-500 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                className="ml-2 text-muted-foreground hover:text-red-500 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                 title="Disconnect channel"
               >
                 <Icons.close className="size-3.5" />
@@ -195,7 +194,7 @@ export function DashboardStitchConnectedHub() {
 
           <button
             onClick={() => setConnectOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-[hsl(var(--admin-outline))]/30 text-[10px] font-bold tracking-widest text-[hsl(var(--admin-outline))] uppercase hover:bg-white/50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-[muted-foreground]/30 text-[10px] font-bold tracking-widest text-muted-foreground uppercase hover:bg-white/50 transition-all cursor-pointer"
           >
             <Icons.hub className="size-3.5" />
             Connect Channel to Client
@@ -204,34 +203,34 @@ export function DashboardStitchConnectedHub() {
       </div>
 
       {/* Studio Identity Card */}
-      <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm transition-all">
+      <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-[hsl(var(--admin-outline))] tracking-wider">
+          <span className="text-xs font-bold text-muted-foreground tracking-wider">
             STUDIO IDENTITY
           </span>
-          <span className="text-[hsl(var(--admin-cobalt))] text-xl font-bold">✦</span>
+          <span className="text-brand-accent text-xl font-bold">✦</span>
         </div>
         <div className="mt-4">
-          <span className="block font-syne font-extrabold text-2xl text-[hsl(var(--admin-on-surface))] tracking-tight leading-none">
-            {client.shortName.toUpperCase()}
+          <span className="block font-syne font-extrabold text-2xl text-foreground tracking-tight leading-none">
+            {client.name.substring(0, 5).toUpperCase()}
           </span>
-          <span className="block font-syne font-extrabold text-2xl text-[hsl(var(--admin-cobalt))] tracking-tight leading-none">
+          <span className="block font-syne font-extrabold text-2xl text-brand-accent tracking-tight leading-none">
             SPACE.
           </span>
         </div>
         <div className="pt-6">
-          <div className="p-3.5 rounded-2xl bg-[hsl(var(--admin-surface-low))]/60 border border-white/60 shadow-sm">
-            <p className="font-syne font-bold text-sm text-[hsl(var(--admin-on-surface))]">
+          <div className="p-3.5 rounded-2xl bg-muted/60 border border-border/40 shadow-sm">
+            <p className="font-syne font-bold text-sm text-foreground">
               Campaign Velocity: {profile.velocity}%
             </p>
-            <p className="text-xs text-[hsl(var(--admin-outline))] mt-0.5">
-              Multi-network algorithmic amplification active for {client.shortName}.
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Multi-network algorithmic amplification active for {client.name.substring(0, 5)}.
             </p>
             <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))]">
+              <span className="text-[10px] font-bold text-brand-accent">
                 STATUS: {profile.velocity >= 90 ? "ACCELERATING" : "STEADY"}
               </span>
-              <button className="px-2.5 py-0.5 rounded-full bg-[hsl(var(--admin-on-surface))] text-white text-[10px] font-semibold hover:bg-[hsl(var(--admin-cobalt))] cursor-pointer transition-colors">
+              <button className="px-2.5 py-0.5 rounded-full bg-[foreground] text-white text-[10px] font-semibold hover:bg-brand-accent cursor-pointer transition-colors">
                 Details
               </button>
             </div>
@@ -240,20 +239,20 @@ export function DashboardStitchConnectedHub() {
       </div>
 
       {/* AI Hooks Generator Launchpad */}
-      <div className="p-5 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm text-center">
-        <div className="w-10 h-10 mx-auto rounded-full bg-[hsl(var(--brand-accent))] flex items-center justify-center text-[hsl(var(--brand-accent-foreground))] shadow-sm mb-2.5">
+      <div className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm text-center">
+        <div className="w-10 h-10 mx-auto rounded-full bg-brand-accent flex items-center justify-center text-brand-accent-foreground shadow-sm mb-2.5">
           <Icons.sparkles className="size-5" />
         </div>
-        <h3 className="font-syne font-bold text-base text-[hsl(var(--admin-on-surface))]">
+        <h3 className="font-syne font-bold text-base text-foreground">
           Need AI Content Hooks?
         </h3>
-        <p className="text-xs text-[hsl(var(--admin-outline))] mt-1 max-w-xs mx-auto">
+        <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
           Generate 50 viral captions, hashtag clusters, and video concepts in seconds
-          for {client.shortName}.
+          for {client.name.substring(0, 5)}.
         </p>
         <button
           onClick={() => setAiOpen(true)}
-          className="mt-3.5 w-full py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:bg-[hsl(var(--brand-accent))]/80 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          className="mt-3.5 w-full py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:bg-brand-accent/80 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
         >
           <Icons.bot className="size-4" />
           Launch Studio AI
@@ -263,23 +262,23 @@ export function DashboardStitchConnectedHub() {
       {disconnectId && (
         <div className="fixed inset-0 z-[60] p-4 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-[hsl(var(--admin-on-surface))]/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-[foreground]/40 backdrop-blur-sm"
             onClick={() => setDisconnectId(null)}
           />
-          <div className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/80 p-5 shadow-2xl space-y-4 text-center">
+          <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 text-center">
             <div className="w-12 h-12 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-2">
               <Icons.warning className="size-6" />
             </div>
-            <h3 className="font-syne font-bold text-[hsl(var(--admin-on-surface))] text-lg">
+            <h3 className="font-syne font-bold text-foreground text-lg">
               Disconnect Channel?
             </h3>
-            <p className="text-sm text-[hsl(var(--admin-outline))]">
+            <p className="text-sm text-muted-foreground">
               Are you sure you want to disconnect this channel? Data syncing will stop immediately.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => setDisconnectId(null)}
-                className="flex-1 px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] text-[hsl(var(--admin-on-surface))] text-sm font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all shadow-sm cursor-pointer"
+                className="flex-1 px-4 py-2 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/70 transition-all shadow-sm cursor-pointer"
               >
                 Cancel
               </button>
