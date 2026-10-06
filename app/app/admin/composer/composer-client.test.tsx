@@ -10,6 +10,7 @@ import { ComposerClient } from './composer-client'
 const createPostMock = vi.fn()
 const pushMock = vi.fn()
 const activeDashboardMock = vi.fn()
+const generateCaptionMock = vi.fn()
 
 const CLIENT_ID = 'client-11111111-1111-1111-1111-111111111111'
 
@@ -26,7 +27,7 @@ vi.mock('@/features/scheduled-posts/api/queries', () => ({
 }))
 
 vi.mock('@/features/copilot/api/queries', () => ({
-  useGenerateCaption: () => ({ mutate: vi.fn(), isPending: false }),
+  useGenerateCaption: () => ({ mutate: (...args: unknown[]) => generateCaptionMock(...args), isPending: false }),
   useGenerateVideoScript: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRepurposeCrossPlatform: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
@@ -73,6 +74,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   createPostMock.mockResolvedValue({ id: 'post-1' })
   activeDashboardMock.mockReturnValue(DEFAULT_DASHBOARD)
+  generateCaptionMock.mockImplementation((_input: unknown, opts?: { onSuccess?: (d: unknown) => void }) => {
+    opts?.onSuccess?.({ caption: 'Caption hasil copilot' })
+  })
 })
 
 function renderWithProviders(ui: React.ReactElement) {
@@ -263,5 +267,80 @@ describe('ComposerClient', () => {
     
     // TikTok is "draft" and must not appear as a destination.
     expect(screen.queryByText('@taraju.tiktok')).not.toBeInTheDocument()
+  })
+
+  it('generates the Copilot caption for the FIRST connected channel, not a hardcoded platform', async () => {
+    // The regression this guards: handleGenerateCopilot used to send
+    // `platforms[0] || "Instagram"`. On step 1 `platforms` is always empty
+    // (platforms are picked on step 2), so every caption was authored for
+    // Instagram no matter where it would be published. Here the client's first
+    // connected channel is Twitter, so the caption must be generated for
+    // Twitter — proving the platform now derives from real channel data.
+    activeDashboardMock.mockReturnValue({
+      clientId: CLIENT_ID,
+      client: {
+        id: CLIENT_ID,
+        name: 'Taraju',
+        channels: [
+          { id: 'ch-x', platform: 'twitter', handle: '@taraju_id', status: 'terhubung', avatar_url: null },
+          { id: 'ch-ig', platform: 'instagram', handle: '@taraju', status: 'terhubung', avatar_url: null },
+        ],
+      },
+    })
+
+    renderWithProviders(<ComposerClient />)
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('e.g. Campaign Natal 2026'), {
+        target: { value: 'Thread peluncuran' },
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Generate AI Copilot'))
+    })
+
+    await waitFor(() => {
+      expect(generateCaptionMock).toHaveBeenCalledTimes(1)
+    })
+
+    const input = generateCaptionMock.mock.calls[0][0]
+    expect(input.platform).toBe('twitter')
+    expect(input.platform).not.toBe('Instagram')
+    expect(input.topic).toBe('Thread peluncuran')
+  })
+
+  it('uses the platform selected in the Copilot dropdown for caption generation', async () => {
+    renderWithProviders(<ComposerClient />)
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('e.g. Campaign Natal 2026'), {
+        target: { value: 'Promo IG' },
+      })
+    })
+
+    // Open the platform Select that sits next to the Copilot button.
+    const trigger = screen.getByRole('combobox')
+    await act(async () => {
+      fireEvent.click(trigger)
+    })
+
+    const option = await screen.findByRole('option', { name: 'twitter' })
+    await act(async () => {
+      // Base UI's SelectItem only commits a real mouse click when a
+      // pointerdown preceded it (it tracks allowMouseSelectionRef); a bare
+      // fireEvent.click is ignored.
+      fireEvent.pointerDown(option, { pointerType: 'mouse' })
+      fireEvent.click(option)
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Generate AI Copilot'))
+    })
+
+    await waitFor(() => {
+      expect(generateCaptionMock).toHaveBeenCalledTimes(1)
+    })
+    expect(generateCaptionMock.mock.calls[0][0].platform).toBe('twitter')
   })
 })

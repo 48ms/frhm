@@ -20,6 +20,13 @@ import { useGenerateCaption, useGenerateVideoScript, useRepurposeCrossPlatform }
 import { useCreateScheduledPost } from "@/features/scheduled-posts/api/queries"
 import type { GeneratedVideoScript } from "@/features/copilot/api/types"
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import Link from "next/link"
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -168,7 +175,7 @@ export function ComposerClient() {
     generateAI({
       clientId,
       topic: title,
-      platform: platforms[0] || "Instagram",
+      platform: platforms[0] || connectedChannels[0]?.platform?.toLowerCase() || "instagram",
       goal: "awareness",
     }, {
       onSuccess: (data) => {
@@ -380,7 +387,31 @@ export function ComposerClient() {
                   <div className="space-y-5">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <Label>Caption & Copywriting</Label>
+                        <div className="flex items-center gap-3">
+                          <Label>Caption & Copywriting</Label>
+                          <div className="w-[140px]">
+                            <Select 
+                              value={platforms[0] || (connectedChannels[0]?.platform ? connectedChannels[0].platform.toLowerCase() : "instagram")}
+                              onValueChange={(val) => {
+                                if (val && !platforms.includes(val)) {
+                                  setPlatforms([val])
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-7 text-xs">
+                                <SelectValue placeholder="Platform" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {connectedChannels.map(c => {
+                                  const plat = c.platform || "unknown"
+                                  return (
+                                    <SelectItem key={c.id} value={plat.toLowerCase()}>{plat}</SelectItem>
+                                  )
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                         <Button 
                           variant="outline" 
                           size="sm" 
