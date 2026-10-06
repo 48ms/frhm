@@ -343,4 +343,71 @@ describe('ComposerClient', () => {
     })
     expect(generateCaptionMock.mock.calls[0][0].platform).toBe('twitter')
   })
+
+  it('changing the Copilot platform dropdown does not drop platforms chosen in Step 2', async () => {
+    // The dropdown used to call setPlatforms([val]), which overwrote the whole
+    // selection. A user who picked 3 platforms and then retargeted the Copilot
+    // caption would silently lose 2 destinations at publish time. The dropdown
+    // now writes to a separate copilotPlatform state.
+    renderWithProviders(<ComposerClient />)
+
+    // Step 2: pick both connected channels.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    await waitFor(() => expect(screen.getByText('@taraju')).toBeInTheDocument())
+    await act(async () => {
+      fireEvent.click(screen.getByText('@taraju'))
+      fireEvent.click(screen.getByText('@taraju_id'))
+    })
+
+    // Back to step 1 and retarget the Copilot dropdown.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Kembali'))
+    })
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('e.g. Campaign Natal 2026'), {
+        target: { value: 'Promo' },
+      })
+    })
+
+    const trigger = screen.getByRole('combobox')
+    await act(async () => {
+      fireEvent.click(trigger)
+    })
+    const option = await screen.findByRole('option', { name: 'twitter' })
+    await act(async () => {
+      fireEvent.pointerDown(option, { pointerType: 'mouse' })
+      fireEvent.click(option)
+    })
+
+    // Copilot itself must use the dropdown's platform.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Generate AI Copilot'))
+    })
+    await waitFor(() => expect(generateCaptionMock).toHaveBeenCalledTimes(1))
+    expect(generateCaptionMock.mock.calls[0][0].platform).toBe('twitter')
+
+    // ...and Step 2's selection must survive: advance to scheduling and publish.
+    // If the dropdown had clobbered `platforms`, the publish guard would reject
+    // the run (it requires platforms.length > 0) and no post would be created.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    const { date, time } = futureDateTime()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Tanggal Tayang'), { target: { value: date } })
+      fireEvent.change(screen.getByLabelText('Waktu Tayang'), { target: { value: time } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    await waitFor(() => expect(screen.getByText('Siap Meluncur!')).toBeInTheDocument())
+    await act(async () => {
+      fireEvent.click(screen.getByText('Jadwalkan & Publish Otomatis'))
+    })
+    await waitFor(() => expect(createPostMock).toHaveBeenCalledTimes(2))
+  })
 })

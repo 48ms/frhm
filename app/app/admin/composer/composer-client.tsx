@@ -55,6 +55,7 @@ export function ComposerClient() {
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [copilotPlatform, setCopilotPlatform] = useState<string | null>(null)
   const [mediaUrl, setMediaUrl] = useState("")
   const [mediaType, setMediaType] = useState<AssetFileType>("image")
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -175,7 +176,11 @@ export function ComposerClient() {
     generateAI({
       clientId,
       topic: title,
-      platform: platforms[0] || connectedChannels[0]?.platform?.toLowerCase() || "instagram",
+      platform:
+        copilotPlatform ||
+        platforms[0] ||
+        connectedChannels[0]?.platform?.toLowerCase() ||
+        "instagram",
       goal: "awareness",
     }, {
       onSuccess: (data) => {
@@ -390,12 +395,16 @@ export function ComposerClient() {
                         <div className="flex items-center gap-3">
                           <Label>Caption & Copywriting</Label>
                           <div className="w-[140px]">
-                            <Select 
-                              value={platforms[0] || (connectedChannels[0]?.platform ? connectedChannels[0].platform.toLowerCase() : "instagram")}
+                            <Select
+                              value={
+                                copilotPlatform ||
+                                platforms[0] ||
+                                (connectedChannels[0]?.platform
+                                  ? connectedChannels[0].platform.toLowerCase()
+                                  : "instagram")
+                              }
                               onValueChange={(val) => {
-                                if (val && !platforms.includes(val)) {
-                                  setPlatforms([val])
-                                }
+                                if (val) setCopilotPlatform(val)
                               }}
                             >
                               <SelectTrigger className="h-7 text-xs">
