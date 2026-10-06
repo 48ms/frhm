@@ -1,10 +1,11 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import type { 
-  ScheduledPost, 
+import {
+  ScheduledPost,
   CreateScheduledPostInput,
-  UpdateScheduledPostInput
+  UpdateScheduledPostInput,
+  CreateScheduledPostSchema,
 } from "./types"
 
 export async function getScheduledPostsByClient(clientId: string): Promise<ScheduledPost[]> {
@@ -39,10 +40,17 @@ export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
 }
 
 export async function createScheduledPost(input: CreateScheduledPostInput): Promise<ScheduledPost> {
+  // Server-side validation: reject malformed input before hitting Supabase.
+  // Without this, a missing client_id or invalid status would reach the DB
+  // and rely solely on RLS — which only catches tenant leakage, not schema
+  // corruption. Zod parse throws with a descriptive error if the shape is
+  // wrong, keeping bad data out of scheduled_posts.
+  const safe = CreateScheduledPostSchema.parse(input)
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("scheduled_posts")
-    .insert([input])
+    .insert([safe])
     .select()
     .single()
 
