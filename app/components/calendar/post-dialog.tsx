@@ -9,6 +9,17 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -92,6 +103,10 @@ export function PostDialog({
   // Content Planning fields
   const [priority, setPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal')
   const [campaignTag, setCampaignTag] = useState('')
+
+  // Destructive-action confirmation (replaces the native blocking confirm()
+  // dialog, which is not keyboard/screen-reader friendly and cannot be styled).
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const { data: fetchedCampaigns } = useQuery(campaignQueries.listByClient(clientId))
   const campaigns = fetchedCampaigns || []
@@ -191,8 +206,6 @@ export function PostDialog({
 
   const handleDelete = async () => {
     if (!editingPost || !onDelete) return
-    if (!confirm('Yakin ingin menghapus jadwal postingan ini?')) return
-
     setLoading(true)
     try {
       await deletePost({ id: editingPost.id, clientId })
@@ -481,15 +494,38 @@ export function PostDialog({
 
           <DialogFooter className="gap-2 sm:gap-0">
             {editingPost && onDelete && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-                className="mr-auto h-11 sm:h-9"
-              >
-                Hapus
-              </Button>
+              <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={loading}
+                    className="mr-auto h-11 sm:h-9"
+                  >
+                    Hapus
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus postingan?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tindakan ini akan menghapus postingan{' '}
+                      <strong>{editingPost?.title}</strong> secara permanen. Setelah dihapus,
+                      postingan tidak dapat dikembalikan.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={loading}
+                    >
+                      {loading ? 'Menghapus...' : 'Hapus'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-11 sm:h-9">
               Batal
