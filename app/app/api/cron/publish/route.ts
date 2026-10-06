@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
-import { getBridgeKey } from '@/lib/bridge/config'
 import { getActivePlatforms, validatePost, createPost, toBridgePlatform } from '@/lib/bridge/ayrshare'
 import { getClientAyrshareProfileKey } from '@/lib/bridge/client-project'
 import { notifyAdminPublishStatus } from '@/lib/telegram/service'
@@ -115,16 +114,20 @@ export async function POST(request: Request) {
         })
         .eq('id', post.id)
 
-      // Audit Log
-      await supabase.from('audit_log').insert({
-        actor_role: 'system',
-        actor_name: 'Cron Scheduler',
+      // Audit Log. Use the shared helper: it never throws, so a failed audit
+      // write cannot mark an already-published post as failed. Previously this
+      // was a direct insert inside the try block, where any audit error would
+      // bubble to the catch and flip a successful publish back to retry/failed.
+      void logAudit({
+        actorRole: 'system',
+        actorName: 'Cron Scheduler',
         action: 'scheduled_post.auto_publish',
-        entity_type: 'scheduled_post',
-        entity_id: post.id,
-        client_id: post.client_id,
+        entityType: 'scheduled_post',
+        entityId: post.id,
+        clientId: post.client_id,
         summary: `Sistem otomatis mempublish "${post.title}" ke ${post.platform}`,
-        metadata: { external_id: createdData?.id }
+        metadata: { external_id: createdData?.id },
+        request,
       })
 
       results.push({ id: post.id, success: true })

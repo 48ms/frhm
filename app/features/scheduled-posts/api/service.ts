@@ -33,7 +33,7 @@ export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
 
   if (error) {
     console.error("Error fetching all scheduled posts:", error)
-    return []
+    throw new Error("Gagal mengambil data seluruh postingan")
   }
 
   return (data || []) as ScheduledPost[]
