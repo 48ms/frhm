@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
 import { type ScheduledPost } from '@/features/scheduled-posts/api/types'
 import { useCreateScheduledPost, useUpdateScheduledPost, useDeleteScheduledPost } from '@/features/scheduled-posts/api/queries'
+import { useCurrentUser } from '@/lib/auth/use-current-user'
 import { toast } from 'sonner'
 import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
 import { AssetPicker } from '@/components/library/asset-picker'
@@ -66,6 +67,7 @@ export function PostDialog({
   initialMediaUrl?: string
 }) {
   const { mutateAsync: createPost } = useCreateScheduledPost()
+  const { authorName } = useCurrentUser()
   const { mutateAsync: updatePost } = useUpdateScheduledPost()
   const { mutateAsync: deletePost } = useDeleteScheduledPost()
 
@@ -172,7 +174,7 @@ export function PostDialog({
           platform,
           scheduled_at: scheduledAt,
           status: "draft",
-          author: "Current User",
+          author: authorName,
           media_url: mediaUrl || undefined,
         })
         toast.success('Post dijadwalkan.')

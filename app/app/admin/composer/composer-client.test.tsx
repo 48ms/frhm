@@ -1,0 +1,267 @@
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ComposerClient } from './composer-client'
+
+// ---------------------------------------------------------------------------
+// Mocks 
+// ---------------------------------------------------------------------------
+
+const createPostMock = vi.fn()
+const pushMock = vi.fn()
+const activeDashboardMock = vi.fn()
+
+const CLIENT_ID = 'client-11111111-1111-1111-1111-111111111111'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
+}))
+
+vi.mock('@/components/dashboard-stitch/dashboard-data', () => ({
+  useActiveDashboard: () => activeDashboardMock(),
+}))
+
+vi.mock('@/features/scheduled-posts/api/queries', () => ({
+  useCreateScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => createPostMock(...args) }),
+}))
+
+vi.mock('@/features/copilot/api/queries', () => ({
+  useGenerateCaption: () => ({ mutate: vi.fn(), isPending: false }),
+  useGenerateVideoScript: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRepurposeCrossPlatform: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
+vi.mock('@/lib/auth/use-current-user', () => ({
+  useCurrentUser: () => ({
+    user: { email: 'dheia.buleud@gmail.com' },
+    loading: false,
+    authorName: 'Dheia Buleud',
+  }),
+}))
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}))
+
+vi.mock('motion/react', () => ({
+  motion: { div: ({ children, ...props }: any) => <div {...props}>{children}</div>, path: 'path' },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}))
+
+const DEFAULT_DASHBOARD = {
+  clientId: CLIENT_ID,
+  client: {
+    id: CLIENT_ID,
+    name: 'Taraju',
+    contact_email: null,
+    contact_phone: null,
+    brand_profile: null,
+    created_at: '2026-09-01T00:00:00.000Z',
+    updated_at: '2026-09-01T00:00:00.000Z',
+    channels: [
+      { id: 'ch-ig', platform: 'instagram', handle: '@taraju', status: 'terhubung', avatar_url: null },
+      { id: 'ch-x', platform: 'twitter', handle: '@taraju_id', status: 'terhubung', avatar_url: null },
+      { id: 'ch-tt', platform: 'tiktok', handle: '@taraju.tiktok', status: 'draft', avatar_url: null },
+    ],
+  },
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  createPostMock.mockResolvedValue({ id: 'post-1' })
+  activeDashboardMock.mockReturnValue(DEFAULT_DASHBOARD)
+})
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
+
+function futureDateTime() {
+  const d = new Date(Date.now() + 60 * 60 * 1000)
+  // Build the date from LOCAL components, matching how the component reads
+  // the two inputs back (`new Date(`${date}T${time}:00`)`). Using
+  // toISOString() here would emit the UTC date and desync the two fields
+  // in any non-UTC timezone (e.g. WIB, UTC+7), failing the "2 minutes ahead"
+  // guard.
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return { date, time }
+}
+
+function localDateTime(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  }
+}
+
+describe('ComposerClient', () => {
+  it('shows connect-accounts CTA when no channel is connected', async () => {
+    activeDashboardMock.mockReturnValue({
+      clientId: CLIENT_ID,
+      client: { id: CLIENT_ID, name: 'Taraju', channels: [] },
+    })
+    
+    renderWithProviders(<ComposerClient />)
+    
+    await waitFor(() => {
+      expect(screen.getByText(/Akun Belum Terhubung/i)).toBeInTheDocument()
+    })
+  })
+
+  it('creates one scheduled post per selected platform using the real author identity', async () => {
+    renderWithProviders(<ComposerClient />)
+
+    // Step 1: title + content
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('e.g. Campaign Natal 2026'), {
+        target: { value: 'Campaign Natal 2026' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('Tulis pesan brilian Anda di sini, atau gunakan AI Copilot...'), {
+        target: { value: 'Caption promo akhir tahun' },
+      })
+    })
+
+    // Step 2: select platforms
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    await waitFor(() => {
+      expect(screen.getByText('@taraju')).toBeInTheDocument()
+    })
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText('@taraju'))
+      fireEvent.click(screen.getByText('@taraju_id'))
+    })
+
+    // Step 3: schedule
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    const { date, time } = futureDateTime()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Tanggal Tayang'), { target: { value: date } })
+      fireEvent.change(screen.getByLabelText('Waktu Tayang'), { target: { value: time } })
+    })
+
+    // Step 4: publish
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    await waitFor(() => {
+      expect(screen.getByText('Siap Meluncur!')).toBeInTheDocument()
+    })
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText('Jadwalkan & Publish Otomatis'))
+    })
+
+    await waitFor(() => {
+      expect(createPostMock).toHaveBeenCalledTimes(2)
+    })
+
+    const args = createPostMock.mock.calls.map((c) => c[0])
+    expect(args.every((a) => a.author === 'Dheia Buleud')).toBe(true)
+    expect(args.map((a) => a.platform).sort()).toEqual(['instagram', 'twitter'])
+    expect(args.every((a) => a.client_id === CLIENT_ID)).toBe(true)
+    expect(args.every((a) => a.status === 'scheduled')).toBe(true)
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith(`/admin/calendar?clientId=${CLIENT_ID}`)
+    })
+  })
+
+  it('blocks scheduling when required fields are missing', async () => {
+    renderWithProviders(<ComposerClient />)
+
+    // Skip to step 4 without filling anything
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+      fireEvent.click(screen.getByText('Selanjutnya'))
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText('Jadwalkan & Publish Otomatis'))
+    })
+
+    await waitFor(() => {
+      expect(createPostMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it('blocks scheduling closer than 2 minutes from now', async () => {
+    renderWithProviders(<ComposerClient />)
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('e.g. Campaign Natal 2026'), {
+        target: { value: 'Campaign Natal 2026' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('Tulis pesan brilian Anda di sini, atau gunakan AI Copilot...'), {
+        target: { value: 'Caption promo' },
+      })
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    // Select platform
+    await waitFor(() => {
+      expect(screen.getByText('@taraju')).toBeInTheDocument()
+    })
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText('@taraju'))
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    const now = new Date()
+    const { date: nowDate, time: nowTime } = localDateTime(now)
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Tanggal Tayang'), {
+        target: { value: nowDate },
+      })
+      fireEvent.change(screen.getByLabelText('Waktu Tayang'), {
+        target: { value: nowTime },
+      })
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    await waitFor(() => {
+      expect(screen.getByText('Siap Meluncur!')).toBeInTheDocument()
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Jadwalkan & Publish Otomatis'))
+    })
+
+    await waitFor(() => {
+      expect(createPostMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it('only lists channels with status "terhubung" as publish destinations', async () => {
+    renderWithProviders(<ComposerClient />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+    
+    await waitFor(() => {
+      expect(screen.getByText('@taraju')).toBeInTheDocument()
+      expect(screen.getByText('@taraju_id')).toBeInTheDocument()
+    })
+    
+    // TikTok is "draft" and must not appear as a destination.
+    expect(screen.queryByText('@taraju.tiktok')).not.toBeInTheDocument()
+  })
+})

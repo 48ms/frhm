@@ -51,6 +51,9 @@ export const PLATFORMS: Record<string, { name: string; color: string; bg: string
   youtube: { name: 'YouTube', color: 'text-red-600', bg: 'bg-[#ba1a1a]', icon: 'smart_display' },
   facebook: { name: 'Facebook', color: 'text-blue-700', bg: 'bg-[hsl(var(--admin-cobalt))]', icon: 'thumb_up' },
   x: { name: 'Twitter / X', color: 'text-neutral-900 dark:text-neutral-100', bg: 'bg-[hsl(var(--admin-on-surface))]', icon: 'twitter' },
+  // Alias: Ayrshare/Cron bridge normalizes to "twitter", but the UI exposes X as "x".
+  // Mapping both names ensures PlatformChip / PlatformIcon resolve to the same visual.
+  twitter: { name: 'Twitter / X', color: 'text-neutral-900 dark:text-neutral-100', bg: 'bg-[hsl(var(--admin-on-surface))]', icon: 'twitter' },
 }
 
 export const STATUS_DOT: Record<string, Record<string, string>> = {
@@ -60,6 +63,8 @@ export const STATUS_DOT: Record<string, Record<string, string>> = {
   youtube: { published: 'bg-red-600', scheduled: 'bg-red-500', draft: 'bg-red-300', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
   facebook: { published: 'bg-blue-700', scheduled: 'bg-blue-600', draft: 'bg-blue-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
   x: { published: 'bg-neutral-800 dark:bg-neutral-200', scheduled: 'bg-neutral-600', draft: 'bg-neutral-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
+  // Mirror of "x" for posts stored with the Ayrshare-normalized name "twitter".
+  twitter: { published: 'bg-neutral-800 dark:bg-neutral-200', scheduled: 'bg-neutral-600', draft: 'bg-neutral-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
 }
 
 export const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {

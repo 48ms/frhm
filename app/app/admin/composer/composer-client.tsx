@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useAppStore } from "@/lib/store/app-store"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { useCurrentUser } from "@/lib/auth/use-current-user"
 import { PlatformIcon } from "@/components/calendar/platform-icon"
 import { toast } from "sonner"
 import { AssetPicker } from "@/components/library/asset-picker"
@@ -40,6 +41,7 @@ const STEPS = [
 export function ComposerClient() {
   const router = useRouter()
   const { clientId, client: activeClient } = useActiveDashboard()
+  const { authorName } = useCurrentUser()
   
   const { mutateAsync: createPost } = useCreateScheduledPost()
 
@@ -257,7 +259,7 @@ export function ComposerClient() {
           platform: p,
           scheduled_at: scheduledAt,
           status: "scheduled",
-          author: "Admin User",
+          author: authorName,
           media_url: mediaUrl || undefined,
         })
       }
@@ -683,8 +685,9 @@ export function ComposerClient() {
               >
                  <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>Tanggal Tayang</Label>
+                    <Label htmlFor="date-tayang">Tanggal Tayang</Label>
                     <Input
+                      id="date-tayang"
                       type="date"
                       value={dateStr}
                       min={todayStr}
@@ -693,8 +696,9 @@ export function ComposerClient() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Waktu Tayang</Label>
+                    <Label htmlFor="time-tayang">Waktu Tayang</Label>
                     <Input
+                      id="time-tayang"
                       type="time"
                       value={timeStr}
                       onChange={(e) => setTimeStr(e.target.value)}

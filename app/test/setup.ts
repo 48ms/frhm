@@ -1,6 +1,22 @@
 import '@testing-library/jest-dom/vitest'
 import { beforeEach, vi } from 'vitest'
 
+// The browser Supabase client requires NEXT_PUBLIC_SUPABASE_URL/KEY at
+// construction time and throws otherwise. Component tests run without those
+// env vars, so stub the client module globally: components that read the
+// current user (e.g. via useCurrentUser) get an anonymous, offline client
+// instead of crashing on render.
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
+      }),
+    },
+  }),
+}))
+
 // jsdom lacks these browser APIs that Radix UI (shadcn Dialog/Select) needs.
 // Without them, rendering any Radix-based dialog throws "ResizeObserver is not
 // defined" or a matchMedia error inside the test runner.

@@ -10,6 +10,20 @@ export const BRIDGE_PLATFORMS = [
 
 export type BridgePlatform = (typeof BRIDGE_PLATFORMS)[number]
 
+/**
+ * Frahma platform names that differ from the Ayrshare bridge name.
+ * The UI exposes X as "x" (features/calendar/types.ts), but Ayrshare expects
+ * "twitter". Without this map, posts stored with platform "x" fail
+ * permanently in the publish cron ("Platform x not supported by Ayrshare").
+ */
+const PLATFORM_ALIASES: Record<string, BridgePlatform> = {
+  x: 'twitter',
+  'x (twitter)': 'twitter',
+  threads: 'twitter',
+  shorts: 'youtube',
+  reels: 'instagram',
+}
+
 export type BridgeResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; status?: number }
@@ -104,9 +118,9 @@ export async function createPost(
 }
 
 export function toBridgePlatform(frahmaPlatform: string): BridgePlatform | null {
-  const lower = frahmaPlatform.toLowerCase() as any
-  if (BRIDGE_PLATFORMS.includes(lower)) return lower
-  return null
+  const lower = frahmaPlatform.toLowerCase()
+  if (BRIDGE_PLATFORMS.includes(lower as BridgePlatform)) return lower as BridgePlatform
+  return PLATFORM_ALIASES[lower] ?? null
 }
 
 /**
