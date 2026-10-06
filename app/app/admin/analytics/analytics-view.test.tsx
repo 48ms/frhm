@@ -61,7 +61,19 @@ vi.mock('@/features/analytics/api/queries', () => ({
     }),
     listSummariesByClient: (clientId: string) => ({
       queryKey: ['analytics', 'summaries', clientId],
-      queryFn: async () => [],
+      queryFn: async () => [
+        {
+          id: 'sum-1',
+          client_id: clientId,
+          campaign_tag: null,
+          period_start: '2026-01-01',
+          period_end: '2026-01-31',
+          ai_insight: 'Reach naik stabil pada periode ini.',
+          total_reach: 1200,
+          total_engagement: 80,
+          created_at: '2026-01-31T00:00:00Z',
+        },
+      ],
       enabled: Boolean(clientId),
     }),
   },
@@ -99,5 +111,21 @@ describe('AnalyticsView', () => {
   it('renders the campaign analytics section for the active client', () => {
     renderWithProviders(<AnalyticsView />)
     expect(screen.getByText('Semua Client')).toBeInTheDocument()
+  })
+
+  it('renders the factual ai_insight from analytics_summaries, not fabricated copy', async () => {
+    renderWithProviders(<AnalyticsView />)
+    expect(await screen.findByText('Reach naik stabil pada periode ini.')).toBeInTheDocument()
+  })
+
+  it('does not render fabricated statistics (no hardcoded 12% claim)', () => {
+    renderWithProviders(<AnalyticsView />)
+    expect(screen.queryByText(/12%/)).toBeNull()
+    expect(screen.queryByText(/dibandingkan bulan lalu/)).toBeNull()
+  })
+
+  it('does not claim an unsourced industry benchmark', () => {
+    renderWithProviders(<AnalyticsView />)
+    expect(screen.queryByText(/industry benchmark/i)).toBeNull()
   })
 })

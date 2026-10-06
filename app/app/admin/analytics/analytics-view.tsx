@@ -57,6 +57,13 @@ export function AnalyticsView() {
   })
   const allMetrics = metricsData ?? []
 
+  // Analytics summaries / AI insight faktual dari Supabase (analytics_summaries).
+  const { data: summariesData } = useQuery({
+    ...analyticsQueries.listSummariesByClient(clientId),
+    enabled: Boolean(clientId),
+  })
+  const latestSummary = summariesData?.[0]
+
   const clientsList = React.useMemo(
     () => clients.map((c) => ({ id: c.id, name: c.name })),
     [clients]
@@ -137,8 +144,7 @@ export function AnalyticsView() {
           <CardContent>
             <div className="text-2xl font-extrabold font-syne tracking-tight">{formatNumber(totals.reach)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-bold text-blue-600">0%</span>
-              <span>factual from metrics</span>
+              <span>Total jangkauan dari metrik tercatat</span>
             </p>
           </CardContent>
         </Card>
@@ -153,8 +159,7 @@ export function AnalyticsView() {
           <CardContent>
             <div className="text-2xl font-extrabold font-syne tracking-tight">{totals.engagementRate}%</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-bold text-violet-600">0%</span>
-              <span>industry benchmark</span>
+              <span>Interaksi dibagi jangkauan (metrik faktual)</span>
             </p>
           </CardContent>
         </Card>
@@ -169,8 +174,7 @@ export function AnalyticsView() {
           <CardContent>
             <div className="text-2xl font-extrabold font-syne tracking-tight">{formatNumber(totals.clicks)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-bold text-emerald-600">0%</span>
-              <span>click-through volume</span>
+              <span>Volume klik dari metrik tercatat</span>
             </p>
           </CardContent>
         </Card>
@@ -185,8 +189,7 @@ export function AnalyticsView() {
           <CardContent>
             <div className="text-2xl font-extrabold font-syne tracking-tight">{totals.inquiryRate}%</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-bold text-orange-600">0%</span>
-              <span>conversion lead-gen</span>
+              <span>Pertanyaan dibagi klik (metrik faktual)</span>
             </p>
           </CardContent>
         </Card>
@@ -206,21 +209,31 @@ export function AnalyticsView() {
               <div className="rounded-xl border border-border/40 bg-muted/30 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Icons.bot className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">FRHM AI ANALYSIS</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary">FAKTUAL AI INSIGHT</span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Berdasarkan data {allMetrics.length} postingan terakhir, kampanye Anda menunjukkan tren positif di platform utama. 
-                  Efektivitas konten video meningkat 12% dibandingkan bulan lalu.
+                  {latestSummary?.ai_insight || (
+                    allMetrics.length > 0 
+                      ? `Berdasarkan ${allMetrics.length} data metrik tercatat, total jangkauan (reach) mencapai ${formatNumber(totals.reach)} dengan tingkat interaksi ${totals.engagementRate}%.`
+                      : "Belum ada data metrik faktual tercatat untuk klien ini pada periode aktif."
+                  )}
                 </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-medium">
-                  <span className="text-muted-foreground">Goal Completion</span>
-                  <span className="text-foreground">0%</span>
+                  <span className="text-muted-foreground">Periode ringkasan</span>
+                  <span className="text-foreground">
+                    {latestSummary
+                      ? `${latestSummary.period_start} s.d. ${latestSummary.period_end}`
+                      : "Belum ada ringkasan"}
+                  </span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: "0%" }} />
-                </div>
+                {latestSummary && (
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="text-muted-foreground">Total reach ringkasan</span>
+                    <span className="text-foreground">{formatNumber(Number(latestSummary.total_reach) || 0)}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
