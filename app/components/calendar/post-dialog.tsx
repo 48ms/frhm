@@ -495,15 +495,17 @@ export function PostDialog({
           <DialogFooter className="gap-2 sm:gap-0">
             {editingPost && onDelete && (
               <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={loading}
-                    className="mr-auto h-11 sm:h-9"
-                  >
-                    Hapus
-                  </Button>
+                <AlertDialogTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={loading}
+                      className="mr-auto h-11 sm:h-9"
+                    />
+                  }
+                >
+                  Hapus
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

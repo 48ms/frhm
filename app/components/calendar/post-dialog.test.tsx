@@ -9,9 +9,16 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 const listAssetsMock = vi.fn()
+const deletePostMock = vi.fn()
 
 vi.mock('@/features/library/api/service', () => ({
   listAssets: (...args: unknown[]) => listAssetsMock(...args),
+}))
+
+vi.mock('@/features/scheduled-posts/api/queries', () => ({
+  useCreateScheduledPost: () => ({ mutateAsync: vi.fn() }),
+  useUpdateScheduledPost: () => ({ mutateAsync: vi.fn() }),
+  useDeleteScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => deletePostMock(...args) }),
 }))
 
 vi.mock('@/components/social-accounts/use-dialog-a11y', () => ({
@@ -21,6 +28,8 @@ vi.mock('@/components/social-accounts/use-dialog-a11y', () => ({
 beforeEach(() => {
   listAssetsMock.mockReset()
   listAssetsMock.mockResolvedValue([])
+  deletePostMock.mockReset()
+  deletePostMock.mockResolvedValue({ success: true })
 })
 
 describe('PostDialog', () => {
@@ -180,5 +189,49 @@ describe('PostDialog', () => {
       expect(video).not.toBeNull()
     })
     expect(screen.queryByAltText('Media terlampir')).not.toBeInTheDocument()
+  })
+
+  it('asks for confirmation before deleting instead of deleting immediately', async () => {
+    // Regression: the delete button used to call the native blocking
+    // window.confirm() and delete in the same click. It must now open a styled
+    // AlertDialog and only delete after the user confirms.
+    const onDelete = vi.fn()
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        onDelete={onDelete}
+        editingPost={{
+          id: 'post-1',
+          client_id: 'client-shell',
+          deliverable_id: null,
+          title: 'Launch teaser',
+          content: 'Body copy',
+          platform: 'instagram',
+          scheduled_at: '2026-10-01T09:00:00.000Z',
+          status: 'scheduled',
+          notes: null,
+          is_reserved: false,
+          is_placeholder: false,
+          reserved_for: null,
+          reserved_until: null,
+          created_at: new Date().toISOString(),
+        }}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+
+    // A confirmation dialog appears; nothing deleted yet.
+    expect(await screen.findByText('Hapus postingan?')).toBeInTheDocument()
+    expect(deletePostMock).not.toHaveBeenCalled()
+
+    // Confirming actually deletes.
+    fireEvent.click(screen.getByRole('button', { name: /^Hapus$/i }))
+    await waitFor(() => {
+      expect(deletePostMock).toHaveBeenCalledWith({ id: 'post-1', clientId: 'client-shell' })
+    })
   })
 })
