@@ -53,7 +53,7 @@ export const SOCIAL_CLIENTS: SocialClient[] = [
         handle: "@shell.creative",
         name: "Shell Creative Studio Global",
         fans: "428K",
-        growth: "+12.4%",
+        growth: undefined,
         status: "SYNCED",
         icon: "photo_camera",
         bg: "bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600",

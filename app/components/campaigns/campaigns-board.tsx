@@ -1025,7 +1025,7 @@ export function CampaignsBoard() {
           <a className="hover:text-foreground transition-colors cursor-pointer">API Documentation</a>
           <div className="flex items-center gap-1.5 text-foreground font-medium">
             <span className="w-2 h-2 rounded-full bg-lime-400" />
-            <span>System Status (99.98%)</span>
+            <span>System Status</span>
           </div>
         </div>
       </footer>

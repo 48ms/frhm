@@ -339,7 +339,7 @@ export function AdminCalendarClient() {
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-on-surface">{filteredPosts.length} Posts</span>
               <span className="inline-flex items-center text-[12px] font-bold text-primary bg-primary-container/40 px-2 py-0.5 rounded-full">
-                <Icons.chartBar className="size-3.5" /> +14% pace
+                {filteredPosts.filter((p) => p.status === "published").length} published
               </span>
             </div>
           </div>
@@ -784,7 +784,7 @@ export function AdminCalendarClient() {
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary" />
               <span>
-                Global Dispatch Engine: <strong>99.98% Uptime</strong>
+                Global Dispatch Engine: <strong>Aktif</strong>
               </span>
             </div>
             <div className="flex items-center gap-1">

@@ -3,14 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-
-const SAMPLE_HOOKS: Record<string, string[]> = {
-  default: [
-    "Stop designing flat interfaces. Here is how frosted glass aura transforms user session times by 41%.",
-    "Why top creative directors are replacing corporate blue with electric lime & chromatic blur in 2026.",
-    "The 3-layer rule for digital branding that algorithmic feeds cannot resist scrolling past.",
-  ],
-}
+import { useGenerateContentIdeas } from "@/features/copilot/api/queries"
 
 type Tone = "bold" | "playful" | "professional"
 
@@ -24,32 +17,42 @@ export function StitchAiHookModal({
   open,
   onOpenChange,
   clientName = "the active client",
+  clientId,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   clientName?: string
+  clientId: string
 }) {
   const [prompt, setPrompt] = useState("Spatial UI design & frosted glass interfaces")
   const [tone, setTone] = useState<Tone>("bold")
-  const [hooks, setHooks] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<number | null>(null)
+
+  const { mutateAsync: generateIdeas, isPending: loading } = useGenerateContentIdeas()
+  const [hooks, setHooks] = useState<string[]>([])
 
   useEffect(() => {
     if (open) {
       setHooks([])
-      setLoading(false)
+      setError(null)
       setCopied(null)
     }
   }, [open])
 
-  function generate() {
-    setLoading(true)
+  async function generate() {
+    setError(null)
     setHooks([])
-    setTimeout(() => {
-      setHooks(SAMPLE_HOOKS.default.map((h) => `${h} #${clientName.split(" ")[0]}`))
-      setLoading(false)
-    }, 900)
+    const res = await generateIdeas({
+      clientId,
+      count: 3,
+      trendOrTopic: prompt,
+    })
+    if (res.error) {
+      setError(res.error)
+      return
+    }
+    setHooks(res.ideas.map((idea) => idea.hook))
   }
 
   function copy(i: number, text: string) {
@@ -140,10 +143,18 @@ export function StitchAiHookModal({
           </div>
 
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {hooks.length === 0 && !loading && (
+            {hooks.length === 0 && !loading && !error && (
               <p className="text-xs text-muted-foreground text-center py-6">
                 Enter a topic and click Generate to create viral hooks.
               </p>
+            )}
+            {error && (
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30">
+                <p className="text-xs font-bold text-destructive mb-1">
+                  Gagal membuat hook
+                </p>
+                <p className="text-xs text-destructive/80 leading-relaxed">{error}</p>
+              </div>
             )}
             {loading && (
               <div className="py-6 flex flex-col items-center gap-2">

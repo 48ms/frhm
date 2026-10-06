@@ -51,13 +51,12 @@ export function useActiveDashboard() {
       "90d": { reach: "M0 50 L100 40 L200 60 L300 30", engage: "M0 70 L100 50 L200 40 L300 20" },
     },
     insights: [
-      { label: "Short Reels Surge", value: "94-100", sub: "Top cohort" },
-      { label: "Sentiment Index", value: "98.2%", sub: "Positive" },
+      { label: "Data Insight", value: "N/A", sub: "Menunggu data" },
     ],
     metrics: [
-      { label: "Total Reach", value: "248.5K", delta: "+12.4%", trend: "up", spark: [20, 40, 30, 70, 50, 90] },
-      { label: "Engagement Rate", value: "6.8%", delta: "+1.2%", trend: "up", spark: [10, 30, 50, 40, 80, 70] },
-      { label: "Campaign Velocity", value: "98/100", delta: "+4.5%", trend: "up", spark: [50, 60, 40, 70, 90, 85] },
+      { label: "Total Reach", value: "0", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
+      { label: "Engagement Rate", value: "0%", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
+      { label: "Campaign Velocity", value: "0", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
     ]
   }
 

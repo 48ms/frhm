@@ -267,7 +267,9 @@ export function CalendarView({
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="font-bold">{sortedPosts.length} posts</span>
-          <span className="text-lime-500 font-bold">+14% pace</span>
+          <span className="text-lime-500 font-bold">
+            {sortedPosts.filter((p) => p.status === "published").length} published
+          </span>
         </div>
       </div>
 
@@ -422,7 +424,7 @@ export function CalendarView({
               </p>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-lime-500">
-              +14% pace
+              {sortedPosts.filter((p) => p.status === "published").length} published
             </span>
           </div>
           <div className="space-y-2">

@@ -69,6 +69,27 @@ export function AnalyticsView() {
     [clients]
   )
 
+  // Deret trajektori faktual dari post_metrics (recorded_at). Satu titik per
+  // tanggal rekaman, dijumlahkan lintas postingan, terurut lama ke baru.
+  const trajectory = React.useMemo(() => {
+    const byDay = new Map<string, { reach: number; engage: number }>()
+    for (const m of allMetrics) {
+      const day = (m.recorded_at || "").split("T")[0]
+      if (!day) continue
+      const cur = byDay.get(day) ?? { reach: 0, engage: 0 }
+      cur.reach += Number(m.reach) || 0
+      cur.engage +=
+        (Number(m.likes) || 0) +
+        (Number(m.comments) || 0) +
+        (Number(m.shares) || 0) +
+        (Number(m.saves) || 0)
+      byDay.set(day, cur)
+    }
+    return Array.from(byDay.entries())
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([day, v]) => ({ label: day, reach: v.reach, engage: v.engage }))
+  }, [allMetrics])
+
   const totals = React.useMemo(() => {
     let reach = 0, clicks = 0, engagement = 0, inquiries = 0
     for (const m of allMetrics) {
@@ -197,7 +218,7 @@ export function AnalyticsView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
-          <AudienceTrajectory />
+          <AudienceTrajectory data={trajectory} />
         </div>
         <div className="lg:col-span-4">
           <Card className="admin-card-glass h-full">

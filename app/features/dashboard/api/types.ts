@@ -4,7 +4,7 @@ export type DashboardMetric = {
   label: string
   value: string
   delta: string
-  trend: "up" | "down"
+  trend: "up" | "down" | "neutral"
   /** Relative sparkline heights, 0-100, rendered as mini bars. */
   spark: number[]
 }

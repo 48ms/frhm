@@ -296,7 +296,7 @@ export function DashboardStitchConnectedHub() {
         </div>
       )}
 
-      <StitchAiHookModal open={aiOpen} onOpenChange={setAiOpen} clientName={client.name} />
+      <StitchAiHookModal open={aiOpen} onOpenChange={setAiOpen} clientName={client.name} clientId={clientId} />
       <ConnectChannelModal
         open={connectOpen}
         client={client}

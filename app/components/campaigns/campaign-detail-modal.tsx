@@ -7,14 +7,37 @@ import { CAMPAIGN_TYPE_META } from "./campaign-data"
 import type { Campaign } from "@/features/campaigns/api/types"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
 
-/** Deterministic daily performance series so the chart is stable per campaign. */
-function dailySeries(c: Campaign): number[] {
-  const seed = c.id.split("").reduce((n, ch) => n + ch.charCodeAt(0), 0)
-  return Array.from({ length: 14 }, (_, i: number) => {
-    const base = 40 + ((seed * (i + 3)) % 55)
-    const wave = Math.sin((i + (seed % 7)) / 2) * 12
-    return Math.max(8, Math.min(100, Math.round(base + wave)))
-  })
+/**
+ * Status kampanye dihitung dari tanggal faktual (start/end), bukan angka rekaan.
+ */
+function getStatus(c: Campaign): "active" | "completed" | "upcoming" {
+  const now = new Date()
+  if (c.end_date) {
+    const end = new Date(c.end_date + "T23:59:59")
+    if (end < now) return "completed"
+  }
+  if (c.start_date) {
+    const start = new Date(c.start_date + "T00:00:00")
+    if (start > now) return "upcoming"
+  }
+  return "active"
+}
+
+/**
+ * Durasi hari dihitung dari tanggal faktual; null bila tanggal tidak lengkap.
+ */
+function getDurationDays(c: Campaign): number | null {
+  if (!c.start_date || !c.end_date) return null
+  const start = new Date(c.start_date + "T00:00:00")
+  const end = new Date(c.end_date + "T00:00:00")
+  const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
+  return days > 0 ? days : null
+}
+
+const STATUS_LABEL: Record<"active" | "completed" | "upcoming", string> = {
+  active: "Aktif",
+  completed: "Selesai",
+  upcoming: "Akan datang",
 }
 
 export function CampaignDetailModal({
@@ -34,14 +57,15 @@ export function CampaignDetailModal({
   if (!open || !campaign || !client) return null
 
   const meta = CAMPAIGN_TYPE_META[campaign.type]
-  const series = dailySeries(campaign)
-  const max = Math.max(...series)
+  const status = getStatus(campaign)
+  const durationDays = getDurationDays(campaign)
 
-  const stats = [
-    { label: "Reach", value: "24.5K", delta: "+12.4%" },
-    { label: "Posts", value: "8", delta: "active" },
-    { label: "Progress", value: "85%", delta: "on track" },
-    { label: "Engagement", value: "6.2%", delta: "+0.8pt" },
+  // Fakta yang benar-benar ada pada record kampanye (tanpa metrik rekaan).
+  const facts = [
+    { label: "Status", value: STATUS_LABEL[status] },
+    { label: "Durasi", value: durationDays ? `${durationDays} hari` : "Belum dijadwalkan" },
+    { label: "Mulai", value: campaign.start_date ?? "Belum ditetapkan" },
+    { label: "Selesai", value: campaign.end_date ?? "Belum ditetapkan" },
   ]
 
   return (
@@ -101,39 +125,19 @@ export function CampaignDetailModal({
         {tab === "overview" ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {stats.map((s) => (
+              {facts.map((s) => (
                 <div
                   key={s.label}
                   className="p-3 rounded-xl bg-muted/60 border border-border/40 text-center"
                 >
-                  <span className="admin-stat-value block text-lg text-foreground">
+                  <span className="admin-stat-value block text-sm text-foreground break-words">
                     {s.value}
                   </span>
-                  <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
                     {s.label}
-                  </span>
-                  <span className="block text-[9px] text-emerald-600 font-semibold mt-0.5">
-                    {s.delta}
                   </span>
                 </div>
               ))}
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-[10px] font-bold mb-1.5">
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Overall Progress
-                </span>
-                <span className="text-foreground">
-                  85%
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: "85%", backgroundColor: campaign.color ?? "#3b82f6" }}
-                />
-              </div>
             </div>
 
             <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
@@ -141,7 +145,7 @@ export function CampaignDetailModal({
                 Notes
               </span>
               <p className="text-[11px] text-foreground">
-                {campaign.notes || "No notes provided."}
+                {campaign.notes || "Belum ada catatan."}
               </p>
             </div>
 
@@ -153,48 +157,15 @@ export function CampaignDetailModal({
             </div>
           </>
         ) : (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                Daily Reach Â· last 14 days
-              </span>
-              <span className="text-[10px] font-bold text-emerald-600">
-                +12.4% growth
-              </span>
-            </div>
-            <div className="h-40 w-full bg-muted/40 rounded-2xl border border-border/40 p-3 flex items-end gap-1.5">
-              {series.map((v, i) => (
-                <div
-                  key={i}
-                  className="flex-1 rounded-t-md transition-all hover:opacity-80"
-                  style={{
-                    height: `${(v / max) * 100}%`,
-                    backgroundColor: campaign.color ?? "#3b82f6",
-                    opacity: 0.4 + (v / max) * 0.6,
-                  }}
-                  title={`Day ${i + 1}: ${v}K`}
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-2.5 mt-4">
-              {[
-                { label: "Best Day", value: `${max}K`, sub: "Peak reach" },
-                { label: "Avg / Day", value: `${Math.round(series.reduce((a, b) => a + b, 0) / series.length)}K`, sub: "Sustained" },
-                { label: "Total", value: "24.5K", sub: "Cumulative" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="p-3 rounded-xl bg-muted/60 border border-border/40 text-center"
-                >
-                  <span className="admin-stat-value block text-base text-foreground">
-                    {s.value}
-                  </span>
-                  <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-                    {s.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+            <Icons.activity className="size-6 text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">
+              Belum ada data performa
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              Metrik kampanye ini akan tampil setelah postingan terhubung ke
+              kampanye dan metriknya tercatat.
+            </p>
           </div>
         )}
 
