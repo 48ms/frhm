@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
@@ -105,8 +106,9 @@ export function BrainstormModal({
         {!ideas.length ? (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tren atau Topik Khusus (Opsional)</label>
+              <Label htmlFor="trend-topic">Tren atau Topik Khusus (Opsional)</Label>
               <Input 
+                id="trend-topic"
                 placeholder="Contoh: Kampanye Akhir Tahun, atau Tren AI..."
                 value={trendOrTopic}
                 onChange={(e) => setTrendOrTopic(e.target.value)}
@@ -114,8 +116,9 @@ export function BrainstormModal({
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Jumlah Ide ({count})</label>
+              <Label htmlFor="idea-count">Jumlah Ide ({count})</Label>
               <input 
+                id="idea-count"
                 type="range" 
                 min="1" 
                 max="10" 
