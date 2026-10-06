@@ -12,16 +12,18 @@ export type BridgePlatform = (typeof BRIDGE_PLATFORMS)[number]
 
 /**
  * Frahma platform names that differ from the Ayrshare bridge name.
- * The UI exposes X as "x" (features/calendar/types.ts), but Ayrshare expects
+ * The UI exposes X as "x" (features/calendar/types.ts PLATFORMS and
+ * components/calendar/post-dialog.tsx PLATFORM_OPTIONS), but Ayrshare expects
  * "twitter". Without this map, posts stored with platform "x" fail
  * permanently in the publish cron ("Platform x not supported by Ayrshare").
+ *
+ * "shorts" is the YouTube Shorts label used by the calendar filters
+ * (calendar-client.tsx PLATFORM_FILTERS, batch-plan-modal.tsx); it publishes
+ * as a regular YouTube post through the bridge.
  */
 const PLATFORM_ALIASES: Record<string, BridgePlatform> = {
   x: 'twitter',
-  'x (twitter)': 'twitter',
-  threads: 'twitter',
   shorts: 'youtube',
-  reels: 'instagram',
 }
 
 export type BridgeResult<T> =

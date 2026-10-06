@@ -18,6 +18,10 @@ describe('toBridgePlatform', () => {
     expect(toBridgePlatform('X')).toBe('twitter')
   })
 
+  it('maps the "shorts" label used by calendar filters to YouTube', () => {
+    expect(toBridgePlatform('shorts')).toBe('youtube')
+  })
+
   it('passes the bridge platform name through unchanged when already normalized', () => {
     expect(toBridgePlatform('twitter')).toBe('twitter')
   })
