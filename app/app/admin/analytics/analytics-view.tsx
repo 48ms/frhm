@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
-import { PageContainer } from "@/components/layout/page-container"
 import { CampaignAnalyticsView, type CampaignItem } from "./campaign-analytics-view"
 import { AudienceTrajectory } from "@/components/analytics/audience-trajectory"
 import { Icons } from "@/components/icons"
