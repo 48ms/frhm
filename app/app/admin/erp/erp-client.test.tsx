@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
 import { ErpDashboardClient } from "./erp-client"
+import { useAppStore } from "@/lib/store/app-store"
 
 describe("ErpDashboardClient", () => {
   it("renders the ERP title and summary strip", () => {
@@ -27,6 +28,14 @@ describe("ErpDashboardClient", () => {
   })
 
   it("shows a real channel count per client, not a hardcoded progress value", () => {
+    // Inject mock account untuk test
+    useAppStore.getState().addSocialClient({ name: "Shell Reps" })
+    useAppStore.getState().connectAccount({
+      clientId: useAppStore.getState().socialClients[0].id,
+      platform: "Instagram",
+      handle: "@test",
+    })
+
     render(<ErpDashboardClient />)
 
     // The old mock printed "Progres skill"; the real UI shows connected channels.
