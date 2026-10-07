@@ -72,7 +72,7 @@ export function BatchPlanModal({
         
         // Refresh calendar
         queryClient.invalidateQueries({ queryKey: ["scheduled-posts", clientId] })
-        toast.success("Batch Plan Selesai! 🗓️", {
+        toast.success("Batch Plan Selesai!", {
           description: `${res.plan.posts.length} post berhasil ditambahkan ke kalender sebagai draft.`,
           action: {
             label: "Tutup",

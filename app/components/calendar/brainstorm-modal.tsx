@@ -48,7 +48,7 @@ export function BrainstormModal({
         return
       }
       setIdeas(result.ideas || [])
-      toast.success("Ide Konten Siap! 💡", {
+      toast.success("Ide Konten Siap!", {
         description: `${result.ideas?.length || count} ide berhasil diracik menggunakan framework SPARK.`
       })
     } catch (err: any) {

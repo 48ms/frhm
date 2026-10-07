@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { CAMPAIGN_TYPE_META } from "./campaign-data"
@@ -74,7 +75,7 @@ export function CampaignDetailModal({
         className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-xl bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div className="relative w-full max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -171,8 +172,32 @@ export function CampaignDetailModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/20">
-          <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/40 text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer">
-            <Icons.ios_share className="size-3.5" />
+          <button
+            type="button"
+            onClick={() => {
+              const row = (label: string, value: string) => `${label}\t${value}`
+              const lines = [
+                row("Campaign", campaign.name),
+                row("Klien", client?.name ?? "—"),
+                row("Tipe", meta.label),
+                row("Status", STATUS_LABEL[getStatus(campaign)]),
+                row("Mulai", campaign.start_date ?? "—"),
+                row("Selesai", campaign.end_date ?? "—"),
+                row("Durasi", getDurationDays(campaign) ? `${getDurationDays(campaign)} hari` : "—"),
+                row("Catatan", campaign.notes ?? "—"),
+              ].join("\n")
+              const blob = new Blob([lines], { type: "text/tab-separated-values;charset=utf-8" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `${campaign.name.replace(/\s+/g, "-").toLowerCase()}.tsv`
+              a.click()
+              URL.revokeObjectURL(url)
+              toast.success("Export campaign selesai.")
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/40 text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+          >
+            <Icons.download className="size-3.5" />
             Export
           </button>
           <div className="flex items-center gap-2">
