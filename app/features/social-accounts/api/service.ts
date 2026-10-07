@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
-import { generateObject } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { resolveProvider } from "@/lib/ai/server"
+import { chatJson } from "@/lib/ai/providers"
 import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
 
 /**
@@ -150,7 +150,39 @@ export async function syncChannel(channelId: string): Promise<void> {
   }
 }
 
-/** Update Brand Profile */
+/** Render the BrandProfile JSON into the repo's canonical brand-profile.md shape. */
+function brandProfileToMarkdown(profile: {
+  who: string; audience: string; voice: string; pov: string
+  proof: string; guardrails: string; pillars: string[]
+}): string {
+  const pillars = (profile.pillars ?? []).map((p) => `- ${p}`).join("\n")
+  return `# Brand Profile
+
+## Who We Are
+${profile.who}
+
+## Audience Persona
+${profile.audience}
+
+## Voice & Guardrails
+### Tone of Voice
+${profile.voice}
+
+### Point of View
+${profile.pov}
+
+### Proof & Credibility
+${profile.proof}
+
+### Do's and Don'ts (Guardrails)
+${profile.guardrails}
+
+## Content Pillars
+${pillars}
+`
+}
+
+/** Update Brand Profile — writes BOTH the JSONB (Settings UI) and the markdown file (Copilot reads this). */
 export async function updateBrandProfile(clientId: string, profile: any): Promise<void> {
   const supabase = await createClient()
   const { error } = await supabase
@@ -159,33 +191,62 @@ export async function updateBrandProfile(clientId: string, profile: any): Promis
     .eq("id", clientId)
 
   if (error) throw new Error(error.message)
+
+  // Sync the canonical brand-profile.md so every skill-driven Copilot call reads the same source.
+  const markdown = brandProfileToMarkdown(profile)
+  const { error: fileError } = await supabase
+    .from("client_files")
+    .upsert(
+      { client_id: clientId, path: "brand-profile.md", content: markdown, updated_at: new Date().toISOString() },
+      { onConflict: "client_id,path" }
+    )
+
+  if (fileError) throw new Error(fileError.message)
 }
 
 export async function generateBrandProfile(input: GenerateBrandProfileInput) {
   try {
-    const result = await generateObject({
-      model: openai("gpt-4o"),
-      schema: BrandProfileSchema,
-      prompt: `Kamu adalah Senior Brand Strategist. Tugasmu adalah mengekstrak dan membangun Brand DNA dari materi mentah yang diberikan klien.
-      
-      Materi mentah:
-      ${input.rawMaterial}
+    const supabase = await createClient()
+    const provider = await resolveProvider(supabase)
 
-      Industri (opsional): ${input.industry || "Tidak dispesifikasikan"}
+    if (!provider) {
+      return { error: "AI Provider belum dikonfigurasi. Hubungi Admin." }
+    }
 
-      Instruksi Ekstraksi:
-      1. who: Penjelasan ringkas identitas bisnis (1 kalimat tegas).
-      2. audience: Segmen spesifik (bukan "semua orang"). Apa profesi/usia/masalah mereka?
-      3. voice: Gaya bahasa (contoh: witty, tegas, empati) lengkap dengan contoh sapaan/diksi.
-      4. pov: Sudut pandang brand (contoh: 'Sebagai expert yang membimbing', 'Sebagai rebel yang menantang industri').
-      5. proof: Bukti kredibilitas (angka, fakta, nama pelanggan).
-      6. guardrails: Pantangan topik, kata yang dihindari, dan aturan bahasa.
-      7. pillars: Array string yang berisi 3-5 topik utama (contoh: ["Edukasi Kopi", "Behind the Scenes", "Promo & Event"]).
-      
-      Hasilkan output dalam bahasa Indonesia yang siap digunakan oleh copywriter. Hindari abstraksi, gunakan spesifisitas.`,
-    })
+    const object = await chatJson<{
+      who: string; audience: string; voice: string; pov: string
+      proof: string; guardrails: string; pillars: string[]
+    }>(provider, "Kamu adalah Senior Brand Strategist yang mengekstrak Brand DNA dari materi mentah. Output JSON saja.", [
+      {
+        role: "user",
+        content: `Materi mentah:
+${input.rawMaterial}
 
-    return { profile: result.object }
+Industri (opsional): ${input.industry || "Tidak dispesifikasikan"}
+
+Instruksi Ekstraksi — hasilkan JSON dengan field berikut:
+1. who: Penjelasan ringkas identitas bisnis (1 kalimat tegas).
+2. audience: Segmen spesifik (bukan "semua orang"). Apa profesi/usia/masalah mereka?
+3. voice: Gaya bahasa (contoh: witty, tegas, empati) lengkap dengan contoh sapaan/diksi.
+4. pov: Sudut pandang brand (contoh: 'Sebagai expert yang membimbing').
+5. proof: Bukti kredibilitas (angka, fakta, nama pelanggan).
+6. guardrails: Pantangan topik, kata yang dihindari, dan aturan bahasa.
+7. pillars: Array string berisi 3-5 topik utama.
+
+Output JSON: { "who": "...", "audience": "...", "voice": "...", "pov": "...", "proof": "...", "guardrails": "...", "pillars": ["...", "..."] }`,
+      },
+    ])
+
+    if (!object) {
+      return { error: "AI gagal mengekstrak Brand DNA. Coba lagi." }
+    }
+
+    const parsed = BrandProfileSchema.safeParse(object)
+    if (!parsed.success) {
+      return { error: "Format output AI tidak sesuai. Coba lagi." }
+    }
+
+    return { profile: parsed.data }
   } catch (error: any) {
     logger.error("generateBrandProfile failed", { error })
     return { error: error.message || "Failed to generate brand profile" }

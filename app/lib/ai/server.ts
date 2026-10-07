@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { Provider } from './providers'
 import { logger } from '@/lib/logger'
+import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 export async function serverSupabase() {
   const cookieStore = await cookies()
@@ -63,7 +64,8 @@ export async function resolveProvider(
   supabase: AdminCtx['supabase'],
   providerId?: string
 ): Promise<Provider | null> {
-  const q = supabase.from('ai_providers').select('kind, model, base_url, api_key')
+  const admin = createSupabaseServiceClient()
+  const q = admin.from('ai_providers').select('kind, model, base_url, api_key')
   const { data } = providerId
     ? await q.eq('id', providerId).maybeSingle()
     : await q.eq('is_default', true).maybeSingle()
@@ -75,7 +77,8 @@ export async function loadSkillMd(
   supabase: AdminCtx['supabase'],
   skillId: string
 ): Promise<string | null> {
-  const { data } = await supabase
+  const admin = createSupabaseServiceClient()
+  const { data } = await admin
     .from('skill_files')
     .select('content')
     .eq('skill_id', skillId)
@@ -89,7 +92,8 @@ export async function loadClientFiles(
   supabase: AdminCtx['supabase'],
   clientId: string
 ): Promise<Record<string, string>> {
-  const { data } = await supabase
+  const admin = createSupabaseServiceClient()
+  const { data } = await admin
     .from('client_files')
     .select('path, content')
     .eq('client_id', clientId)

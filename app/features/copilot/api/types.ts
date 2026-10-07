@@ -42,6 +42,7 @@ export const GenerateVideoScriptInputSchema = z.object({
   clientId: z.string(),
   topic: z.string().min(3),
   duration: z.string().default("30 seconds"),
+  platform: z.string().optional(),
 })
 
 export type GenerateVideoScriptInput = z.infer<typeof GenerateVideoScriptInputSchema>
