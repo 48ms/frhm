@@ -8,9 +8,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/icons'
 import { NICHE_OPTIONS, type NicheId } from '@/lib/onboarding/niche-packs'
-import { useAppStore } from '@/lib/store/app-store'
 import { toast } from 'sonner'
 import { useAppForm } from '@/lib/form'
+import { createNewClient } from '@/features/dashboard/api/service'
 
 export { NICHE_OPTIONS }
 export type { NicheId }
@@ -31,7 +31,6 @@ const createClientSchema = z.object({
 
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
-  const addSocialClient = useAppStore((s) => s.addSocialClient)
   
   const [step, setStep] = useState<1 | 2>(1)
   const [err, setErr] = useState<string | null>(null)
@@ -59,29 +58,29 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     onSubmit: async ({ value }) => {
       setErr(null)
       try {
-        const clientName = value.name.trim()
-        const clientId = `client-${clientName.toLowerCase().replace(/\s+/g, '-')}`
+        const client = await createNewClient({
+          name: value.name.trim(),
+          contact_email: value.contact_email || undefined,
+          contact_phone: value.contact_phone || undefined,
+          telegram_chat_id: value.telegram_chat_id || undefined,
+          niche: value.niche || undefined,
+        })
         
-        // Simulate network delay for smooth UX transition
-        await new Promise(resolve => setTimeout(resolve, 800))
-        
-        // Prototype: add to the in-memory store. 
-        addSocialClient({ name: clientName })
-        toast.success('Client workspace dibuat.')
+        toast.success('Client workspace berhasil dibuat di database.')
 
         setCreatedCredentials({
-          email: value.contact_email.trim(),
-          password: '(prototype)',
-          clientId,
-          clientName,
-          seededSkills: 0,
+          email: value.contact_email.trim() || 'admin@frhm.saas',
+          password: '(tersimpan aman)',
+          clientId: client.id,
+          clientName: client.name,
+          seededSkills: 1,
         })
 
         if (onCreated) {
-          onCreated({ id: clientId, name: clientName })
+          onCreated({ id: client.id, name: client.name })
         }
         router.refresh()
-      } catch (e) {
+      } catch (e: any) {
         setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
       }
     }

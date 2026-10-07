@@ -9,6 +9,51 @@ import type { DashboardProfile } from "./types"
  * Mengambil data analitik dan profil klien secara faktual dari PostgreSQL
  */
 
+export async function createNewClient(input: {
+  name: string
+  contact_email?: string
+  contact_phone?: string
+  telegram_chat_id?: string
+  niche?: string
+}): Promise<{ id: string; name: string }> {
+  const supabase = await createClient()
+
+  // 1. Insert ke clients (telegram_chat_id punya kolom asli, niche disimpan di brand_profile.niche)
+  const { data: clientData, error: clientErr } = await supabase
+    .from("clients")
+    .insert({
+      name: input.name,
+      contact_email: input.contact_email || null,
+      contact_phone: input.contact_phone || null,
+      telegram_chat_id: input.telegram_chat_id || null,
+      brand_profile: input.niche ? { niche: input.niche } : undefined,
+    })
+    .select("id, name")
+    .single()
+
+  if (clientErr || !clientData) {
+    logger.error("createNewClient error", { error: clientErr })
+    throw new Error(clientErr?.message || "Gagal membuat klien baru")
+  }
+
+  // 2. Setup profil analitik default
+  const { error: profileErr } = await supabase
+    .from("dashboard_profiles")
+    .insert({
+      client_id: clientData.id,
+      velocity: 0,
+      peak_value: "0%",
+      insights: [],
+    })
+
+  if (profileErr) {
+    logger.warn("createNewClient profile error", { error: profileErr })
+    // Non-fatal, lanjutkan
+  }
+
+  return clientData
+}
+
 export async function getDashboardProfile(clientId: string): Promise<DashboardProfile | null> {
   const supabase = await createClient()
   

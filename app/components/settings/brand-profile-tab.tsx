@@ -65,7 +65,7 @@ export function BrandProfileTab() {
         form.setFieldValue("proof", res.profile.proof)
         form.setFieldValue("guardrails", res.profile.guardrails)
         form.setFieldValue("pillars", res.profile.pillars)
-        toast.success("Brand DNA Terbentuk! 🧬", {
+        toast.success("Brand DNA terbentuk", {
           description: "Copilot telah mengisi Identity, Tone, dan Guardrails. Silakan tinjau dan simpan."
         })
         setAiPanelOpen(false)
@@ -77,7 +77,7 @@ export function BrandProfileTab() {
 
   return (
     <div className="space-y-8">
-      <div className="admin-card border-none bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+      <div className="admin-card border-none bg-card p-8 shadow-sm">
         <div className="flex items-start justify-between border-b border-border/60 pb-5 mb-6">
           <div>
             <h2 className="text-xl font-bold text-foreground">Identitas & Brand Profile</h2>

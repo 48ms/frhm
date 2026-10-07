@@ -75,18 +75,21 @@ export function SchedulePostModal({
   async function handleSubmit() {
     if (!canSubmit || !client) return
     try {
-      await createPost({
+      const basePost = {
         client_id: client.id,
         title: title.trim(),
         content: caption.trim(),
-        platform: selected[0],
         scheduled_at: toIso(date, when),
-        status: "draft",
+        status: "draft" as const,
         campaign_tag: null,
-        notes: selected.length > 1 ? `Channel: ${selected.join(", ")}` : null,
-      })
+        notes: null,
+      }
+
+      // Buat satu post per channel yang dipilih (multi-channel = multiple records DB).
+      const results = await Promise.all(selected.map((p) => createPost({ ...basePost, platform: p })))
+
       toast.success("Post dijadwalkan.", {
-        description: `Tersimpan untuk ${selected.length} channel pada ${date} ${when}.`,
+        description: `${results.length} post tersimpan untuk ${date} ${when}.`,
       })
       onScheduled?.(title.trim())
       onClose()

@@ -65,18 +65,40 @@ export function SupportView() {
   const [message, setMessage] = React.useState("")
   const [priority, setPriority] = React.useState("Normal")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!subject.trim() || !message.trim()) {
-      toast.error("Please fill in both the subject and the message.")
+      toast.error("Isi subjek dan pesan dukungan.")
       return
     }
-    toast.success("Support request submitted", {
-      description: `Ticket queued for ${activeClient?.name ?? "your workspace"} · Priority: ${priority}`,
-    })
-    setSubject("")
-    setMessage("")
-    setPriority("Normal")
+    
+    setIsSubmitting(true)
+    try {
+      const res = await fetch("/api/support/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: subject.trim(),
+          message: message.trim(),
+          priority,
+          clientId: activeClient?.id,
+        })
+      })
+      if (!res.ok) throw new Error("Gagal mengirim tiket")
+      
+      toast.success("Tiket dukungan dikirim", {
+        description: `Tiket antre untuk ${activeClient?.name ?? "workspace Anda"} · Prioritas: ${priority}`,
+      })
+      setSubject("")
+      setMessage("")
+      setPriority("Normal")
+    } catch (err) {
+      toast.error("Gagal mengirim permintaan.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -236,9 +258,14 @@ export function SupportView() {
 
             <button
               type="submit"
-              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:shadow-none"
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
+              {isSubmitting ? (
+                <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">send</span>
+              )}
               Submit Request
             </button>
           </form>
