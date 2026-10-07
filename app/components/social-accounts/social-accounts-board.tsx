@@ -205,7 +205,7 @@ export function ClientChannelsBoard() {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center h-[50vh]">
         <Icons.hub className="size-16 text-muted-foreground/30 mb-6" />
-        <h2 className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">No clients found</h2>
+        <h2 className="text-2xl font-bold text-foreground">No clients found</h2>
         <p className="text-muted-foreground mt-2 max-w-sm mx-auto mb-8">
           Add your first client to start connecting their social accounts, running campaigns, and tracking analytics.
         </p>

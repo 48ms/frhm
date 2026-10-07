@@ -895,7 +895,7 @@ function UserAccessTab() {
                   <td className="py-4 px-4 text-muted-foreground text-xs">{m.access}</td>
                   <td className="py-4 px-4 text-right">
                     {m.action === "Protected" ? (
-                      <span className="text-muted-foreground/40 cursor-not-allowed text-xs font-semibold">
+                      <span className="text-muted-foreground cursor-not-allowed text-xs font-semibold">
                         Protected
                       </span>
                     ) : (

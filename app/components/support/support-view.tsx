@@ -257,7 +257,7 @@ export function SupportView() {
         </div>
 
         <div className="py-12 text-center space-y-2">
-          <span className="material-symbols-outlined text-[32px] text-muted-foreground/50">inbox</span>
+          <span className="material-symbols-outlined text-[32px] text-foreground/40">inbox</span>
           <p className="text-sm font-semibold text-foreground">No tickets yet</p>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
             Ticket tracking is not connected to a backend yet. Requests submitted through the form above are
