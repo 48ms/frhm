@@ -1,6 +1,7 @@
-"use server"
+'use server'
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type { ClientBudget, Expense, AdSpendLog, KOL } from "./types"
 
 /**
@@ -24,7 +25,7 @@ export async function getClientBudgets(clientId: string): Promise<ClientBudget[]
     .order("month", { ascending: false })
 
   if (error) {
-    console.error("[getClientBudgets] error:", error.message)
+    logger.error("getClientBudgets failed", { error })
     return []
   }
   return (data ?? []) as ClientBudget[]
@@ -41,7 +42,7 @@ export async function getExpenses(clientId: string): Promise<Expense[]> {
     .order("expense_date", { ascending: false })
 
   if (error) {
-    console.error("[getExpenses] error:", error.message)
+    logger.error("getExpenses failed", { error })
     return []
   }
   return (data ?? []) as Expense[]
@@ -58,7 +59,7 @@ export async function getAdSpendLogs(clientId: string): Promise<AdSpendLog[]> {
     .order("log_date", { ascending: false })
 
   if (error) {
-    console.error("[getAdSpendLogs] error:", error.message)
+    logger.error("getAdSpendLogs failed", { error })
     return []
   }
   return (data ?? []) as AdSpendLog[]
@@ -75,7 +76,7 @@ export async function getKOLs(clientId: string): Promise<KOL[]> {
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("[getKOLs] error:", error.message)
+    logger.error("getKOLs failed", { error })
     return []
   }
   return (data ?? []) as KOL[]

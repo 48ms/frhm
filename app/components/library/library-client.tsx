@@ -318,7 +318,7 @@ export function LibraryClient() {
       {/* Tag filter chips */}
       {allTags.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 mt-3">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase mr-1">Tags</span>
+          <span className="text-[10px] font-bold text-muted-foreground mr-1">Tags</span>
           {allTags.map(([tag, count]) => (
             <button
               key={tag}
@@ -406,23 +406,23 @@ export function LibraryClient() {
       {/* Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Total</p>
+          <p className="text-[10px] font-bold text-muted-foreground">Total</p>
           <p className="text-lg font-black text-foreground">{assets.length}</p>
         </div>
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Images</p>
+          <p className="text-[10px] font-bold text-muted-foreground">Images</p>
           <p className="text-lg font-black text-foreground">
             {assets.filter((a) => a.fileType === "image").length}
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Videos</p>
+          <p className="text-[10px] font-bold text-muted-foreground">Videos</p>
           <p className="text-lg font-black text-foreground">
             {assets.filter((a) => a.fileType === "video").length}
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">Storage</p>
+          <p className="text-[10px] font-bold text-muted-foreground">Storage</p>
           <p className="text-lg font-black text-foreground">{assets.length} files</p>
         </div>
       </div>
@@ -474,9 +474,10 @@ export function LibraryClient() {
             <Icons.spinner className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : filteredAssets.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
+          <div className="col-span-full py-16 text-center space-y-3">
             <Icons.media className="size-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No assets yet. Upload your first file above.</p>
+            <p className="text-sm font-semibold text-on-surface">Belum ada aset.</p>
+            <p className="text-xs text-muted-foreground">Upload file gambar atau video ke library untuk mulai menjadwalkan.</p>
           </div>
         ) : (
           <SortableContext items={filteredAssets.map((a) => a.id)} strategy={rectSortingStrategy}>
@@ -523,13 +524,13 @@ export function LibraryClient() {
               {/* Metadata */}
               <div className="p-5 flex flex-col gap-4 overflow-y-auto">
                 <div>
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">File ID</p>
+                  <p className="text-[10px] font-bold text-muted-foreground">File ID</p>
                   <p className="text-sm font-mono text-foreground break-all">
                     {previewAsset.publicId}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
                     {previewAsset.fileType}
                   </span>
                   {previewAsset.tags.length > 0 &&
@@ -549,7 +550,7 @@ export function LibraryClient() {
                 {/* AI caption draft */}
                 <div className="rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
                       <Icons.sparkles className="size-3.5" /> Caption AI
                     </span>
                     <Button
@@ -748,7 +749,7 @@ function SortableAsset({
 
       {/* File Type Badge */}
       <div className="absolute top-2 right-2 pointer-events-none">
-        <span className="px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold uppercase">
+        <span className="px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold">
           {asset.fileType}
         </span>
       </div>

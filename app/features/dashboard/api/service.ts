@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type { DashboardProfile } from "./types"
 
 /**
@@ -25,7 +26,7 @@ export async function getDashboardProfile(clientId: string): Promise<DashboardPr
   if (error) {
     if (error.code === 'PGRST116') return null // Not found (belum ada row)
     // Error lain (mis. JWT/network) juga tidak boleh melempar dari render.
-    console.error("[getDashboardProfile] Supabase error:", error.message)
+    logger.error("getDashboardProfile failed", { error, clientId })
     return null
   }
 

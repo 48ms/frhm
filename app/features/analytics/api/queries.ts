@@ -1,5 +1,9 @@
 import { queryOptions } from "@tanstack/react-query"
-import { getPostMetricsByClient, getAnalyticsSummariesByClient } from "./service"
+import {
+  getPostMetricsByClient,
+  getAnalyticsSummariesByClient,
+  getLatestPrediction,
+} from "./service"
 
 export const analyticsKeys = {
   all: ["analytics"] as const,
@@ -19,6 +23,13 @@ export const analyticsQueries = {
     queryOptions({
       queryKey: analyticsKeys.summariesByClient(clientId),
       queryFn: () => getAnalyticsSummariesByClient(clientId),
+      enabled: Boolean(clientId),
+    }),
+
+  listLatestPrediction: (clientId: string) =>
+    queryOptions({
+      queryKey: [...analyticsKeys.all, "prediction", clientId],
+      queryFn: () => getLatestPrediction(clientId),
       enabled: Boolean(clientId),
     }),
 }

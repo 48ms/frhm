@@ -201,7 +201,7 @@ export async function POST(request: Request) {
                 }
               }
             }).catch((notifyErr) => {
-              console.error('[Telegram Alert Failed Post Error]:', notifyErr)
+              logger.error('Telegram alert for failed post errored', { error: notifyErr })
             })
           }
         }

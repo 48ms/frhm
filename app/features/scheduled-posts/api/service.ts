@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import {
   ScheduledPost,
   CreateScheduledPostInput,
@@ -17,7 +18,7 @@ export async function getScheduledPostsByClient(clientId: string): Promise<Sched
     .order("scheduled_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching scheduled posts:", error)
+    logger.error("getScheduledPostsByClient failed", { error })
     throw new Error("Gagal mengambil data kalender postingan")
   }
 
@@ -32,7 +33,7 @@ export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
     .order("scheduled_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching all scheduled posts:", error)
+    logger.error("getAllScheduledPosts failed", { error })
     throw new Error("Gagal mengambil data seluruh postingan")
   }
 
@@ -55,39 +56,43 @@ export async function createScheduledPost(input: CreateScheduledPostInput): Prom
     .single()
 
   if (error) {
-    console.error("Error creating scheduled post:", error)
+    logger.error("createScheduledPost failed", { error })
     throw new Error("Gagal menjadwalkan postingan")
   }
 
   return data as ScheduledPost
 }
 
-export async function updateScheduledPost({ id, ...patch }: { id: string } & UpdateScheduledPostInput): Promise<ScheduledPost> {
+export async function updateScheduledPost(
+  { id, clientId, ...patch }: { id: string; clientId: string } & UpdateScheduledPostInput
+): Promise<ScheduledPost> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("scheduled_posts")
     .update(patch)
     .eq("id", id)
+    .eq("client_id", clientId)
     .select()
     .single()
 
   if (error) {
-    console.error("Error updating scheduled post:", error)
+    logger.error("updateScheduledPost failed", { error })
     throw new Error("Gagal mengupdate postingan")
   }
 
   return data as ScheduledPost
 }
 
-export async function deleteScheduledPost(id: string): Promise<void> {
+export async function deleteScheduledPost(id: string, clientId?: string): Promise<void> {
   const supabase = await createClient()
-  const { error } = await supabase
-    .from("scheduled_posts")
-    .delete()
-    .eq("id", id)
+  let query = supabase.from("scheduled_posts").delete().eq("id", id)
+  if (clientId) {
+    query = query.eq("client_id", clientId)
+  }
+  const { error } = await query
 
   if (error) {
-    console.error("Error deleting scheduled post:", error)
+    logger.error("deleteScheduledPost failed", { error })
     throw new Error("Gagal menghapus postingan")
   }
 }

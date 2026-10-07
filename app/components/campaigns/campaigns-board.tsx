@@ -389,7 +389,7 @@ export function CampaignsBoard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border/40">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="admin-badge admin-badge-cobalt">CAMPAIGN CONTROL</span>
+            <span className="admin-badge admin-badge-cobalt">Campaign control</span>
             <span className="text-muted-foreground">•</span>
             <span className="text-xs text-muted-foreground font-medium">
               {activeClient.name} Workspace
@@ -409,13 +409,13 @@ export function CampaignsBoard() {
             <Icons.listChecks className="size-4" />
             Filter Status
           </button>
-          <button
-            onClick={() => toast.success("Campaign deck exported (Coming Soon)")}
-            className="admin-pill admin-pill-ghost flex items-center gap-2 border"
-          >
-            <Icons.download className="size-4" />
-            Export Campaign Deck
-          </button>
+            <span
+              aria-disabled="true"
+              className="admin-pill admin-pill-ghost flex items-center gap-2 border opacity-60"
+            >
+              <Icons.download className="size-4" />
+              Export Campaign Deck (Coming soon)
+            </span>
           <button
             onClick={openCreate}
             className="admin-pill admin-pill-primary flex items-center gap-2 shadow-md"
@@ -572,7 +572,7 @@ export function CampaignsBoard() {
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
                       <span className="admin-badge admin-badge-lime">
-                        <span className="w-2 h-2 rounded-full bg-lime-600 animate-ping" />
+                        <span className="w-2 h-2 rounded-full bg-lime-600" />
                         {featuredFlight
                           ? `FLIGHTING • DAY ${featuredFlight.day} OF ${featuredFlight.totalDays}`
                           : "EVERGREEN • NO FIXED FLIGHT"}
@@ -607,7 +607,7 @@ export function CampaignsBoard() {
                               {kols.slice(0, 3).map((k) => (
                                 <div
                                   key={k.id}
-                                  className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-lime-400/30 to-blue-500/30"
+                                  className="w-8 h-8 rounded-full border-2 border-background bg-muted"
                                 />
                               ))}
                             </div>
@@ -711,21 +711,21 @@ export function CampaignsBoard() {
                   >
                     Manage Deliverables
                   </button>
-                  <button
-                    onClick={() => toast.info("Creative assets (Coming Soon)")}
-                    className="admin-pill admin-pill-ghost border border-border/50"
+                  <span
+                    aria-disabled="true"
+                    title="Creative assets live in the Media Library."
+                    className="admin-pill admin-pill-ghost border border-border/50 opacity-60"
                   >
-                    View Creative Assets
-                  </button>
+                    View Creative Assets (Coming soon)
+                  </span>
                 </div>
-                <button
-                  onClick={() => toast.warning("Flight paused (Coming Soon)")}
-                  disabled={!featured}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-destructive hover:bg-destructive/10 transition-colors text-[11px] uppercase font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                <span
+                  aria-disabled="true"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-muted-foreground bg-muted/50 text-xs font-semibold border border-border opacity-60"
                 >
                   <Icons.play className="size-4" />
-                  <span>Pause Flight</span>
-                </button>
+                  <span>Pause Flight (Coming soon)</span>
+                </span>
               </div>
             </div>
           </section>
@@ -742,11 +742,11 @@ export function CampaignsBoard() {
                 </p>
               </div>
               <div className="flex items-center p-1 bg-secondary/30 rounded-full border border-border/20">
-                <button className="px-4 py-1.5 rounded-full bg-card text-foreground text-[10px] uppercase font-bold shadow-sm flex items-center gap-1.5 cursor-pointer">
+                <button className="px-4 py-1.5 rounded-full bg-card text-foreground text-xs font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer">
                   <Icons.listChecks className="size-4" />
                   <span>Deliverables List</span>
                 </button>
-                <button className="px-4 py-1.5 rounded-full text-muted-foreground hover:text-foreground text-[10px] uppercase transition-colors flex items-center gap-1.5 cursor-pointer">
+                <button className="px-4 py-1.5 rounded-full text-muted-foreground hover:text-foreground text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
                   <Icons.calendar className="size-4" />
                   <span>Gantt Timeline</span>
                 </button>
@@ -952,7 +952,7 @@ export function CampaignsBoard() {
                       className="p-3 rounded-2xl bg-card/60 border border-border/40 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lime-400/30 to-blue-500/30 ring-2 ring-blue-400/50 shrink-0" />
+                        <div className="w-10 h-10 rounded-full bg-muted ring-2 ring-blue-400/50 shrink-0" />
                         <div className="min-w-0">
                           <div className="text-sm font-bold text-foreground truncate">
                             {cr.name}
@@ -976,9 +976,9 @@ export function CampaignsBoard() {
                 </p>
               </div>
             )}
-            <button className="w-full mt-4 py-2.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-[10px] uppercase font-bold transition-colors text-center cursor-pointer">
-              + Contract Additional Talent
-            </button>
+            <button className="w-full mt-4 py-2.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold transition-colors text-center cursor-pointer">
+               + Contract Additional Talent
+             </button>
           </div>
 
           {/* 3. AI Campaign Assistant Hook Generator */}
@@ -1002,12 +1002,12 @@ export function CampaignsBoard() {
                   <Icons.arrowRight className="size-4 -rotate-90" />
                 </button>
               </div>
-              <button
-                onClick={() => toast.success("Creative angles generated (Coming Soon)")}
-                className="w-full mt-4 py-3 rounded-full bg-lime-400 text-black text-[10px] uppercase font-bold tracking-wider hover:bg-lime-500 transition-all active:scale-95 shadow-sm text-center cursor-pointer"
+              <span
+                aria-disabled="true"
+                className="w-full mt-4 py-3 rounded-full bg-muted/50 text-muted-foreground text-xs font-semibold text-center border border-border opacity-60"
               >
-                Generate Creative Angles
-              </button>
+                Generate Creative Angles (Coming soon)
+              </span>
             </div>
           </div>
         </div>
@@ -1019,14 +1019,9 @@ export function CampaignsBoard() {
           <span className="font-bold text-foreground">FRHM © 2026.</span>
           <span>All rights reserved. Creative Media Operations Platform.</span>
         </div>
-        <div className="flex flex-wrap items-center gap-6">
-          <a className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</a>
-          <a className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</a>
-          <a className="hover:text-foreground transition-colors cursor-pointer">API Documentation</a>
-          <div className="flex items-center gap-1.5 text-foreground font-medium">
-            <span className="w-2 h-2 rounded-full bg-lime-400" />
-            <span>System Status</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-foreground font-medium">
+          <span className="w-2 h-2 rounded-full bg-lime-400" />
+          <span>System Status</span>
         </div>
       </footer>
 

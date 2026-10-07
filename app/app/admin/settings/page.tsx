@@ -10,7 +10,7 @@ export default async function SettingsPage(
 ) {
   const { clientId } = searchParamsCache.parse(await props.searchParams)
   return (
-    <React.Suspense fallback={<div className="p-8 text-on-surface-variant animate-pulse">Loading Agency Configuration...</div>}>
+    <React.Suspense fallback={<div className="p-8 text-on-surface-variant">Memuat Konfigurasi Agensi...</div>}>
       <DashboardPrefetcher clientId={clientId}>
         <SettingsView />
       </DashboardPrefetcher>

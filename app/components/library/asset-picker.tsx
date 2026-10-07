@@ -194,7 +194,7 @@ export function AssetPicker({
                     loading="lazy"
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold uppercase">
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold">
                     {asset.fileType}
                   </span>
                   <span className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

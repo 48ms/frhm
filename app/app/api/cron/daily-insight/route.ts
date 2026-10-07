@@ -49,7 +49,7 @@ export async function GET(request: Request) {
       results.push(result)
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err)
-      console.error(`[daily-insight] Client ${client.id} failed:`, err)
+      logger.error('daily-insight client failed', { error: err, client_id: client.id })
       
       void logAudit({
         actorRole: 'system',

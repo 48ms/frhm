@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import { generateObject } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
@@ -26,7 +27,7 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
   // warning "Cannot update a component (Router) while rendering". Degrade
   // gracefully: kembalikan [] agar UI memakai fallback, bukan crash.
   if (clientsError) {
-    console.error("[getClientsWithChannels] clients error:", clientsError.message)
+    logger.error("getClientsWithChannels (clients) failed", { error: clientsError })
     return []
   }
   if (!clients) return []
@@ -37,7 +38,7 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
     .select("*")
 
   if (channelsError) {
-    console.error("[getClientsWithChannels] channels error:", channelsError.message)
+    logger.error("getClientsWithChannels (channels) failed", { error: channelsError })
     return clients.map((client) => ({ ...client, channels: [] })) as ClientWithChannels[]
   }
 
@@ -186,7 +187,7 @@ export async function generateBrandProfile(input: GenerateBrandProfileInput) {
 
     return { profile: result.object }
   } catch (error: any) {
-    console.error("AI Generation failed:", error)
+    logger.error("generateBrandProfile failed", { error })
     return { error: error.message || "Failed to generate brand profile" }
   }
 }

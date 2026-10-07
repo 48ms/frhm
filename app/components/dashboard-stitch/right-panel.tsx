@@ -71,7 +71,7 @@ export function DashboardStitchConnectedHub() {
                 </div>
                 <div className="truncate leading-tight text-left">
                   <span className="block text-[10px] font-bold text-muted-foreground">
-                    LINKED CLIENT ACCOUNT
+                    Klien terhubung
                   </span>
                   <span className="block text-xs font-bold text-foreground truncate">
                     {client.name}
@@ -80,7 +80,7 @@ export function DashboardStitchConnectedHub() {
               </div>
               <div className="flex items-center gap-1 shrink-0 pl-2">
                 <span className="px-2 py-0.5 rounded-full bg-brand-accent text-brand-accent-foreground text-[10px] font-bold">
-                  SWITCH
+                  Ganti
                 </span>
                 <Icons.chevronDown
                   className={cn(
@@ -97,7 +97,7 @@ export function DashboardStitchConnectedHub() {
                 className="absolute top-full left-0 mt-1.5 w-full bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
               >
                 <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
-                  SELECT MANAGED CLIENT:
+                  Pilih klien:
                 </div>
                 {clients.map((c) => (
                   <button
@@ -172,7 +172,7 @@ export function DashboardStitchConnectedHub() {
                     : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                 )}>
                   {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
                   {ch.status.replace('_', ' ')}
                 </span>
@@ -194,7 +194,7 @@ export function DashboardStitchConnectedHub() {
 
           <button
             onClick={() => setConnectOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-[10px] font-bold tracking-widest text-muted-foreground uppercase hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-[10px] font-bold text-muted-foreground hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
           >
             <Icons.hub className="size-3.5" />
             Connect Channel to Client
@@ -205,10 +205,9 @@ export function DashboardStitchConnectedHub() {
       {/* Studio Identity Card */}
       <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-muted-foreground tracking-wider">
-            STUDIO IDENTITY
+          <span className="text-xs font-bold text-muted-foreground">
+            Identitas studio
           </span>
-          <span className="text-brand-accent text-xl font-bold">✦</span>
         </div>
         <div className="mt-4">
           <span className="block font-syne font-extrabold text-2xl text-foreground tracking-tight leading-none">
@@ -228,11 +227,15 @@ export function DashboardStitchConnectedHub() {
             </p>
             <div className="mt-2.5 flex items-center justify-between">
               <span className="text-[10px] font-bold text-brand-accent">
-                STATUS: {profile.velocity >= 90 ? "ACCELERATING" : "STEADY"}
+                Status: {profile.velocity >= 90 ? "Accelerating" : "Steady"}
               </span>
-              <button className="px-2.5 py-0.5 rounded-full bg-[foreground] text-white text-[10px] font-semibold hover:bg-brand-accent cursor-pointer transition-colors">
-                Details
-              </button>
+              <span
+                aria-disabled="true"
+                title="Campaign velocity breakdown is not built yet."
+                className="px-2.5 py-0.5 rounded-full bg-muted text-foreground/70 text-[10px] font-semibold cursor-not-allowed"
+              >
+                Detail (Coming soon)
+              </span>
             </div>
           </div>
         </div>
@@ -247,8 +250,8 @@ export function DashboardStitchConnectedHub() {
           Need AI Content Hooks?
         </h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-          Generate 50 viral captions, hashtag clusters, and video concepts in seconds
-          for {client.name.substring(0, 5)}.
+          Generate caption, klaster hashtag, dan konsep video untuk{" "}
+          {client.name.substring(0, 5)}.
         </p>
         <button
           onClick={() => setAiOpen(true)}
@@ -262,7 +265,7 @@ export function DashboardStitchConnectedHub() {
       {disconnectId && (
         <div className="fixed inset-0 z-[60] p-4 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-[foreground]/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
             onClick={() => setDisconnectId(null)}
           />
           <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 text-center">

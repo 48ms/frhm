@@ -1,16 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useQueryState, parseAsString } from "nuqs"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
-
-const STATUS_STYLES: Record<string, string> = {
-  Open: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  "In Progress": "bg-brand-accent/10 text-brand-accent",
-  Resolved: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  Closed: "bg-muted text-muted-foreground",
-}
 
 const FAQS = [
   {
@@ -35,61 +27,33 @@ const FAQS = [
   },
 ]
 
-const TICKETS = [
-  {
-    id: "SUP-4821",
-    subject: "Instagram Reels publish failing for B2B Shell Reps",
-    status: "In Progress",
-    priority: "High",
-    updated: "2 hours ago",
-  },
-  {
-    id: "SUP-4805",
-    subject: "Request: add LinkedIn channel integration",
-    status: "Open",
-    priority: "Normal",
-    updated: "Yesterday",
-  },
-  {
-    id: "SUP-4788",
-    subject: "TikTok token re-authentication loop",
-    status: "Resolved",
-    priority: "High",
-    updated: "3 days ago",
-  },
-  {
-    id: "SUP-4750",
-    subject: "Export analytics report as CSV",
-    status: "Closed",
-    priority: "Low",
-    updated: "Last week",
-  },
-]
-
 const CHANNELS = [
   {
     icon: "mail",
     iconClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     title: "Email Support",
     desc: "support@frhm.agency",
-    meta: "Replies within 2 business hours",
+    meta: "Send us the details",
     action: "Send Email",
+    href: "mailto:support@frhm.agency",
   },
   {
     icon: "forum",
     iconClass: "bg-brand-accent/10 text-brand-accent",
     title: "Priority Live Chat",
-    desc: "24/7 for Enterprise tier",
-    meta: "Avg. wait under 3 minutes",
+    desc: "Enterprise tier",
+    meta: "Coming soon",
     action: "Start Chat",
+    soon: true,
   },
   {
     icon: "menu_book",
     iconClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     title: "Knowledge Base",
     desc: "Guides & API references",
-    meta: "120+ articles and playbooks",
+    meta: "Coming soon",
     action: "Browse Docs",
+    soon: true,
   },
 ]
 
@@ -120,7 +84,7 @@ export function SupportView() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold tracking-widest uppercase mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             Help &amp; Support Center
           </div>
@@ -128,14 +92,10 @@ export function SupportView() {
           <p className="text-sm text-muted-foreground mt-1.5 max-w-3xl">
             Get help with workspace configuration, publishing pipelines, and API integrations for{" "}
             <span className="font-semibold text-foreground">
-              {activeClient?.name ?? "B2B Shell Reps"}
+              {activeClient?.name ?? "your workspace"}
             </span>
             .
           </p>
-        </div>
-        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/40">
-          <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-          <span>All systems operational</span>
         </div>
       </div>
 
@@ -157,13 +117,21 @@ export function SupportView() {
             </div>
             <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{c.meta}</span>
-              <button
-                type="button"
-                onClick={() => toast.info(`${c.title} — ${c.action} (Coming soon).`)}
-                className="text-xs font-semibold text-brand-accent hover:underline"
-              >
-                {c.action}
-              </button>
+              {c.href ? (
+                <a
+                  href={c.href}
+                  className="text-xs font-semibold text-brand-accent hover:underline"
+                >
+                  {c.action}
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="text-xs font-semibold text-foreground/70 cursor-not-allowed"
+                >
+                  {c.action}
+                </span>
+              )}
             </div>
           </div>
         ))}
@@ -286,59 +254,15 @@ export function SupportView() {
               Track the status of requests raised by your agency team.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => toast.info("Ticket history export queued.")}
-            className="px-5 py-2.5 rounded-full bg-muted border border-border/40 text-foreground text-sm font-semibold hover:bg-background transition-all flex items-center gap-2 self-start sm:self-auto"
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Export History
-          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border/40 text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
-                <th className="py-3 px-4">Ticket</th>
-                <th className="py-3 px-4">Subject</th>
-                <th className="py-3 px-4">Priority</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Last Updated</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/20 text-sm">
-              {TICKETS.map((t) => (
-                <tr key={t.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="py-4 px-4 font-mono text-xs text-muted-foreground">{t.id}</td>
-                  <td className="py-4 px-4 font-semibold text-foreground">{t.subject}</td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`text-xs font-semibold ${
-                        t.priority === "High"
-                          ? "text-red-500"
-                          : t.priority === "Low"
-                            ? "text-muted-foreground"
-                            : "text-foreground"
-                      }`}
-                    >
-                      {t.priority}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${STATUS_STYLES[t.status]}`}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-right text-xs text-muted-foreground">
-                    {t.updated}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="py-12 text-center space-y-2">
+          <span className="material-symbols-outlined text-[32px] text-muted-foreground/50">inbox</span>
+          <p className="text-sm font-semibold text-foreground">No tickets yet</p>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto">
+            Ticket tracking is not connected to a backend yet. Requests submitted through the form above are
+            handled by the support team by email for now.
+          </p>
         </div>
       </div>
     </div>

@@ -44,8 +44,8 @@ export function DashboardStitchChart() {
     <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm flex flex-col h-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <span className="text-xs font-bold text-muted-foreground tracking-wider block">
-            AUDIENCE TRAJECTORY · {client.name.substring(0, 5).toUpperCase()}
+          <span className="text-xs font-semibold text-muted-foreground block">
+            Audience trajectory · {client.name.substring(0, 5)}
           </span>
           <h2 className="font-syne font-bold text-lg text-foreground">
             Performance &amp; Engagement Dynamics
@@ -146,7 +146,7 @@ export function DashboardStitchChart() {
             key={idx}
             className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-card hover:shadow-sm transition-all"
           >
-            <p className="text-[10px] font-bold text-muted-foreground tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground">
               {card.label}
             </p>
             <p className="font-syne font-bold text-foreground text-base mt-1">

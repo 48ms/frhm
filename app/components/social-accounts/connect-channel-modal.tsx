@@ -212,7 +212,7 @@ export function ConnectChannelModal({
                         <span className="flex items-center gap-1.5 text-sm font-bold min-w-0">
                           <span className="truncate">{p}</span>
                           {disabled && (
-                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0">
+                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shrink-0">
                               Soon
                             </span>
                           )}

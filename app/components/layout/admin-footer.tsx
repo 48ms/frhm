@@ -15,20 +15,12 @@ export function AdminFooter() {
         </span>
         <span>© 2026 Frhm. All rights reserved.</span>
       </div>
-      <nav className="flex items-center gap-6 font-medium">
-        <a className="transition-colors hover:text-[hsl(var(--admin-on-surface))]" href="#">
-          Privacy Policy
-        </a>
-        <a className="transition-colors hover:text-[hsl(var(--admin-on-surface))]" href="#">
-          Terms of Service
-        </a>
-        <a className="transition-colors hover:text-[hsl(var(--admin-on-surface))]" href="#">
-          API Documentation
-        </a>
-        <a className="transition-colors hover:text-[hsl(var(--admin-on-surface))]" href="#">
-          System Status
-        </a>
-      </nav>
+      <div className="flex items-center gap-6 font-medium text-muted-foreground">
+        <span>Privacy Policy</span>
+        <span>Terms of Service</span>
+        <span>API Documentation</span>
+        <span>System Status</span>
+      </div>
     </footer>
   )
 }

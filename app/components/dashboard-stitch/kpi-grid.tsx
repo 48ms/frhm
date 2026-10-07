@@ -21,41 +21,46 @@ export function DashboardStitchKpis() {
     show: { opacity: 1, y: 0 }
   }
 
+  const metrics = profile.metrics ?? []
+  const m0 = metrics[0] ?? { value: "0", delta: "N/A", trend: "neutral" as const }
+  const m1 = metrics[1] ?? { value: "0%", delta: "N/A", trend: "neutral" as const }
+  const m2 = metrics[2] ?? { value: "0", delta: "N/A", trend: "neutral" as const }
+
   const kpis = [
     {
-      label: "TOTAL REACH",
+      label: "Total reach",
       icon: "trendingUp" as const,
       iconClass: "bg-brand-accent/10 text-brand-accent",
-      value: profile.metrics[0].value,
-      growth: profile.metrics[0].delta,
-      growthUp: profile.metrics[0].trend === "up",
+      value: m0.value,
+      growth: m0.delta,
+      growthUp: m0.trend === "up",
       caption: `vs previous period · ${client.name.substring(0, 5)}`,
     },
     {
-      label: "SCHEDULED QUEUE",
+      label: "Scheduled queue",
       icon: "schedule" as const,
       iconClass: "bg-brand-accent/10 text-brand-accent",
-      value: `${client.channels?.length + 1} Posts`,
+      value: `${client.channels?.length ?? 0} Posts`,
       growth: null,
       growthUp: true,
-      caption: "Ready across connected channels",
+      caption: "Across connected channels",
     },
     {
-      label: "AVG. ENGAGEMENT",
+      label: "Avg. engagement",
       icon: "thumb_up" as const,
       iconClass: "bg-brand-accent/10 text-brand-accent",
-      value: profile.metrics[1].value,
-      growth: profile.metrics[1].delta,
-      growthUp: profile.metrics[1].trend === "up",
-      caption: "High-velocity viral cohort benchmark",
+      value: m1.value,
+      growth: m1.delta,
+      growthUp: m1.trend === "up",
+      caption: "Rolling average across connected channels",
     },
     {
-      label: "CONTENT VELOCITY",
+      label: "Content velocity",
       icon: "bolt" as const,
       iconClass: "bg-brand-accent/10 text-brand-accent",
-      value: profile.metrics[2].value,
-      growth: profile.metrics[2].delta,
-      growthUp: profile.metrics[2].trend === "up",
+      value: m2.value,
+      growth: m2.delta,
+      growthUp: m2.trend === "up",
       caption: `${profile.velocity}% campaign velocity`,
     },
   ]
@@ -77,7 +82,7 @@ export function DashboardStitchKpis() {
             className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all hover:shadow-md flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-muted-foreground tracking-wider">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {kpi.label}
               </span>
               <div

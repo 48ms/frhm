@@ -133,7 +133,7 @@ export function CampaignDetailModal({
                   <span className="admin-stat-value block text-sm text-foreground break-words">
                     {s.value}
                   </span>
-                  <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+                  <span className="block text-[9px] font-bold text-muted-foreground mt-0.5">
                     {s.label}
                   </span>
                 </div>
@@ -141,7 +141,7 @@ export function CampaignDetailModal({
             </div>
 
             <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
-              <span className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
+              <span className="block text-[10px] font-bold text-muted-foreground mb-1">
                 Notes
               </span>
               <p className="text-[11px] text-foreground">

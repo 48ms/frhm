@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createScheduledPost } from './service'
+import { createScheduledPost, deleteScheduledPost } from './service'
 import { CreateScheduledPostSchema, type CreateScheduledPostInput } from './types'
 
 // ---------------------------------------------------------------------------
@@ -7,11 +7,16 @@ import { CreateScheduledPostSchema, type CreateScheduledPostInput } from './type
 // ---------------------------------------------------------------------------
 
 const insertedRows: Array<Record<string, unknown>> = []
+const deleteFilters: Array<{ column: string; value: unknown }> = []
 
 function mockSupabase() {
   return {
     select: () => mockSupabase(),
-    eq: () => mockSupabase(),
+    eq: (column: string, value: unknown) => {
+      deleteFilters.push({ column, value })
+      return mockSupabase()
+    },
+    delete: () => mockSupabase(),
     insert: (rows: unknown[]) => {
       rows.forEach((row) => insertedRows.push(row as Record<string, unknown>))
       return mockSupabase()
@@ -21,6 +26,7 @@ function mockSupabase() {
       data: { id: 'post-mocked', client_id: 'client-1111', created_at: new Date().toISOString() },
       error: null,
     }),
+    then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
   }
 }
 
@@ -33,6 +39,7 @@ vi.mock('@/lib/supabase/server', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   insertedRows.length = 0
+  deleteFilters.length = 0
 })
 
 function validPayload(): CreateScheduledPostInput {
@@ -105,5 +112,25 @@ describe('createScheduledPost', () => {
     const result = await createScheduledPost(payload)
     expect(result).toBeDefined()
     expect(insertedRows[0]).toMatchObject({ media_url: 'https://example.com/img.jpg', author: 'Budi' })
+  })
+})
+
+describe('deleteScheduledPost', () => {
+  it('scopes the delete by client_id when provided (defense-in-depth vs IDOR)', async () => {
+    await deleteScheduledPost('post-123', 'client-abc')
+
+    const columns = deleteFilters.map((f) => f.column)
+    expect(columns).toContain('id')
+    expect(columns).toContain('client_id')
+    expect(deleteFilters).toContainEqual({ column: 'id', value: 'post-123' })
+    expect(deleteFilters).toContainEqual({ column: 'client_id', value: 'client-abc' })
+  })
+
+  it('still deletes by id alone when no client_id is supplied', async () => {
+    await deleteScheduledPost('post-123')
+
+    const columns = deleteFilters.map((f) => f.column)
+    expect(columns).toContain('id')
+    expect(columns).not.toContain('client_id')
   })
 })

@@ -181,7 +181,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
         <Card className="border-dashed border-border/80 bg-muted/20">
           <CardContent className="py-14 text-center text-muted-foreground flex flex-col items-center justify-center">
             <div className="size-10 rounded-full bg-muted flex items-center justify-center mb-2.5">
-              <Icons.search className="size-4 text-muted-foreground/60" />
+              <Icons.search className="size-4 text-foreground/70" />
             </div>
             <p className="font-medium text-foreground text-sm">Tidak ada campaign yang cocok</p>
             <p className="text-xs mt-1 text-muted-foreground max-w-xs">
@@ -219,12 +219,12 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link 
                           href={`/admin/clients/${c.client_id}`}
-                          className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+                          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
                         >
                           {c.clientName}
                           <Icons.arrowUpRight className="size-3 opacity-60 group-hover:opacity-100" />
                         </Link>
-                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal uppercase tracking-wider">
+                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal">
                           {c.type === "promo" ? "Promo" : c.type === "event" ? "Event" : "Campaign"}
                         </Badge>
                       </div>
@@ -261,21 +261,21 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
                 <CardContent className="pt-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                     <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] uppercase font-semibold tracking-wider">Konten</p>
+                      <p className="text-muted-foreground text-[10px] font-semibold">Konten</p>
                       <p className="font-semibold text-base tabular-nums">{c.stats.contentCount}</p>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] uppercase font-semibold tracking-wider">Reach</p>
+                      <p className="text-muted-foreground text-[10px] font-semibold">Reach</p>
                       <p className="font-semibold text-base tabular-nums">{formatNumber(c.stats.reach)}</p>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] uppercase font-semibold tracking-wider">Engagement</p>
+                      <p className="text-muted-foreground text-[10px] font-semibold">Engagement</p>
                       <p className="font-semibold text-base tabular-nums">{formatNumber(c.stats.engagement)}</p>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] uppercase font-semibold tracking-wider">Clicks / Inquiry</p>
+                      <p className="text-muted-foreground text-[10px] font-semibold">Clicks / Inquiry</p>
                       <p className="font-bold text-base text-brand-accent tabular-nums">
-                        {c.stats.clicks} <span className="text-muted-foreground/60 text-xs font-normal">/</span> {c.stats.inquiries}
+                        {c.stats.clicks} <span className="text-foreground/70 text-xs font-normal">/</span> {c.stats.inquiries}
                       </p>
                     </div>
                   </div>

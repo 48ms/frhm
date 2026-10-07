@@ -264,15 +264,15 @@ function LoginForm() {
           <nav className='hidden items-center gap-8 md:flex' aria-label='Primary'>
             <Link
               href='/'
-              className='font-syne text-[11px] font-bold tracking-[0.12em] text-foreground uppercase transition-colors duration-200 hover:text-brand-accent active:scale-95'
+              className='font-syne text-[11px] font-bold text-foreground transition-colors duration-200 hover:text-brand-accent active:scale-95'
             >
-              HOME
+              Home
             </Link>
-            <span className='font-syne text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase'>
-              EXPLORE
+            <span className='font-syne text-[11px] font-medium text-muted-foreground'>
+              Explore
             </span>
-            <span className='font-syne text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase'>
-              ABOUT
+            <span className='font-syne text-[11px] font-medium text-muted-foreground'>
+              About
             </span>
           </nav>
 
@@ -291,9 +291,9 @@ function LoginForm() {
             <div>
               <h1
                 id='auth-heading'
-                className='font-syne text-2xl font-extrabold tracking-wider text-foreground uppercase'
+                className='font-syne text-2xl font-extrabold tracking-tight text-foreground'
               >
-                WELCOME TO THE SPACE
+                Welcome to the space
               </h1>
             </div>
 
@@ -311,22 +311,22 @@ function LoginForm() {
                 <TabsList className='[&_[data-slot=motion-highlight]]:!bg-transparent [&_[data-slot=motion-highlight]]:shadow-none grid h-10 w-full grid-cols-2 rounded-full bg-white/60 p-1 ring-1 ring-white/60 backdrop-blur-sm dark:bg-white/5 dark:ring-white/10'>
                   <TabsTrigger
                     value='login'
-                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold tracking-[0.12em] uppercase text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
+                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
                   >
-                    LOG IN
+                    Log in
                   </TabsTrigger>
                   <TabsTrigger
                     value='signup'
-                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold tracking-[0.12em] uppercase text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
+                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
                   >
-                    SIGN UP
+                    Sign up
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Log in */}
                 <TabsContent value='login'>
                   <p className='mt-6 mb-6 text-center font-syne text-xl font-bold text-foreground'>
-                    LOG IN TO YOUR ACCOUNT
+                    Log in to your account
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -408,9 +408,9 @@ function LoginForm() {
                             type='submit'
                             loading={isSubmitting}
                             loadingLabel='Sedang masuk'
-                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold tracking-[0.12em] text-lum-ink uppercase !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
+                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold text-lum-ink !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
-                            LOG IN
+                            Log in
                           </LoadingButton>
                         )}
                       </loginForm.Subscribe>
@@ -421,7 +421,7 @@ function LoginForm() {
                 {/* Sign up */}
                 <TabsContent value='signup'>
                   <p className='mt-6 mb-6 text-center font-syne text-xl font-bold text-foreground'>
-                    CREATE YOUR ACCOUNT
+                    Create your account
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -516,9 +516,9 @@ function LoginForm() {
                             type='submit'
                             loading={isSubmitting}
                             loadingLabel='Sedang membuat akun'
-                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold tracking-[0.12em] text-lum-ink uppercase !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
+                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold text-lum-ink !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
-                            SIGN UP
+                            Sign up
                           </LoadingButton>
                         )}
                       </signupForm.Subscribe>
@@ -532,7 +532,7 @@ function LoginForm() {
 
               {/* Social fast-connect. */}
               <div className='mt-6 text-center'>
-                <span className='mb-3 block font-syne text-[11px] tracking-[0.1em] text-muted-foreground uppercase'>
+                <span className='mb-3 block font-syne text-[11px] text-muted-foreground'>
                   or you can log in with
                 </span>
                 <div className='flex items-center justify-center gap-3'>
@@ -613,17 +613,15 @@ function LoginForm() {
               {/* Layer 1: electric blue pill, top-right. */}
               <div
                 className='absolute -top-6 right-6 z-0 h-36 w-72 -rotate-3 rounded-full bg-lum-secondary opacity-95 shadow-lg'
-                style={{ animation: 'float-drift 9s ease-in-out infinite' }}
               />
 
               {/* Layer 2: neon lime anchor pill, centre. */}
               <div
                 className='relative z-30 flex h-36 w-80 rotate-1 items-center justify-center rounded-full bg-lum-primary shadow-xl'
-                style={{ transform: 'translateY(-56px) rotate(1deg)', animation: '7s ease-in-out 0.2s infinite normal none running float-slow' }}
+                style={{ transform: 'translateY(-56px) rotate(1deg)' }}
               >
                 <h2
                   className='inline-block font-syne text-[44px] font-extrabold tracking-tighter text-lum-on-surface select-none md:text-[54px]'
-                  style={{ animation: 'float-slow 6s ease-in-out infinite' }}
                 >
                   DIGITAL
                 </h2>
@@ -632,7 +630,6 @@ function LoginForm() {
               {/* Layer 3: fluted glass panel, top-right overlay. */}
               <div
                 className='fluted-glass-pane absolute -top-4 right-10 z-20 h-40 w-44 overflow-hidden rounded-2xl border border-white/60 shadow-md'
-                style={{ animation: 'float-reverse 8s ease-in-out infinite' }}
               >
                 <div className='h-full w-full bg-gradient-to-b from-transparent via-white/10 to-lum-primary/20' />
               </div>
@@ -640,13 +637,11 @@ function LoginForm() {
               {/* Layer 4: lilac pill, bottom-left. */}
               <div
                 className='absolute -bottom-8 left-4 z-10 h-36 w-80 rotate-2 rounded-full bg-lum-tertiary-fixed-dim/90 shadow-xl'
-                style={{ animation: 'float-reverse 8.5s ease-in-out infinite 0.4s' }}
               />
 
               {/* Layer 5: fluted glass panel, bottom-left overlay. */}
               <div
                 className='fluted-glass-pane absolute bottom-4 left-14 z-20 h-36 w-52 rounded-2xl border border-white/70 shadow-lg'
-                style={{ animation: 'float-drift 10s ease-in-out infinite 0.6s' }}
               >
                 <div className='h-full w-full bg-gradient-to-t from-transparent via-lum-tertiary-container/30 to-white/20' />
               </div>
@@ -655,7 +650,6 @@ function LoginForm() {
               <div className='absolute -bottom-14 right-14 z-30 select-none'>
                 <h2
                   className='inline-block font-syne text-[48px] font-extrabold tracking-tighter text-lum-on-surface md:text-[60px]'
-                  style={{ animation: 'float-reverse 7s ease-in-out infinite 0.5s' }}
                 >
                   SPACE
                 </h2>
@@ -663,20 +657,20 @@ function LoginForm() {
 
               {/* Decorative starburst accents. */}
               <div
+                aria-hidden='true'
                 className='absolute top-2 right-36 z-30 font-syne text-3xl text-lum-primary select-none'
-                style={{ animation: 'star-spin 10s linear infinite' }}
               >
                 ✻
               </div>
               <div
+                aria-hidden='true'
                 className='absolute top-1/3 left-6 z-20 font-syne text-2xl text-lum-tertiary select-none'
-                style={{ animation: 'star-spin 14s linear infinite reverse' }}
               >
                 ✻
               </div>
               <div
+                aria-hidden='true'
                 className='absolute right-4 bottom-16 z-30 font-syne text-2xl text-lum-secondary select-none'
-                style={{ animation: 'star-spin 11s linear infinite 1s' }}
               >
                 ✻
               </div>
@@ -685,7 +679,7 @@ function LoginForm() {
         </div>
 
         <footer className='w-full border-t border-white/40 bg-white/30 py-3 text-center dark:bg-white/[0.02]'>
-          <p className='font-syne text-[11px] tracking-[0.1em] text-muted-foreground uppercase select-none'>
+          <p className='font-syne text-[11px] text-muted-foreground select-none'>
             &copy; {new Date().getFullYear()} {PRODUCT_NAME}. All rights reserved.
           </p>
         </footer>

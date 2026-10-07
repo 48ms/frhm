@@ -169,6 +169,7 @@ export function PostDialog({
       if (editingPost) {
         await updatePost({
           id: editingPost.id,
+          clientId,
           title: isPlaceholder
             ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
             : title,

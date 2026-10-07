@@ -1,7 +1,7 @@
 "use client"
 
 import { useQueryState } from "nuqs"
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { dashboardQueries } from "@/features/dashboard/api/queries"
 import { dashboardSearchParams } from "@/features/dashboard/lib/searchparams"
 import { socialQueries } from "@/features/social-accounts/api/queries"
@@ -14,9 +14,24 @@ export function useActiveDashboard() {
     dashboardSearchParams.clientId
   )
   
-  // Mengambil daftar clients (diasumsikan client list sudah di-prefetch di server)
-  const { data: clientsData } = useSuspenseQuery(socialQueries.listClientsWithChannels())
-  const clients = clientsData || []
+  // Mengambil daftar clients. Server prefetcher (DashboardPrefetcher atau
+  // prefetchQuery di tiap page) me-prefetch `socialKeys.clients()`.
+  // PENTING (fakta): gunakan `useQuery` (BUKAN `useSuspenseQuery`) dengan
+  // `placeholderData`. Alasan sama persis dengan query profile di bawah:
+  // ketika key tidak ada di cache (misalnya halaman ini dirender di luar
+  // DashboardPrefetcher, atau prefetch berjalan paralel belum selesai),
+  // `useSuspenseQuery` memicu fetch SAAT RENDER -> memanggil Server Action
+  // ('use server') saat render -> Next.js update Router saat render ->
+  // warning React "Cannot update Router while rendering a different
+  // component" + SSR gagal ("Server Functions cannot be called during
+  // initial render... fetch waterfall"). `useQuery` + `placeholderData`
+  // mengembalikan data instan tanpa suspend, fetch tambahan berjalan di
+  // effect (setelah render).
+  const { data: clientsData } = useQuery({
+    ...socialQueries.listClientsWithChannels(),
+    placeholderData: [],
+  })
+  const clients = clientsData ?? []
   
   // Memastikan fallback jika clientId tidak valid (atau dihapus)
   const activeClientId = clients.some(c => c.id === clientId) 
@@ -37,22 +52,24 @@ export function useActiveDashboard() {
     channels: [],
   }
   
-  // Fallback safe profile jika database belum memiliki row dashboard_profiles
+  // Fallback aman saat database belum memiliki row dashboard_profiles.
+  // PENTING: nilai di sini HARUS netral (nol/kosong), bukan angka contoh.
+  // Angka seperti velocity 98 / peak 99.4% adalah fabrikasi (R-17/R-38): saat
+  // row belum ada, UI akan menampilkan metrik palsu seolah data nyata.
+  // Skema 053 menetapkan DEFAULT 0 / '0%' , fallback ini harus konsisten.
   const defaultProfile: DashboardProfile = {
     id: "fallback",
     client_id: activeClientId,
     greeting: "Good day, Creator.",
-    velocity: 98,
+    velocity: 0,
     peak_label: "Peak Performance",
-    peak_value: "99.4%",
+    peak_value: "0%",
     charts: {
-      "7d": { reach: "M0 50 L100 40 L200 60 L300 30", engage: "M0 70 L100 50 L200 40 L300 20" },
-      "30d": { reach: "M0 50 L100 40 L200 60 L300 30", engage: "M0 70 L100 50 L200 40 L300 20" },
-      "90d": { reach: "M0 50 L100 40 L200 60 L300 30", engage: "M0 70 L100 50 L200 40 L300 20" },
+      "7d": { reach: "", engage: "" },
+      "30d": { reach: "", engage: "" },
+      "90d": { reach: "", engage: "" },
     },
-    insights: [
-      { label: "Data Insight", value: "N/A", sub: "Menunggu data" },
-    ],
+    insights: [],
     metrics: [
       { label: "Total Reach", value: "0", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
       { label: "Engagement Rate", value: "0%", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },

@@ -74,7 +74,7 @@ export function SchedulePostModal({
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-[foreground]/40 backdrop-blur-md animate-in fade-in duration-300"
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={phase === "working" ? undefined : onClose}
       />
       <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">

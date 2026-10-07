@@ -67,7 +67,7 @@ export function AudienceTrajectory({
     <div className="admin-card border-none bg-card/90 backdrop-blur-xl shadow-sm p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <span className="admin-section-label">AUDIENCE TRAJECTORY</span>
+          <span className="admin-section-label">Audience trajectory</span>
           <h2 className="font-syne font-bold text-lg text-foreground mt-1">
             Performance &amp; Engagement Dynamics
           </h2>
@@ -138,7 +138,7 @@ export function AudienceTrajectory({
           {/* Ringkasan faktual dari deret yang sama */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
-              <p className="admin-section-label">TOTAL REACH</p>
+              <p className="admin-section-label">Total reach</p>
               <p className="font-syne font-bold text-foreground text-base mt-1">
                 {series.totalReach.toLocaleString("id-ID")}
               </p>
@@ -147,7 +147,7 @@ export function AudienceTrajectory({
               </p>
             </div>
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
-              <p className="admin-section-label">TOTAL ENGAGEMENT</p>
+              <p className="admin-section-label">Total engagement</p>
               <p className="font-syne font-bold text-foreground text-base mt-1">
                 {series.totalEngage.toLocaleString("id-ID")}
               </p>
@@ -156,7 +156,7 @@ export function AudienceTrajectory({
               </p>
             </div>
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
-              <p className="admin-section-label">TITIK TERBAIK</p>
+              <p className="admin-section-label">Titik terbaik</p>
               <p className="font-syne font-bold text-foreground text-base mt-1">
                 {series.peak.label}
               </p>

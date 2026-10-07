@@ -128,7 +128,7 @@ export function ThemeSelector() {
       </Tooltip>
 
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
           Preset Warna
         </DropdownMenuLabel>
         {THEME_PRESETS.map((preset) => (
@@ -152,7 +152,7 @@ export function ThemeSelector() {
 
         <DropdownMenuSeparator className="my-1.5" />
 
-        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
           Mode Tampilan
         </DropdownMenuLabel>
         <DropdownMenuRadioGroup

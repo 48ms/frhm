@@ -53,7 +53,7 @@ const ResultItem = React.forwardRef(
         {action.shortcut?.length ? (
           <div className='grid grid-flow-col gap-1 shrink-0 ml-2'>
             {action.shortcut.map((sc, i) => (
-              <Kbd key={sc + i} className='uppercase'>{sc}</Kbd>
+              <Kbd key={sc + i} className='uppercase' title="antislop-exception R-04: Keyboard keys UI convention">{sc}</Kbd>
             ))}
           </div>
         ) : null}

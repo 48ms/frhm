@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type { ContentProduction, CreateContentProductionInput, UpdateContentProductionInput } from "./types"
 
 /**
@@ -19,7 +20,7 @@ export async function getContentProductions(clientId: string): Promise<ContentPr
     .order("due_date", { ascending: true })
 
   if (error) {
-    console.error("[getContentProductions] error:", error.message)
+    logger.error("getContentProductions failed", { error })
     return []
   }
   return (data ?? []) as ContentProduction[]

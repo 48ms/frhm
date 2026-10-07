@@ -4,6 +4,7 @@ import { z } from "zod"
 import { generateText, generateObject } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import { GenerateCaptionSchema, GenerateIdeasSchema, GeneratedIdeaSchema, GenerateVideoScriptInputSchema, GeneratedVideoScriptSchema, RepurposedContentSchema, GenerateBatchPlanInputSchema, BatchPlanSchema } from "./types"
 import type { GenerateCaptionInput, CopilotResponse, GenerateIdeasInput, IdeasResponse, GenerateVideoScriptInput, VideoScriptResponse, RepurposeCrossPlatformInput, RepurposeCrossPlatformResponse, GenerateBatchPlanInput, BatchPlanResponse } from "./types"
 
@@ -19,7 +20,7 @@ export async function generateBatchPlan(input: GenerateBatchPlanInput): Promise<
       .single()
 
     if (error) {
-      console.error("Error fetching brand profile:", error)
+      logger.error("Error fetching brand profile", { error })
       return { error: "Gagal mengambil Brand Profile" }
     }
 
@@ -66,7 +67,7 @@ RULES (Strictly Followed):
 
     return { plan: object }
   } catch (err: any) {
-    console.error("Batch Plan Error:", err)
+    logger.error("Batch Plan Error", { error: err })
     if (err.name === 'AbortError' || err.name === 'TimeoutError') {
       return { error: "Timeout: AI terlalu lama memproses, coba lagi." }
     }
@@ -87,7 +88,7 @@ export async function generateCaption(input: GenerateCaptionInput): Promise<Copi
       .single()
 
     if (error) {
-      console.error("Error fetching brand profile:", error)
+      logger.error("Error fetching brand profile for caption", { error })
       return { caption: "", error: "Gagal mengambil Brand Profile" }
     }
 
@@ -133,7 +134,7 @@ RULES (Strictly Followed):
 
     return { caption: text }
   } catch (err: any) {
-    console.error("Copilot Generation Error:", err)
+    logger.error("Copilot Caption Generation Error", { error: err })
     if (err.name === 'AbortError' || err.name === 'TimeoutError') {
       return { caption: "", error: "Timeout: AI terlalu lama merespon." }
     }
@@ -154,7 +155,7 @@ export async function generateContentIdeas(input: GenerateIdeasInput): Promise<I
       .single()
 
     if (error) {
-      console.error("Error fetching brand profile:", error)
+      logger.error("Error fetching brand profile for ideas", { error })
       return { ideas: [], error: "Gagal mengambil Brand Profile" }
     }
 
@@ -202,7 +203,7 @@ RULES (Strictly Followed):
 
     return { ideas: object.ideas }
   } catch (err: any) {
-    console.error("Brainstorm Generation Error:", err)
+    logger.error("Brainstorm Generation Error", { error: err })
     if (err.name === 'AbortError' || err.name === 'TimeoutError') {
       return { ideas: [], error: "Timeout: AI terlalu lama memproses brainstorming." }
     }
@@ -223,7 +224,7 @@ export async function generateVideoScript(input: GenerateVideoScriptInput): Prom
       .single()
 
     if (error) {
-      console.error("Error fetching brand profile:", error)
+      logger.error("Error fetching brand profile", { error })
       return { error: "Gagal mengambil Brand Profile" }
     }
 
@@ -271,7 +272,7 @@ Structure:
 
     return { script: object }
   } catch (err: any) {
-    console.error("Video Script Generation Error:", err)
+    logger.error("Video Script Generation Error", { error: err })
     if (err.name === 'AbortError' || err.name === 'TimeoutError') {
       return { error: "Timeout: AI terlalu lama merespon. Mohon coba lagi nanti." }
     }
@@ -293,7 +294,7 @@ export async function repurposeCrossPlatform(
       .single()
 
     if (error) {
-      console.error("Error fetching brand profile:", error)
+      logger.error("Error fetching brand profile", { error })
       return { error: "Gagal mengambil Brand Profile" }
     }
 
@@ -336,7 +337,7 @@ RULES:
 
     return { repurposed: object }
   } catch (err: any) {
-    console.error("Repurpose Error:", err)
+    logger.error("Repurpose Error", { error: err })
     if (err.name === 'AbortError' || err.name === 'TimeoutError') {
       return { error: "Timeout: AI terlalu lama memproses adaptasi konten. Coba kurangi platform." }
     }

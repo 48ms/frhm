@@ -4,7 +4,6 @@ import { useMemo, useState, useEffect, useCallback } from "react"
 import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
 import { Icons } from "@/components/icons"
 import { toast } from "sonner"
-import { PLATFORMS } from "@/features/calendar/types"
 import { PostDialog } from "@/components/calendar/post-dialog"
 import { CalendarExportModal } from "@/components/calendar/calendar-export-modal"
 import { BrainstormModal } from "@/components/calendar/brainstorm-modal"
@@ -19,7 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
-import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
+import { useScheduledPosts, useUpdateScheduledPost } from "@/features/scheduled-posts/api/queries"
+import { useLatestPrediction } from "@/features/analytics/api/hooks"
 import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 
 
@@ -127,6 +127,8 @@ export function AdminCalendarClient() {
   // Posts are now loaded strictly from the factual database (useScheduledPosts)
 
   const { data: fetchedPosts = [] } = useScheduledPosts(selectedClientId)
+  const { mutate: updatePost } = useUpdateScheduledPost()
+  const { data: prediction, isPending: isLoadingPrediction } = useLatestPrediction(selectedClientId)
   
   const posts = useMemo<ScheduledPost[]>(() => {
     return [...fetchedPosts]
@@ -300,7 +302,7 @@ export function AdminCalendarClient() {
           </button>
           <button
             onClick={() => setCursor(new Date())}
-            className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-[10px] font-bold uppercase tracking-wider hover:bg-surface-variant transition-colors"
+            className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-[10px] font-bold hover:bg-surface-variant transition-colors"
           >
             Today
           </button>
@@ -308,7 +310,7 @@ export function AdminCalendarClient() {
 
         {/* Platform Filter Pills */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mr-1">
+          <span className="text-[10px] font-bold text-on-surface-variant mr-1">
             Platform:
           </span>
           {PLATFORM_FILTERS.map((p) => (
@@ -333,7 +335,7 @@ export function AdminCalendarClient() {
         {/* Metric 1: Scheduled Flights */}
         <div className="glass-panel rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold">
+            <span className="text-[10px] text-on-surface-variant font-bold">
               Scheduled Flights (Month)
             </span>
             <div className="flex items-baseline gap-2">
@@ -351,27 +353,38 @@ export function AdminCalendarClient() {
         {/* Metric 2: Slots Status */}
         <div className="glass-panel rounded-2xl p-4 space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold">
+            <span className="text-[10px] text-on-surface-variant font-bold">
               Slots Status Pipeline
             </span>
-            <span className="text-[10px] text-secondary font-bold uppercase">{filteredPosts.length} TOTAL</span>
+            <span className="text-[10px] text-secondary font-bold">{filteredPosts.length} TOTAL</span>
           </div>
           <div className="flex items-center gap-2 pt-1">
-            <div className="flex-1 bg-surface-container-high h-2.5 rounded-full overflow-hidden flex">
-              <div className="bg-primary h-full" style={{ width: "74%" }} title="28 Approved" />
-              <div className="bg-[#f59e0b] h-full" style={{ width: "16%" }} title="6 Needs Approval" />
-              <div className="bg-outline-variant h-full" style={{ width: "10%" }} title="4 Drafts" />
-            </div>
+            {(() => {
+              const publishedCount = filteredPosts.filter((p) => p.status === "published").length
+              const scheduledCount = filteredPosts.filter((p) => p.status === "scheduled").length
+              const draftCount = filteredPosts.filter((p) => p.status === "draft").length
+              const total = filteredPosts.length || 1
+              return (
+                <>
+                  <div className="flex-1 bg-surface-container-high h-2.5 rounded-full overflow-hidden flex">
+                    <div className="bg-primary h-full" style={{ width: `${(publishedCount / total) * 100}%` }} title={`${publishedCount} Published`} />
+                    <div className="bg-[#f59e0b] h-full" style={{ width: `${(scheduledCount / total) * 100}%` }} title={`${scheduledCount} Scheduled`} />
+                    <div className="bg-outline-variant h-full" style={{ width: `${(draftCount / total) * 100}%` }} title={`${draftCount} Drafts`} />
+                  </div>
+                  <span className="text-[11px] font-bold text-on-surface-variant">{filteredPosts.length}</span>
+                </>
+              )
+            })()}
           </div>
           <div className="flex justify-between text-[11px] text-on-surface-variant pt-0.5">
             <span className="flex items-center gap-1 font-semibold text-on-surface">
-              <span className="w-2 h-2 rounded-full bg-primary" /> 28 Approved
+              <span className="w-2 h-2 rounded-full bg-primary" /> {filteredPosts.filter((p) => p.status === "published").length} Published
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#f59e0b]" /> 6 Pending
+              <span className="w-2 h-2 rounded-full bg-[#f59e0b]" /> {filteredPosts.filter((p) => p.status === "scheduled").length} Scheduled
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-outline-variant" /> 4 Drafts
+              <span className="w-2 h-2 rounded-full bg-outline-variant" /> {filteredPosts.filter((p) => p.status === "draft").length} Drafts
             </span>
           </div>
         </div>
@@ -379,7 +392,7 @@ export function AdminCalendarClient() {
         {/* Metric 3: Peak Dispatch Timeslots */}
         <div className="glass-panel rounded-2xl p-4 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold">
+            <span className="text-[10px] text-on-surface-variant font-bold">
               Peak Velocity Timeslot
             </span>
             <p className="text-base font-bold text-on-surface">18:00 – 20:30 WIB</p>
@@ -392,17 +405,17 @@ export function AdminCalendarClient() {
           </div>
         </div>
 
-        {/* Metric 4: API Sync Health */}
+        {/* Metric 4: API Connection Status */}
         <div className="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-primary">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold">
-              Auto-Publish Sync Health
+            <span className="text-[10px] text-on-surface-variant font-bold">
+              API Connection Status
             </span>
             <p className="text-base font-bold text-on-surface flex items-center gap-2">
-              <span>100% Operational</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+              <span>Ready for Dispatch</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
             </p>
-            <p className="text-[11px] text-on-surface-variant truncate">Meta Graph API &amp; TikTok Cloud Live</p>
+            <p className="text-[11px] text-on-surface-variant truncate">Meta Graph &amp; TikTok Cloud Active</p>
           </div>
           <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface shrink-0">
             <Icons.circleCheck className="size-6" />
@@ -420,7 +433,7 @@ export function AdminCalendarClient() {
               {weekDays.map((d, i) => (
                 <div
                   key={i}
-                  className="text-[10px] uppercase text-on-surface-variant tracking-wider font-bold"
+                  className="text-[10px] text-on-surface-variant font-bold"
                 >
                   {d.toLocaleDateString("en-US", { weekday: "short" })}{" "}
                   <span className={cn(d.getDate() === new Date().getDate() ? "text-secondary" : "")}>{d.getDate()}</span>
@@ -453,7 +466,7 @@ export function AdminCalendarClient() {
                       </div>
                       <div className="h-full flex flex-col items-center justify-center py-8 text-center text-outline-variant group-hover:text-on-surface-variant">
                         <span className="text-[28px] mb-1">{isDarkFlight ? "🌙" : "+"}</span>
-                        <span className="text-[11px] uppercase font-bold">
+                        <span className="text-[11px] font-bold">
                           {isDarkFlight ? "Dark Flight" : "Free Dispatch Slot"}
                         </span>
                         {!isDarkFlight && (
@@ -465,7 +478,7 @@ export function AdminCalendarClient() {
                       </div>
                       <button
                         onClick={() => handleAddPost(d)}
-                        className="w-full py-1.5 rounded-lg border border-dashed border-outline-variant/60 text-on-surface-variant hover:text-secondary hover:border-secondary hover:bg-surface-container-lowest transition-all text-[11px] uppercase font-bold flex items-center justify-center gap-1 cursor-pointer"
+                        className="w-full py-1.5 rounded-lg border border-dashed border-outline-variant/60 text-on-surface-variant hover:text-secondary hover:border-secondary hover:bg-surface-container-lowest transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Icons.add className="size-3.5" /> Quick Slot
                       </button>
@@ -493,7 +506,7 @@ export function AdminCalendarClient() {
                       )}
                       <span
                         className={cn(
-                          "text-[10px] font-bold uppercase",
+                          "text-[10px] font-bold ",
                           isToday ? "text-secondary" : "text-on-surface-variant"
                         )}
                       >
@@ -519,7 +532,7 @@ export function AdminCalendarClient() {
                             <div className="flex items-center justify-between mb-1.5">
                               <span
                                 className={cn(
-                                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase",
+                                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ",
                                   meta.badge
                                 )}
                               >
@@ -547,7 +560,7 @@ export function AdminCalendarClient() {
                             <div className="mt-2 pt-1.5 border-t border-outline-variant/20 flex items-center justify-between">
                               <span
                                 className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full",
+                                  "inline-flex items-center gap-1 text-[10px] font-bold  px-1.5 py-0.5 rounded-full",
                                   st.pill
                                 )}
                               >
@@ -565,7 +578,7 @@ export function AdminCalendarClient() {
                     {/* Add Slot Prompt */}
                     <button
                       onClick={() => handleAddPost(d)}
-                      className="w-full mt-2 py-1 rounded-lg border border-dashed border-outline-variant/50 text-outline hover:text-on-surface hover:border-secondary hover:bg-surface-container transition-all text-[11px] uppercase font-bold flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 cursor-pointer"
+                      className="w-full mt-2 py-1 rounded-lg border border-dashed border-outline-variant/50 text-outline hover:text-on-surface hover:border-secondary hover:bg-surface-container transition-all text-[11px] font-bold flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 cursor-pointer"
                     >
                       <Icons.add className="size-3.5" /> Add slot
                     </button>
@@ -577,7 +590,7 @@ export function AdminCalendarClient() {
             {/* Next Week Preview Bar */}
             <div className="mt-4 pt-3 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] uppercase text-on-surface-variant font-bold tracking-wider">
+                <span className="text-[10px] text-on-surface-variant font-bold">
                   Upcoming:
                 </span>
                 {posts.slice(0, 2).map((p, idx) => (
@@ -587,7 +600,7 @@ export function AdminCalendarClient() {
                   </span>
                 ))}
               </div>
-              <button className="text-[10px] text-secondary hover:underline uppercase flex items-center gap-1 font-bold cursor-pointer">
+              <button className="text-[10px] text-secondary hover:underline flex items-center gap-1 font-bold cursor-pointer">
                 <span>View Full Month Matrix</span>
                 <Icons.arrowRight className="size-4" />
               </button>
@@ -601,10 +614,10 @@ export function AdminCalendarClient() {
           <div className="glass-panel rounded-3xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
                 <h3 className="text-lg font-bold text-on-surface">Today&apos;s Dispatches</h3>
               </div>
-              <span className="text-[10px] uppercase bg-secondary-fixed text-secondary px-2.5 py-1 rounded-full font-bold">
+              <span className="text-[10px] bg-secondary-fixed text-secondary px-2.5 py-1 rounded-full font-bold">
                 {todayStr}
               </span>
             </div>
@@ -613,7 +626,7 @@ export function AdminCalendarClient() {
             <div className="rounded-2xl bg-secondary-container text-on-secondary-container p-4 shadow-sm relative overflow-hidden">
               <div className="relative z-10 flex items-center justify-between">
                 <div className="min-w-0">
-                  <span className="text-[9px] uppercase tracking-wider text-secondary-fixed-dim font-bold">
+                  <span className="text-[9px] text-secondary-fixed-dim font-bold">
                     Next Flight Countdown
                   </span>
                   <p className="text-2xl font-bold tracking-tight text-white mt-0.5 tabular-nums">
@@ -630,31 +643,31 @@ export function AdminCalendarClient() {
               </div>
               {/* Fast Action Buttons */}
               <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 relative z-10">
-                <button
-                  onClick={() => toast.success("Force publish queued (Coming Soon)")}
-                  className="bg-primary-container text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold hover:bg-primary-fixed transition-colors text-center cursor-pointer"
+                <span
+                  aria-disabled="true"
+                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
                 >
-                  Force Publish
-                </button>
-                <button
-                  onClick={() => toast.info("Media editor (Coming Soon)")}
-                  className="bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-full text-[10px] uppercase font-bold transition-colors text-center cursor-pointer"
+                  Force Publish (Coming soon)
+                </span>
+                <span
+                  aria-disabled="true"
+                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
                 >
-                  Edit Media
-                </button>
-                <button
-                  onClick={() => toast.info("Reschedule (Coming Soon)")}
-                  className="bg-white/20 hover:bg-white/30 text-white py-1.5 rounded-full text-[10px] uppercase font-bold transition-colors text-center cursor-pointer"
+                  Edit Media (Coming soon)
+                </span>
+                <span
+                  aria-disabled="true"
+                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
                 >
-                  Reschedule
-                </button>
+                  Reschedule (Coming soon)
+                </span>
               </div>
             </div>
 
             {/* Detailed Dispatch Metadata Card */}
             <div className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/40 space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
                   <Icons.video className="size-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -681,7 +694,7 @@ export function AdminCalendarClient() {
                 </span>
                 <h3 className="text-lg font-bold text-on-surface">Approval Gate</h3>
               </div>
-              <span className="text-[10px] uppercase bg-error-container text-error px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] bg-error-container text-error px-2 py-0.5 rounded-full font-bold">
                 {posts.filter(p => p.status === "draft").length} Awaiting
               </span>
             </div>
@@ -699,27 +712,39 @@ export function AdminCalendarClient() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
-                        <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold uppercase", meta.badge)}>
+                        <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold ", meta.badge)}>
                           {meta.label}
                         </span>
                         <span className="text-[11px] text-on-surface-variant">Due {new Date(draft.scheduled_at).toLocaleDateString()}</span>
                       </div>
                       <h4 className="text-[13px] font-bold text-on-surface">{draft.title || "No title"}</h4>
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-primary/20 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
                       <Icons.page className="size-5 text-on-surface-variant" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20">
-                    <button
-                      onClick={() => toast.info("Fitur revisi sedang dikembangkan")}
-                      className="flex-1 bg-surface-container-high hover:bg-surface-variant text-on-surface py-1.5 rounded-full text-[10px] uppercase font-bold transition-all cursor-pointer"
+                    <span
+                      aria-disabled="true"
+                      title="Revision requests are handled by your agency team over email for now."
+                      className="flex-1 bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[10px] font-bold text-center cursor-not-allowed"
                     >
-                      Request Revision
-                    </button>
+                      Request Revision (Coming soon)
+                    </span>
                     <button
-                      onClick={() => toast.success("Approved!")}
-                      className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[10px] uppercase font-bold transition-all shadow-xs cursor-pointer"
+                      onClick={() =>
+                        updatePost(
+                          { id: draft.id, clientId: selectedClientId, status: "scheduled" },
+                          {
+                            onSuccess: () =>
+                              toast.success("Approved", {
+                                description: "The post is now scheduled on the calendar.",
+                              }),
+                            onError: () => toast.error("Could not approve the post. Please try again."),
+                          }
+                        )
+                      }
+                      className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[10px] font-bold transition-all shadow-xs cursor-pointer"
                     >
                       Approve
                     </button>
@@ -730,26 +755,47 @@ export function AdminCalendarClient() {
           </div>
 
           {/* AI Optimization Recommendation Card */}
-          <div className="rounded-3xl p-5 bg-gradient-to-br from-[#d4ff32]/30 via-surface-container-low to-surface-container border border-primary/30 shadow-sm space-y-3">
+          <div className="rounded-3xl p-5 bg-surface-container border border-primary/20 shadow-sm space-y-3">
             <div className="flex items-center gap-2 text-primary font-bold">
+              {/* antislop-exception R-04: explicitly AI feature (Prediction) */}
               <Icons.bot className="size-5" />
-              <span className="text-[10px] uppercase tracking-wider font-bold">Studio AI Prediction</span>
+              <span className="text-[10px] font-bold">Studio AI Prediction</span>
             </div>
-            <p className="text-[13px] font-bold text-on-surface leading-snug">
-              Reschedule TikTok Spark Ad to Friday 19:30 WIB
-            </p>
-            <p className="text-[11px] text-on-surface-variant">
-              Predictive audience telemetry indicates a{" "}
-              <strong className="text-primary font-bold">+28% higher organic viral velocity</strong> for enterprise
-              tech content during that exact window.
-            </p>
-            <button
-              onClick={() => toast.success("Suggestion applied (Coming Soon)")}
-              className="w-full bg-primary-container hover:bg-primary-fixed text-on-primary-container text-[10px] uppercase py-2.5 rounded-full font-bold tracking-wider transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+            
+            {isLoadingPrediction ? (
+              <div className="py-4 flex justify-center">
+                <Icons.spinner className="size-5 animate-spin text-primary" />
+              </div>
+            ) : prediction ? (
+              <>
+                <p className="text-[13px] font-bold text-on-surface leading-snug">
+                  Target for {new Date(prediction.target_month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </p>
+                <p className="text-[11px] text-on-surface-variant">
+                  Predictive telemetry forecasts{" "}
+                  <strong className="text-primary font-bold">{prediction.forecasted_reach.toLocaleString()} reach</strong> and{" "}
+                  <strong className="text-primary font-bold">{prediction.estimated_roi_multiplier}x ROI multiplier</strong>{" "}
+                  based on current engagement trends (confidence: {Math.round(prediction.confidence_score * 100)}%).
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[13px] font-bold text-on-surface leading-snug">
+                  Waiting for enough data
+                </p>
+                <p className="text-[11px] text-on-surface-variant">
+                  Prediction requires at least a week of telemetry data to establish a baseline.
+                </p>
+              </>
+            )}
+
+            <span
+              aria-disabled="true"
+              className="w-full bg-surface-container-high text-foreground/70 text-[11px] py-2.5 rounded-full font-semibold transition-all flex items-center justify-center gap-1.5 cursor-not-allowed"
             >
               <Icons.refresh className="size-4" />
-              <span>Apply Suggestion</span>
-            </button>
+              <span>Apply Suggestion (Coming soon)</span>
+            </span>
           </div>
         </div>
       </div>
@@ -758,7 +804,7 @@ export function AdminCalendarClient() {
       <footer className="pt-6 pb-4 border-t border-outline-variant/30 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 glass-panel rounded-2xl px-6 py-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[10px] uppercase text-on-surface-variant font-bold tracking-wider">
+            <span className="text-[10px] text-on-surface-variant font-bold">
               Agency Client Switcher:
             </span>
             <div className="flex items-center gap-2 flex-wrap">
@@ -784,25 +830,14 @@ export function AdminCalendarClient() {
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary" />
               <span>
-                Global Dispatch Engine: <strong>Aktif</strong>
+                Scheduled posts sync via the publish worker
               </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Icons.shield className="size-4 text-secondary" />
-              <span>Audit Log #9940 Verified</span>
             </div>
           </div>
         </div>
         {/* Copyright & Platform Stamp */}
         <div className="flex flex-wrap items-center justify-between text-[12px] text-on-surface-variant px-2">
           <p>FRHM © 2026. All rights reserved. Creative Media Operations Platform.</p>
-          <div className="flex items-center gap-4">
-            <a className="hover:underline cursor-pointer">Privacy Architecture</a>
-            <span>•</span>
-            <a className="hover:underline cursor-pointer">Security Protocols</a>
-            <span>•</span>
-            <a className="hover:underline cursor-pointer">API Documentation (v4.2)</a>
-          </div>
         </div>
       </footer>
 

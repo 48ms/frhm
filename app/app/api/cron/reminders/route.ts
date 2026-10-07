@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const client = setting.clients as unknown as { 
       id: string; name: string; telegram_chat_id: string | null; telegram_notifications_enabled: boolean 
     }
-    
+     
     if (!client) continue
 
     // Only Telegram supported for now

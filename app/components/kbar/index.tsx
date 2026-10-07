@@ -111,7 +111,7 @@ function KBarComponent({ children }: { children: React.ReactNode }) {
                   <Kbd>esc</Kbd> tutup
                 </span>
               </div>
-              <span className='text-[10px] text-muted-foreground/60 hidden sm:inline'>
+              <span className='text-[10px] text-foreground/70 hidden sm:inline'>
                 Shortcut 2-huruf aktif di mana saja
               </span>
             </div>

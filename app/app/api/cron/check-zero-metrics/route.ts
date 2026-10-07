@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     .is('post_metrics', null) // No metrics linked (or empty array)
 
   if (error) {
-    console.error('[Cron Zero Metrics] Query error:', error)
+    logger.error('Zero-metrics query failed', { error })
     reportError({
       message: error.message || 'Query failed',
       name: 'DatabaseError',
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
       notified++
     } else {
       failed++
-      console.error(`[Cron Zero Metrics] Failed to notify for post ${post.id}:`, result.error)
+      logger.error('Zero-metrics notify failed', { error: result.error, post_id: post.id })
     }
   }
 

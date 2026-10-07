@@ -48,7 +48,7 @@ function PlatformChip({ platform }: { platform: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider',
+        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold',
         info?.bg ?? 'bg-muted',
         'text-white'
       )}
@@ -284,7 +284,7 @@ export function CalendarView({
                     <div
                       key={d}
                       className={cn(
-                        'text-[10px] font-bold uppercase tracking-wider py-2',
+                        'text-[11px] font-semibold py-2',
                         idx >= 5 ? 'text-muted-foreground' : 'text-foreground'
                       )}
                     >
@@ -372,7 +372,7 @@ export function CalendarView({
               return (
                 <div key={i} className="flex flex-col gap-2">
                   <div className="text-center">
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <span className="block text-xs font-semibold text-muted-foreground">
                       {DAY_SHORT[i]}
                     </span>
                     <span
@@ -423,15 +423,16 @@ export function CalendarView({
                 {sortedPosts.length} posts in the dispatch timeline
               </p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-lime-500">
+            <span className="text-[10px] font-semibold text-lime-500">
               {sortedPosts.filter((p) => p.status === "published").length} published
             </span>
           </div>
           <div className="space-y-2">
             {sortedPosts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No posts match the current filter.
-              </p>
+              <div className="py-12 text-center space-y-2">
+                <p className="text-sm font-semibold text-foreground">No posts match the filters.</p>
+                <p className="text-xs text-muted-foreground">Adjust your filters or timeframe to see content.</p>
+              </div>
             ) : (
               sortedPosts.map((post) => (
                 <button

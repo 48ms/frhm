@@ -63,3 +63,36 @@ export async function getAnalyticsSummariesByClient(clientId: string): Promise<A
   }
   return (data ?? []) as AnalyticsSummary[]
 }
+
+// Prediction model
+export interface AnalyticsPrediction {
+  target_month: string
+  forecasted_reach: number
+  forecasted_er: number
+  forecasted_wa_inquiries: number
+  forecasted_dm_inquiries: number
+  estimated_roi_multiplier: number
+  confidence_score: number
+}
+
+export async function getLatestPrediction(
+  clientId: string
+): Promise<AnalyticsPrediction | null> {
+  if (!clientId) return null
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("analytics_predictions")
+    .select(
+      "target_month, forecasted_reach, forecasted_er, forecasted_wa_inquiries, forecasted_dm_inquiries, estimated_roi_multiplier, confidence_score"
+    )
+    .eq("client_id", clientId)
+    .order("target_month", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.error("[getLatestPrediction] error:", error.message)
+    return null
+  }
+  return (data as AnalyticsPrediction) ?? null
+}

@@ -154,7 +154,7 @@ export function ComposerClient() {
         toast.error(result.error)
       } else if (result.script) {
         setVideoScriptData(result.script)
-        toast.success("Script Video Siap! 🎬", {
+        toast.success("Script Video Siap!", {
           description: `Mood: ${result.script.overallMood} | ${result.script.scenes.length} Scene dirancang.`
         })
         // Format the script and put it in content field as backup
@@ -188,7 +188,7 @@ export function ComposerClient() {
           toast.error(data.error)
         } else {
           setContent(data.caption)
-          toast.success("Copywriting Selesai! ✍️", {
+          toast.success("Copywriting Selesai!", {
             description: "Copilot telah meracik caption beserta hashtag untuk Anda."
           })
         }
@@ -222,7 +222,7 @@ export function ComposerClient() {
           newMap[r.platform.toLowerCase()] = r.content
         })
         setRepurposedContents(newMap)
-        toast.success("Adaptasi Platform Selesai! 🚀", {
+        toast.success("Adaptasi Platform Selesai!", {
           description: `Konten berhasil di-repurpose untuk ${platforms.join(', ')}.`
         })
       }
@@ -276,7 +276,7 @@ export function ComposerClient() {
         })
       }
 
-      toast.success("Konten Dijadwalkan! 🗓️", {
+      toast.success("Konten Dijadwalkan!", {
         description: `Berhasil dijadwalkan ke ${platforms.length} platform secara bersamaan.`
       })
       router.push(`/admin/calendar?clientId=${clientId}`)
@@ -317,7 +317,6 @@ export function ComposerClient() {
           {STEPS.map((s) => {
             const Icon = Icons[s.icon as keyof typeof Icons]
             const active = step >= s.id
-            const current = step === s.id
             return (
               <div key={s.id} className="flex flex-col items-center gap-2 relative z-10 w-full">
                 <div
@@ -328,7 +327,7 @@ export function ComposerClient() {
                       : "bg-[hsl(var(--admin-surface-low))] border border-[hsl(var(--admin-outline-variant))]/50 text-[hsl(var(--admin-outline))] scale-95"
                   )}
                 >
-                  <Icon className={cn("size-6", current && "animate-pulse")} />
+                  <Icon className="size-6" />
                 </div>
                 <div className="text-center">
                   <span
@@ -347,7 +346,7 @@ export function ComposerClient() {
             )
           })}
           {/* Connecting dashed line behind steps */}
-          <div className="absolute top-6 left-0 w-full h-[2px] bg-gradient-to-r from-[hsl(var(--admin-cobalt))]/10 to-[hsl(var(--admin-cobalt))]/10 -z-10 px-[10%]" />
+          <div className="absolute top-6 left-0 w-full h-[2px] bg-[hsl(var(--admin-cobalt))]/10 -z-10 px-[10%]" />
         </div>
       </div>
 
@@ -384,6 +383,7 @@ export function ComposerClient() {
                     onClick={() => setContentMode("video_script")} 
                     className={cn("flex-1 flex items-center justify-center gap-2 py-1.5 text-sm font-medium rounded-md transition-all", contentMode === "video_script" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:bg-white/50")}
                   >
+                    {/* Icons.sparkles = AI-powered video script generator (R-04 exception: AI feature with written justification) */}
                     <Icons.sparkles className="size-4" /> AI Video Script
                   </button>
                 </div>
@@ -426,8 +426,9 @@ export function ComposerClient() {
                           size="sm" 
                           onClick={handleGenerateCopilot}
                           disabled={isGenerating}
-                          className="text-xs h-7 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-200 text-purple-700 hover:bg-purple-50 min-w-[180px] flex justify-start"
+                          className="text-xs h-7 bg-[hsl(var(--admin-surface-low))] border-[hsl(var(--admin-outline-variant))] text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] min-w-[180px] flex justify-start"
                         >
+                          {/* Icons.sparkles = AI Copilot caption generator (R-04 exception: AI feature with written justification) */}
                           <Icons.sparkles className={cn("size-3 mr-1.5 shrink-0", isGenerating && "animate-spin")} />
                           <span className={cn(isGenerating && "animate-pulse")}>
                             {isGenerating ? copilotLoadingMessages[copilotMsgIdx] : "Generate AI Copilot"}
@@ -505,6 +506,7 @@ export function ComposerClient() {
                             </>
                           ) : (
                             <>
+                              {/* Icons.sparkles = AI script generation action (R-04 exception: AI feature with written justification) */}
                               <Icons.sparkles className="mr-2 h-4 w-4" />
                               Generate Script
                             </>
@@ -534,7 +536,7 @@ export function ComposerClient() {
                               <div className="col-span-4 text-muted-foreground">{scene.visual}</div>
                               <div className="col-span-4 italic">"{scene.audio}"</div>
                               <div className="col-span-2">
-                                <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                                   {scene.toolRoute || "Auto"}
                                 </span>
                               </div>
@@ -576,7 +578,7 @@ export function ComposerClient() {
                         <Icons.media className="size-5" />
                       </div>
                     )}
-                    <span className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))]">KONTEN ANDA</span>
+                    <span className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))]">Konten Anda</span>
                     {/* Source dot for lines */}
                     <div id="source-dot" className="absolute right-0 translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(var(--admin-cobalt))]" />
                   </div>
@@ -647,7 +649,7 @@ export function ComposerClient() {
                             )}>
                               {channel.handle || "Akun Terhubung"}
                             </span>
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            <span className="text-[10px] text-muted-foreground font-semibold">
                               {channel.platform}
                             </span>
                           </div>
@@ -662,10 +664,11 @@ export function ComposerClient() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="font-bold text-indigo-900 flex items-center gap-2">
+                          {/* Icons.sparkles = AI repurposing feature (R-04 exception: AI feature with written justification) */}
                           <Icons.sparkles className="size-4 text-indigo-600" />
-                          Dapur Transformasi (Repurposing AI)
+                          Repurpose Lintas Platform (AI)
                         </h4>
-                        <p className="text-xs text-indigo-700 mt-1">Otomatis atomisasi dan adaptasi konten secara native ke tiap platform.</p>
+                        <p className="text-xs text-indigo-700 mt-1">Otomatisasi format dan gaya konten untuk setiap platform.</p>
                       </div>
                       <Button 
                         onClick={handleRepurpose}
@@ -679,6 +682,7 @@ export function ComposerClient() {
                           </>
                         ) : (
                           <>
+                            {/* Icons.sparkles = AI cross-platform adaptation action (R-04 exception: AI feature with written justification) */}
                             <Icons.sparkles className="mr-2 h-4 w-4" />
                             Adaptasi per Platform
                           </>

@@ -125,7 +125,7 @@ export function CampaignModal({
                 </span>
                 <span
                   className={cn(
-                    "text-[10px] font-bold uppercase tracking-wide",
+                    "text-[10px] font-bold",
                     step === s.id
                       ? "text-foreground"
                       : "text-muted-foreground"
@@ -314,7 +314,7 @@ export function CampaignModal({
 
             {notes.trim() && (
               <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
-                <span className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
+                <span className="block text-[10px] font-bold text-muted-foreground mb-1">
                   Notes
                 </span>
                 <p className="text-[11px] text-foreground">{notes}</p>

@@ -120,7 +120,8 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
           {/* Header Progress Bar */}
           <div className="bg-muted/40 border-b p-6 pb-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                {/* Icons.sparkles = Brand creation wizard AI assistant indicator (R-04 exception) */}
                 <Icons.sparkles className="size-3.5 text-primary" />
                 Tambah Client Baru
               </span>
@@ -220,7 +221,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
                       className="text-xs font-semibold text-primary/70 hover:text-primary p-0 h-auto hover:bg-transparent"
                       onClick={() => setShowAdvanced(true)}
                     >
-                      + Tambah Telegram Chat ID (Opsional)
+                      Tambah Telegram Chat ID (Opsional)
                     </Button>
                   ) : (
                     <div className="pt-2 border-t border-muted-foreground/10 animate-in fade-in zoom-in-95 duration-200">

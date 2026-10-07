@@ -48,10 +48,10 @@ export function useCreateScheduledPost() {
 export function useUpdateScheduledPost() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...patch }: { id: string } & UpdateScheduledPostInput) =>
-      updateScheduledPost({ id, ...patch }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: postKeys.all })
+    mutationFn: ({ id, clientId, ...patch }: { id: string; clientId: string } & UpdateScheduledPostInput) =>
+      updateScheduledPost({ id, clientId, ...patch }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
     },
   })
 }
@@ -60,7 +60,7 @@ export function useDeleteScheduledPost() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, clientId }: { id: string; clientId: string }) =>
-      deleteScheduledPost(id),
+      deleteScheduledPost(id, clientId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
     },

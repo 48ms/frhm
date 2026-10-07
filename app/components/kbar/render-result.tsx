@@ -20,7 +20,7 @@ export default function RenderResults() {
       items={results}
       onRender={({ item, active }) =>
         typeof item === 'string' ? (
-          <div className='text-muted-foreground/70 px-4 pt-3 pb-1 text-[10px] font-bold tracking-wider uppercase'>
+          <div className='text-muted-foreground/70 px-4 pt-3 pb-1 text-[10px] font-bold'>
             {item}
           </div>
         ) : (

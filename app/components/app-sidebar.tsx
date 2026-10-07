@@ -48,7 +48,7 @@ export function AppSidebar({
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-sm tracking-tight text-foreground">{PRODUCT_NAME}</span>
-              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Admin Hub</span>
+              <span className="text-[10px] font-bold text-muted-foreground">Admin Hub</span>
             </div>
           </div>
 
@@ -82,7 +82,7 @@ export function AppSidebar({
           <div className="mt-8">
             <a
               href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ''}`}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs tracking-wider shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer"
             >
               <Icons.add className="size-4" />
               New Post

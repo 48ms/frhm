@@ -101,6 +101,7 @@ export function BatchPlanModal({
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
         >
+          {/* Icons.sparkles = AI batch planning feature (R-04 exception: AI feature with written justification) */}
           <Icons.sparkles className="size-[18px]" />
           AI Batch Plan
         </button>
@@ -217,6 +218,7 @@ export function BatchPlanModal({
                   </>
                 ) : (
                   <>
+                    {/* Icons.sparkles = AI generation action (R-04 exception: AI feature with written justification) */}
                     <Icons.sparkles className="size-4" /> Generate Kalender
                   </>
                 )}

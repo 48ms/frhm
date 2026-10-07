@@ -22,19 +22,8 @@ export function DashboardStitchHero() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-card/90 backdrop-blur-2xl border border-border/40 shadow-sm relative overflow-hidden group"
-      >
-        {/* Decorative blurred shapes */}
-        <div className="absolute -right-8 -top-12 w-64 h-32 rounded-full bg-brand-accent/10 transform -rotate-12 pointer-events-none blur-lg transition-transform duration-700 group-hover:scale-110" />
-        <div className="absolute right-40 -bottom-8 w-48 h-24 rounded-full bg-brand-accent/20 transform rotate-6 pointer-events-none blur-md transition-transform duration-700 group-hover:-rotate-12" />
-        <motion.div 
-          initial={{ rotate: -45, scale: 0.5, opacity: 0 }}
-          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="absolute right-10 top-5 text-brand-accent select-none pointer-events-none font-bold text-3xl"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 lg:p-7 rounded-2xl bg-card/90 backdrop-blur-2xl border border-border/40 shadow-sm relative overflow-hidden"
         >
-          ✦
-        </motion.div>
 
         <div className="relative z-10 space-y-2">
           {/* WORKSPACE ACTIVE badge + inline client switcher */}
@@ -48,13 +37,13 @@ export function DashboardStitchHero() {
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
               onClick={() => setPickerOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold shadow-sm hover:brightness-95 transition-all cursor-pointer border border-brand-accent/20"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold hover:brightness-95 transition-all cursor-pointer border border-brand-accent/20"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-              <span>WORKSPACE ACTIVE</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
+              <span>Aktif</span>
               <span className="opacity-40">•</span>
               <span className="text-brand-accent font-extrabold">
-                CLIENT: {client.name.substring(0, 5).toUpperCase()}
+                Klien: {client.name}
               </span>
               <Icons.chevronDown
                 className={cn(
@@ -70,7 +59,7 @@ export function DashboardStitchHero() {
                 className="absolute top-full left-0 mt-1.5 w-72 bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
               >
                 <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
-                  SWITCH ACTIVE CLIENT:
+                  Ganti klien aktif:
                 </div>
                 {clients.map((c) => (
                   <button
@@ -109,8 +98,7 @@ export function DashboardStitchHero() {
             {profile.greeting}
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground">
-            Managing real-time campaign acceleration &amp; audience velocity for{" "}
-            {client.name}.
+            Ringkasan performa konten untuk {client.name}.
           </p>
         </div>
 

@@ -568,7 +568,7 @@ export function AccountCard({ account: a, onDisconnect, onReconnect, onRefreshOn
         {isExpiring ? (
           <button
             onClick={() => onReconnect(a)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-[11px] font-bold transition-all active:scale-95 cursor-pointer"
           >
             <Icons.warning className="size-4" />
             Reconnect account

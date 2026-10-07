@@ -24,7 +24,7 @@ export function SettingsView() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold tracking-widest uppercase mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
             Workspace Administration
           </div>
@@ -191,7 +191,7 @@ function WorkspaceTab() {
             </p>
           </div>
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/40 border border-primary-container text-foreground text-[11px] font-semibold">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-primary" />
             Active Pipeline Guard
           </div>
         </div>
@@ -204,7 +204,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   Strict Client Approval Gate
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-foreground">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-highest text-foreground">
                   Mandatory
                 </span>
               </div>
@@ -223,7 +223,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   AI Caption Auto-Optimization
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary-fixed text-on-tertiary-fixed">
                   Smart Dispatch
                 </span>
               </div>
@@ -242,7 +242,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   High-Bandwidth 4K Video Preservation
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary-fixed text-on-secondary-fixed">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed">
                   Pro Quality
                 </span>
               </div>
@@ -309,7 +309,7 @@ function BillingTab() {
       <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-border/20 pb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-semibold uppercase mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-semibold mb-3">
               Active Subscription
             </div>
             <h2 className="text-3xl font-bold text-foreground">
@@ -337,7 +337,7 @@ function BillingTab() {
         <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/20">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-8 rounded bg-on-surface text-surface-container-lowest flex items-center justify-center font-bold text-xs tracking-wider">
+              <div className="w-12 h-8 rounded bg-on-surface text-surface-container-lowest flex items-center justify-center font-bold text-xs">
                 MC
               </div>
               <div>
@@ -373,7 +373,7 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground">
                 Resource Meter
               </span>
               <span className="p-2 rounded-full bg-muted/60 text-foreground">
@@ -405,7 +405,7 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground">
                 Throughput
               </span>
               <span className="p-2 rounded-full bg-primary-container text-foreground">
@@ -435,7 +435,7 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-muted-foreground">
                 Object Vault
               </span>
               <span className="p-2 rounded-full bg-tertiary-container text-on-tertiary-container">
@@ -762,7 +762,7 @@ function UserAccessTab() {
               <span className="text-sm font-bold text-foreground">
                 Mandatory Google Workspace 2FA for all team members
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-foreground">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-container text-foreground">
                 Enforced
               </span>
             </div>
@@ -832,7 +832,7 @@ function UserAccessTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border/30 text-muted-foreground text-[11px] font-semibold uppercase tracking-wider">
+              <tr className="border-b border-border/30 text-muted-foreground text-[11px] font-semibold">
                 <th className="py-3 px-4">Member Name &amp; Email</th>
                 <th className="py-3 px-4">Role Permission</th>
                 <th className="py-3 px-4">2FA Status</th>

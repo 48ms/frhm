@@ -40,7 +40,7 @@ export function AdminHeader({
         <Separator orientation="vertical" className="h-4 opacity-50 data-[orientation=vertical]:self-center" />
         <div className="hidden items-center gap-2 lg:flex">
           <span className="admin-wordmark text-lg tracking-tight text-foreground">FRHM</span>
-          <span className="admin-badge admin-badge-lime">STUDIO</span>
+          <span className="admin-badge admin-badge-lime">Studio</span>
         </div>
         <div className="hidden md:block">
           <AdminCommandSearch className="w-72" />

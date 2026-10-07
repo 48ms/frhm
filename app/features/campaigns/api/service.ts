@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type { Campaign, CreateCampaignInput, UpdateCampaignInput } from "./types"
 
 /**
@@ -22,7 +23,7 @@ export async function getCampaigns(clientId: string): Promise<Campaign[]> {
   // Degrade gracefully: JANGAN throw, agar useSuspenseQuery/useQuery tidak
   // me-reject saat render (memicu warning "Cannot update Router while rendering").
   if (error) {
-    console.error("[getCampaigns] error:", error.message)
+    logger.error("getCampaigns failed", { error })
     return []
   }
   return (data ?? []) as Campaign[]

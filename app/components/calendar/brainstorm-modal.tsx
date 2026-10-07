@@ -87,6 +87,7 @@ export function BrainstormModal({
     <Dialog open={open} onOpenChange={setOpen}>
       {!hideTrigger && (
         <DialogTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 gap-2 cursor-pointer">
+          {/* Icons.sparkles = AI ideation trigger (R-04 exception: AI feature with written justification) */}
           <Icons.sparkles className="h-4 w-4 text-primary" />
           <span>AI Brainstorm</span>
         </DialogTrigger>
@@ -133,6 +134,7 @@ export function BrainstormModal({
               onClick={handleGenerate} 
               disabled={isGenerating}
             >
+              {/* Icons.sparkles = AI ideation action (R-04 exception: AI feature with written justification) */}
               {isGenerating ? <Icons.spinner className="h-4 w-4 animate-spin" /> : <Icons.sparkles className="h-4 w-4" />}
               {isGenerating ? "Menganalisis Brand Profile..." : "Generate Ideas"}
             </Button>

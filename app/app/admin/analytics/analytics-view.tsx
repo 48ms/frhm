@@ -157,7 +157,7 @@ export function AnalyticsView() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Aggregate Reach</CardDescription>
+            <CardDescription className="text-xs font-semibold text-muted-foreground">Aggregate Reach</CardDescription>
             <div className="rounded-full bg-blue-500/10 p-2 text-blue-600">
               <Icons.activity className="h-4 w-4" />
             </div>
@@ -172,7 +172,7 @@ export function AnalyticsView() {
 
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Engagement Rate</CardDescription>
+            <CardDescription className="text-xs font-semibold text-muted-foreground">Engagement Rate</CardDescription>
             <div className="rounded-full bg-violet-500/10 p-2 text-violet-600">
               <Icons.heart className="h-4 w-4" />
             </div>
@@ -187,7 +187,7 @@ export function AnalyticsView() {
 
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Clicks</CardDescription>
+            <CardDescription className="text-xs font-semibold text-muted-foreground">Total Clicks</CardDescription>
             <div className="rounded-full bg-emerald-500/10 p-2 text-emerald-600">
               <Icons.bolt className="h-4 w-4" />
             </div>
@@ -202,7 +202,7 @@ export function AnalyticsView() {
 
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Inquiry Rate</CardDescription>
+            <CardDescription className="text-xs font-semibold text-muted-foreground">Inquiry Rate</CardDescription>
             <div className="rounded-full bg-orange-500/10 p-2 text-orange-600">
               <Icons.chat className="h-4 w-4" />
             </div>
@@ -223,14 +223,14 @@ export function AnalyticsView() {
         <div className="lg:col-span-4">
           <Card className="admin-card-glass h-full">
             <CardHeader>
-              <CardDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Performance Insight</CardDescription>
+              <CardDescription className="text-xs font-semibold text-muted-foreground">Performance Insight</CardDescription>
               <h3 className="text-lg font-bold font-syne mt-1">AI Contextual Summary</h3>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-xl border border-border/40 bg-muted/30 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Icons.bot className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">FAKTUAL AI INSIGHT</span>
+                  <span className="text-xs font-semibold text-primary">Faktual AI Insight</span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {latestSummary?.ai_insight || (
