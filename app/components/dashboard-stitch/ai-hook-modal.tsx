@@ -2,16 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
-import { cn } from "@/lib/utils"
 import { useGenerateContentIdeas } from "@/features/copilot/api/queries"
-
-type Tone = "bold" | "playful" | "professional"
-
-const TONES: { id: Tone; label: string }[] = [
-  { id: "bold", label: "Bold" },
-  { id: "playful", label: "Playful" },
-  { id: "professional", label: "Professional" },
-]
 
 export function StitchAiHookModal({
   open,
@@ -24,8 +15,7 @@ export function StitchAiHookModal({
   clientName?: string
   clientId: string
 }) {
-  const [prompt, setPrompt] = useState("Spatial UI design & frosted glass interfaces")
-  const [tone, setTone] = useState<Tone>("bold")
+  const [prompt, setPrompt] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<number | null>(null)
 
@@ -46,7 +36,7 @@ export function StitchAiHookModal({
     const res = await generateIdeas({
       clientId,
       count: 3,
-      trendOrTopic: prompt,
+      trendOrTopic: prompt.trim(),
     })
     if (res.error) {
       setError(res.error)
@@ -69,10 +59,11 @@ export function StitchAiHookModal({
         className="absolute inset-0 bg-foreground/40 backdrop-blur-md"
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
+      <div className="relative w-full max-w-lg bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-border/30 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center">
+              {/* R-04: sparkles menandai fitur AI generatif (hook generator). */}
               <Icons.sparkles className="size-[18px]" />
             </div>
             <div>
@@ -80,11 +71,12 @@ export function StitchAiHookModal({
                 Studio AI Hook Generator
               </h3>
               <p className="text-[10px] text-muted-foreground">
-                Engineered for {clientName}
+                Hook untuk {clientName}
               </p>
             </div>
           </div>
           <button
+            type="button"
             className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
@@ -95,16 +87,17 @@ export function StitchAiHookModal({
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">
-              Campaign Concept / Niche Topic
+              Konsep kampanye / topik
             </label>
             <div className="flex gap-2">
               <input
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent focus:ring-[brand-accent] text-foreground outline-none"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent text-foreground outline-none"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g. Product launch teaser for a fintech app"
+                placeholder="Contoh: peluncuran produk aplikasi fintech"
               />
               <button
+                type="button"
                 className="px-3.5 py-1.5 rounded-xl bg-brand-accent text-brand-accent-foreground text-xs font-bold hover:bg-brand-accent/80 transition-all cursor-pointer shrink-0 disabled:opacity-50 inline-flex items-center gap-1.5"
                 onClick={generate}
                 disabled={loading}
@@ -112,6 +105,7 @@ export function StitchAiHookModal({
                 {loading ? (
                   <Icons.refresh className="size-3.5 animate-spin" />
                 ) : (
+                  /* R-04: sparkles menandai aksi AI-generate. */
                   <Icons.sparkles className="size-3.5" />
                 )}
                 Generate
@@ -119,33 +113,10 @@ export function StitchAiHookModal({
             </div>
           </div>
 
-          {/* Tone selector */}
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">
-              Voice Tone
-            </label>
-            <div className="inline-flex p-1 rounded-full bg-muted/70/70 border border-border/30 w-full">
-              {TONES.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTone(t.id)}
-                  className={cn(
-                    "flex-1 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
-                    tone === t.id
-                      ? "bg-white text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {hooks.length === 0 && !loading && !error && (
               <p className="text-xs text-muted-foreground text-center py-6">
-                Enter a topic and click Generate to create viral hooks.
+                Masukkan topik lalu klik Generate untuk membuat hook.
               </p>
             )}
             {error && (
@@ -160,7 +131,7 @@ export function StitchAiHookModal({
               <div className="py-6 flex flex-col items-center gap-2">
                 <Icons.refresh className="size-5 text-brand-accent animate-spin" />
                 <p className="text-xs text-muted-foreground">
-                  Generating viral hooks for {clientName}…
+                  Membuat hook untuk {clientName}…
                 </p>
               </div>
             )}
@@ -174,9 +145,10 @@ export function StitchAiHookModal({
                     {hook}
                   </p>
                   <button
+                    type="button"
                     onClick={() => copy(i, hook)}
-                    className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-white transition-all cursor-pointer"
-                    title="Copy hook"
+                    className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
+                    title="Salin hook"
                   >
                     {copied === i ? (
                       <Icons.check className="size-3.5 text-emerald-600" />
@@ -192,14 +164,15 @@ export function StitchAiHookModal({
           {hooks.length > 0 && (
             <div className="flex items-center justify-between pt-1">
               <span className="text-[10px] text-muted-foreground">
-                {hooks.length} hooks generated · {tone} tone
+                {hooks.length} hook dihasilkan
               </span>
               <button
+                type="button"
                 onClick={generate}
                 className="text-[11px] font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
               >
                 <Icons.refresh className="size-3.5" />
-                Regenerate
+                Buat ulang
               </button>
             </div>
           )}
@@ -208,3 +181,4 @@ export function StitchAiHookModal({
     </div>
   )
 }
+

@@ -1,16 +1,31 @@
 ﻿"use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
+import { analyticsQueries } from "@/features/analytics/api/queries"
+import {
+  buildReportModel,
+  buildCsv,
+  buildMarkdown,
+  reportFileName,
+  type ReportFormat,
+  type ReportRange,
+} from "./report-generator"
 
-type Format = "pdf" | "markdown" | "csv"
+const FORMATS: { id: ReportFormat; label: string; hint: string; icon: string }[] = [
+  { id: "pdf", label: "PDF Report", hint: "Dokumen siap cetak", icon: "fileTypePdf" },
+  { id: "markdown", label: "Markdown", hint: "Tempel ke Notion / docs", icon: "fileTypeDoc" },
+  { id: "csv", label: "CSV Data", hint: "Data mentah untuk spreadsheet", icon: "fileTypeXls" },
+]
 
-const FORMATS: { id: Format; label: string; hint: string; icon: string }[] = [
-  { id: "pdf", label: "PDF Report", hint: "Branded, print-ready deck", icon: "fileTypePdf" },
-  { id: "markdown", label: "Markdown", hint: "Paste into Notion / docs", icon: "fileTypeDoc" },
-  { id: "csv", label: "CSV Data", hint: "Raw metrics for spreadsheets", icon: "fileTypeXls" },
+const RANGES: { id: ReportRange; label: string }[] = [
+  { id: "7d", label: "7 hari terakhir" },
+  { id: "30d", label: "30 hari terakhir" },
+  { id: "90d", label: "90 hari terakhir" },
 ]
 
 export function ExportReportModal({
@@ -22,33 +37,67 @@ export function ExportReportModal({
   client: ClientWithChannels
   onClose: () => void
 }) {
-  const [format, setFormat] = useState<Format>("pdf")
-  const [range, setRange] = useState("30d")
-  const [phase, setPhase] = useState<"idle" | "working" | "done">("idle")
+  const [format, setFormat] = useState<ReportFormat>("pdf")
+  const [range, setRange] = useState<ReportRange>("30d")
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (open) {
-      setPhase("idle")
       setFormat("pdf")
       setRange("30d")
+      setBusy(false)
     }
   }, [open])
 
-  useEffect(() => {
-    if (phase !== "working") return
-    const t = setTimeout(() => setPhase("done"), 1500)
-    return () => clearTimeout(t)
-  }, [phase])
+  // Data metrik NYATA dari DB (bukan angka rekaan).
+  const { data: metrics = [], isPending: metricsPending } = useQuery({
+    ...analyticsQueries.listMetricsByClient(client.id),
+    enabled: open && Boolean(client.id),
+  })
+  const { data: summaries = [], isPending: summariesPending } = useQuery({
+    ...analyticsQueries.listSummariesByClient(client.id),
+    enabled: open && Boolean(client.id),
+  })
+
+  const model = useMemo(
+    () => buildReportModel(client.name, range, metrics, summaries),
+    [client.name, range, metrics, summaries]
+  )
+
+  const loading = metricsPending || summariesPending
+  const hasData = model.totals.posts > 0
 
   if (!open) return null
 
+  async function handleGenerate() {
+    if (!hasData) return
+    setBusy(true)
+    try {
+      if (format === "csv") {
+        downloadBlob(new Blob([buildCsv(model)], { type: "text/csv;charset=utf-8;" }), reportFileName(client.name, range, "csv"))
+      } else if (format === "markdown") {
+        downloadBlob(new Blob([buildMarkdown(model)], { type: "text/markdown;charset=utf-8;" }), reportFileName(client.name, range, "md"))
+      } else {
+        const { buildPdfBlob } = await import("./report-pdf")
+        downloadBlob(await buildPdfBlob(model), reportFileName(client.name, range, "pdf"))
+      }
+      toast.success("Laporan diunduh.", {
+        description: `${reportFileName(client.name, range, format === "markdown" ? "md" : format)} tersimpan di folder unduhan.`,
+      })
+      onClose()
+    } catch (err) {
+      toast.error("Gagal membuat laporan.", {
+        description: err instanceof Error ? err.message : "Terjadi kesalahan tak terduga.",
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-md"
-        onClick={phase === "working" ? undefined : onClose}
-      />
-      <div className="relative w-full max-w-md bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
+      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-border/30 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center">
@@ -58,54 +107,37 @@ export function ExportReportModal({
               <h3 className="font-syne font-bold text-foreground text-sm">
                 Export Performance Report
               </h3>
-              <p className="text-[10px] text-muted-foreground">
-                {client.name}
-              </p>
+              <p className="text-[10px] text-muted-foreground">{client.name}</p>
             </div>
           </div>
-          {phase !== "working" && (
-            <button
-              className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground transition-all cursor-pointer"
-              onClick={onClose}
-            >
-              <Icons.close className="size-[18px]" />
-            </button>
-          )}
+          <button
+            type="button"
+            className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground transition-all cursor-pointer"
+            onClick={onClose}
+          >
+            <Icons.close className="size-[18px]" />
+          </button>
         </div>
 
-        {phase === "done" ? (
-          <div className="py-6 flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-brand-accent/20 flex items-center justify-center">
-              <Icons.circleCheck className="size-7 text-[#526600]" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">
-                Report ready
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                {client.name}-performance-{range}.{format === "markdown" ? "md" : format} has
-                been generated.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/40 text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer">
-                <Icons.download className="size-3.5" />
-                Download
-              </button>
-              <button
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold transition-all cursor-pointer"
-                onClick={onClose}
-              >
-                <Icons.check className="size-3.5" />
-                Done
-              </button>
-            </div>
+        {loading ? (
+          <div className="py-8 text-center space-y-2">
+            <Icons.refresh className="size-5 mx-auto animate-spin text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">Memuat data metrik…</p>
+          </div>
+        ) : !hasData ? (
+          <div className="py-8 text-center space-y-2">
+            <Icons.activity className="size-6 mx-auto text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">Belum ada data performa</p>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+              Laporan dibangun dari metrik postingan yang tercatat. Setelah ada metrik pada
+              rentang ini, laporan bisa diunduh di sini.
+            </p>
           </div>
         ) : (
           <>
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-foreground">
-                Export Format
+                Format laporan
               </label>
               {FORMATS.map((f) => {
                 const IconCmp = (
@@ -144,21 +176,18 @@ export function ExportReportModal({
 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Date Range
+                Rentang tanggal
               </label>
-              <div className="inline-flex p-1 rounded-full bg-muted/70/70 border border-border/30 w-full">
-                {[
-                  { id: "7d", label: "Last 7 days" },
-                  { id: "30d", label: "Last 30 days" },
-                  { id: "90d", label: "Last 90 days" },
-                ].map((r) => (
+              <div className="inline-flex p-1 rounded-full bg-muted/70 border border-border/30 w-full">
+                {RANGES.map((r) => (
                   <button
                     key={r.id}
+                    type="button"
                     onClick={() => setRange(r.id)}
                     className={cn(
                       "flex-1 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
                       range === r.id
-                        ? "bg-white text-foreground shadow-sm"
+                        ? "bg-card text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
@@ -171,32 +200,34 @@ export function ExportReportModal({
             <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/30">
               <Icons.info className="size-4 text-brand-accent shrink-0" />
               <span className="text-[10px] text-muted-foreground">
-                The report includes reach, engagement, top formats and AI insights,
-                white-labelled with the client logo.
+                Laporan memuat {model.totals.posts} postingan tercatat pada rentang ini:
+                reach, engagement, rincian per platform, dan catatan AI yang tersimpan.
               </span>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
+                type="button"
                 className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                 onClick={onClose}
               >
-                Cancel
+                Batal
               </button>
               <button
-                disabled={phase === "working"}
+                type="button"
+                disabled={busy}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-white text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
-                onClick={() => setPhase("working")}
+                onClick={handleGenerate}
               >
-                {phase === "working" ? (
+                {busy ? (
                   <>
                     <Icons.refresh className="size-4 animate-spin" />
-                    Generating…
+                    Membuat…
                   </>
                 ) : (
                   <>
                     <Icons.download className="size-4" />
-                    Generate Report
+                    Buat laporan
                   </>
                 )}
               </button>
@@ -206,4 +237,13 @@ export function ExportReportModal({
       </div>
     </div>
   )
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }

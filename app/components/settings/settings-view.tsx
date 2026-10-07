@@ -116,7 +116,7 @@ function WorkspaceTab() {
               type="text"
               value={agencyName}
               onChange={(e) => setAgencyName(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
+              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
             />
             <p className="text-xs text-muted-foreground">
               Used on legal statements, automated NDA dispatches, and commercial invoices.
@@ -125,7 +125,7 @@ function WorkspaceTab() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground block">Workspace URL Slug</label>
-            <div className="flex items-center rounded-full bg-muted/60/60 border border-border/40 overflow-hidden focus-within:ring-2 focus-within:ring-secondary focus-within:bg-card">
+            <div className="flex items-center rounded-full bg-muted/60 border border-border/40 overflow-hidden focus-within:ring-2 focus-within:ring-secondary focus-within:bg-card">
               <span className="pl-5 pr-1 text-sm text-muted-foreground select-none">
                 frhm.agency/
               </span>
@@ -148,7 +148,7 @@ function WorkspaceTab() {
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
             >
               <option>UTC+7 Bangkok/Jakarta (WIB)</option>
               <option>UTC+0 London / GMT</option>
@@ -165,7 +165,7 @@ function WorkspaceTab() {
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
+              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
             >
               <option>USD ($) - United States Dollar</option>
               <option>EUR (€) - Eurozone</option>
@@ -198,7 +198,7 @@ function WorkspaceTab() {
 
         <div className="space-y-6">
           {/* Toggle 1 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
@@ -217,7 +217,7 @@ function WorkspaceTab() {
           </div>
 
           {/* Toggle 2 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
@@ -236,7 +236,7 @@ function WorkspaceTab() {
           </div>
 
           {/* Toggle 3 */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/25">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/25">
             <div className="space-y-1 pr-6">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
@@ -273,7 +273,7 @@ function WorkspaceTab() {
                     className={`flex items-center gap-3 p-3 rounded-full cursor-pointer transition-colors ${
                       isActive
                         ? "bg-primary-container/20 border-2 border-primary-container"
-                        : "bg-muted/60/50 border border-border/30 hover:bg-card"
+                        : "bg-muted/50 border border-border/30 hover:bg-card"
                     }`}
                   >
                     <input
@@ -335,7 +335,7 @@ function BillingTab() {
 
         {/* Payment Method & Invoice Quick Row */}
         <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/20">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
             <div className="flex items-center gap-4">
               <div className="w-12 h-8 rounded bg-on-surface text-surface-container-lowest flex items-center justify-center font-bold text-xs">
                 MC
@@ -350,7 +350,7 @@ function BillingTab() {
             <button className="text-xs text-secondary font-semibold hover:underline">Manage</button>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/40 border border-border/20">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-tertiary text-[24px]">verified</span>
               <div>
@@ -580,7 +580,7 @@ function IntegrationsTab() {
                 readOnly
                 type={secretVisible ? "text" : "password"}
                 value={secret}
-                className="w-full h-12 px-5 font-mono text-sm bg-muted/60/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none"
+                className="w-full h-12 px-5 font-mono text-sm bg-muted/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none"
               />
               <button
                 type="button"
@@ -634,7 +634,7 @@ function IntegrationRow({
 }) {
   const [on, setOn] = React.useState(enabled)
   return (
-    <div className="p-5 rounded-2xl bg-muted/60/40 border border-border/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-5 rounded-2xl bg-muted/40 border border-border/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-start gap-4">
         <div
           className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shrink-0 ${badgeClass}`}
@@ -756,7 +756,7 @@ function UserAccessTab() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/60/50 border border-border/30">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/30">
           <div className="space-y-1 pr-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-foreground">
@@ -794,7 +794,7 @@ function UserAccessTab() {
         </div>
 
         {/* Quick Invite Input Bar */}
-        <div className="p-4 rounded-2xl bg-muted/60/40 border border-border/25 mb-6 flex flex-col md:flex-row items-center gap-3">
+        <div className="p-4 rounded-2xl bg-muted/40 border border-border/25 mb-6 flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground">
               mail
@@ -842,7 +842,7 @@ function UserAccessTab() {
             </thead>
             <tbody className="divide-y divide-outline-variant/20 text-sm">
               {members.map((m) => (
-                <tr key={m.email} className="hover:bg-muted/60/30 transition-colors">
+                <tr key={m.email} className="hover:bg-muted/30 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div
