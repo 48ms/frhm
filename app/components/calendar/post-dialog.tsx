@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -26,6 +25,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
@@ -52,6 +61,13 @@ const STATUS_OPTIONS = [
   { id: 'scheduled', label: 'Terjadwal' },
   { id: 'published', label: 'Published' },
   { id: 'draft', label: 'Draft' },
+]
+
+const PRIORITY_OPTIONS = [
+  { id: 'low', label: 'Low' },
+  { id: 'normal', label: 'Normal' },
+  { id: 'high', label: 'High' },
+  { id: 'urgent', label: 'Urgent' },
 ]
 
 export function PostDialog({
@@ -225,329 +241,385 @@ export function PostDialog({
 
   const isCampaignMode = isPlaceholder
 
+  const submitLabel = loading
+    ? 'Menyimpan...'
+    : editingPost
+    ? isCampaignMode
+      ? 'Simpan Slot'
+      : 'Simpan Perubahan'
+    : isCampaignMode
+    ? 'Reservasi Slot'
+    : 'Jadwalkan Postingan'
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
-          <DialogHeader>
-            <DialogTitle>
-              {editingPost
-                ? isCampaignMode
-                  ? 'Edit Slot Reserve'
-                  : 'Edit Jadwal Postingan'
-                : isCampaignMode
-                ? 'Buat Slot Reserve'
-                : 'Jadwalkan Postingan Baru'}
-            </DialogTitle>
-            <DialogDescription>
-              {isCampaignMode
-                ? 'Buat slot waktu untuk kampanye Natal sebelum konten jadi siap.'
-                : 'Tentukan platform, tanggal rilis, dan isi konten yang akan dipublish.'}
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row h-[78vh] max-h-[640px] animate-in fade-in zoom-in-95 duration-300">
+          {/* ========================================================== */}
+          {/* MAIN WORKSPACE (left): editor area, Notion-style           */}
+          {/* ========================================================== */}
+          <div className="flex-1 flex flex-col min-w-0 bg-popover">
+            <DialogHeader className="px-6 pt-6 pb-4 space-y-1">
+              <DialogTitle className="text-lg font-semibold tracking-tight">
+                {editingPost
+                  ? isCampaignMode
+                    ? 'Edit Slot Reserve'
+                    : 'Edit Jadwal Postingan'
+                  : isCampaignMode
+                  ? 'Buat Slot Reserve'
+                  : 'Jadwalkan Postingan Baru'}
+              </DialogTitle>
+              <DialogDescription>
+                {isCampaignMode
+                  ? 'Buat slot waktu untuk kampanye Natal sebelum konten jadi siap.'
+                  : 'Tentukan platform, tanggal rilis, dan isi konten yang akan dipublish.'}
+              </DialogDescription>
+            </DialogHeader>
 
-          {error && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive">
-              {error}
-            </div>
-          )}
+            <Separator />
 
-          {/* Reserve toggle */}
-          <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4">
-            <Checkbox
-              id="is-reserved"
-              checked={isReserved}
-              onCheckedChange={(checked: boolean) => setIsReserved(checked)}
-            />
-            <div className="space-y-1 leading-none">
-              <Label htmlFor="is-reserved" className="font-medium">
-                Ini adalah slot reserve untuk kampanye
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Buat slot di kalender sebelum konten siap. Saat konten siap, ubah status dari Draft ke Scheduled.
-              </p>
-            </div>
-          </div>
+            <ScrollArea className="flex-1">
+              <div className="px-6 py-5 space-y-5">
+                {error && (
+                  <div
+                    role="alert"
+                    className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    {error}
+                  </div>
+                )}
 
-          {/* Platform Radio Group (accessible) */}
-          <div className="space-y-1.5">
-            <Label id="platform-label">Platform Tujuan</Label>
-            <RadioGroup
-              value={platform}
-              onValueChange={setPlatform}
-              className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl"
-              aria-labelledby="platform-label"
-            >
-              {PLATFORM_OPTIONS.map((opt) => (
-                <div key={opt.id} className="relative flex items-center justify-center">
-                  <RadioGroupItem
-                    value={opt.id}
-                    id={`platform-${opt.id}`}
-                    className="sr-only"
+                {/* Reserve toggle — styled as a subtle glass card */}
+                <div className="flex items-start space-x-3 space-y-0 rounded-xl bg-muted/40 border border-border/40 p-3.5">
+                  <Checkbox
+                    id="is-reserved"
+                    checked={isReserved}
+                    onCheckedChange={(checked: boolean) => setIsReserved(checked)}
+                    className="mt-0.5"
                   />
-                  <Label
-                    htmlFor={`platform-${opt.id}`}
-                    className={cn(
-                      "flex w-full cursor-pointer items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-all",
-                      platform === opt.id
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <PlatformIcon platform={opt.id} className="size-3.5" />
-                    <span>{opt.label}</span>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Reserved for (campaign name) */}
-          {isCampaignMode && (
-            <div className="space-y-1.5">
-              <Label htmlFor="reserved-for">Nama Kampanye</Label>
-              <Input
-                id="reserved-for"
-                placeholder="e.g. Campaign Natal 2026"
-                value={reservedFor}
-                onChange={(e) => setReservedFor(e.target.value)}
-                className="h-11"
-              />
-            </div>
-          )}
-
-          {/* Judul Postingan (optional if reserved) */}
-          <div className="space-y-1.5">
-            <Label htmlFor="post-title">
-              {isCampaignMode ? 'Judul / Catatan' : 'Judul Postingan / Konsep'}
-            </Label>
-            <Input
-              id="post-title"
-              placeholder={isCampaignMode ? 'e.g. Slot untuk Konten Natal' : 'e.g. Tips Digital Marketing untuk UMKM'}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required={!isCampaignMode}
-              className="h-11"
-            />
-          </div>
-
-          {/* Date & Time Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="post-date">Tanggal Tayang</Label>
-              <Input
-                id="post-date"
-                type="date"
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
-                required
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="post-time">Waktu (Jam)</Label>
-              <Input
-                id="post-time"
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                required
-                className="h-11"
-              />
-            </div>
-          </div>
-
-          {/* Planning Layer: Priority & Campaign Tag */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="post-priority">Prioritas</Label>
-              <select
-                id="post-priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as 'low' | 'normal' | 'high' | 'urgent')}
-                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="post-campaign">Kampanye / Promo</Label>
-              <select
-                id="post-campaign"
-                value={campaignTag}
-                onChange={(e) => setCampaignTag(e.target.value)}
-                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">(Tidak terkait kampanye)</option>
-                {campaigns.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Isi Konten / Caption (hidden if reserved) */}
-          {!isCampaignMode && (
-            <div className="space-y-1.5">
-              <Label htmlFor="post-content">Isi Caption / Copywriting</Label>
-              <Textarea
-                id="post-content"
-                placeholder="Tulis caption lengkap beserta hashtag di sini..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={4}
-              />
-            </div>
-          )}
-
-          {/* Media attachment preview (from Media Library) */}
-          {!isCampaignMode && (
-            <div className="space-y-1.5">
-              <Label>Media Terlampir</Label>
-              {mediaUrl ? (
-                <div className="relative w-full overflow-hidden rounded-lg border border-border">
-                  {mediaType === 'video' ? (
-                    <video
-                      src={mediaUrl}
-                      controls
-                      className="h-40 w-full object-cover bg-black"
-                    />
-                  ) : (
-                    <img
-                      src={mediaUrl}
-                      alt="Media terlampir"
-                      className="h-40 w-full object-cover"
-                    />
-                  )}
-                  <div className="absolute top-2 right-2 flex items-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-xs"
-                      onClick={() => setPickerOpen(true)}
-                    >
-                      Ganti
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      className="h-7 text-xs"
-                      onClick={() => setMediaUrl('')}
-                    >
-                      Hapus
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-border px-3 py-4">
-                  <p className="text-xs text-muted-foreground">
-                    Belum ada media. Pilih aset dari Media Library, atau biarkan kosong untuk posting teks.
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5 text-xs"
-                    onClick={() => setPickerOpen(true)}
-                  >
-                    <Icons.media className="size-3.5" /> Pilih dari Library
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Status Radio Group (accessible) */}
-          {!isCampaignMode && (
-            <div className="space-y-1.5">
-              <Label id="status-label">Status</Label>
-              <RadioGroup
-                value={status}
-                onValueChange={(v) => setStatus(v as 'draft' | 'scheduled' | 'published')}
-                className="grid grid-cols-3 gap-1.5 bg-muted/60 p-1 rounded-xl"
-                aria-labelledby="status-label"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <div key={opt.id} className="relative flex items-center justify-center">
-                    <RadioGroupItem
-                      value={opt.id}
-                      id={`status-${opt.id}`}
-                      className="sr-only"
-                    />
-                    <Label
-                      htmlFor={`status-${opt.id}`}
-                      className={cn(
-                        "flex w-full cursor-pointer items-center justify-center py-2 text-xs font-medium rounded-lg transition-all",
-                        status === opt.id
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {opt.label}
+                  <div className="space-y-1 leading-none">
+                    <Label htmlFor="is-reserved" className="font-medium cursor-pointer">
+                      Ini adalah slot reserve untuk kampanye
                     </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Buat slot di kalender sebelum konten siap. Saat konten siap, ubah status dari Draft ke Scheduled.
+                    </p>
                   </div>
-                ))}
-              </RadioGroup>
-            </div>
-          )}
+                </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            {editingPost && onDelete && (
-              <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <AlertDialogTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={loading}
-                      className="mr-auto h-11 sm:h-9"
+                {/* Reserved for (campaign name) */}
+                {isCampaignMode && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <Label htmlFor="reserved-for">Nama Kampanye</Label>
+                    <Input
+                      id="reserved-for"
+                      placeholder="e.g. Campaign Natal 2026"
+                      value={reservedFor}
+                      onChange={(e) => setReservedFor(e.target.value)}
+                      className="h-11"
                     />
-                  }
-                >
-                  Hapus
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Hapus postingan?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tindakan ini akan menghapus postingan{' '}
-                      <strong>{editingPost?.title}</strong> secara permanen. Setelah dihapus,
-                      postingan tidak dapat dikembalikan.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={loading}
+                  </div>
+                )}
+
+                {/* Judul Postingan (optional if reserved) */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="post-title">
+                    {isCampaignMode ? 'Judul / Catatan' : 'Judul Postingan / Konsep'}
+                  </Label>
+                  <Input
+                    id="post-title"
+                    placeholder={isCampaignMode ? 'e.g. Slot untuk Konten Natal' : 'e.g. Tips Digital Marketing untuk UMKM'}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required={!isCampaignMode}
+                    className="h-11"
+                  />
+                </div>
+
+                {/* Isi Konten / Caption (hidden if reserved) — the star of the workspace */}
+                {!isCampaignMode && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="post-content" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Isi Caption / Copywriting
+                    </Label>
+                    <Textarea
+                      id="post-content"
+                      placeholder="Tulis caption lengkap beserta hashtag di sini..."
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      rows={6}
+                      className="min-h-[180px] resize-none border-border/60 bg-muted/20 focus-visible:bg-background transition-colors text-[15px] leading-relaxed"
+                    />
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* ========================================================== */}
+          {/* SETTINGS SIDEBAR (right): controls, Linear-style           */}
+          {/* ========================================================== */}
+          <aside
+            aria-label="Pengaturan postingan"
+            className="w-full sm:w-[320px] shrink-0 flex flex-col border-l border-border/60 bg-muted/30"
+          >
+            <ScrollArea className="flex-1">
+              <div className="px-5 py-5 space-y-5">
+                {/* Platform Radio Group (accessible) */}
+                <div className="space-y-2">
+                  <Label id="platform-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                    Platform Tujuan
+                  </Label>
+                  <RadioGroup
+                    value={platform}
+                    onValueChange={setPlatform}
+                    className="grid grid-cols-3 gap-1.5 bg-background p-1 rounded-xl border border-border/40"
+                    aria-labelledby="platform-label"
+                  >
+                    {PLATFORM_OPTIONS.map((opt) => (
+                      <div key={opt.id} className="relative flex items-center justify-center">
+                        <RadioGroupItem
+                          value={opt.id}
+                          id={`platform-${opt.id}`}
+                          className="sr-only"
+                        />
+                        <Label
+                          htmlFor={`platform-${opt.id}`}
+                          className={cn(
+                            "flex w-full cursor-pointer items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-medium transition-all",
+                            platform === opt.id
+                              ? "bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                          )}
+                        >
+                          <PlatformIcon platform={opt.id} className="size-3.5" />
+                          <span className="truncate">{opt.label}</span>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                {/* Date & Time Row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="post-date">Tanggal Tayang</Label>
+                    <Input
+                      id="post-date"
+                      type="date"
+                      value={dateStr}
+                      onChange={(e) => setDateStr(e.target.value)}
+                      required
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="post-time">Waktu (Jam)</Label>
+                    <Input
+                      id="post-time"
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      required
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Planning Layer: Priority & Campaign via shadcn Select */}
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="post-priority" className="text-xs">Prioritas</Label>
+                    <Select
+                      value={priority}
+                      onValueChange={(v) => v && setPriority(v as 'low' | 'normal' | 'high' | 'urgent')}
                     >
-                      {loading ? 'Menghapus...' : 'Hapus'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-11 sm:h-9">
-              Batal
-            </Button>
-            <Button type="submit" disabled={loading} className="h-11 sm:h-9">
-              {loading
-                ? 'Menyimpan...'
-                : editingPost
-                ? isCampaignMode
-                  ? 'Simpan Slot'
-                  : 'Simpan Perubahan'
-                : isCampaignMode
-                ? 'Reservasi Slot'
-                : 'Jadwalkan Postingan'}
-            </Button>
-          </DialogFooter>
+                      <SelectTrigger id="post-priority" className="w-full h-10">
+                        <SelectValue placeholder="Pilih prioritas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {PRIORITY_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.id} value={opt.id}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="post-campaign" className="text-xs">Kampanye / Promo</Label>
+                    <Select
+                      value={campaignTag}
+                      onValueChange={(v) => setCampaignTag(v ?? '')}
+                    >
+                      <SelectTrigger id="post-campaign" className="w-full h-10">
+                        <SelectValue placeholder="Tidak terkait kampanye" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="">(Tidak terkait kampanye)</SelectItem>
+                          {campaigns.map((c) => (
+                            <SelectItem key={c.id} value={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Media attachment preview (from Media Library) */}
+                {!isCampaignMode && (
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Media Terlampir
+                    </Label>
+                    {mediaUrl ? (
+                      <div className="relative w-full overflow-hidden rounded-xl border border-border/60 group">
+                        {mediaType === 'video' ? (
+                          <video
+                            src={mediaUrl}
+                            controls
+                            className="h-36 w-full object-cover bg-black"
+                          />
+                        ) : (
+                          <img
+                            src={mediaUrl}
+                            alt="Media terlampir"
+                            className="h-36 w-full object-cover"
+                          />
+                        )}
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="h-7 text-xs shadow-md"
+                            onClick={() => setPickerOpen(true)}
+                          >
+                            Ganti
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            className="h-7 text-xs shadow-md"
+                            onClick={() => setMediaUrl('')}
+                          >
+                            Hapus
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setPickerOpen(true)}
+                        className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/40 hover:bg-muted/60 hover:border-primary/40 transition-all py-6 group cursor-pointer"
+                      >
+                        <div className="size-9 rounded-full bg-muted/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Icons.media className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium">
+                          Pilih dari Media Library
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Status Radio Group (accessible) */}
+                {!isCampaignMode && (
+                  <div className="space-y-2">
+                    <Label id="status-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Status
+                    </Label>
+                    <RadioGroup
+                      value={status}
+                      onValueChange={(v) => setStatus(v as 'draft' | 'scheduled' | 'published')}
+                      className="grid grid-cols-3 gap-1.5 bg-background p-1 rounded-xl border border-border/40"
+                      aria-labelledby="status-label"
+                    >
+                      {STATUS_OPTIONS.map((opt) => (
+                        <div key={opt.id} className="relative flex items-center justify-center">
+                          <RadioGroupItem
+                            value={opt.id}
+                            id={`status-${opt.id}`}
+                            className="sr-only"
+                          />
+                          <Label
+                            htmlFor={`status-${opt.id}`}
+                            className={cn(
+                              "flex w-full cursor-pointer items-center justify-center py-2 text-xs font-medium rounded-lg transition-all",
+                              status === opt.id
+                                ? "bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            )}
+                          >
+                            {opt.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Footer: sticky action bar */}
+            <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm p-4 flex items-center gap-2">
+              {editingPost && onDelete && (
+                <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={loading}
+                        className="h-9"
+                      />
+                    }
+                  >
+                    Hapus
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Hapus postingan?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tindakan ini akan menghapus postingan{' '}
+                        <strong>{editingPost?.title}</strong> secara permanen. Setelah dihapus,
+                        postingan tidak dapat dikembalikan.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={loading}
+                      >
+                        {loading ? 'Menghapus...' : 'Hapus'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-9 ml-auto">
+                Batal
+              </Button>
+              <Button type="submit" disabled={loading} className="h-9 shadow-md">
+                {loading && <Icons.spinner className="size-3.5 animate-spin mr-1.5" />}
+                {submitLabel}
+              </Button>
+            </div>
+          </aside>
         </form>
       </DialogContent>
 

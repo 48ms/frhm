@@ -46,6 +46,21 @@ describe('PostDialog', () => {
     expect(screen.getByText('Jadwalkan Postingan Baru')).toBeInTheDocument()
   })
 
+  it('renders a split-pane workspace with a labelled settings panel', () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+      />
+    )
+    // The redesigned dialog exposes the settings column as a labelled
+    // landmark (aside) so the editor and the controls are distinct regions.
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText('Pengaturan postingan')).toBeInTheDocument()
+  })
+
   it('renders the edit title when an editing post is provided', () => {
     renderWithProviders(
       <PostDialog
@@ -112,7 +127,7 @@ describe('PostDialog', () => {
         initialDate={new Date('2026-10-01T09:00:00.000Z')}
       />
     )
-    expect(screen.getByText(/Belum ada media/i)).toBeInTheDocument()
+    expect(screen.getByText(/Pilih dari Media Library/i)).toBeInTheDocument()
   })
 
   it('opens the asset picker from the media section', async () => {
@@ -125,7 +140,7 @@ describe('PostDialog', () => {
         initialDate={new Date('2026-10-01T09:00:00.000Z')}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Library/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Media Library/i }))
     expect(await screen.findByText('Pilih Media')).toBeInTheDocument()
   })
 
@@ -151,7 +166,7 @@ describe('PostDialog', () => {
         initialDate={new Date('2026-10-01T09:00:00.000Z')}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Library/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Media Library/i }))
     fireEvent.click(await screen.findByAltText('demo/picked'))
 
     const img = await screen.findByAltText('Media terlampir')
@@ -180,7 +195,7 @@ describe('PostDialog', () => {
         initialDate={new Date('2026-10-01T09:00:00.000Z')}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Library/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pilih dari Media Library/i }))
     fireEvent.click(await screen.findByAltText('demo/clip'))
 
     // The Dialog portal is outside `render`'s container; query the document.
