@@ -49,6 +49,33 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Tenant Strict Guard: Cek apakah user berhak mengakses clientId di URL
+  if (user && isProtectedAdmin) {
+    const requestedClientId = request.nextUrl.searchParams.get('clientId')
+    
+    // Jika ada clientId di URL, lakukan verifikasi akses
+    if (requestedClientId) {
+      // Ambil profile user dari public.users untuk cek role & binding
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('role, client_id')
+        .eq('id', user.id)
+        .single()
+
+      // Jika user bukan super-admin dan mencoba mengakses client_id yang bukan miliknya
+      if (userProfile && userProfile.role !== 'admin' && userProfile.client_id !== requestedClientId) {
+        const url = request.nextUrl.clone()
+        // Override clientId ke milik user sendiri
+        if (userProfile.client_id) {
+          url.searchParams.set('clientId', userProfile.client_id)
+        } else {
+          url.searchParams.delete('clientId')
+        }
+        return NextResponse.redirect(url)
+      }
+    }
+  }
+
   // If user is logged in and tries to access /auth pages, redirect to dashboard
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()

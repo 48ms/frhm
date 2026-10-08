@@ -5,6 +5,7 @@ import { socialQueries } from "@/features/social-accounts/api/queries"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
+import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import { ErpDashboardClient } from "./erp-client"
 
 export const dynamic = "force-dynamic"
@@ -16,7 +17,8 @@ export default async function AdminErpPage(props: {
   // Tanpa ini, prefetch memakai key `listAll()` sementara client membaca
   // `listByClient(clientId)` -> cache miss -> useSuspenseQuery suspend saat render
   // -> "Cannot update Router while rendering" (waterfall).
-  const { clientId } = searchParamsCache.parse(await props.searchParams)
+  const { clientId: parsedClientId } = searchParamsCache.parse(await props.searchParams)
+  const clientId = await resolveClientId(parsedClientId)
   const queryClient = getQueryClient()
 
   // Server-side prefetching agar `useSuspenseQuery` di client menemukan data

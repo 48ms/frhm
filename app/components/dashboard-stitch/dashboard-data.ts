@@ -34,9 +34,10 @@ export function useActiveDashboard() {
   const clients = clientsData ?? []
   
   // Memastikan fallback jika clientId tidak valid (atau dihapus)
+  // Tidak ada lagi ID Sentinel 1111... — gunakan ID klien pertama yang sah
   const activeClientId = clients.some(c => c.id === clientId) 
     ? clientId 
-    : (clients[0]?.id ?? "11111111-1111-1111-1111-111111111111")
+    : clients[0]?.id
     
   const foundClient = clients.find(c => c.id === activeClientId)
   const client: ClientWithChannels = foundClient ?? {
