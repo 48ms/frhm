@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
+import { formatDistanceToNow } from "date-fns"
 
 export function DashboardStitchHero() {
-  const { clients, clientId, setClientId, profile } = useActiveDashboard()
+  const { clients, clientId, profile } = useActiveDashboard()
   // Safe client resolution: prefer explicit match, fall back to first available
   const client = clients.find((c) => c.id === clientId) ?? clients[0] ?? { id: clientId, name: "Client" }
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
 
@@ -26,72 +26,23 @@ export function DashboardStitchHero() {
         >
 
         <div className="relative z-10 space-y-2">
-          {/* WORKSPACE ACTIVE badge + inline client switcher */}
-          <div 
-            className="relative inline-flex"
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setPickerOpen(false)
-            }}
-          >
-            <button
-              aria-haspopup="listbox"
-              aria-expanded={pickerOpen}
-              onClick={() => setPickerOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold hover:brightness-95 transition-all cursor-pointer border border-brand-accent/20"
-            >
+          {/* WORKSPACE ACTIVE badge */}
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold border border-brand-accent/20 cursor-default select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
-              <span>Aktif</span>
+              <span>Workspace</span>
               <span className="opacity-40">•</span>
               <span className="text-brand-accent font-extrabold">
-                Klien: {client.name}
+                {client.name}
               </span>
-              <Icons.chevronDown
-                className={cn(
-                  "size-3.5 transition-transform",
-                  pickerOpen && "rotate-180"
-                )}
-              />
-            </button>
-
-            {pickerOpen && (
-              <div 
-                role="listbox"
-                className="absolute top-full left-0 mt-1.5 w-72 bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
-              >
-                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
-                  Ganti klien aktif:
-                </div>
-                {clients.map((c) => (
-                  <button
-                    key={c.id}
-                    role="option"
-                    aria-selected={c.id === clientId}
-                    onClick={() => {
-                      setClientId(c.id)
-                      setPickerOpen(false)
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
-                      c.id === clientId
-                        ? "bg-brand-accent/15 border border-brand-accent/30"
-                        : "hover:bg-muted border border-transparent"
-                    )}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-brand-accent text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                      {c.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="truncate leading-tight">
-                      <span className="block text-xs font-bold text-foreground truncate">
-                        {c.name}
-                      </span>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {c.channels?.length || 0} channels
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            </div>
+            {/* Sync Status Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-[10px] font-bold text-muted-foreground cursor-help" title={`Data terakhir sinkron: ${profile.updated_at}`}>
+              <Icons.refresh className="size-3" />
+              <span>
+                Synced {profile.updated_at ? formatDistanceToNow(new Date(profile.updated_at), { addSuffix: true }) : 'never'}
+              </span>
+            </div>
           </div>
 
           <h1 className="font-syne font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">

@@ -140,12 +140,19 @@ export async function getPostAnalytics(
 /**
  * Get aggregated analytics for social accounts over a period.
  * useful for dashboard velocity, reach, etc.
+ *
+ * FAKTA (docs Ayrshare): endpoint `/analytics/social` adalah **POST** dengan body
+ * JSON `{ platforms: [...] }` — BUKAN GET dengan query string. Sebelumnya fungsi
+ * ini memakai GET (default `call()`), sehingga request selalu gagal.
  */
 export async function getSocialAnalytics(
   apiKey: string,
   platforms: string[],
   profileKey: string
 ): Promise<BridgeResult<any>> {
-  const platStr = platforms.join(',')
-  return call<any>(apiKey, `/analytics/social?platforms=${platStr}`, { profileKey })
+  return call<any>(apiKey, '/analytics/social', {
+    method: 'POST',
+    body: { platforms },
+    profileKey,
+  })
 }

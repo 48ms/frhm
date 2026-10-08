@@ -9,6 +9,22 @@ import type { DashboardProfile } from "./types"
  * Mengambil data analitik dan profil klien secara faktual dari PostgreSQL
  */
 
+export async function getClients(): Promise<Array<{ id: string; name: string; contact_email: string | null }>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id, name, contact_email")
+    .order("name")
+
+  if (error) {
+    logger.error("getClients error", { error })
+    throw new Error(error.message)
+  }
+
+  return data ?? []
+}
+
 export async function createNewClient(input: {
   name: string
   contact_email?: string
@@ -76,4 +92,52 @@ export async function getDashboardProfile(clientId: string): Promise<DashboardPr
   }
 
   return data as DashboardProfile
+}
+
+/**
+ * Serializer: mengubah `metrics` JSONB mentah menjadi format `DashboardMetric[]`
+ * yang dibaca UI (kpi-grid).
+ *
+ * FAKTA DB (diverifikasi langsung): kolom `dashboard_profiles.metrics` berisi
+ * OBJECT mentah, contoh:
+ *   { total_reach: 10261, total_views: 19201, audience_size: 10261,
+ *     engagement_rate: 3.7, total_engagement: 379 }
+ *
+ * Sebelum serializer ini, UI membaca `metrics[0].value` -> undefined (object
+ * bukan array) sehingga KPI card selalu jatuh ke fallback "0". Serializer ini
+ * hanya melakukan mapping read-only; struktur DB tidak diubah.
+ */
+function serializeMetrics(
+  raw: unknown
+): { label: string; value: string; delta: string; trend: "up" | "down" | "neutral"; spark: number[] }[] {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return []
+
+  const m = raw as Record<string, number | string | undefined>
+
+  const num = (v: number | string | undefined, suffix = ""): string => {
+    if (typeof v === "number") return v.toLocaleString("en-US") + suffix
+    if (typeof v === "string" && v !== "") return v + suffix
+    return "0"
+  }
+
+  return [
+    { label: "Total Reach", value: num(m.total_reach ?? m.audience_size), delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
+    { label: "Engagement Rate", value: num(m.engagement_rate, "%"), delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
+    { label: "Total Engagement", value: num(m.total_engagement), delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
+  ]
+}
+
+/**
+ * Mengambil dashboard profile + mengserialisasi metrics ke format UI.
+ * Mengembalikan null (bukan throw) jika belum ada row — konsumen memakai fallback.
+ */
+export async function getDashboardProfileWithMetrics(clientId: string): Promise<DashboardProfile | null> {
+  const profile = await getDashboardProfile(clientId)
+  if (!profile) return null
+  // DB metrics bisa OBJECT (raw Ayrshare) atau ARRAY (sudah di-cache oleh sinkronisasi).
+  // Hanya serialize jika belum array.
+  const metrics = Array.isArray(profile.metrics)
+    ? profile.metrics
+    : serializeMetrics(profile.metrics as unknown)
+  return { ...profile, metrics }
 }

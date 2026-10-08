@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Suspense } from 'react'
 import { KBar } from "@/components/kbar";
 import { PRODUCT_NAME } from "@/lib/config";
 
@@ -60,7 +61,13 @@ export default function RootLayout({
           <QueryProvider>
             <NuqsAdapter>
               <TooltipProvider>
-                <KBar>{children}</KBar>
+                {/* Suspense wajib: KBar membaca `useQueryState` (nuqs) yang
+                    memakai `useSearchParams` — tanpa boundary ini, prerender
+                    halaman statis (404) memicu error "useSearchParams() should
+                    be wrapped in a suspense boundary". */}
+                <Suspense>
+                  <KBar>{children}</KBar>
+                </Suspense>
               </TooltipProvider>
             </NuqsAdapter>
           </QueryProvider>

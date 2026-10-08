@@ -31,11 +31,40 @@ vi.mock("@/features/social-accounts/api/queries", () => ({
 
 vi.mock("@/features/scheduled-posts/api/queries", () => ({
   scheduledPostQueries: {
-    listAll: () => ({
-      queryKey: ["scheduled_posts", "list-all"],
+    listByClient: () => ({
+      queryKey: ["scheduled_posts", "list", { clientId: "client-shell" }],
       queryFn: async () => [],
     }),
   },
+}))
+
+vi.mock("@/features/deliverables/api/queries", () => ({
+  deliverableQueries: {
+    listByClient: () => ({
+      queryKey: ["deliverables", "client", "client-shell"],
+      queryFn: async () => [
+        { id: "d1", status: "sent", client_id: "client-shell" },
+        { id: "d2", status: "approved", client_id: "client-shell" },
+      ],
+    }),
+  },
+}))
+
+vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({
+  useActiveDashboard: () => ({
+    clientId: "client-shell",
+    setClientId: vi.fn(),
+    client: {
+      id: "client-shell",
+      name: "Shell Reps",
+      channels: [
+        { id: "ch-1", platform: "instagram", handle: "@shell" },
+        { id: "ch-2", platform: "tiktok", handle: "@shell.creative" },
+      ],
+    },
+    profile: null,
+    clients: [],
+  }),
 }))
 
 function renderView() {
@@ -47,7 +76,7 @@ describe("ErpDashboardClient", () => {
     renderView()
 
     expect(await screen.findByRole("heading", { name: /^Dashboard$/i })).toBeDefined()
-    expect(screen.getByText(/TOTAL DELIVERABLE/i)).toBeDefined()
+    expect(screen.getAllByText(/TOTAL DELIVERABLE/i).length).toBeGreaterThan(0)
   })
 
   it("renders the status badge labels verbatim from the reference", async () => {
@@ -61,7 +90,7 @@ describe("ErpDashboardClient", () => {
   it("renders the per-client section and today's schedule banner", async () => {
     renderView()
 
-    expect(await screen.findByRole("heading", { name: /Per Client/i })).toBeDefined()
+    expect(await screen.findByRole("heading", { name: /Klien Aktif/i })).toBeDefined()
     expect(screen.getByRole("heading", { name: /Jadwal Tayang Hari Ini/i })).toBeDefined()
     expect(screen.getByText(/Tidak ada jadwal tayang hari ini/i)).toBeDefined()
   })
@@ -72,8 +101,10 @@ describe("ErpDashboardClient", () => {
     // The old mock printed "Progres skill"; the real UI shows connected channels.
     expect(await screen.findByText(/Channel Terhubung/i)).toBeDefined()
     expect(screen.queryByText(/Progres skill/i)).toBeNull()
-    // 2 channel nyata, bukan angka progress hardcoded.
-    expect(screen.getByText("2 / 10")).toBeDefined()
+    // 2 channel nyata, bukan angka progress hardcoded. Cari berdasarkan DOM textContent.
+    expect(
+      document.body.textContent?.includes("2 / 10") ?? false
+    ).toBe(true)
   })
 
   it("does not render a fabricated admin email derived from the client id", async () => {

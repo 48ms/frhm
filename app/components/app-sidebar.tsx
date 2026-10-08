@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils"
 import { adminNavStitch } from "@/config/nav-config"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 
+import { WorkspaceSwitcher } from "@/components/workspace-switcher"
+
 export type AppUser = {
   name: string
   email: string
@@ -41,16 +43,8 @@ export function AppSidebar({
       <div className="flex flex-col justify-between h-full p-4">
         
         <div>
-          {/* Brand capsule */}
-          <div className="flex items-center gap-3 px-3 py-2.5 mb-8 bg-card/95 backdrop-blur-md rounded-2xl shadow-sm border border-border/50">
-            <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shadow-inner">
-              <BrandLogo size={24} />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight text-foreground">{PRODUCT_NAME}</span>
-              <span className="text-[10px] font-bold text-muted-foreground">Admin Hub</span>
-            </div>
-          </div>
+          {/* Workspace Switcher */}
+          <WorkspaceSwitcher />
 
           {/* Navigation */}
           <nav className="space-y-1" aria-label="Main Navigation">

@@ -3,28 +3,32 @@
 import * as React from "react"
 import { Icons } from "@/components/icons"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { socialQueries } from "@/features/social-accounts/api/queries"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
+import { deliverableQueries } from "@/features/deliverables/api/queries"
+
+import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 
 export function ErpDashboardClient() {
-  const { data: rawClients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
-  const { data: posts } = useSuspenseQuery(scheduledPostQueries.listAll())
+  const { clientId, client } = useActiveDashboard()
+  // Data khusus client aktif dari DB (bukan listAll() lalu filter).
+  const { data: posts } = useSuspenseQuery(scheduledPostQueries.listByClient(clientId))
+  const { data: deliverables } = useSuspenseQuery(deliverableQueries.listByClient(clientId))
   
-  // Exclude test clients and map for UI compatibility
-  const clients = rawClients
-    .filter(c => !c.name.includes("Test Client") && !c.name.includes("E2E Wizard") && !c.name.includes("Headless Test Brand") && c.name !== "Test Client E2E")
-    .map(c => ({
-      id: c.id,
-      name: c.name,
-      shortName: "Client", // industry doesn't exist on real table
-      accounts: c.channels || []
-    }))
+  const clientPosts = posts || []
+  const clientDeliverables = deliverables || []
+  
+  // === Metrik dihitung dari data NYATA ===
+  // Status deliverables: draft | sent | approved | revision_requested (constraint DB)
+  const totalDeliverable = clientDeliverables.length
+  const waitingReview = clientDeliverables.filter(p => p.status === "sent").length
+  const draft = clientDeliverables.filter(p => p.status === "revision_requested").length
+  const approved = clientDeliverables.filter(p => p.status === "approved").length
 
-  const totalDeliverable = posts.length
-  // In the real scheduled_posts table, the status field is 'draft' | 'scheduled' | 'published' | 'failed' | 'cancelled'
-  const waitingReview = 0 // "review" status doesn't exist in actual DB
-  const draft = posts.filter(p => p.status === "draft").length
-  const approved = posts.filter(p => p.status === "scheduled" || p.status === "published").length
+  // Jadwal tayang hari ini — dihitung faktual dari scheduled_at, bukan teks statis.
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayPosts = clientPosts.filter(
+    (p) => p.scheduled_at && String(p.scheduled_at).slice(0, 10) === todayStr
+  )
 
   return (
     <main className="flex-1 p-6 lg:p-8 space-y-6 max-w-[1440px] w-full mx-auto">
@@ -63,11 +67,11 @@ export function ErpDashboardClient() {
             </span>
           </div>
           <p className="text-xs text-[hsl(var(--admin-outline))]">
-            Semua deliverable lintas klien
+            Total deliverable untuk {client.name}
           </p>
         </div>
 
-        {/* Right Card: Status Badges */}
+        {/* Right Card: Status Badges — dihitung dari tabel deliverables (status nyata DB) */}
         <div className="lg:col-span-4 p-6 admin-card flex flex-col justify-center space-y-3">
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[hsl(var(--admin-cobalt))]/10 border border-[hsl(var(--admin-cobalt))]/20 text-[hsl(var(--admin-cobalt))]">
             <Icons.clock className="size-[18px]" />
@@ -95,7 +99,11 @@ export function ErpDashboardClient() {
           </div>
           <div>
             <h2 className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">Jadwal Tayang Hari Ini</h2>
-            <p className="text-xs text-[hsl(var(--admin-outline))]">Tidak ada jadwal tayang hari ini</p>
+            <p className="text-xs text-[hsl(var(--admin-outline))]">
+              {todayPosts.length > 0
+                ? `${todayPosts.length} konten terjadwal tayang hari ini`
+                : "Tidak ada jadwal tayang hari ini"}
+            </p>
           </div>
         </div>
         <button className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold border border-[hsl(var(--admin-outline-variant))]/50 transition-colors cursor-pointer">
@@ -107,42 +115,29 @@ export function ErpDashboardClient() {
       {/* CLIENT WORKSPACES GRID */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] font-headline-md tracking-tight">Per Client</h2>
-          <button className="admin-pill admin-pill-ghost inline-flex items-center gap-1 px-3 py-1.5 cursor-pointer">
-            <Icons.add className="size-[15px]" />
-            Tambah client
-          </button>
+          <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] font-headline-md tracking-tight">
+            Klien Aktif: {client.name}
+          </h2>
         </div>
-        
-        {/* We will map over clients from the store */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-           {clients.map(c => {
-             return (
-               <div key={c.id} className="p-5 admin-card admin-card-hover flex flex-col justify-between min-h-[160px]">
-                 <div>
-                   <h3 className="text-sm font-bold text-[hsl(var(--admin-on-surface))] tracking-tight">{c.name}</h3>
-                   <p className="text-xs text-[hsl(var(--admin-outline))] mt-0.5">{c.shortName}</p>
-                   <div className="mt-4">
-                     <div className="flex items-center justify-between text-xs text-[hsl(var(--admin-on-surface-variant))] mb-1.5">
-                       <span>Channel Terhubung</span>
-                       <span className="font-mono text-[11px] text-[hsl(var(--admin-outline))]">{c.accounts.length} / 10</span>
-                     </div>
-                     <div className="w-full bg-[hsl(var(--admin-surface-high))] h-1.5 rounded-full overflow-hidden">
-                       <div className="bg-[hsl(var(--admin-cobalt))] h-full rounded-full transition-all" style={{ width: `${(c.accounts.length / 10) * 100}%` }}></div>
-                     </div>
-                   </div>
-                 </div>
-                 <div className="pt-4 mt-5 border-t border-[hsl(var(--admin-outline-variant))]/30 flex items-center justify-between">
-                   <span className="text-xs text-[hsl(var(--admin-outline))]">
-                     {c.accounts.length} connected channels
-                   </span>
-                   <button className="text-xs font-semibold text-[hsl(var(--admin-on-surface))] hover:text-[hsl(var(--admin-cobalt))] inline-flex items-center gap-1 transition-colors cursor-pointer group">
-                     Kelola <span className="text-[hsl(var(--admin-outline))] group-hover:text-[hsl(var(--admin-cobalt))] transition-colors">→</span>
-                   </button>
-                 </div>
+          
+        <div className="p-5 admin-card flex flex-col justify-between min-h-[160px]">
+           <div>
+             <h3 className="text-sm font-bold text-[hsl(var(--admin-on-surface))] tracking-tight">{client.name}</h3>
+             <div className="mt-4">
+               <div className="flex items-center justify-between text-xs text-[hsl(var(--admin-on-surface-variant))] mb-1.5">
+                 <span>Channel Terhubung</span>
+                 <span className="font-mono text-[11px] text-[hsl(var(--admin-outline))]">{client.channels?.length || 0} / 10</span>
                </div>
-             )
-           })}
+               <div className="w-full bg-[hsl(var(--admin-surface-high))] h-1.5 rounded-full overflow-hidden">
+                 <div className="bg-[hsl(var(--admin-cobalt))] h-full rounded-full transition-all" style={{ width: `${((client.channels?.length || 0) / 10) * 100}%` }}></div>
+               </div>
+             </div>
+           </div>
+           <div className="pt-4 mt-5 border-t border-[hsl(var(--admin-outline-variant))]/30 flex items-center justify-between">
+             <span className="text-xs text-[hsl(var(--admin-outline))]">
+               {client.channels?.length || 0} connected channels
+             </span>
+           </div>
         </div>
       </section>
     </main>

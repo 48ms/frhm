@@ -29,8 +29,13 @@ const createClientSchema = z.object({
   telegram_chat_id: z.string(),
 })
 
+import { useQueryClient } from '@tanstack/react-query'
+import { dashboardKeys } from '@/features/dashboard/api/queries'
+import { socialKeys } from '@/features/social-accounts/api/queries'
+
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   
   const [step, setStep] = useState<1 | 2>(1)
   const [err, setErr] = useState<string | null>(null)
@@ -68,6 +73,36 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
         
         toast.success('Client workspace berhasil dibuat di database.')
 
+        // OPTIMISTIC UPDATE (fakta): createNewClient adalah Server Action yang
+        // mengembalikan `id` asli, jadi kita bisa menyuntikkan klien baru ke
+        // cache TanStack pakai id nyata (bukan temp-id). UI (sidebar + grid)
+        // langsung ter-update tanpa menunggu refetch server. `invalidateQueries`
+        // di bawah hanya untuk rekonsiliasi background (stale-while-revalidate),
+        // sehingga tidak ada jeda "client belum muncul".
+        const nowIso = new Date().toISOString()
+        const optimisticClient = {
+          id: client.id,
+          name: client.name,
+          contact_email: value.contact_email || null,
+          contact_phone: value.contact_phone || null,
+          brand_profile: {
+            who: '', audience: '', voice: '', pov: '', proof: '', guardrails: '', pillars: [],
+            ...(value.niche ? { niche: value.niche } : {}),
+          },
+          created_at: nowIso,
+          updated_at: nowIso,
+          channels: [],
+        }
+
+        queryClient.setQueryData(socialKeys.clients(), (old: any) =>
+          Array.isArray(old) ? [...old, optimisticClient] : [optimisticClient]
+        )
+        queryClient.setQueryData(dashboardKeys.clients(), (old: any) =>
+          Array.isArray(old)
+            ? [...old, { id: client.id, name: client.name, contact_email: value.contact_email || null }]
+            : [{ id: client.id, name: client.name, contact_email: value.contact_email || null }]
+        )
+
         setCreatedCredentials({
           email: value.contact_email.trim() || 'admin@frhm.saas',
           password: '(tersimpan aman)',
@@ -79,7 +114,10 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
         if (onCreated) {
           onCreated({ id: client.id, name: client.name })
         }
-        router.refresh()
+        // Rekonsiliasi background dengan sumber kebenaran server (tanpa
+        // memblokir UI — data optimistik sudah tampil lebih dulu).
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.clients() })
+        queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
       } catch (e: any) {
         setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
       }

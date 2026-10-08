@@ -20,4 +20,5 @@ export type DashboardProfile = {
   charts: Record<Timeframe, { reach: string; engage: string }>
   insights: { label: string; value: string; sub: string }[]
   metrics: DashboardMetric[]
+  updated_at?: string
 }

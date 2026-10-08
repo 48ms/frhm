@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { getActivePlatforms, getSocialAnalytics } from '@/lib/bridge/ayrshare'
-import { getClientAyrshareProfileKey } from '@/lib/bridge/client-project'
 import { verifyCronSecret } from '@/lib/cron/auth'
 import { logAudit } from '@/lib/audit/log'
 import { logger } from '@/lib/logger'
@@ -58,9 +57,6 @@ export async function POST(request: Request) {
       const ayrshareData = analyticsRes.data
 
       // Transform Ayrshare Data to Frahma factual format for dashboard_profiles
-      // This is a simplification based on Ayrshare's response format (e.g. followers, engagement)
-      // Ayrshare typically returns { analytics: { facebook: { followers, engagement }, instagram: { ... } } }
-      
       let totalFollowers = 0
       let totalEngagement = 0
       
@@ -71,10 +67,13 @@ export async function POST(request: Request) {
          })
       }
 
-      const metrics = [
-        { label: "Aggregate Reach / Followers", value: totalFollowers.toLocaleString(), delta: "+0%", trend: "up", spark: [totalFollowers] },
-        { label: "Total Engagement", value: totalEngagement.toLocaleString(), delta: "+0%", trend: "up", spark: [totalEngagement] }
-      ]
+      const metricsObject = {
+        total_reach: totalFollowers,
+        total_views: 0,
+        audience_size: totalFollowers,
+        engagement_rate: totalFollowers > 0 ? Number(((totalEngagement / totalFollowers) * 100).toFixed(2)) : 0,
+        total_engagement: totalEngagement
+      }
 
       const insights = [
         { label: "AUDIENCE REACTION", value: "Factual Sync", sub: "Data from Ayrshare" }
@@ -93,9 +92,10 @@ export async function POST(request: Request) {
           .from('dashboard_profiles')
           .update({
             peak_label: 'Synced via Ayrshare',
-            peak_value: totalFollowers.toString(),
-            metrics: metrics,
+            peak_value: totalFollowers.toLocaleString(),
+            metrics: metricsObject,
             insights: insights,
+            updated_at: new Date().toISOString(),
           })
           .eq('id', existingProfile.id)
         if (updateErr) throw new Error(updateErr.message)
@@ -108,8 +108,8 @@ export async function POST(request: Request) {
             greeting: `Hello ${client.name}`,
             velocity: 0,
             peak_label: 'Synced via Ayrshare',
-            peak_value: totalFollowers.toString(),
-            metrics: metrics,
+            peak_value: totalFollowers.toLocaleString(),
+            metrics: metricsObject,
             insights: insights,
             charts: {}
           })

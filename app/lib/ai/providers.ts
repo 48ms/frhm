@@ -47,6 +47,20 @@ function extractUsage(j: AiResponse | undefined): AiUsage | null {
 
 const TIMEOUT_MS = 120_000
 
+/** Merge system into first user message when model ignores system prompt. */
+function mergeSystemIntoMessages(system: string, messages: ChatMessage[]): ChatMessage[] {
+  if (!system || !messages.length) return messages
+  const out = [...messages]
+  const firstUserIdx = out.findIndex(m => m.role === 'user')
+  if (firstUserIdx >= 0) {
+    out[firstUserIdx] = { ...out[firstUserIdx], content: system + '\n\n---\n\n' + out[firstUserIdx].content }
+  } else {
+    out.unshift({ role: 'user', content: system + '\n\n---\n\n' })
+  }
+  return out
+}
+
+
 async function post(url: string, headers: Record<string, string>, body: unknown) {
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
@@ -95,6 +109,7 @@ export async function chat(
   system: string,
   messages: ChatMessage[]
 ): Promise<string> {
+  const merged = mergeSystemIntoMessages(system, messages)
   if (p.kind === 'gemini') {
     const base = p.base_url || 'https://generativelanguage.googleapis.com'
     const { ok, status, j } = await post(
@@ -102,7 +117,7 @@ export async function chat(
       {},
       {
         systemInstruction: { parts: [{ text: system }] },
-        contents: messages.map((m) => ({
+        contents: merged.map((m) => ({
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.content }],
         })),
@@ -120,7 +135,7 @@ export async function chat(
     const { ok, status, j } = await post(
       `${base}/v1/messages`,
       { 'x-api-key': p.api_key ?? '', 'anthropic-version': '2023-06-01' },
-      { model: p.model, max_tokens: 16384, system, messages }
+      { model: p.model, max_tokens: 16384, system, messages: merged }
     )
     if (!ok) throw new Error(j?.error?.message || `Anthropic ${status}`)
     return (j?.content ?? []).map((c: { text?: string }) => c.text ?? '').join('')
@@ -136,7 +151,7 @@ export async function chat(
       temperature: 0.8,
       max_tokens: 16384,
       stream: false,
-      messages: [{ role: 'system', content: system }, ...messages],
+      messages: [{ role: 'system', content: system }, ...merged],
     }
   )
   const { ok, status, j } = res
@@ -223,6 +238,7 @@ export async function chatDetailed(
   system: string,
   messages: ChatMessage[]
 ): Promise<{ text: string; usage: AiUsage | null }> {
+  const merged = mergeSystemIntoMessages(system, messages)
   if (p.kind === 'gemini') {
     const base = p.base_url || 'https://generativelanguage.googleapis.com'
     const { ok, status, j } = await post(
@@ -230,7 +246,7 @@ export async function chatDetailed(
       {},
       {
         systemInstruction: { parts: [{ text: system }] },
-        contents: messages.map((m) => ({
+        contents: merged.map((m) => ({
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.content }],
         })),
@@ -248,7 +264,7 @@ export async function chatDetailed(
     const { ok, status, j } = await post(
       `${base}/v1/messages`,
       { 'x-api-key': p.api_key ?? '', 'anthropic-version': '2023-06-01' },
-      { model: p.model, max_tokens: 16384, system, messages }
+      { model: p.model, max_tokens: 16384, system, messages: merged }
     )
     if (!ok) throw new Error(j?.error?.message || `Anthropic ${status}`)
     const text = (j?.content ?? []).map((c: { text?: string }) => c.text ?? '').join('')
@@ -265,7 +281,7 @@ export async function chatDetailed(
       temperature: 0.8,
       max_tokens: 16384,
       stream: false,
-      messages: [{ role: 'system', content: system }, ...messages],
+      messages: [{ role: 'system', content: system }, ...merged],
     }
   )
   const { ok, status, j } = res

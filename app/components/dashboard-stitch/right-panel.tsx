@@ -9,7 +9,7 @@ import { ConnectChannelModal } from "@/components/social-accounts/connect-channe
 import { useAppStore } from "@/lib/store/app-store"
 
 export function DashboardStitchConnectedHub() {
-  const { client, clientId, setClientId, profile } = useActiveDashboard()
+  const { client, clientId, profile } = useActiveDashboard()
   
   // Optimasi ECC: Ambil list mentah saja, filter di level komponen agar getter store 
   // tidak loop re-render React (karena getter Zustand mereturn array referensi baru tiap call).
@@ -22,7 +22,6 @@ export function DashboardStitchConnectedHub() {
     accounts: rawAccounts.filter((a) => a.clientId === c.id)
   }))
   
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
   const [disconnectId, setDisconnectId] = useState<string | null>(null)
@@ -52,84 +51,21 @@ export function DashboardStitchConnectedHub() {
             </button>
           </div>
 
-          {/* Client Switcher Capsule , syncs the whole dashboard via URL */}
-          <div 
-            className="relative"
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setPickerOpen(false)
-            }}
-          >
-            <button
-              aria-haspopup="listbox"
-              aria-expanded={pickerOpen}
-              onClick={() => setPickerOpen((v) => !v)}
-              className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-muted border border-border/40 hover:border-brand-accent/50 transition-all cursor-pointer shadow-sm group"
-            >
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                  {client.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="truncate leading-tight text-left">
-                  <span className="block text-[10px] font-bold text-muted-foreground">
-                    Klien terhubung
-                  </span>
-                  <span className="block text-xs font-bold text-foreground truncate">
-                    {client.name}
-                  </span>
-                </div>
+          {/* Client Info Capsule — read-only. Switching now lives in the sidebar WorkspaceSwitcher. */}
+          <div className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-muted border border-border/40">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                {client.name.charAt(0).toUpperCase()}
               </div>
-              <div className="flex items-center gap-1 shrink-0 pl-2">
-                <span className="px-2 py-0.5 rounded-full bg-brand-accent text-brand-accent-foreground text-[10px] font-bold">
-                  Ganti
+              <div className="truncate leading-tight text-left">
+                <span className="block text-[10px] font-bold text-muted-foreground">
+                  Klien aktif
                 </span>
-                <Icons.chevronDown
-                  className={cn(
-                    "size-[18px] text-muted-foreground group-hover:text-foreground transition-transform",
-                    pickerOpen && "rotate-180"
-                  )}
-                />
+                <span className="block text-xs font-bold text-foreground truncate">
+                  {client.name}
+                </span>
               </div>
-            </button>
-
-            {pickerOpen && (
-              <div 
-                role="listbox"
-                className="absolute top-full left-0 mt-1.5 w-full bg-card/95 backdrop-blur-xl border border-border/40 shadow-2xl rounded-2xl p-2 z-40 space-y-1"
-              >
-                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1">
-                  Pilih klien:
-                </div>
-                {clients.map((c) => (
-                  <button
-                    key={c.id}
-                    role="option"
-                    aria-selected={c.id === clientId}
-                    onClick={() => {
-                      setClientId(c.id)
-                      setPickerOpen(false)
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
-                      c.id === clientId
-                        ? "bg-brand-accent/15 border border-brand-accent/30"
-                        : "hover:bg-muted border border-transparent"
-                    )}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-brand-accent text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                      {c.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="truncate leading-tight">
-                      <span className="block text-xs font-bold text-foreground truncate">
-                        {c.name}
-                      </span>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {c.accounts.length} channels
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Client Verification Note */}

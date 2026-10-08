@@ -74,7 +74,8 @@ export function useActiveDashboard() {
       { label: "Total Reach", value: "0", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
       { label: "Engagement Rate", value: "0%", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
       { label: "Campaign Velocity", value: "0", delta: "N/A", trend: "neutral", spark: [0, 0, 0, 0, 0, 0] },
-    ]
+    ],
+    updated_at: new Date().toISOString(),
   }
 
   // PENTING (fakta): gunakan `useQuery` (BUKAN `useSuspenseQuery`) dengan
