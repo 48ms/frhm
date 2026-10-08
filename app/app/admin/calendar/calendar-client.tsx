@@ -157,9 +157,10 @@ export function AdminCalendarClient() {
     [posts, platformFilter]
   )
 
-  /* week grid computation (Stitch sprint week) */
+  /* Calendar cursor (month/week navigation anchor) */
   const [cursor, setCursor] = useState(() => new Date())
 
+  /* Week grid computation (7 days around cursor) */
   const weekDays = useMemo(() => {
     const start = new Date(cursor)
     const day = (start.getDay() + 6) % 7 // Monday=0
@@ -171,11 +172,43 @@ export function AdminCalendarClient() {
     })
   }, [cursor])
 
+  /* Month grid computation */
+  const monthDays = useMemo(() => {
+    const y = cursor.getFullYear()
+    const m = cursor.getMonth()
+    const firstDay = new Date(y, m, 1)
+    const firstDayIndex = (firstDay.getDay() + 6) % 7 // Monday=0
+    const totalDays = new Date(y, m + 1, 0).getDate()
+    
+    const days: Date[] = []
+    for (let i = 1; i <= totalDays; i++) {
+      days.push(new Date(y, m, i))
+    }
+    return { firstDayIndex, days }
+  }, [cursor])
+
   const monthLabel = useMemo(
     () =>
       cursor.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
     [cursor]
   )
+
+  /* Navigation: month mode moves by month, week mode moves by 7 days */
+  const goPrev = useCallback(() => {
+    setCursor((c) =>
+      viewMode === "month"
+        ? new Date(c.getFullYear(), c.getMonth() - 1, 1)
+        : new Date(c.getFullYear(), c.getMonth(), c.getDate() - 7)
+    )
+  }, [viewMode])
+
+  const goNext = useCallback(() => {
+    setCursor((c) =>
+      viewMode === "month"
+        ? new Date(c.getFullYear(), c.getMonth() + 1, 1)
+        : new Date(c.getFullYear(), c.getMonth(), c.getDate() + 7)
+    )
+  }, [viewMode])
 
   const todayStr = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -253,13 +286,13 @@ export function AdminCalendarClient() {
         <div className="flex items-center gap-3">
           
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95">
+            <DropdownMenuTrigger className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-primary/30 bg-primary-container/40 text-on-primary-container text-xs font-bold hover:bg-primary-container/60 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95">
               <Icons.sparkles className="size-[18px]" />
               AI Copilot
               <Icons.chevronDown className="size-3.5 opacity-70" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-              <DropdownMenuLabel className="text-xs text-indigo-700 font-bold flex items-center gap-2">
+              <DropdownMenuLabel className="text-xs text-on-primary-container font-bold flex items-center gap-2">
                 <Icons.sparkles className="size-3.5" /> Frahma AI Actions
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -328,20 +361,22 @@ export function AdminCalendarClient() {
         {/* Navigation & Month Selector */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setCursor((c) => new Date(c.getFullYear(), c.getMonth(), c.getDate() - 7))}
+            onClick={goPrev}
             className="w-8 h-8 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-            aria-label="Previous week"
+            aria-label={viewMode === "month" ? "Previous month" : "Previous week"}
           >
             <Icons.chevronLeft className="size-[18px]" />
           </button>
           <div className="flex items-center gap-2">
             <Icons.calendar className="size-5 text-secondary" />
-            <span className="admin-headline-md font-bold text-on-surface">{monthLabel}</span>
+            <span className="admin-headline-md font-bold text-on-surface">
+              {viewMode === "month" ? monthLabel : `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+            </span>
           </div>
           <button
-            onClick={() => setCursor((c) => new Date(c.getFullYear(), c.getMonth(), c.getDate() + 7))}
+            onClick={goNext}
             className="w-8 h-8 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
-            aria-label="Next week"
+            aria-label={viewMode === "month" ? "Next month" : "Next week"}
           >
             <Icons.chevronRight className="size-[18px]" />
           </button>
@@ -485,6 +520,84 @@ export function AdminCalendarClient() {
         {/* Calendar Interface: 8 cols */}
         <div className="xl:col-span-8 space-y-4">
           <div className="admin-glass rounded-3xl p-5 shadow-sm overflow-hidden" data-calendar>
+
+            {/* ===== MONTH VIEW ===== */}
+            {viewMode === "month" && (
+              <>
+                <div className="grid grid-cols-7 gap-1.5 mb-3 pb-3 border-b border-outline-variant/30 text-center">
+                  {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
+                    <div key={d} className="text-[10px] text-on-surface-variant font-bold">
+                      {d}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {Array.from({ length: monthDays.firstDayIndex }).map((_, idx) => (
+                    <div key={`empty-${idx}`} className="min-h-[6rem] rounded-xl bg-surface-container-lowest/30 border border-transparent" />
+                  ))}
+                  {monthDays.days.map((d) => {
+                    const dayPosts = postsByDay.get(d.toDateString()) ?? []
+                    const todayObj = new Date()
+                    const isToday = d.getDate() === todayObj.getDate() && d.getMonth() === todayObj.getMonth() && d.getFullYear() === todayObj.getFullYear()
+                    return (
+                      <div
+                        key={d.toISOString()}
+                        className={cn(
+                          "min-h-[6rem] rounded-xl p-1.5 border flex flex-col gap-1 transition-all group",
+                          isToday
+                            ? "bg-surface-container-lowest/90 border-secondary/40"
+                            : "bg-surface-container-lowest/50 border-outline-variant/20 hover:border-outline"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={cn(
+                            "text-[10px] font-bold rounded-full size-5 flex items-center justify-center",
+                            isToday ? "bg-secondary text-on-secondary" : "text-on-surface-variant"
+                          )}>
+                            {d.getDate()}
+                          </span>
+                          {dayPosts.length > 0 && (
+                            <span className="text-[9px] font-bold text-on-surface-variant">{dayPosts.length}</span>
+                          )}
+                        </div>
+                        <div className="space-y-1 overflow-hidden">
+                          {dayPosts.slice(0, 2).map((p) => {
+                            const meta = PLATFORM_META[p.platform] ?? PLATFORM_META.instagram
+                            return (
+                              <button
+                                key={p.id}
+                                onClick={() => handleSelectPost(p)}
+                                className="w-full flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-left bg-surface-container-lowest border border-outline-variant/30 hover:border-secondary transition-all cursor-pointer truncate"
+                              >
+                                <span className={cn("size-1.5 rounded-full shrink-0", STATUS_META[p.status]?.dot ?? "bg-outline")} />
+                                <span className="truncate text-on-surface">{p.title || p.content?.slice(0, 16)}</span>
+                              </button>
+                            )
+                          })}
+                          {dayPosts.length > 2 && (
+                            <p className="text-[9px] text-outline text-center font-medium">
+                              +{dayPosts.length - 2} more
+                            </p>
+                          )}
+                        </div>
+                        {dayPosts.length === 0 && (
+                          <button
+                            onClick={() => handleAddPost(d)}
+                            className="mt-auto w-full py-0.5 rounded-md border border-dashed border-outline-variant/40 text-outline hover:text-secondary hover:border-secondary transition-all text-[9px] font-bold flex items-center justify-center gap-0.5 cursor-pointer"
+                          >
+                            <Icons.add className="size-3" /> Add
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* ===== WEEK VIEW (existing grid) ===== */}
+            {viewMode === "week" && (
+            <>
             {/* Calendar Day Header */}
             <div className="grid grid-cols-7 gap-2 mb-3 pb-3 border-b border-outline-variant/30 text-center">
               {weekDays.map((d, i) => (
@@ -531,7 +644,7 @@ export function AdminCalendarClient() {
                       </div>
                       <button
                         onClick={() => handleAddPost(d)}
-                        className="w-full py-1.5 rounded-lg border border-dashed border-outline-variant/60 text-on-surface-variant hover:text-secondary hover:border-secondary hover:bg-surface-container-lowest transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
+                        className="w-full py-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
                       >
                         <Icons.add className="size-3.5" /> Quick Slot
                       </button>
@@ -631,7 +744,7 @@ export function AdminCalendarClient() {
                     {/* Add Slot Prompt */}
                     <button
                       onClick={() => handleAddPost(d)}
-                      className="w-full mt-2 py-1 rounded-lg border border-dashed border-outline-variant/50 text-outline hover:text-on-surface hover:border-secondary hover:bg-surface-container transition-all text-[11px] font-bold flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 cursor-pointer"
+                      className="w-full mt-2 py-1 rounded-lg border border-dashed border-outline-variant/50 text-outline hover:text-on-surface hover:border-secondary hover:bg-surface-container transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Icons.add className="size-3.5" /> Add slot
                     </button>
@@ -639,6 +752,55 @@ export function AdminCalendarClient() {
                 )
               })}
             </div>
+            </>
+            )}
+
+            {/* ===== LIST VIEW ===== */}
+            {viewMode === "list" && (
+              <div className="space-y-2">
+                {filteredPosts.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <p className="text-sm font-bold text-on-surface">No posts match the filters.</p>
+                    <p className="text-xs text-on-surface-variant">Adjust your filters or schedule a new post.</p>
+                  </div>
+                ) : (
+                  [...filteredPosts]
+                    .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+                    .map((p) => {
+                      const meta = PLATFORM_META[p.platform] ?? PLATFORM_META.instagram
+                      const st = STATUS_META[p.status] ?? STATUS_META.scheduled
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => handleSelectPost(p)}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest/60 border border-outline-variant/30 hover:border-secondary transition-all text-left cursor-pointer"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+                            <Icons.video className="size-5 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="block text-xs font-bold text-on-surface truncate">
+                              {p.title || p.content?.slice(0, 24)}
+                            </span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold", meta.badge)}>
+                                {meta.label}
+                              </span>
+                              <span className="text-[10px] text-on-surface-variant">
+                                {new Date(p.scheduled_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ·{" "}
+                                {new Date(p.scheduled_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                          </div>
+                          <span className={cn("shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full", st.pill)}>
+                            <span className={cn("w-1.5 h-1.5 rounded-full", st.dot)} /> {st.label}
+                          </span>
+                        </button>
+                      )
+                    })
+                )}
+              </div>
+            )}
 
             {/* Next Week Preview Bar */}
             <div className="mt-4 pt-3 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
@@ -653,7 +815,10 @@ export function AdminCalendarClient() {
                   </span>
                 ))}
               </div>
-              <button className="text-[10px] text-secondary hover:underline flex items-center gap-1 font-bold cursor-pointer">
+              <button
+                onClick={() => setViewMode("month")}
+                className="text-[10px] text-secondary hover:underline flex items-center gap-1 font-bold cursor-pointer"
+              >
                 <span>View Full Month Matrix</span>
                 <Icons.arrowRight className="size-4" />
               </button>
@@ -689,7 +854,7 @@ export function AdminCalendarClient() {
                     {release ? `${release.platform} · ${release.title}` : "No upcoming flights"}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0">
+                <div className="w-12 h-12 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0">
                   <Icons.clock className="size-6" />
                 </div>
               </div>
