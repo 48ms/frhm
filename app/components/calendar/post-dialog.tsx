@@ -253,7 +253,7 @@ export function PostDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-4xl p-0 gap-0 overflow-hidden">
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row h-[78vh] sm:max-h-[640px] max-h-[90vh] animate-in fade-in zoom-in-95 duration-300">
           {/* ========================================================== */}
           {/* MAIN WORKSPACE (left): editor area, Notion-style           */}
@@ -361,7 +361,7 @@ export function PostDialog({
           {/* ========================================================== */}
           <aside
             aria-label="Pengaturan postingan"
-            className="w-full sm:w-[320px] shrink-0 flex flex-col min-h-0 border-l border-border/60 bg-muted/30"
+            className="w-full sm:w-[320px] flex-1 sm:flex-none flex flex-col min-h-0 border-l border-border/60 bg-muted/30"
           >
             <ScrollArea className="flex-1 min-h-0">
               <div className="px-5 py-5 space-y-5">
