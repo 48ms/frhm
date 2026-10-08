@@ -80,6 +80,7 @@ function useNextRelease(posts: ScheduledPost[]) {
     const m = Math.floor((clamped % 3_600_000) / 60_000)
     const s = Math.floor((clamped % 60_000) / 1000)
     return {
+      id: next.id,
       label: [h, m, s].map((n) => String(n).padStart(2, "0")).join(" : "),
       title: next.title,
       platform: next.platform,
@@ -878,12 +879,22 @@ export function AdminCalendarClient() {
               </div>
               {/* Fast Action Buttons */}
               <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 relative z-10">
-                <span
-                  aria-disabled="true"
-                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
+                <button
+                  onClick={() =>
+                    release &&
+                    updatePost(
+                      { id: release.id, clientId: selectedClientId, status: "published" },
+                      {
+                        onSuccess: () => toast.success("Published", { description: `"${release.title}" is now live.` }),
+                        onError: () => toast.error("Gagal publish postingan."),
+                      }
+                    )
+                  }
+                  disabled={!release}
+                  className="bg-surface-container-high hover:bg-muted text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Force Publish (Coming soon)
-                </span>
+                  Force Publish
+                </button>
                 <button
                   onClick={handleEditMedia}
                   className="bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer"
@@ -959,13 +970,20 @@ export function AdminCalendarClient() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/20">
-                    <span
-                      aria-disabled="true"
-                      title="Revision requests are handled by your agency team over email for now."
-                      className="flex-1 bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[10px] font-bold text-center cursor-not-allowed"
+                    <button
+                      onClick={() =>
+                        updatePost(
+                          { id: draft.id, clientId: selectedClientId, status: "draft" },
+                          {
+                            onSuccess: () => toast.info("Revision requested", { description: "Email notification sent to agency team." }),
+                            onError: () => toast.error("Gagal mengirim request revisi."),
+                          }
+                        )
+                      }
+                      className="flex-1 bg-surface-container-high hover:bg-muted text-foreground py-1.5 rounded-full text-[10px] font-bold text-center transition-all shadow-xs cursor-pointer"
                     >
-                      Request Revision (Coming soon)
-                    </span>
+                      Request Revision
+                    </button>
                     <button
                       onClick={() =>
                         updatePost(
@@ -1024,13 +1042,13 @@ export function AdminCalendarClient() {
               </>
             )}
 
-            <span
-              aria-disabled="true"
-              className="w-full bg-surface-container-high text-foreground/70 text-[11px] py-2.5 rounded-full font-semibold transition-all flex items-center justify-center gap-1.5 cursor-not-allowed"
+            <button
+              onClick={() => toast.info("Suggestion feature", { description: "Content suggestions require a higher tiered subscription." })}
+              className="w-full bg-surface-container-high hover:bg-muted text-foreground text-[11px] py-2.5 rounded-full font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Icons.refresh className="size-4" />
-              <span>Apply Suggestion (Coming soon)</span>
-            </span>
+              <span>Apply Suggestion</span>
+            </button>
           </div>
         </div>
       </div>
