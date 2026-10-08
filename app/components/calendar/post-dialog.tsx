@@ -290,7 +290,12 @@ export function PostDialog({
                 )}
 
                 {/* Reserve toggle — styled as a subtle glass card */}
-                <div className="flex items-start space-x-3 space-y-0 rounded-xl bg-muted/40 border border-border/40 p-3.5">
+                <div className={cn(
+                  "flex items-start space-x-3 space-y-0 rounded-xl border p-3.5 transition-colors",
+                  isReserved
+                    ? "bg-primary/5 border-primary/30 ring-1 ring-primary/15"
+                    : "bg-muted/40 border-border/40"
+                )}>
                   <Checkbox
                     id="is-reserved"
                     checked={isReserved}
@@ -310,20 +315,22 @@ export function PostDialog({
                 {/* Reserved for (campaign name) */}
                 {isCampaignMode && (
                   <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <Label htmlFor="reserved-for">Nama Kampanye</Label>
+                    <Label htmlFor="reserved-for" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Nama Kampanye
+                    </Label>
                     <Input
                       id="reserved-for"
                       placeholder="e.g. Campaign Natal 2026"
                       value={reservedFor}
                       onChange={(e) => setReservedFor(e.target.value)}
-                      className="h-11"
+                      className="h-11 text-[15px] font-medium"
                     />
                   </div>
                 )}
 
                 {/* Judul Postingan (optional if reserved) */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="post-title">
+                  <Label htmlFor="post-title" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
                     {isCampaignMode ? 'Judul / Catatan' : 'Judul Postingan / Konsep'}
                   </Label>
                   <Input
@@ -332,16 +339,26 @@ export function PostDialog({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required={!isCampaignMode}
-                    className="h-11"
+                    className="h-11 text-[15px] font-medium"
                   />
                 </div>
 
                 {/* Isi Konten / Caption (hidden if reserved) — the star of the workspace */}
                 {!isCampaignMode && (
                   <div className="space-y-1.5">
-                    <Label htmlFor="post-content" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                      Isi Caption / Copywriting
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="post-content" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                        Isi Caption / Copywriting
+                      </Label>
+                      <span
+                        className={cn(
+                          "text-[11px] tabular-nums transition-colors",
+                          content.length > 2200 ? "text-destructive font-semibold" : "text-muted-foreground/70"
+                        )}
+                      >
+                        {content.length.toLocaleString('id-ID')}
+                      </span>
+                    </div>
                     <Textarea
                       id="post-content"
                       placeholder="Tulis caption lengkap beserta hashtag di sini..."
@@ -403,25 +420,25 @@ export function PostDialog({
                 {/* Date & Time Row */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="post-date">Tanggal Tayang</Label>
+                    <Label htmlFor="post-date" className="text-xs">Tanggal Tayang</Label>
                     <Input
                       id="post-date"
                       type="date"
                       value={dateStr}
                       onChange={(e) => setDateStr(e.target.value)}
                       required
-                      className="h-10"
+                      className="h-10 font-medium"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="post-time">Waktu (Jam)</Label>
+                    <Label htmlFor="post-time" className="text-xs">Waktu (Jam)</Label>
                     <Input
                       id="post-time"
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
                       required
-                      className="h-10"
+                      className="h-10 font-medium"
                     />
                   </div>
                 </div>
@@ -581,8 +598,8 @@ export function PostDialog({
                     render={
                       <Button
                         type="button"
-                        variant="destructive"
-                        disabled={loading}
+                        variant="destructive-outline"
+                        loading={loading}
                         className="h-9"
                       />
                     }
@@ -614,8 +631,12 @@ export function PostDialog({
               <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-9 ml-auto">
                 Batal
               </Button>
-              <Button type="submit" disabled={loading} className="h-9 shadow-md">
-                {loading && <Icons.spinner className="size-3.5 animate-spin mr-1.5" />}
+              <Button
+                type="submit"
+                loading={loading}
+                loadingLabel="Menyimpan..."
+                className="h-9 shadow-md min-w-[140px]"
+              >
                 {submitLabel}
               </Button>
             </div>
