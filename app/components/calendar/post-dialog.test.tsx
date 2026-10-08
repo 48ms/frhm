@@ -191,6 +191,36 @@ describe('PostDialog', () => {
     expect(screen.queryByAltText('Media terlampir')).not.toBeInTheDocument()
   })
 
+  it('shows the post\'s existing media when editing a post that has one', () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        editingPost={{
+          id: 'post-1',
+          client_id: 'client-shell',
+          deliverable_id: null,
+          title: 'Launch teaser',
+          content: 'Body copy',
+          platform: 'instagram',
+          scheduled_at: '2026-10-01T09:00:00.000Z',
+          status: 'scheduled',
+          media_url: 'https://res.cloudinary.com/demo/image/upload/existing.jpg',
+          notes: null,
+          is_reserved: false,
+          is_placeholder: false,
+          reserved_for: null,
+          reserved_until: null,
+          created_at: new Date().toISOString(),
+        }}
+      />
+    )
+    const img = screen.getByAltText('Media terlampir') as HTMLImageElement
+    expect(img.src).toBe('https://res.cloudinary.com/demo/image/upload/existing.jpg')
+  })
+
   it('asks for confirmation before deleting instead of deleting immediately', async () => {
     // Regression: the delete button used to call the native blocking
     // window.confirm() and delete in the same click. It must now open a styled

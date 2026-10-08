@@ -240,6 +240,21 @@ export function AdminCalendarClient() {
     setDialogOpen(true)
   }, [])
 
+  const handleEditMedia = useCallback(() => {
+    // Pick the soonest scheduled post; fall back to the first post in view.
+    const post = posts
+      .filter((p) => p.status === "scheduled")
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+      ?? posts[0]
+    if (!post) {
+      toast.error("Tidak ada post untuk diedit medianya")
+      return
+    }
+    setEditingPost(post)
+    setInitialDate(undefined)
+    setDialogOpen(true)
+  }, [posts])
+
   return (
     <div className="space-y-6">
       {/* Loading state */}
@@ -582,10 +597,13 @@ export function AdminCalendarClient() {
                         </div>
                         {dayPosts.length === 0 && (
                           <button
-                            onClick={() => handleAddPost(d)}
-                            className="mt-auto w-full py-0.5 rounded-md border border-dashed border-outline-variant/40 text-outline hover:text-secondary hover:border-secondary transition-all text-[9px] font-bold flex items-center justify-center gap-0.5 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAddPost(d)
+                            }}
+                            className="mt-auto w-full py-1 rounded-md border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs"
                           >
-                            <Icons.add className="size-3" /> Add
+                            <Icons.add className="size-3" /> Add Post
                           </button>
                         )}
                       </div>
@@ -744,9 +762,9 @@ export function AdminCalendarClient() {
                     {/* Add Slot Prompt */}
                     <button
                       onClick={() => handleAddPost(d)}
-                      className="w-full mt-2 py-1 rounded-lg border border-dashed border-outline-variant/50 text-outline hover:text-on-surface hover:border-secondary hover:bg-surface-container transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer"
+                      className="w-full mt-2 py-1 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
                     >
-                      <Icons.add className="size-3.5" /> Add slot
+                      <Icons.add className="size-3.5" /> Add Post
                     </button>
                   </div>
                 )
@@ -866,18 +884,18 @@ export function AdminCalendarClient() {
                 >
                   Force Publish (Coming soon)
                 </span>
-                <span
-                  aria-disabled="true"
-                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
+                <button
+                  onClick={handleEditMedia}
+                  className="bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer"
                 >
-                  Edit Media (Coming soon)
-                </span>
-                <span
-                  aria-disabled="true"
-                  className="bg-surface-container-high text-foreground/70 py-1.5 rounded-full text-[11px] font-semibold text-center cursor-not-allowed"
+                  Edit Media
+                </button>
+                <button
+                  onClick={handleEditMedia}
+                  className="bg-surface-container-high hover:bg-surface-container-high/80 text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all cursor-pointer"
                 >
-                  Reschedule (Coming soon)
-                </span>
+                  Reschedule
+                </button>
               </div>
             </div>
 

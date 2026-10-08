@@ -1,12 +1,14 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AssetPicker } from './asset-picker'
+import { renderWithProviders } from '@/test/render-with-providers'
 import type { Asset } from '@/features/library/api/types'
 
 const listAssetsMock = vi.fn()
 
 vi.mock('@/features/library/api/service', () => ({
   listAssets: (...args: unknown[]) => listAssetsMock(...args),
+  uploadAsset: vi.fn(),
 }))
 
 function makeAsset(id: string, over: Partial<Asset> = {}): Asset {
@@ -30,7 +32,7 @@ describe('AssetPicker', () => {
   })
 
   it('does not fetch or render content while closed', () => {
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={false} onOpenChange={vi.fn()} onSelect={vi.fn()} />
     )
     expect(listAssetsMock).not.toHaveBeenCalled()
@@ -39,7 +41,7 @@ describe('AssetPicker', () => {
 
   it('lists the assets the server returns for the client', async () => {
     listAssetsMock.mockResolvedValue([makeAsset('a1'), makeAsset('a2')])
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={true} onOpenChange={vi.fn()} onSelect={vi.fn()} />
     )
 
@@ -51,7 +53,7 @@ describe('AssetPicker', () => {
   it('calls onSelect with the clicked asset', async () => {
     const onSelect = vi.fn()
     listAssetsMock.mockResolvedValue([makeAsset('a1')])
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={true} onOpenChange={vi.fn()} onSelect={onSelect} />
     )
 
@@ -63,7 +65,7 @@ describe('AssetPicker', () => {
 
   it('shows the empty state when the library has no assets', async () => {
     listAssetsMock.mockResolvedValue([])
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={true} onOpenChange={vi.fn()} onSelect={vi.fn()} />
     )
     expect(await screen.findByText(/Belum ada aset/i)).toBeInTheDocument()
@@ -71,7 +73,7 @@ describe('AssetPicker', () => {
 
   it('shows an error state (not fake data) when loading fails', async () => {
     listAssetsMock.mockRejectedValue(new Error('Forbidden: caller cannot access this client'))
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={true} onOpenChange={vi.fn()} onSelect={vi.fn()} />
     )
     expect(await screen.findByText(/Forbidden/i)).toBeInTheDocument()
@@ -83,7 +85,7 @@ describe('AssetPicker', () => {
       makeAsset('sunset', { tags: ['beach'] }),
       makeAsset('logo', { tags: ['brand'] }),
     ])
-    render(
+    renderWithProviders(
       <AssetPicker clientId="client-shell" open={true} onOpenChange={vi.fn()} onSelect={vi.fn()} />
     )
 

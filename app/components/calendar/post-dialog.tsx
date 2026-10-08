@@ -121,8 +121,11 @@ export function PostDialog({
       setReservedFor(editingPost.reserved_for ?? '')
       setPriority((editingPost.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal')
       setCampaignTag(editingPost.campaign_tag || '')
-      setMediaUrl('')
-      setMediaType('image')
+      // Load the post's existing media so "Edit Media" shows what is attached
+      // instead of an empty slot.
+      const existingMedia = editingPost.media_url ?? ''
+      setMediaUrl(existingMedia)
+      setMediaType(/\.(mp4|mov|webm|m4v)(\?|$)/i.test(existingMedia) ? 'video' : 'image')
       const d = new Date(editingPost.scheduled_at)
       setDateStr(d.toISOString().split('T')[0])
       setTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)

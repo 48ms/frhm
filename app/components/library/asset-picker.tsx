@@ -4,7 +4,9 @@ import * as React from "react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { listAssets, uploadAsset } from "@/features/library/api/service"
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
+import { uploadAsset } from "@/features/library/api/service"
+import { assetKeys, assetListOptions } from "@/features/library/api/queries"
 import type { Asset, AssetFileType } from "@/features/library/api/types"
 import { thumbnailUrl } from "@/lib/media/transform"
 import { FileUploader } from "@/components/file-uploader"
@@ -32,45 +34,26 @@ export function AssetPicker({
   onSelect: (asset: Asset) => void
   fileType?: AssetFileType
 }) {
-  const [assets, setAssets] = React.useState<Asset[]>([])
-  const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
   const [query, setQuery] = React.useState("")
   const [tab, setTab] = React.useState<TypeTab>(fileType ?? "all")
   const [uploading, setUploading] = React.useState(false)
 
   const activeType = tab === "all" ? undefined : (tab as AssetFileType)
 
-  // Load when the dialog opens (and when the client or type filter changes).
-  // The `cancelled` flag keeps a slow response from a previous client out of the
-  // grid after the user has already switched.
-  React.useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    setLoading(true)
-    setError(null)
-    listAssets({ clientId, fileType: activeType })
-      .then((data) => {
-        if (!cancelled) setAssets(data)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        setAssets([])
-        setError(err instanceof Error ? err.message : "Gagal memuat aset")
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [open, clientId, activeType])
+  const { data, isLoading, error: queryError } = useQuery({
+    ...assetListOptions({ clientId, fileType: activeType }),
+    enabled: open,
+    placeholderData: keepPreviousData,
+  })
+
+  const assets = data ?? []
+  const loading = isLoading
+  const error = queryError?.message ?? null
 
   // Reset transient UI each time the picker is reopened.
   React.useEffect(() => {
     if (open) {
       setQuery("")
-      setError(null)
     }
   }, [open])
 
@@ -87,6 +70,8 @@ export function AssetPicker({
     onOpenChange(false)
   }
 
+  const queryClient = useQueryClient()
+
   const handleUpload = async (files: File[]) => {
     if (!files.length) return
     setUploading(true)
@@ -99,10 +84,10 @@ export function AssetPicker({
           throw new Error(result.error ?? "Upload failed")
         }
         if (result.asset) {
-          setAssets(prev => [result.asset!, ...prev])
           addedCount++
         }
       }
+      queryClient.invalidateQueries({ queryKey: assetKeys.all })
       toast.success(`${addedCount} media berhasil di-upload!`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Upload gagal")
