@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { AdminCalendarClient } from './calendar-client'
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
@@ -12,9 +13,13 @@ export default async function AdminCalendarPage(
   const clientId = await resolveClientId(parsedClientId)
   return (
     <div className="space-y-6">
-      <DashboardPrefetcher clientId={clientId}>
-        <AdminCalendarClient />
-      </DashboardPrefetcher>
+      <Suspense
+        fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat kalender...</div>}
+      >
+        <DashboardPrefetcher clientId={clientId}>
+          <AdminCalendarClient />
+        </DashboardPrefetcher>
+      </Suspense>
     </div>
   )
 }

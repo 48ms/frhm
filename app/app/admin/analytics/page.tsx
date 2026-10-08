@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { AnalyticsView } from "./analytics-view"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
@@ -11,8 +12,12 @@ export default async function AnalyticsPage(
   const { clientId: parsedClientId } = searchParamsCache.parse(await props.searchParams)
   const clientId = await resolveClientId(parsedClientId)
   return (
-    <DashboardPrefetcher clientId={clientId}>
-      <AnalyticsView />
-    </DashboardPrefetcher>
+    <Suspense
+      fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat analitik...</div>}
+    >
+      <DashboardPrefetcher clientId={clientId}>
+        <AnalyticsView />
+      </DashboardPrefetcher>
+    </Suspense>
   )
 }

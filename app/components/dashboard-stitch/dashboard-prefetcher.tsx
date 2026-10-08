@@ -14,19 +14,17 @@ interface DashboardPrefetcherProps {
 export async function DashboardPrefetcher({ clientId, children }: DashboardPrefetcherProps) {
   const queryClient = getQueryClient()
 
-  // 1. Prefetch list clients
-  await queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
-
-  // 2. Prefetch dashboard profile
-  await queryClient.prefetchQuery(dashboardQueries.profile(clientId))
-
-  // 3. Prefetch campaigns & operational data
-  await queryClient.prefetchQuery(campaignQueries.listByClient(clientId))
-  await queryClient.prefetchQuery(contentProductionQueries.listByClient(clientId))
-  await queryClient.prefetchQuery(erpQueries.listBudgetsByClient(clientId))
-  await queryClient.prefetchQuery(erpQueries.listKOLsByClient(clientId))
-  await queryClient.prefetchQuery(erpQueries.listExpensesByClient(clientId))
-  await queryClient.prefetchQuery(erpQueries.listAdSpendByClient(clientId))
+  // Prefetch everything in parallel
+  await Promise.all([
+    queryClient.prefetchQuery(socialQueries.listClientsWithChannels()),
+    queryClient.prefetchQuery(dashboardQueries.profile(clientId)),
+    queryClient.prefetchQuery(campaignQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(contentProductionQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listBudgetsByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listKOLsByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listExpensesByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listAdSpendByClient(clientId)),
+  ])
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
