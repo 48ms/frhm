@@ -1,4 +1,5 @@
-import { DashboardStitchChart } from "@/components/dashboard-stitch/performance-chart"
+import dynamic from "next/dynamic"
+const DashboardStitchChart = dynamic(() => import("@/components/dashboard-stitch/performance-chart").then(mod => mod.DashboardStitchChart), { ssr: false, loading: () => <div className="h-64 animate-pulse bg-muted rounded-xl" /> })
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
