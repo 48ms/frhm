@@ -1,5 +1,5 @@
 /**
- * PDF schedule export — memakai @react-pdf/renderer.
+ * PDF schedule export: memakai @react-pdf/renderer.
  * Diimpor dinamis agar tidak membebani bundle utama.
  */
 
@@ -36,9 +36,9 @@ function ScheduleDoc({
   rangeLabel: string
 }) {
   return (
-    <Document title={`Jadwal Konten — ${clientName}`}>
+    <Document title={`Jadwal Konten: ${clientName}`}>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>Jadwal Konten — {clientName}</Text>
+        <Text style={styles.h1}>Jadwal Konten: {clientName}</Text>
         <Text style={styles.meta}>
           Rentang: {rangeLabel} · {posts.length} post
         </Text>

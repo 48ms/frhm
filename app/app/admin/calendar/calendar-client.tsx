@@ -126,9 +126,24 @@ export function AdminCalendarClient() {
 
   // Posts are now loaded strictly from the factual database (useScheduledPosts)
 
-  const { data: fetchedPosts = [] } = useScheduledPosts(selectedClientId)
+  const {
+    data: fetchedPosts = [],
+    isPending: isPostsLoading,
+    isError: isPostsError,
+  } = useScheduledPosts(selectedClientId)
   const { mutate: updatePost } = useUpdateScheduledPost()
   const { data: prediction, isPending: isLoadingPrediction } = useLatestPrediction(selectedClientId)
+
+  // Channels: data nyata dari client_channels via useActiveDashboard
+  const connectedChannels = useMemo(
+    () => (activeClient?.channels ?? []).filter((c) => c.status === "terhubung"),
+    [activeClient?.channels]
+  )
+  const connectedCount = connectedChannels.length
+  const connectedPlatforms = useMemo(
+    () => [...new Set(connectedChannels.map((c) => c.platform))].join(", "),
+    [connectedChannels]
+  )
   
   const posts = useMemo<ScheduledPost[]>(() => {
     return [...fetchedPosts]
@@ -194,6 +209,36 @@ export function AdminCalendarClient() {
 
   return (
     <div className="space-y-6">
+      {/* Loading state */}
+      {isPostsLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <span className="size-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-on-surface-variant font-medium">Memuat jadwal posting...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {isPostsError && (
+        <div className="rounded-2xl border border-error/30 bg-error/5 p-6 space-y-3">
+          <div className="flex items-center gap-2 text-error font-semibold">
+            <Icons.alertCircle className="size-5" />
+            <span>Gagal memuat jadwal</span>
+          </div>
+          <p className="text-sm text-on-surface-variant">Tidak bisa mengambil data posting. Periksa koneksi atau coba lagi.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-full bg-error text-on-error text-sm font-bold hover:bg-error/90 transition-colors cursor-pointer"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
+      {/* Main content (hanya tampilkan bila tidak loading/error) */}
+      {!isPostsLoading && !isPostsError && (
+      <>
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -224,7 +269,7 @@ export function AdminCalendarClient() {
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold text-on-surface">Brainstorm Ideas</span>
-                  <span className="text-[10px] text-on-surface-variant">Hasilkan ide satuan (SPARK)</span>
+                  <span className="text-[10px] text-on-surface-variant">Generate single content ideas</span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -233,7 +278,7 @@ export function AdminCalendarClient() {
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold text-on-surface">Auto-Fill Batch Plan</span>
-                  <span className="text-[10px] text-on-surface-variant">Buat kalender sebulan sekaligus</span>
+                  <span className="text-[10px] text-on-surface-variant">Generate a full month of posts at once</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -333,7 +378,7 @@ export function AdminCalendarClient() {
       {/* Top Metric Strip / Flight Pace Bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Metric 1: Scheduled Flights */}
-        <div className="glass-panel rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+        <div className="bg-surface-container rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
           <div className="space-y-1">
             <span className="text-[10px] text-on-surface-variant font-bold">
               Scheduled Flights (Month)
@@ -351,7 +396,7 @@ export function AdminCalendarClient() {
         </div>
 
         {/* Metric 2: Slots Status */}
-        <div className="glass-panel rounded-2xl p-4 space-y-2">
+        <div className="bg-surface-container rounded-2xl p-4 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-[10px] text-on-surface-variant font-bold">
               Slots Status Pipeline
@@ -389,36 +434,48 @@ export function AdminCalendarClient() {
           </div>
         </div>
 
-        {/* Metric 3: Peak Dispatch Timeslots */}
-        <div className="glass-panel rounded-2xl p-4 flex items-center justify-between">
+        {/* Metric 3: Next Up / Upcoming Slot (data nyata dari scheduled posts) */}
+        <div className="admin-glass rounded-2xl p-4 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] text-on-surface-variant font-bold">
-              Peak Velocity Timeslot
+              Next Up
             </span>
-            <p className="text-base font-bold text-on-surface">18:00 – 20:30 WIB</p>
-            <p className="text-[11px] text-secondary font-semibold flex items-center gap-1">
-              <Icons.bolt className="size-3.5" /> TikTok &amp; Reels Velocity Index 94/100
+            <p className="text-base font-bold text-on-surface truncate max-w-[180px]">
+              {release ? release.label : "No flight scheduled"}
+            </p>
+            <p className="text-[11px] text-on-surface-variant flex items-center gap-1 truncate">
+              <Icons.clock className="size-3.5 shrink-0" />
+              {release ? `${release.platform} · ${release.title}` : "Schedule a post to fill this slot"}
             </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
-            <Icons.monitoring className="size-6" />
+            <Icons.clock className="size-6" />
           </div>
         </div>
 
-        {/* Metric 4: API Connection Status */}
-        <div className="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-primary">
+        {/* Metric 4: Social Channels Status (data nyata dari client_channels) */}
+        <div className="bg-surface-container rounded-2xl p-4 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] text-on-surface-variant font-bold">
-              API Connection Status
+              Social Channels
             </span>
             <p className="text-base font-bold text-on-surface flex items-center gap-2">
-              <span>Ready for Dispatch</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <span>{connectedCount} Connected</span>
+              <span
+                className={cn(
+                  "w-2.5 h-2.5 rounded-full shrink-0",
+                  connectedCount > 0 ? "bg-emerald-500" : "bg-outline-variant"
+                )}
+              />
             </p>
-            <p className="text-[11px] text-on-surface-variant truncate">Meta Graph &amp; TikTok Cloud Active</p>
+            <p className="text-[11px] text-on-surface-variant truncate">
+              {connectedCount > 0
+                ? `${connectedPlatforms} ready to publish`
+                : "No social account connected yet"}
+            </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface shrink-0">
-            <Icons.circleCheck className="size-6" />
+            <Icons.share className="size-6" />
           </div>
         </div>
       </div>
@@ -427,7 +484,7 @@ export function AdminCalendarClient() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         {/* Calendar Interface: 8 cols */}
         <div className="xl:col-span-8 space-y-4">
-          <div className="glass-panel rounded-3xl p-5 shadow-sm overflow-hidden" data-calendar>
+          <div className="admin-glass rounded-3xl p-5 shadow-sm overflow-hidden" data-calendar>
             {/* Calendar Day Header */}
             <div className="grid grid-cols-7 gap-2 mb-3 pb-3 border-b border-outline-variant/30 text-center">
               {weekDays.map((d, i) => (
@@ -465,15 +522,11 @@ export function AdminCalendarClient() {
                         <span className="text-[10px] text-outline">Open</span>
                       </div>
                       <div className="h-full flex flex-col items-center justify-center py-8 text-center text-outline-variant group-hover:text-on-surface-variant">
-                        <span className="text-[28px] mb-1">{isDarkFlight ? "🌙" : "+"}</span>
                         <span className="text-[11px] font-bold">
                           {isDarkFlight ? "Dark Flight" : "Free Dispatch Slot"}
                         </span>
-                        {!isDarkFlight && (
-                          <span className="text-[10px] text-outline mt-1">Recommended: 14:00</span>
-                        )}
                         {isDarkFlight && (
-                          <span className="text-[10px] text-outline mt-0.5">Audience Cooling</span>
+                          <span className="text-[10px] text-outline mt-0.5">No scheduled posts</span>
                         )}
                       </div>
                       <button
@@ -527,7 +580,7 @@ export function AdminCalendarClient() {
                           <div
                             key={p.id}
                             onClick={() => handleSelectPost(p)}
-                            className="glass-card-nested rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-pointer bg-surface-container-lowest"
+                            className="rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-pointer bg-surface-container-lowest"
                           >
                             <div className="flex items-center justify-between mb-1.5">
                               <span
@@ -611,10 +664,9 @@ export function AdminCalendarClient() {
         {/* Dispatch Queue & Approval Drawer: 4 cols */}
         <div className="xl:col-span-4 space-y-6">
           {/* Drawer Card: Today's Dispatches & Live Countdown */}
-          <div className="glass-panel rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="bg-surface-container rounded-3xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
                 <h3 className="text-lg font-bold text-on-surface">Today&apos;s Dispatches</h3>
               </div>
               <span className="text-[10px] bg-secondary-fixed text-secondary px-2.5 py-1 rounded-full font-bold">
@@ -665,7 +717,7 @@ export function AdminCalendarClient() {
             </div>
 
             {/* Detailed Dispatch Metadata Card */}
-            <div className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/40 space-y-2">
+            <div className="bg-surface-container-low rounded-2xl p-3.5 border border-outline-variant/40 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
                   <Icons.video className="size-6 text-primary" />
@@ -686,7 +738,7 @@ export function AdminCalendarClient() {
           </div>
 
           {/* Drawer Card: Deliverable Approval Gate */}
-          <div className="glass-panel rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="bg-surface-container rounded-3xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#f59e0b] text-[20px]">
@@ -708,7 +760,7 @@ export function AdminCalendarClient() {
             {posts.filter(p => p.status === "draft").map((draft) => {
                const meta = PLATFORM_META[draft.platform] ?? PLATFORM_META.instagram
                return (
-                <div key={draft.id} className="glass-card-nested rounded-2xl p-3.5 border border-outline-variant/30 space-y-2.5">
+                <div key={draft.id} className="bg-surface-container-low rounded-2xl p-3.5 border border-outline-variant/30 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
@@ -802,7 +854,7 @@ export function AdminCalendarClient() {
 
       {/* Bottom Client Quick Switcher & Audit Footer */}
       <footer className="pt-6 pb-4 border-t border-outline-variant/30 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 glass-panel rounded-2xl px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container rounded-2xl px-6 py-3">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[10px] text-on-surface-variant font-bold">
               Agency Client Switcher:
@@ -828,7 +880,7 @@ export function AdminCalendarClient() {
           {/* System Status Indicator */}
           <div className="flex items-center gap-4 text-[11px] text-on-surface-variant">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary" />
+              <Icons.clock className="size-3.5" />
               <span>
                 Scheduled posts sync via the publish worker
               </span>
@@ -866,6 +918,8 @@ export function AdminCalendarClient() {
           toast.success("Refreshed")
         }}
       />
+      </>
+      )}
     </div>
   )
 }

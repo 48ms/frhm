@@ -116,7 +116,7 @@ export function CalendarExportModal({
 
   function buildMarkdown(): string {
     const out: string[] = []
-    out.push(`# Jadwal Konten — ${clientName}`)
+    out.push(`# Jadwal Konten: ${clientName}`)
     out.push("")
     out.push(`Rentang: **${RANGES.find((r) => r.id === range)?.label}** · ${scoped.length} post`)
     out.push("")
