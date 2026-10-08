@@ -101,10 +101,12 @@ sees a loading state instead of a blank screen:
 - `app/admin/calendar/page.tsx`
 - `app/admin/campaigns/page.tsx`
 
-### P2: Consider Dynamic Imports for Heavy Libraries
-- `recharts` (346 KB) — only used in chart components
-- `xlsx` (101 KB) — only for export functionality
-- `framer-motion` (120 KB) — animation library, consider if all animations are needed
+### ✅ P2: FIXED — Lazy load recharts + clean dead code
+- `DashboardStitchChart` di-`dynamic()`-kan di `app/admin/dashboard/@chart/page.tsx` tanpa `ssr: false` (bukan server component).
+- Chunk recharts (346 KB) divérifikasi **tidak ada** di `rootMainFiles` route manapun — hanya masuk ke chunk group `performance-chart.tsx` yang di-load secara lazy.
+- Seluruh dashboard parallel slots (@hero, @kpis, @hub, @pipeline, page) tetap **nol overlap** dengan chunk recharts.
+- Hapus `components/calendar/calendar-view.tsx` — dead code 555 baris, zero references.
+
 
 ---
 
