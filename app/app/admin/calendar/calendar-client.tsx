@@ -824,6 +824,7 @@ export function AdminCalendarClient() {
                       {dayPosts.map((p) => {
                         const meta = PLATFORM_META[p.platform] ?? PLATFORM_META.instagram
                         const st = STATUS_META[p.status] ?? STATUS_META.scheduled
+                        const PlatformIcon = Icons[meta.icon]
                         const time = new Date(p.scheduled_at).toLocaleTimeString("en-US", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -856,7 +857,7 @@ export function AdminCalendarClient() {
                                   meta.badge
                                 )}
                               >
-                                <Icons.video className="size-3" /> {meta.label}
+                                <PlatformIcon className="size-3" /> {meta.label}
                               </span>
                               <div className="flex items-center gap-0.5">
                                 <span className="text-[11px] text-on-surface-variant font-medium">{time}</span>
@@ -891,23 +892,20 @@ export function AdminCalendarClient() {
                                 </DropdownMenu>
                               </div>
                             </div>
-                            {/* Thumbnail / media block */}
+                            {/* Thumbnail / media block: title only, keeps the card scannable.
+                             * The caption lives once, in the footer snippet below. */}
                             <div
                               className={cn(
-                                "relative rounded-lg overflow-hidden h-20 mb-2 bg-surface-container",
+                                "relative rounded-lg overflow-hidden h-20 mb-2 bg-surface-container flex items-center",
                                 p.platform === "linkedin" ? "bg-[#1e293b] text-white" : ""
                               )}
                             >
-                              <div className="p-2 h-full flex flex-col justify-between">
-                                <p className="text-[11px] font-bold leading-tight line-clamp-2">
+                              <div className="p-2 h-full flex items-center">
+                                <p className="text-[11px] font-bold leading-tight line-clamp-3">
                                   {p.title}
                                 </p>
-                                <p className="text-[10px] opacity-70 line-clamp-2 mt-1">{p.content}</p>
                               </div>
                             </div>
-                            <p className="text-[12px] font-bold text-on-surface line-clamp-2 leading-tight">
-                              {p.title}
-                            </p>
                             <div className="mt-2 pt-1.5 border-t border-outline-variant/20 flex items-center justify-between">
                               <span
                                 className={cn(
