@@ -1,7 +1,17 @@
-import { screen } from "@testing-library/react"
+import { screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
 import { ErpDashboardClient } from "./erp-client"
 import { renderWithProviders } from "@/test/render-with-providers"
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  }),
+}))
 
 // Data nyata datang dari Supabase (socialQueries.listClientsWithChannels).
 // Kita beri satu client dengan 2 channel supaya hitungan channel teruji tanpa
@@ -113,5 +123,44 @@ describe("ErpDashboardClient", () => {
     await screen.findByRole("heading", { name: /^Dashboard$/i })
     // Regression: the mock built "admin@<id-part>.com" which produced garbage.
     expect(screen.queryByText(/@.*\.com/)).toBeNull()
+  })
+
+  it("calls the telegram test endpoint when clicking Notifikasi Telegram", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, chatId: "123" }),
+    })
+    globalThis.fetch = fetchMock as unknown as typeof fetch
+
+    renderView()
+    fireEvent.click(screen.getByRole("button", { name: /Notifikasi Telegram/i }))
+
+    // Allow fire-and-forget promise to settle.
+    await new Promise((r) => setTimeout(r, 0))
+    expect(fetchMock).toHaveBeenCalledWith("/api/telegram/test", expect.any(Object))
+  })
+
+  it("navigates to calendar when clicking the hidden Kalender button", async () => {
+    const pushMock = vi.fn()
+    vi.mocked(require("next/navigation").useRouter).mockImplementation(() => ({
+      push: pushMock,
+      replace: vi.fn(),
+      prefetch: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+    }))
+
+    renderView()
+    const btn = screen.getByRole("button", { name: /Kalender/i })
+    expect(btn).toBeInTheDocument()
+    fireEvent.click(btn)
+    expect(pushMock).toHaveBeenCalledWith("/admin/calendar")
+  })
+
+  it("opens CreateDeliverableDialog when clicking Deliverable Baru", async () => {
+    renderView()
+    fireEvent.click(screen.getByRole("button", { name: /Deliverable Baru/i }))
+    // Dialog renders a title that references deliverable creation.
+    expect(await screen.findByText(/Deliverable Baru/i)).toBeInTheDocument()
   })
 })

@@ -1,19 +1,50 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
-
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { CreateDeliverableDialog } from "@/components/deliverable/create-deliverable-dialog"
 
 export function ErpDashboardClient() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const { clientId, client } = useActiveDashboard()
   // Data khusus client aktif dari DB (bukan listAll() lalu filter).
   const { data: posts } = useSuspenseQuery(scheduledPostQueries.listByClient(clientId))
   const { data: deliverables } = useSuspenseQuery(deliverableQueries.listByClient(clientId))
-  
+
+  const [createOpen, setCreateOpen] = React.useState(false)
+  const [notifSending, setNotifSending] = React.useState(false)
+
+  // Tombol "Notifikasi Telegram": kirim test ping ke Telegram admin.
+  // Backing nyata: POST /api/telegram/test (guard admin + rate limit).
+  const handleNotifyTelegram = async () => {
+    setNotifSending(true)
+    try {
+      const res = await fetch("/api/telegram/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data?.error || "Gagal mengirim notifikasi Telegram.")
+        return
+      }
+      toast.success("Notifikasi Telegram berhasil dikirim.", {
+        description: `Pesan uji coba terkirim ke chat ${data.chatId}.`,
+      })
+    } catch {
+      toast.error("Gagal menghubungi endpoint Telegram.")
+    } finally {
+      setNotifSending(false)
+    }
+  }
   const clientPosts = posts || []
   const clientDeliverables = deliverables || []
   
@@ -43,16 +74,25 @@ export function ErpDashboardClient() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button className="admin-pill admin-pill-ghost inline-flex items-center gap-2 px-4 py-2 cursor-pointer">
+          <button
+            onClick={handleNotifyTelegram}
+            disabled={notifSending}
+            className="admin-pill admin-pill-ghost inline-flex items-center gap-2 px-4 py-2 cursor-pointer disabled:opacity-50"
+          >
             <Icons.send className="size-4 text-[hsl(var(--admin-cobalt))]" />
-            Notifikasi Telegram
+            {notifSending ? "Mengirim..." : "Notifikasi Telegram"}
           </button>
-          <button className="admin-pill admin-pill-lime inline-flex items-center gap-2 px-4 py-2 cursor-pointer">
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="admin-pill admin-pill-lime inline-flex items-center gap-2 px-4 py-2 cursor-pointer"
+          >
             <Icons.add className="size-4" />
             Deliverable Baru
           </button>
         </div>
       </section>
+
+      <CreateDeliverableDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       {/* TOP METRIC CARDS ROW */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -106,7 +146,10 @@ export function ErpDashboardClient() {
             </p>
           </div>
         </div>
-        <button className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold border border-[hsl(var(--admin-outline-variant))]/50 transition-colors cursor-pointer">
+        <button
+          onClick={() => router.push("/admin/calendar")}
+          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold border border-[hsl(var(--admin-outline-variant))]/50 transition-colors cursor-pointer"
+        >
           Kalender
           <Icons.chevronRight className="size-4 ml-1" />
         </button>
