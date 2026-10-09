@@ -50,10 +50,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || "Invalid payload" }, { status: 400 })
   }
 
+  // Persist tiket ke DB agar user/klien bisa melihat histori & statusnya.
+  // RLS menjamin tenant isolation (client_insert_own / admin_all).
+  const { data: ticket, error: ticketError } = await supabase
+    .from("support_tickets")
+    .insert({
+      client_id: payload.clientId || null,
+      created_by: user.id,
+      subject: payload.subject,
+      message: payload.message,
+      priority: payload.priority,
+      status: "open",
+    })
+    .select("id")
+    .single()
+
+  if (ticketError) {
+    console.error("[support/submit] ticket insert failed:", ticketError.message)
+    return NextResponse.json({ error: "Gagal menyimpan tiket dukungan" }, { status: 500 })
+  }
+
   // Kirim ke chat admin Frahma (env var konsisten dengan lib/telegram/service.ts)
-  // Karena saat ini belum ada tabel "tickets", kita kirim alert langsung ke admin Frahma.
   const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID
-  
+
   if (adminChatId) {
     const text = [
       `🚨 <b>New Support Request</b>`,
@@ -79,9 +98,12 @@ export async function POST(request: Request) {
   void logAudit({
     action: "support.submit",
     actorId: user.id,
+    entityType: "support_tickets",
+    entityId: ticket.id,
+    clientId: payload.clientId || null,
     summary: `Support request submitted: ${payload.subject}`,
     request,
   })
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, ticketId: ticket.id })
 }

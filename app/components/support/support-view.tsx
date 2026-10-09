@@ -1,8 +1,31 @@
 "use client"
 
 import * as React from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { supportTicketQueries } from "@/features/support/api/queries"
+import type { SupportTicket, SupportTicketPriority, SupportTicketStatus } from "@/features/support/api/types"
 import { toast } from "sonner"
+
+const STATUS_META: Record<SupportTicketStatus, { label: string; cls: string }> = {
+  open: { label: "Open", cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
+  in_progress: { label: "In Progress", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+  resolved: { label: "Resolved", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+  closed: { label: "Closed", cls: "bg-muted text-muted-foreground" },
+}
+
+const PRIORITY_CLS: Record<SupportTicketPriority, string> = {
+  Low: "text-muted-foreground",
+  Normal: "text-foreground",
+  High: "text-orange-600 dark:text-orange-400",
+  Urgent: "text-red-600 dark:text-red-400",
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
 
 const FAQS = [
   {
@@ -59,11 +82,17 @@ const CHANNELS = [
 
 export function SupportView() {
   const { client: activeClient } = useActiveDashboard()
+  const queryClient = useQueryClient()
+
+  const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
+    ...supportTicketQueries.listByClient(activeClient?.id ?? ""),
+    enabled: Boolean(activeClient?.id),
+  })
 
   const [openFaq, setOpenFaq] = React.useState<number | null>(0)
   const [subject, setSubject] = React.useState("")
   const [message, setMessage] = React.useState("")
-  const [priority, setPriority] = React.useState("Normal")
+  const [priority, setPriority] = React.useState<SupportTicketPriority>("Normal")
 
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -94,6 +123,8 @@ export function SupportView() {
       setSubject("")
       setMessage("")
       setPriority("Normal")
+      // Refresh daftar tiket agar tiket baru langsung muncul di "Recent Tickets".
+      queryClient.invalidateQueries({ queryKey: supportTicketQueries.listByClient(activeClient?.id ?? "").queryKey })
     } catch (err) {
       toast.error("Gagal mengirim permintaan.")
     } finally {
@@ -232,7 +263,7 @@ export function SupportView() {
               <select
                 id="sup-priority"
                 value={priority}
-                onChange={(e) => setPriority(e.target.value)}
+                onChange={(e) => setPriority(e.target.value as SupportTicketPriority)}
                 className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:ring-2 focus:ring-brand-accent focus:outline-none cursor-pointer"
               >
                 <option>Low</option>
@@ -283,14 +314,55 @@ export function SupportView() {
           </div>
         </div>
 
-        <div className="py-12 text-center space-y-2">
-          <span className="material-symbols-outlined text-[32px] text-foreground/40">inbox</span>
-          <p className="text-sm font-semibold text-foreground">No tickets yet</p>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Ticket tracking is not connected to a backend yet. Requests submitted through the form above are
-            handled by the support team by email for now.
-          </p>
-        </div>
+        {ticketsLoading ? (
+          <div className="space-y-3" data-testid="tickets-loading">
+            {[0, 1].map((i) => (
+              <div key={i} className="rounded-2xl border border-border/40 p-5 space-y-2">
+                <div className="h-3 w-40 rounded-full bg-muted animate-pulse" />
+                <div className="h-3 w-64 rounded-full bg-muted/70 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="py-12 text-center space-y-2" data-testid="tickets-empty">
+            <span className="material-symbols-outlined text-[32px] text-foreground/40">inbox</span>
+            <p className="text-sm font-semibold text-foreground">Belum ada tiket</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Kirim permintaan lewat formulir di atas. Setiap tiket yang dikirim akan tercatat di sini
+              beserta statusnya.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3" data-testid="tickets-list">
+            {tickets.map((t: SupportTicket) => {
+              const status = STATUS_META[t.status] ?? STATUS_META.open
+              return (
+                <div
+                  key={t.id}
+                  className="rounded-2xl border border-border/40 bg-muted/20 p-5"
+                >
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${status.cls}`}>
+                      {status.label}
+                    </span>
+                    <span className={`text-[11px] font-semibold ${PRIORITY_CLS[t.priority] ?? PRIORITY_CLS.Normal}`}>
+                      {t.priority}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground ml-auto">{formatDate(t.created_at)}</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground">{t.subject}</h3>
+                  <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{t.message}</p>
+                  {t.admin_reply && (
+                    <div className="mt-3 rounded-xl bg-brand-accent/10 border border-brand-accent/20 p-3">
+                      <p className="text-[11px] font-semibold text-brand-accent mb-1">Balasan Tim Support</p>
+                      <p className="text-xs text-foreground whitespace-pre-line">{t.admin_reply}</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
