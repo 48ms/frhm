@@ -601,7 +601,7 @@ export function AdminCalendarClient() {
         </div>
 
         {/* Metric 3: Next Up / Upcoming Slot (data nyata dari scheduled posts) */}
-        <div className="admin-glass rounded-2xl p-4 flex items-center justify-between">
+        <div className="admin-glass rounded-2xl p-4 flex items-center justify-between ring-1 ring-primary/30">
           <div className="space-y-1">
             <span className="text-[10px] text-on-surface-variant font-bold">
               Next Up
@@ -655,14 +655,14 @@ export function AdminCalendarClient() {
             {/* ===== MONTH VIEW ===== */}
             {viewMode === "month" && (
               <>
-                <div className="grid grid-cols-7 gap-1.5 mb-3 pb-3 border-b border-outline-variant/30 text-center">
+                <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-3 pb-3 border-b border-outline-variant/30 text-center">
                   {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
                     <div key={d} className="text-[10px] text-on-surface-variant font-bold">
                       {d}
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-1.5">
+                <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                   {Array.from({ length: monthDays.firstDayIndex }).map((_, idx) => (
                     <div key={`empty-${idx}`} className="min-h-[6rem] rounded-xl bg-surface-container-lowest/30 border border-transparent" />
                   ))}
@@ -681,7 +681,7 @@ export function AdminCalendarClient() {
                         onDragLeave={handleCellDragLeave}
                         onDrop={(e) => handleCellDrop(d, e)}
                         className={cn(
-                          "min-h-[6rem] rounded-xl p-1.5 border flex flex-col gap-1 transition-all group",
+                          "min-h-[6rem] rounded-xl p-1 sm:p-1.5 border flex flex-col gap-1 transition-all group",
                           isToday
                             ? "bg-surface-container-lowest/90 border-secondary/40"
                             : "bg-surface-container-lowest/50 border-outline-variant/20 hover:border-outline",
@@ -839,7 +839,7 @@ export function AdminCalendarClient() {
                       )}
                       <span
                         className={cn(
-                          "text-[10px] font-bold ",
+                          "text-[10px] font-bold hidden sm:inline",
                           isToday ? "text-secondary" : "text-on-surface-variant"
                         )}
                       >
