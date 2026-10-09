@@ -321,7 +321,14 @@ export function AdminCalendarClient() {
     [draggingPostId]
   )
 
-  const handleCellDragLeave = useCallback(() => setDragOverDate(null), [])
+  /* `dragleave` also fires when the pointer crosses into a child element, which
+   * made the drop-target highlight flicker while dragging over a cell that
+   * already had post cards. Only clear when the pointer truly left the cell. */
+  const handleCellDragLeave = useCallback((e: React.DragEvent) => {
+    const isChild = e.currentTarget.contains(e.relatedTarget as Node | null)
+    if (isChild) return
+    setDragOverDate(null)
+  }, [])
 
   const handleCellDrop = useCallback(
     (date: Date, e: React.DragEvent) => {
@@ -448,7 +455,7 @@ export function AdminCalendarClient() {
           </DropdownMenu>
 
           <BrainstormModal clientId={selectedClientId} open={brainstormOpen} onOpenChange={setBrainstormOpen} hideTrigger />
-          <BatchPlanModal clientId={selectedClientId} open={batchPlanOpen} onOpenChange={setBatchPlanOpen} hideTrigger />
+          <BatchPlanModal open={batchPlanOpen} onOpenChange={setBatchPlanOpen} hideTrigger />
 
           <button
             onClick={() => setExportOpen(true)}
@@ -1120,7 +1127,8 @@ export function AdminCalendarClient() {
                 </button>
                 <button
                   onClick={handleRescheduleRelease}
-                  className="bg-surface-container-high hover:bg-surface-container-high/80 text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all cursor-pointer"
+                  disabled={!release}
+                  className="bg-surface-container-high hover:bg-surface-container-high/80 text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Reschedule (+1 day)
                 </button>

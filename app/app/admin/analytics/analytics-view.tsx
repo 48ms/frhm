@@ -51,7 +51,7 @@ export function AnalyticsView() {
   const allPosts = postsData ?? []
 
   // Metrics factual dari Supabase (post_metrics) milik klien aktif.
-  const { data: metricsData } = useQuery({
+  const { data: metricsData, isLoading: metricsLoading } = useQuery({
     ...analyticsQueries.listMetricsByClient(clientId),
     enabled: Boolean(clientId),
   })
@@ -151,8 +151,45 @@ export function AnalyticsView() {
     })
   }, [campaigns, allMetrics, allPosts, activeClient?.name])
 
+  if (metricsLoading) {
+    return (
+      <div className="space-y-6" data-testid="analytics-loading">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Card key={i} className="admin-card-glass">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <div className="h-3 w-24 rounded-full bg-muted animate-pulse" />
+                <div className="rounded-full bg-muted p-2 size-8 animate-pulse" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-7 w-20 rounded-md bg-muted animate-pulse" />
+                <div className="h-3 w-32 rounded-full bg-muted/70 animate-pulse mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8">
+            <Card className="admin-card-glass h-[280px]">
+              <CardContent className="h-full flex items-center justify-center">
+                <div className="h-3 w-40 rounded-full bg-muted animate-pulse" />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-4">
+            <Card className="admin-card-glass h-[280px]">
+              <CardContent className="h-full flex items-center justify-center">
+                <div className="h-3 w-32 rounded-full bg-muted animate-pulse" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="analytics-loaded">
       {/* 4 KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="admin-card-glass">

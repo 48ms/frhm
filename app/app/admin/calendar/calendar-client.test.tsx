@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/react'
@@ -37,6 +37,19 @@ vi.mock('@/features/analytics/api/hooks', async (importOriginal) => {
   }
 })
 
+vi.mock('@/components/calendar/post-dialog', () => ({
+  PostDialog: () => null,
+}))
+vi.mock('@/components/calendar/calendar-export-modal', () => ({
+  CalendarExportModal: () => null,
+}))
+vi.mock('@/components/calendar/brainstorm-modal', () => ({
+  BrainstormModal: () => null,
+}))
+vi.mock('@/components/calendar/batch-plan-modal', () => ({
+  BatchPlanModal: () => null,
+}))
+
 const mutateMock = vi.fn()
 
 beforeEach(() => {
@@ -68,5 +81,41 @@ describe('AdminCalendarClient P1 Regressions', () => {
     const [payload] = mutateMock.mock.calls[0]
     expect(payload.id).toBe('post-1')
     expect(payload.scheduled_at).toBe('2026-10-11T10:00:00.000Z')
+  })
+
+  it('dragleave into a child element keeps the drop-target highlight', () => {
+    renderWithProviders(<AdminCalendarClient />)
+
+    // Month view is the default. The scheduled post lives on Oct 10, 2026.
+    const dayCell = screen.getByText('10').closest('[class*="min-h"]')
+    expect(dayCell).not.toBeNull()
+
+    // The cell contains a draggable post card (the button with aria-label).
+    const postCard = dayCell!.querySelector('button[draggable="true"]') as HTMLElement | null
+    expect(postCard).not.toBeNull()
+
+    // Activate dragging. jsdom has no DataTransfer, so stub it.
+    const dataTransfer = { effectAllowed: '', dropEffect: '', setData: () => {}, getData: () => 'post-1' }
+    act(() => { fireEvent.dragStart(postCard!, { dataTransfer }) })
+    act(() => { fireEvent.dragOver(dayCell!, { dataTransfer }) })
+    expect(dayCell!.className).toContain('border-primary')
+
+    // The pointer crosses into a child inside the same cell. The highlight
+    // must survive: dragleave fires for every child boundary and used to wipe
+    // it, so the drop target flickered while dragging over a filled day.
+    //
+    // fireEvent.dragLeave drops relatedTarget (jsdom has no DragEvent
+    // constructor), so dispatch a native MouseEvent which carries it through
+    // React's synthetic layer.
+    act(() => {
+      dayCell!.dispatchEvent(new MouseEvent('dragleave', { bubbles: true, relatedTarget: postCard }))
+    })
+    expect(dayCell!.className).toContain('border-primary')
+
+    // Leaving the cell for real (relatedTarget outside the cell subtree) clears it.
+    act(() => {
+      dayCell!.dispatchEvent(new MouseEvent('dragleave', { bubbles: true, relatedTarget: document.body }))
+    })
+    expect(dayCell!.className).not.toContain('border-primary')
   })
 })

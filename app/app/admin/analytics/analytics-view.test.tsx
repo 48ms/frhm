@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/react'
@@ -95,22 +95,28 @@ describe('AnalyticsView', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the factual KPI cards (Aggregate Reach, Engagement Rate, Clicks, Inquiry Rate)', () => {
+  it('renders the factual KPI cards (Aggregate Reach, Engagement Rate, Clicks, Inquiry Rate)', async () => {
     renderWithProviders(<AnalyticsView />)
-    expect(screen.getByText('Aggregate Reach')).toBeInTheDocument()
-    expect(screen.getByText('Engagement Rate')).toBeInTheDocument()
-    expect(screen.getByText('Total Clicks')).toBeInTheDocument()
-    expect(screen.getByText('Inquiry Rate')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Aggregate Reach')).toBeInTheDocument()
+      expect(screen.getByText('Engagement Rate')).toBeInTheDocument()
+      expect(screen.getByText('Total Clicks')).toBeInTheDocument()
+      expect(screen.getByText('Inquiry Rate')).toBeInTheDocument()
+    })
   })
 
-  it('renders the AI contextual summary panel', () => {
+  it('renders the AI contextual summary panel', async () => {
     renderWithProviders(<AnalyticsView />)
-    expect(screen.getByText('AI Contextual Summary')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('AI Contextual Summary')).toBeInTheDocument()
+    })
   })
 
-  it('renders the campaign analytics section for the active client', () => {
+  it('renders the campaign analytics section for the active client', async () => {
     renderWithProviders(<AnalyticsView />)
-    expect(screen.getByText('Semua Client')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Semua Client')).toBeInTheDocument()
+    })
   })
 
   it('renders the factual ai_insight from analytics_summaries, not fabricated copy', async () => {
