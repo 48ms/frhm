@@ -468,7 +468,7 @@ export function AdminCalendarClient() {
         <div className="flex items-center gap-3">
           <button
             onClick={goPrev}
-            className="w-8 h-8 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+            className="w-8 h-8 rounded-full border border-outline-variant/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container hover:border-outline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={viewMode === "month" ? "Previous month" : "Previous week"}
           >
             <Icons.chevronLeft className="size-[18px]" />
@@ -481,14 +481,14 @@ export function AdminCalendarClient() {
           </div>
           <button
             onClick={goNext}
-            className="w-8 h-8 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
+            className="w-8 h-8 rounded-full border border-outline-variant/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-on-surface hover:bg-surface-container hover:border-outline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={viewMode === "month" ? "Next month" : "Next week"}
           >
             <Icons.chevronRight className="size-[18px]" />
           </button>
           <button
             onClick={() => setCursor(new Date())}
-            className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-[10px] font-bold hover:bg-surface-variant transition-colors"
+            className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-[10px] font-bold hover:bg-surface-variant transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             Today
           </button>
@@ -846,7 +846,10 @@ export function AdminCalendarClient() {
                             tabIndex={0}
                             aria-label={`${p.title || "Postingan"}, ${meta.label}, ${time}. Tekan Enter untuk membuka.`}
                             className={cn(
-                              "rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-grab active:cursor-grabbing bg-surface-container-lowest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
+                              "rounded-xl p-2.5 border transition-all cursor-grab active:cursor-grabbing bg-surface-container-lowest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
+                              p.status === "draft"
+                                ? "border-dashed border-outline-variant/60 hover:border-outline"
+                                : "border-outline-variant/30 hover:border-secondary/50 hover:shadow-md hover:scale-[1.01] active:scale-[0.99]",
                               draggingPostId === p.id && "opacity-40"
                             )}
                           >
