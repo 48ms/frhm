@@ -19,11 +19,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized CRON trigger' }, { status: 401 })
   }
 
+  // logAudit never throws by contract (it swallows its own errors), but a
+  // fire-and-forget call must still handle rejection: `void` alone leaves a
+  // rejected promise unhandled, which crashes Node under
+  // --unhandled-rejections=throw and leaks noise into the test run.
   void logAudit({
     action: 'cron.publish',
     summary: 'Execution triggered via cron',
     request,
-  })
+  }).catch(() => {})
 
   // Kill-switch
   const autoPublishEnabled = await isFeatureEnabled('auto_publish_enabled')
@@ -128,7 +132,7 @@ export async function POST(request: Request) {
         summary: `Sistem otomatis mempublish "${post.title}" ke ${post.platform}`,
         metadata: { external_id: createdData?.id },
         request,
-      })
+      }).catch(() => {})
 
       results.push({ id: post.id, success: true })
     } catch (err: unknown) {
@@ -169,7 +173,7 @@ export async function POST(request: Request) {
           summary: `Publish gagal permanen setelah ${retryCount} percobaan: ${errorMsg}`,
           metadata: { platform: post.platform, retry_count: retryCount },
           request,
-        })
+        }).catch(() => {})
 
         results.push({ id: post.id, success: false, retry: retryCount, permanentFail: true })
       }

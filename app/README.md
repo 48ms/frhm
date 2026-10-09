@@ -3,9 +3,9 @@
 Platform SaaS untuk manajemen deliverable (konten, laporan, brief) antara Social Media Specialist dan Client.
 
 ## Tech Stack
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js 16 (App Router, Turbopack)
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS v4 + shadcn Base UI (nova preset) + Framer Motion
+- **Styling:** Tailwind CSS v4 + shadcn Base UI (nova preset) + Motion (Animate UI)
 - **Database & Auth:** Supabase (PostgreSQL)
 
 ## Role & Akses
@@ -32,7 +32,8 @@ Aplikasi memiliki 3 lapis hak akses (diatur via Supabase Auth + RLS + Middleware
 - `status_history`: Log otomatis setiap kali status deliverable berubah (Trigger on Update).
 
 ## Testing & Audit
-- Playwright E2E testing menguji route guards, login, dan skeleton UI (12 tests passing).
+- Playwright E2E testing menguji route guards, login, dan skeleton UI (`e2e/`, 58 spec files).
+- Unit tests via Vitest + React Testing Library (`components/**/*.test.tsx`, `features/**/*.test.tsx`).
 - Styling strict mengikuti standar **antislop-ui** (radius seragam `rounded-xl`, shadow sebagai elevasi (bukan border glow), hapus rainbow badges, no copy-paste cards).
 
 ## Deployment

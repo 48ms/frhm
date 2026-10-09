@@ -32,9 +32,10 @@ Setiap fitur baru atau refactor wajib mematuhi pemisahan 3 lapis:
 *Komponen dilarang memanggil `fetch()` atau query database langsung secara ad-hoc.*
 
 ### 3. Data Fetching & Caching (TanStack React Query v5)
-- **Server Prefetching**: Server Component memanggil `void queryClient.prefetchQuery(...)` (non-blocking) + `<HydrationBoundary state={dehydrate(queryClient)}>`.
+- **Server Prefetching**: Server Component memanggil `await Promise.all([...prefetchQuery calls...])` (parallel) + `<HydrationBoundary state={dehydrate(queryClient)}>` agar data siap sebelum render client.
 - **Client Fetching**: Client Component menggunakan `useSuspenseQuery(...)` di dalam `<Suspense fallback={<Skeleton />}>`.
 - **Dilarang** menggunakan `useQuery` biasa untuk query yang di-prefetch di server guna mencegah *loading flash*.
+- **Dilarang** menggunakan `void` (fire-and-forget) pada `prefetchQuery` — selalu `await` agar `dehydrate()` menangkap data RESOLVED (bukan pending), yang mencegah refetch SAAT RENDER dan warning `Cannot update a Router while rendering`.
 - **Mutasi Data**: Menggunakan `useMutation` dan melakukan cache invalidation otomatis melalui query key factories (`queryClient.invalidateQueries({ queryKey: entityKeys.all })`).
 
 ### 4. URL State Synchronization (`nuqs`) — MUTLAK

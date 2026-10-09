@@ -79,7 +79,7 @@
 ```
 
 ### Technical Stack
-- **Frontend**: Next.js 14 App Router + TS + Tailwind v4 + shadcn Base UI + Motion (Animate UI)
+- **Frontend**: Next.js 16 App Router + TS + Tailwind v4 + shadcn Base UI + Motion (Animate UI)
 - **Database**: Supabase Postgres (Management API)
 - **AI Providers**: Agnes AI (agnes-2.5-flash), 9router (COMBO2), Ollama (gpt-oss:120b)
 - **Bridge**: WoopSocial OAuth + Automated Cron Executor
@@ -348,12 +348,12 @@ Begitu pula `app/scripts/` (50 file, **0 tracked git**), `app/anti-slop/` (6 aud
 - Runtime dev 3004: `/admin/calendar` compile OK, 307 (auth redirect â€” benar); `/admin/library` 307; `/auth/login` 200. Tidak ada `module not found`.
 
 
-## 2026-10-04 — Enterprise Standards & Client Wizard Refactor (ECC)
+## 2026-10-04 ï¿½ Enterprise Standards & Client Wizard Refactor (ECC)
 
 ### AGENTS.md Expansion (Enterprise Standards)
 - Diperbarui aturan 14-17 di AGENTS.md (Sentry Error Boundaries, t3-env Zod validation, Optimistic UI Updates, Tailwind HSL design consistency).
 
-### UI/UX Refactor — Create Client Wizard (\create-client-dialog.tsx\)
+### UI/UX Refactor ï¿½ Create Client Wizard (\create-client-dialog.tsx\)
 - **Penghapusan Duplikat**: Menghapus komponen duplikat dd-client-dialog.tsx yang sebelumnya dibuat mengabaikan arsitektur Frahma, dan menyambungkan kembali tombol \+ Create New Client\ di \AppSidebar\ ke \useCreateClient()\ bawaan.
 - **TanStack Form & Zod (Rule #7)**: Formulir \CreateClientWizard\ 2-langkah direfactor total menggunakan \useAppForm\ dari \@/lib/form\ dan di-validasi ketat dengan skema \createClientSchema\ (Zod).
 - **Primitif Komponen**: Mengganti tag \<input>\ dan \<select>\ raw HTML dengan ekosistem Frahma (\orm.AppField\, \ield.TextField\, \ield.SelectField\).

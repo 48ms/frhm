@@ -41,6 +41,17 @@ if (typeof globalThis.matchMedia === 'undefined') {
   })) as unknown as typeof matchMedia
 }
 
+// jsdom has no Web Animations API. Base UI's ScrollArea viewport calls
+// `viewport.getAnimations({ subtree: true })` in a setTimeout to recompute thumb
+// geometry after transform animations; without this the call throws
+// "viewport.getAnimations is not a function" as an unhandled exception. Returning
+// an empty array makes the component's animation check bail out cleanly.
+if (typeof Element !== 'undefined' && typeof Element.prototype.getAnimations !== 'function') {
+  Element.prototype.getAnimations = function getAnimations() {
+    return []
+  } as unknown as typeof Element.prototype.getAnimations
+}
+
 /**
  * nuqs needs an adapter to work outside Next.js. Before each test we reset the
  * URL so useQueryState starts from a clean state, and stub next/navigation so

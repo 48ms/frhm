@@ -1,9 +1,10 @@
-# Setup di PC Baru — Frahma (Taraju Client Dashboard)
+# Setup di PC Baru — Frahma (Marketing ERP SaaS)
 
-Checklist pindah mesin. Ditulis dari kondisi repo nyata per 2026-10-04.
+Checklist pindah mesin. Ditulis dari kondisi repo nyata per 2026-10-09.
 
-> **Baca ini dulu:** project ini **belum punya git remote**. Kalau pindah hanya lewat
-> `git clone`, kode tidak akan ikut. Pilih salah satu dari **Cara Pindah** di bawah.
+> **Baca ini dulu:** project ini **sudah punya git remote** (`https://github.com/48ms/frhm`,
+> branch `main`). Cara termudah pindah adalah `git clone` (Cara A di bawah). Secret tetap
+> harus dipindah manual (bagian 3) karena di-gitignore.
 
 ---
 
@@ -11,7 +12,7 @@ Checklist pindah mesin. Ditulis dari kondisi repo nyata per 2026-10-04.
 
 | Item | Nilai |
 |---|---|
-| Node.js | **v22.x** (di mesin lama: v22.23.2) |
+| Node.js | **v24.x** (verifikasi: `node --version`) |
 | npm | 12.x |
 | Dev port | **3004** (jangan pakai 3001 — itu Bima CRM) |
 | App utama | folder `app/` (Next.js App Router) |
@@ -88,8 +89,9 @@ SENTRY_PROJECT=
 cd "Tools Frahma/app"
 
 npx tsc --noEmit      # 0 error
-npm test              # 147 passed (27 files)
-npm run lint          # 0 error
+npm test              # 150 passed (27 files), 0 unhandled errors
+npm run lint          # ⚠️ 103 pre-existing errors (mayoritas no-explicit-any &
+                      # no-unused-vars). Bukan blocker build; `next build` lulus.
 npm run build         # Compiled successfully
 ```
 
