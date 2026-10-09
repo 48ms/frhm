@@ -152,6 +152,9 @@ export function AdminCalendarClient() {
 
   const release = useNextRelease(posts)
 
+  /* Icon for the soonest post, matching its real platform (not a generic video glyph). */
+  const ReleaseIcon = Icons[(PLATFORM_META[release?.platform ?? ""] ?? PLATFORM_META.instagram).icon]
+
   const filteredPosts = useMemo(
     () =>
       platformFilter === "all" ? posts : posts.filter((p) => p.platform === platformFilter),
@@ -428,10 +431,11 @@ export function AdminCalendarClient() {
 
           <button
             onClick={() => setExportOpen(true)}
-            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[hsl(var(--admin-outline-variant))]/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer"
+            aria-label="Quick Export"
+            className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-full border border-outline-variant/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Icons.download className="size-4" />
-            Quick Export
+            <span className="hidden sm:inline">Quick Export</span>
           </button>
           <button
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
@@ -697,7 +701,10 @@ export function AdminCalendarClient() {
                           })}
                           {dayPosts.length > 2 && (
                             <p className="text-[9px] text-outline text-center font-medium">
-                              +{dayPosts.length - 2} more
+                              <span aria-hidden="true">+{dayPosts.length - 2} more</span>
+                              <span className="sr-only">
+                                {dayPosts.length - 2} postingan lagi pada hari ini
+                              </span>
                             </p>
                           )}
                         </div>
@@ -955,6 +962,7 @@ export function AdminCalendarClient() {
                     .map((p) => {
                       const meta = PLATFORM_META[p.platform] ?? PLATFORM_META.instagram
                       const st = STATUS_META[p.status] ?? STATUS_META.scheduled
+                      const ListIcon = Icons[meta.icon]
                       return (
                         <button
                           key={p.id}
@@ -962,7 +970,7 @@ export function AdminCalendarClient() {
                           className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest/60 border border-outline-variant/30 hover:border-secondary transition-all text-left cursor-pointer"
                         >
                           <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-                            <Icons.video className="size-5 text-primary" />
+                            <ListIcon className="size-5 text-primary" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <span className="block text-xs font-bold text-on-surface truncate">
@@ -1081,7 +1089,7 @@ export function AdminCalendarClient() {
             <div className="bg-surface-container-low rounded-2xl p-3.5 border border-outline-variant/40 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-                  <Icons.video className="size-6 text-primary" />
+                  <ReleaseIcon className="size-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-bold text-on-surface truncate">
