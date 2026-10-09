@@ -238,9 +238,52 @@ export function AdminCalendarClient() {
   /* Drag & drop reschedule: dragging a post card onto another day cell moves its
    * scheduled_at to that day, preserving the original time of day. This is the
    * interaction the header promises; without it, changing a post's date meant
-   * opening the composer and re-picking the date by hand. */
+   * opening the composer and re-picking the date by hand.
+   *
+   * Keyboard/screen-reader users cannot drag, so the same move is also exposed
+   * through a per-card menu ("Geser 1 hari" / "Geser 7 hari") that calls
+   * movePostByDays. Both paths funnel through applyPostMove. */
   const [draggingPostId, setDraggingPostId] = useState<string | null>(null)
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null)
+
+  /* Shared move routine: writes scheduled_at for `post`, preserving the
+   * original time of day, with loading/success/error feedback. */
+  const applyPostMove = useCallback(
+    (post: ScheduledPost, targetDate: Date) => {
+      const original = new Date(post.scheduled_at)
+      const moved = new Date(targetDate)
+      moved.setHours(original.getHours(), original.getMinutes(), 0, 0)
+      if (moved.getTime() === original.getTime()) return
+
+      const toastId = toast.loading("Sinkronisasi jadwal...")
+      updatePost(
+        { id: post.id, clientId: selectedClientId, scheduled_at: moved.toISOString() },
+        {
+          onSuccess: () => {
+            toast.dismiss(toastId)
+            toast.success("Jadwal dipindahkan.", {
+              description: `${post.title} → ${moved.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}`,
+            })
+          },
+          onError: () => {
+            toast.dismiss(toastId)
+            toast.error("Gagal memindahkan jadwal. Coba lagi.")
+          },
+        }
+      )
+    },
+    [selectedClientId, updatePost]
+  )
+
+  /* Keyboard-accessible equivalent of a drag: shift a post by N days. */
+  const movePostByDays = useCallback(
+    (post: ScheduledPost, days: number) => {
+      const target = new Date(post.scheduled_at)
+      target.setDate(target.getDate() + days)
+      applyPostMove(post, target)
+    },
+    [applyPostMove]
+  )
 
   const handlePostDragStart = useCallback((post: ScheduledPost, e: React.DragEvent) => {
     setDraggingPostId(post.id)
@@ -277,30 +320,9 @@ export function AdminCalendarClient() {
       const post = posts.find((p) => p.id === postId)
       if (!post) return
 
-      // Preserve the original time of day; only the date changes.
-      const original = new Date(post.scheduled_at)
-      const moved = new Date(date)
-      moved.setHours(original.getHours(), original.getMinutes(), 0, 0)
-      if (moved.getTime() === original.getTime()) return
-
-      const toastId = toast.loading("Sinkronisasi jadwal...")
-      updatePost(
-        { id: post.id, clientId: selectedClientId, scheduled_at: moved.toISOString() },
-        {
-          onSuccess: () => {
-            toast.dismiss(toastId)
-            toast.success("Jadwal dipindahkan.", {
-              description: `${post.title} → ${moved.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}`,
-            })
-          },
-          onError: () => {
-            toast.dismiss(toastId)
-            toast.error("Gagal memindahkan jadwal. Coba lagi.")
-          },
-        }
-      )
+      applyPostMove(post, date)
     },
-    [draggingPostId, posts, selectedClientId, updatePost]
+    [draggingPostId, posts, applyPostMove]
   )
 
   const handleSelectPost = useCallback((post: ScheduledPost) => {
@@ -662,8 +684,9 @@ export function AdminCalendarClient() {
                                 onDragStart={(e) => handlePostDragStart(p, e)}
                                 onDragEnd={handlePostDragEnd}
                                 onClick={() => handleSelectPost(p)}
+                                aria-label={`${p.title || "Postingan"}, ${meta.label}. Tekan Enter untuk membuka.`}
                                 className={cn(
-                                  "w-full flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-left bg-surface-container-lowest border border-outline-variant/30 hover:border-secondary transition-all cursor-grab active:cursor-grabbing truncate",
+                                  "w-full flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-left bg-surface-container-lowest border border-outline-variant/30 hover:border-secondary transition-all cursor-grab active:cursor-grabbing truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                                   draggingPostId === p.id && "opacity-40"
                                 )}
                               >
@@ -812,8 +835,17 @@ export function AdminCalendarClient() {
                             onDragStart={(e) => handlePostDragStart(p, e)}
                             onDragEnd={handlePostDragEnd}
                             onClick={() => handleSelectPost(p)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault()
+                                handleSelectPost(p)
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`${p.title || "Postingan"}, ${meta.label}, ${time}. Tekan Enter untuk membuka.`}
                             className={cn(
-                              "rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-grab active:cursor-grabbing bg-surface-container-lowest",
+                              "rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-grab active:cursor-grabbing bg-surface-container-lowest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
                               draggingPostId === p.id && "opacity-40"
                             )}
                           >
@@ -826,7 +858,38 @@ export function AdminCalendarClient() {
                               >
                                 <Icons.video className="size-3" /> {meta.label}
                               </span>
-                              <span className="text-[11px] text-on-surface-variant font-medium">{time}</span>
+                              <div className="flex items-center gap-0.5">
+                                <span className="text-[11px] text-on-surface-variant font-medium">{time}</span>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger
+                                    aria-label={`Opsi untuk ${p.title || "postingan ini"}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    className="p-0.5 rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                  >
+                                    <Icons.ellipsis className="size-3.5" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuLabel>Pindahkan jadwal</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => movePostByDays(p, -1)}>
+                                      <Icons.chevronLeft className="size-4" /> Geser 1 hari lebih awal
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => movePostByDays(p, 1)}>
+                                      <Icons.chevronRight className="size-4" /> Geser 1 hari lebih lambat
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => movePostByDays(p, -7)}>
+                                      <Icons.chevronsLeft className="size-4" /> Geser 1 minggu lebih awal
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => movePostByDays(p, 7)}>
+                                      <Icons.chevronsRight className="size-4" /> Geser 1 minggu lebih lambat
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleSelectPost(p)}>
+                                      <Icons.edit className="size-4" /> Buka editor
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                             {/* Thumbnail / media block */}
                             <div
