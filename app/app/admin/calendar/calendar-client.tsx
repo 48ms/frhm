@@ -235,6 +235,68 @@ export function AdminCalendarClient() {
     setDialogOpen(true)
   }, [])
 
+  /* Drag & drop reschedule: dragging a post card onto another day cell moves its
+   * scheduled_at to that day, preserving the original time of day. This is the
+   * interaction the header promises; without it, changing a post's date meant
+   * opening the composer and re-picking the date by hand. */
+  const [draggingPostId, setDraggingPostId] = useState<string | null>(null)
+  const [dragOverDate, setDragOverDate] = useState<Date | null>(null)
+
+  const handlePostDragStart = useCallback((post: ScheduledPost, e: React.DragEvent) => {
+    setDraggingPostId(post.id)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", post.id)
+  }, [])
+
+  const handlePostDragEnd = useCallback(() => {
+    setDraggingPostId(null)
+    setDragOverDate(null)
+  }, [])
+
+  const handleCellDragOver = useCallback(
+    (date: Date, e: React.DragEvent) => {
+      // Only react to an internal post drag, not stray external drags.
+      if (!draggingPostId) return
+      e.preventDefault()
+      e.dataTransfer.dropEffect = "move"
+      setDragOverDate(date)
+    },
+    [draggingPostId]
+  )
+
+  const handleCellDragLeave = useCallback(() => setDragOverDate(null), [])
+
+  const handleCellDrop = useCallback(
+    (date: Date, e: React.DragEvent) => {
+      e.preventDefault()
+      const postId = e.dataTransfer.getData("text/plain") || draggingPostId
+      setDragOverDate(null)
+      setDraggingPostId(null)
+      if (!postId) return
+
+      const post = posts.find((p) => p.id === postId)
+      if (!post) return
+
+      // Preserve the original time of day; only the date changes.
+      const original = new Date(post.scheduled_at)
+      const moved = new Date(date)
+      moved.setHours(original.getHours(), original.getMinutes(), 0, 0)
+      if (moved.getTime() === original.getTime()) return
+
+      updatePost(
+        { id: post.id, clientId: selectedClientId, scheduled_at: moved.toISOString() },
+        {
+          onSuccess: () =>
+            toast.success("Jadwal dipindahkan.", {
+              description: `${post.title} → ${moved.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}`,
+            }),
+          onError: () => toast.error("Gagal memindahkan jadwal. Coba lagi."),
+        }
+      )
+    },
+    [draggingPostId, posts, selectedClientId, updatePost]
+  )
+
   const handleSelectPost = useCallback((post: ScheduledPost) => {
     setEditingPost(post)
     setInitialDate(undefined)
@@ -296,7 +358,7 @@ export function AdminCalendarClient() {
             Multi-Channel Dispatch Schedule
           </h1>
           <p className="text-sm text-[hsl(var(--admin-outline))] mt-1">
-            Drag &amp; drop post scheduling for {activeClient?.name}.
+            Drag &amp; drop posts for {activeClient?.name}.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -555,14 +617,22 @@ export function AdminCalendarClient() {
                     const dayPosts = postsByDay.get(d.toDateString()) ?? []
                     const todayObj = new Date()
                     const isToday = d.getDate() === todayObj.getDate() && d.getMonth() === todayObj.getMonth() && d.getFullYear() === todayObj.getFullYear()
+                    const isDragOver = dragOverDate?.toDateString() === d.toDateString()
                     return (
                       <div
                         key={d.toISOString()}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          handleCellDragOver(d, e)
+                        }}
+                        onDragLeave={handleCellDragLeave}
+                        onDrop={(e) => handleCellDrop(d, e)}
                         className={cn(
                           "min-h-[6rem] rounded-xl p-1.5 border flex flex-col gap-1 transition-all group",
                           isToday
                             ? "bg-surface-container-lowest/90 border-secondary/40"
-                            : "bg-surface-container-lowest/50 border-outline-variant/20 hover:border-outline"
+                            : "bg-surface-container-lowest/50 border-outline-variant/20 hover:border-outline",
+                          isDragOver && "border-primary ring-2 ring-primary/30 bg-primary/5"
                         )}
                       >
                         <div className="flex items-center justify-between">
@@ -582,8 +652,14 @@ export function AdminCalendarClient() {
                             return (
                               <button
                                 key={p.id}
+                                draggable
+                                onDragStart={(e) => handlePostDragStart(p, e)}
+                                onDragEnd={handlePostDragEnd}
                                 onClick={() => handleSelectPost(p)}
-                                className="w-full flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-left bg-surface-container-lowest border border-outline-variant/30 hover:border-secondary transition-all cursor-pointer truncate"
+                                className={cn(
+                                  "w-full flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-left bg-surface-container-lowest border border-outline-variant/30 hover:border-secondary transition-all cursor-grab active:cursor-grabbing truncate",
+                                  draggingPostId === p.id && "opacity-40"
+                                )}
                               >
                                 <span className={cn("size-1.5 rounded-full shrink-0", STATUS_META[p.status]?.dot ?? "bg-outline")} />
                                 <span className="truncate text-on-surface">{p.title || p.content?.slice(0, 16)}</span>
@@ -637,16 +713,24 @@ export function AdminCalendarClient() {
                 const todayObj = new Date()
                 const isToday = d.getDate() === todayObj.getDate() && d.getMonth() === todayObj.getMonth() && d.getFullYear() === todayObj.getFullYear()
                 const isDarkFlight = i === 6 // Sunday
+                const isDragOver = dragOverDate?.toDateString() === d.toDateString()
 
                 if (dayPosts.length === 0) {
                   return (
                     <div
                       key={i}
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        handleCellDragOver(d, e)
+                      }}
+                      onDragLeave={handleCellDragLeave}
+                      onDrop={(e) => handleCellDrop(d, e)}
                       className={cn(
                         "rounded-2xl p-2.5 border flex flex-col justify-between group transition-all",
                         isDarkFlight
                           ? "bg-surface-container-lowest/40 border-outline-variant/20"
-                          : "bg-surface-container-lowest/60 border-outline-variant/30 hover:border-outline"
+                          : "bg-surface-container-lowest/60 border-outline-variant/30 hover:border-outline",
+                        isDragOver && "border-primary ring-2 ring-primary/30 bg-primary/5"
                       )}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -674,11 +758,18 @@ export function AdminCalendarClient() {
                 return (
                   <div
                     key={i}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      handleCellDragOver(d, e)
+                    }}
+                    onDragLeave={handleCellDragLeave}
+                    onDrop={(e) => handleCellDrop(d, e)}
                     className={cn(
                       "rounded-2xl p-2.5 border-2 flex flex-col justify-between group transition-all",
                       isToday
                         ? "bg-surface-container-lowest/90 border-secondary/40 shadow-xs hover:border-secondary"
-                        : "bg-surface-container-lowest/60 border-outline-variant/30 hover:border-outline"
+                        : "bg-surface-container-lowest/60 border-outline-variant/30 hover:border-outline",
+                      isDragOver && "border-primary ring-2 ring-primary/30 bg-primary/5"
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -711,8 +802,14 @@ export function AdminCalendarClient() {
                         return (
                           <div
                             key={p.id}
+                            draggable
+                            onDragStart={(e) => handlePostDragStart(p, e)}
+                            onDragEnd={handlePostDragEnd}
                             onClick={() => handleSelectPost(p)}
-                            className="rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-pointer bg-surface-container-lowest"
+                            className={cn(
+                              "rounded-xl p-2.5 border border-outline-variant/30 hover:shadow-md transition-all cursor-grab active:cursor-grabbing bg-surface-container-lowest",
+                              draggingPostId === p.id && "opacity-40"
+                            )}
                           >
                             <div className="flex items-center justify-between mb-1.5">
                               <span
