@@ -70,6 +70,25 @@ const PRIORITY_OPTIONS = [
   { id: 'urgent', label: 'Urgent' },
 ]
 
+/**
+ * Per-platform caption limits enforced by the downstream publishing APIs.
+ * A caption over its platform's limit is accepted by the composer but rejected
+ * at publish time by the cron -> Ayrshare bridge, so the dialog blocks it up
+ * front instead of letting the post fail silently hours later.
+ *
+ * Instagram 2,200 · TikTok 2,200 · YouTube (Shorts) 5,000 · LinkedIn 3,000.
+ * `youtube` shares the Shorts limit; unknown platforms fall back to 2,200.
+ */
+const CAPTION_LIMIT: Record<string, number> = {
+  instagram: 2200,
+  tiktok: 2200,
+  shorts: 5000,
+  youtube: 5000,
+  linkedin: 3000,
+}
+
+const DEFAULT_CAPTION_LIMIT = 2200
+
 export function PostDialog({
   isOpen,
   onClose,
@@ -165,6 +184,10 @@ export function PostDialog({
 
   const isPlaceholder = isReserved
 
+  // Per-platform caption limit for the currently selected platform.
+  const captionLimit = CAPTION_LIMIT[platform] ?? DEFAULT_CAPTION_LIMIT
+  const captionOverLimit = content.length > captionLimit
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isPlaceholder) {
@@ -173,8 +196,23 @@ export function PostDialog({
         return
       }
     } else {
-      if (!title || !dateStr || !time) {
+      if (!title.trim() || !dateStr || !time) {
         setError('Judul, tanggal, dan waktu wajib diisi')
+        return
+      }
+      // The publish cron rejects a post whose text AND media are both empty
+      // (route.ts: "Post content and media are both empty"). Catch it here so
+      // the admin learns immediately instead of the post failing hours later.
+      if (!content.trim() && !mediaUrl) {
+        setError('Isi caption atau lampirkan media sebelum menjadwalkan.')
+        return
+      }
+      // A caption over the platform's limit is accepted by the composer but
+      // rejected by the publishing API. Block it before it can be scheduled.
+      if (captionOverLimit) {
+        setError(
+          `Caption ${content.length.toLocaleString('id-ID')} karakter melebihi batas ${platform} (${captionLimit.toLocaleString('id-ID')} karakter).`
+        )
         return
       }
     }
@@ -351,12 +389,14 @@ export function PostDialog({
                         Isi Caption / Copywriting
                       </Label>
                       <span
+                        id="post-content-count"
+                        aria-live="polite"
                         className={cn(
                           "text-[11px] tabular-nums transition-colors",
-                          content.length > 2200 ? "text-destructive font-semibold" : "text-muted-foreground/70"
+                          captionOverLimit ? "text-destructive font-semibold" : "text-muted-foreground/70"
                         )}
                       >
-                        {content.length.toLocaleString('id-ID')}
+                        {content.length.toLocaleString('id-ID')} / {captionLimit.toLocaleString('id-ID')}
                       </span>
                     </div>
                     <Textarea
@@ -365,8 +405,18 @@ export function PostDialog({
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       rows={6}
-                      className="min-h-[180px] resize-none border-border/60 bg-muted/20 focus-visible:bg-background transition-colors text-[15px] leading-relaxed"
+                      aria-invalid={captionOverLimit}
+                      aria-describedby={captionOverLimit ? "post-content-count post-content-error" : "post-content-count"}
+                      className={cn(
+                        "min-h-[180px] resize-none border-border/60 bg-muted/20 focus-visible:bg-background transition-colors text-[15px] leading-relaxed",
+                        captionOverLimit && "border-destructive focus-visible:border-destructive"
+                      )}
                     />
+                    {captionOverLimit && (
+                      <p id="post-content-error" role="alert" className="text-xs text-destructive">
+                        Caption melebihi batas {platform} ({captionLimit.toLocaleString('id-ID')} karakter). Publikasi akan ditolak.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

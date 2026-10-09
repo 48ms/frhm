@@ -10,14 +10,16 @@ function renderWithProviders(ui: React.ReactElement) {
 
 const listAssetsMock = vi.fn()
 const deletePostMock = vi.fn()
+const createPostMock = vi.fn()
+const updatePostMock = vi.fn()
 
 vi.mock('@/features/library/api/service', () => ({
   listAssets: (...args: unknown[]) => listAssetsMock(...args),
 }))
 
 vi.mock('@/features/scheduled-posts/api/queries', () => ({
-  useCreateScheduledPost: () => ({ mutateAsync: vi.fn() }),
-  useUpdateScheduledPost: () => ({ mutateAsync: vi.fn() }),
+  useCreateScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => createPostMock(...args) }),
+  useUpdateScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => updatePostMock(...args) }),
   useDeleteScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => deletePostMock(...args) }),
 }))
 
@@ -30,6 +32,10 @@ beforeEach(() => {
   listAssetsMock.mockResolvedValue([])
   deletePostMock.mockReset()
   deletePostMock.mockResolvedValue({ success: true })
+  createPostMock.mockReset()
+  createPostMock.mockResolvedValue({ success: true })
+  updatePostMock.mockReset()
+  updatePostMock.mockResolvedValue({ success: true })
 })
 
 describe('PostDialog', () => {
@@ -278,5 +284,110 @@ describe('PostDialog', () => {
     await waitFor(() => {
       expect(deletePostMock).toHaveBeenCalledWith({ id: 'post-1', clientId: 'client-shell' })
     })
+  })
+
+  // --- Hardening: the composer must not accept a post the publish cron will
+  // reject hours later. Each test below guards one such rejected-input path.
+
+  it('blocks submission when both caption and media are empty', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Judul Postingan/i), {
+      target: { value: 'Post tanpa isi' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Jadwalkan Postingan/i }))
+
+    // The cron rejects "Post content and media are both empty"; the dialog
+    // must refuse first and never call the create mutation.
+    expect(
+      await screen.findByText(/Isi caption atau lampirkan media/i)
+    ).toBeInTheDocument()
+    expect(createPostMock).not.toHaveBeenCalled()
+  })
+
+  it('blocks submission when the caption exceeds the platform limit', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Judul Postingan/i), {
+      target: { value: 'Caption kepanjangan' },
+    })
+    fireEvent.change(screen.getByLabelText(/Isi Caption/i), {
+      target: { value: 'x'.repeat(2201) },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Jadwalkan Postingan/i }))
+
+    // Two alerts render: the global error banner and the inline field error.
+    // Match the field error by its unique recovery suffix.
+    expect(
+      await screen.findByText(/Publikasi akan ditolak/i)
+    ).toBeInTheDocument()
+    expect(createPostMock).not.toHaveBeenCalled()
+  })
+
+  it('accepts a caption exactly at the platform limit', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Judul Postingan/i), {
+      target: { value: 'Tepat di batas' },
+    })
+    fireEvent.change(screen.getByLabelText(/Isi Caption/i), {
+      target: { value: 'x'.repeat(2200) },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Jadwalkan Postingan/i }))
+
+    await waitFor(() => {
+      expect(createPostMock).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('treats a whitespace-only title as empty', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Judul Postingan/i), {
+      target: { value: '   ' },
+    })
+    fireEvent.change(screen.getByLabelText(/Isi Caption/i), {
+      target: { value: 'Caption valid' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Jadwalkan Postingan/i }))
+
+    expect(
+      await screen.findByText(/Judul, tanggal, dan waktu wajib diisi/i)
+    ).toBeInTheDocument()
+    expect(createPostMock).not.toHaveBeenCalled()
   })
 })
