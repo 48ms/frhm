@@ -283,14 +283,20 @@ export function AdminCalendarClient() {
       moved.setHours(original.getHours(), original.getMinutes(), 0, 0)
       if (moved.getTime() === original.getTime()) return
 
+      const toastId = toast.loading("Sinkronisasi jadwal...")
       updatePost(
         { id: post.id, clientId: selectedClientId, scheduled_at: moved.toISOString() },
         {
-          onSuccess: () =>
+          onSuccess: () => {
+            toast.dismiss(toastId)
             toast.success("Jadwal dipindahkan.", {
               description: `${post.title} → ${moved.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}`,
-            }),
-          onError: () => toast.error("Gagal memindahkan jadwal. Coba lagi."),
+            })
+          },
+          onError: () => {
+            toast.dismiss(toastId)
+            toast.error("Gagal memindahkan jadwal. Coba lagi.")
+          },
         }
       )
     },
