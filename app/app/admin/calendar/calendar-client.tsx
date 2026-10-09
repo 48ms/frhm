@@ -9,6 +9,17 @@ import { CalendarExportModal } from "@/components/calendar/calendar-export-modal
 import { BrainstormModal } from "@/components/calendar/brainstorm-modal"
 import { BatchPlanModal } from "@/components/calendar/batch-plan-modal"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -348,6 +359,16 @@ export function AdminCalendarClient() {
     setInitialDate(undefined)
     setDialogOpen(true)
   }, [posts])
+
+  /* Reschedule: shift the release's scheduled_at forward by 1 day, preserving time of day. */
+  const handleRescheduleRelease = useCallback(() => {
+    if (!release) return
+    const post = posts.find((p) => p.id === release.id)
+    if (!post) return
+    const target = new Date(post.scheduled_at)
+    target.setDate(target.getDate() + 1)
+    applyPostMove(post, target)
+  }, [release, posts, applyPostMove])
 
   return (
     <div className="space-y-6">
@@ -1054,22 +1075,43 @@ export function AdminCalendarClient() {
               </div>
               {/* Fast Action Buttons */}
               <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 relative z-10">
-                <button
-                  onClick={() =>
-                    release &&
-                    updatePost(
-                      { id: release.id, clientId: selectedClientId, status: "published" },
-                      {
-                        onSuccess: () => toast.success("Published", { description: `"${release.title}" is now live.` }),
-                        onError: () => toast.error("Gagal publish postingan."),
-                      }
-                    )
-                  }
-                  disabled={!release}
-                  className="bg-surface-container-high hover:bg-muted text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Force Publish
-                </button>
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    render={
+                      <button
+                        disabled={!release}
+                        className="bg-surface-container-high hover:bg-muted text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    }
+                  >
+                    Force Publish
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Publish Now?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will force-publish &quot;{release?.title}&quot; immediately. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() =>
+                          release &&
+                          updatePost(
+                            { id: release.id, clientId: selectedClientId, status: "published" },
+                            {
+                              onSuccess: () => toast.success("Published", { description: `"${release.title}" is now live.` }),
+                              onError: () => toast.error("Gagal publish postingan."),
+                            }
+                          )
+                        }
+                      >
+                        Publish Now
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <button
                   onClick={handleEditMedia}
                   className="bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-[11px] font-semibold text-center transition-all shadow-xs cursor-pointer"
@@ -1077,10 +1119,10 @@ export function AdminCalendarClient() {
                   Edit Media
                 </button>
                 <button
-                  onClick={handleEditMedia}
+                  onClick={handleRescheduleRelease}
                   className="bg-surface-container-high hover:bg-surface-container-high/80 text-foreground py-1.5 rounded-full text-[11px] font-semibold text-center transition-all cursor-pointer"
                 >
-                  Reschedule
+                  Reschedule (+1 day)
                 </button>
               </div>
             </div>
