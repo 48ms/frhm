@@ -13,13 +13,16 @@ export type { SupabaseClient, RealtimeChannel, User }
  * multiple GoTrueClient instances (warnings + duplicate auth listeners) when a
  * component remounts. Caching the instance here guarantees one client per tab.
  */
+import { env } from '@/lib/env'
+
 let browserClient: SupabaseClient | null = null
 
 export function createClient(): SupabaseClient {
   if (!browserClient) {
+    const { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY } = env.client
     browserClient = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+      NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
     )
   }
   return browserClient
