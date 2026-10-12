@@ -39,7 +39,37 @@ export function useCreateScheduledPost() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: CreateScheduledPostInput) => createScheduledPost(input),
-    onSuccess: (_, variables) => {
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: postKeys.list(input.client_id) })
+      const previousPosts = queryClient.getQueryData(postKeys.list(input.client_id))
+      const optimisticPost = {
+        id: `temp-${Date.now()}`,
+        client_id: input.client_id,
+        title: input.title,
+        content: input.content,
+        platform: input.platform,
+        scheduled_at: input.scheduled_at,
+        status: input.status || "scheduled",
+        created_at: new Date().toISOString(),
+        author: input.author ?? null,
+        media_url: input.media_url ?? null,
+        is_reserved: input.is_reserved ?? false,
+        reserved_for: input.reserved_for ?? null,
+        campaign_tag: input.campaign_tag ?? null,
+        priority: input.priority ?? "normal",
+      }
+      queryClient.setQueryData(postKeys.list(input.client_id), (old: any[] = []) => [
+        ...(Array.isArray(old) ? old : []),
+        optimisticPost,
+      ])
+      return { previousPosts, clientId: input.client_id }
+    },
+    onError: (_, __, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(postKeys.list(context.clientId), context.previousPosts)
+      }
+    },
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.client_id) })
     },
   })
@@ -50,16 +80,18 @@ export function useUpdateScheduledPost() {
   return useMutation({
     mutationFn: ({ id, clientId, ...patch }: { id: string; clientId: string } & UpdateScheduledPostInput) =>
       updateScheduledPost({ id, clientId, ...patch }),
-    onMutate: async ({ id, clientId }) => {
+    onMutate: async ({ id, clientId, ...patch }) => {
       await queryClient.cancelQueries({ queryKey: postKeys.list(clientId) })
       const previousPosts = queryClient.getQueryData(postKeys.list(clientId))
       queryClient.setQueryData(postKeys.list(clientId), (old: any[]) => 
-        old?.filter((p) => p.id !== id)
+        Array.isArray(old) ? old.map((p) => (p.id === id ? { ...p, ...patch } : p)) : []
       )
-      return { previousPosts }
+      return { previousPosts, clientId }
     },
     onError: (_, variables, context) => {
-      queryClient.setQueryData(postKeys.list(variables.clientId), context?.previousPosts)
+      if (context?.previousPosts) {
+        queryClient.setQueryData(postKeys.list(variables.clientId), context.previousPosts)
+      }
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })

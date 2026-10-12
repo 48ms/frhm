@@ -21,7 +21,34 @@ export function useCreateCampaign() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: CreateCampaignInput) => createCampaign(input),
-    onSuccess: (_data, variables) => {
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: campaignKeys.byClient(input.client_id) })
+      const previousData = queryClient.getQueryData<import("./types").Campaign[]>(
+        campaignKeys.byClient(input.client_id)
+      )
+      const optimisticCampaign: import("./types").Campaign = {
+        id: `temp-${Date.now()}`,
+        client_id: input.client_id,
+        name: input.name,
+        type: input.type,
+        start_date: input.start_date ?? null,
+        end_date: input.end_date ?? null,
+        color: input.color ?? null,
+        notes: input.notes ?? null,
+        created_at: new Date().toISOString(),
+      }
+      queryClient.setQueryData<import("./types").Campaign[]>(
+        campaignKeys.byClient(input.client_id),
+        (old = []) => [optimisticCampaign, ...(Array.isArray(old) ? old : [])]
+      )
+      return { previousData, clientId: input.client_id }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(campaignKeys.byClient(context.clientId), context.previousData)
+      }
+    },
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.byClient(variables.client_id) })
     },
   })

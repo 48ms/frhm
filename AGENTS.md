@@ -13,6 +13,8 @@ For UI, copy, people, mobile layout, or code comments work, load the antislop sk
 - Mobile / responsive: `antislop-layoutmobile`
 - Code comments: `antislop-code`
 Mode antislop diaplikasikan: **during the work** (selama pengerjaan berlangsung).
+
+jadikan animate-ui, RadixUI sebagai source
 <!-- antislop:end -->
 
 ---
