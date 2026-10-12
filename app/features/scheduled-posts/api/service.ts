@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit/log"
 import {
   ScheduledPost,
   CreateScheduledPostInput,
@@ -42,10 +43,6 @@ export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
 
 export async function createScheduledPost(input: CreateScheduledPostInput): Promise<ScheduledPost> {
   // Server-side validation: reject malformed input before hitting Supabase.
-  // Without this, a missing client_id or invalid status would reach the DB
-  // and rely solely on RLS — which only catches tenant leakage, not schema
-  // corruption. Zod parse throws with a descriptive error if the shape is
-  // wrong, keeping bad data out of scheduled_posts.
   const safe = CreateScheduledPostSchema.parse(input)
 
   const supabase = await createClient()
@@ -60,6 +57,13 @@ export async function createScheduledPost(input: CreateScheduledPostInput): Prom
     throw new Error("Gagal menjadwalkan postingan")
   }
 
+  void logAudit({
+    action: 'scheduled_post.create',
+    entityType: 'scheduled_post',
+    entityId: data?.id ?? null,
+    clientId: safe.client_id ?? null,
+    summary: `Scheduled new post ${data?.id ?? ''}`,
+  })
   return data as ScheduledPost
 }
 
@@ -80,6 +84,13 @@ export async function updateScheduledPost(
     throw new Error("Gagal mengupdate postingan")
   }
 
+  void logAudit({
+    action: 'scheduled_post.update',
+    entityType: 'scheduled_post',
+    entityId: id,
+    clientId,
+    summary: `Updated scheduled post ${id}`,
+  })
   return data as ScheduledPost
 }
 
@@ -95,4 +106,12 @@ export async function deleteScheduledPost(id: string, clientId?: string): Promis
     logger.error("deleteScheduledPost failed", { error })
     throw new Error("Gagal menghapus postingan")
   }
+
+  void logAudit({
+    action: 'scheduled_post.delete',
+    entityType: 'scheduled_post',
+    entityId: id,
+    clientId: clientId ?? null,
+    summary: `Deleted scheduled post ${id}`,
+  })
 }

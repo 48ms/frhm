@@ -28,6 +28,20 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   } as unknown as typeof ResizeObserver
 }
 
+if (typeof globalThis.IntersectionObserver === 'undefined') {
+  globalThis.IntersectionObserver = class {
+    readonly root: Element | Document | null = null
+    readonly rootMargin: string = ''
+    readonly thresholds: ReadonlyArray<number> = []
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return []
+    }
+  } as unknown as typeof IntersectionObserver
+}
+
 if (typeof globalThis.matchMedia === 'undefined') {
   globalThis.matchMedia = ((query: string) => ({
     matches: false,

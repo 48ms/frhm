@@ -7,6 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/icons"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/animate-ui/components/radix/dropdown-menu"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { motion } from "motion/react"
 
 export interface CampaignItem {
   id: string
@@ -94,61 +103,53 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
       {/* Header bar with controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-lg border border-border/40 text-xs">
-          <button
-            type="button"
-            onClick={() => setStatusFilter("all")}
-            className={`px-3 py-1 rounded-md font-medium transition-all ${
-              statusFilter === "all"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+        <Tabs value={statusFilter} onValueChange={(val) => setStatusFilter(val as any)}>
+          <TabsList
+            className="h-8 p-1 bg-muted/60 rounded-lg border border-border/40 text-xs"
+            highlightClassName="bg-card shadow-xs rounded-md"
           >
-            Semua ({campaigns.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter("active")}
-            className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 ${
-              statusFilter === "active"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span className="size-1.5 rounded-full bg-emerald-500"></span>
-            Aktif ({activeCount})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter("completed")}
-            className={`px-3 py-1 rounded-md font-medium transition-all ${
-              statusFilter === "completed"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Selesai ({completedCount})
-          </button>
-        </div>
+            <TabsTrigger value="all" className="px-3 py-1 text-xs font-medium rounded-md">
+              Semua ({campaigns.length})
+            </TabsTrigger>
+            <TabsTrigger value="active" className="px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-[hsl(var(--success))]"></span>
+              Aktif ({activeCount})
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="px-3 py-1 text-xs font-medium rounded-md">
+              Selesai ({completedCount})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Client Selector & Search */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Client Filter */}
-          <div className="relative">
-            <select
-              value={clientFilter}
-              onChange={(e) => setClientFilter(e.target.value)}
-              className="h-8 pl-7 pr-8 text-xs font-medium bg-background border border-border rounded-lg appearance-none focus:outline-none focus:ring-1 focus:ring-ring transition-colors cursor-pointer"
-            >
-              <option value="all">Semua Client</option>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative"
+              >
+                <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <span>
+                  {clientFilter === "all"
+                    ? "Semua Client"
+                    : clients.find((cl) => cl.id === clientFilter)?.name ?? "Semua Client"}
+                </span>
+                <Icons.chevronDown className="size-3 text-muted-foreground ml-1" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 max-h-60 overflow-y-auto">
+              <DropdownMenuItem onClick={() => setClientFilter("all")}>
+                Semua Client
+              </DropdownMenuItem>
               {clients.map((cl) => (
-                <option key={cl.id} value={cl.id}>
+                <DropdownMenuItem key={cl.id} onClick={() => setClientFilter(cl.id)}>
                   {cl.name}
-                </option>
+                </DropdownMenuItem>
               ))}
-            </select>
-            <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Search Box */}
           <div className="relative flex-1 sm:w-48">
@@ -199,8 +200,15 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
             )}
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+      ) : (        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+          }}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2"
+        >
           {filteredCampaigns.map((c) => {
             const isActive = c.status === "active"
             const isCompleted = c.status === "completed"
@@ -209,93 +217,108 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
               : null
 
             return (
-              <Card 
-                key={c.id} 
-                className="admin-card transition-all duration-200 hover:shadow-md group flex flex-col justify-between"
+              <motion.div
+                key={c.id}
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 350, damping: 25 } },
+                }}
               >
-                <CardHeader className="pb-3 border-b border-border/40">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Link 
-                          href={`/admin/clients/${c.client_id}`}
-                          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-                        >
-                          {c.clientName}
-                          <Icons.arrowUpRight className="size-3 opacity-60 group-hover:opacity-100" />
-                        </Link>
-                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal">
-                          {c.type === "promo" ? "Promo" : c.type === "event" ? "Event" : "Campaign"}
-                        </Badge>
+                <Card 
+                  className="admin-card transition-all duration-200 hover:shadow-md group flex flex-col justify-between h-full"
+                >
+                  <CardHeader className="pb-3 border-b border-border/40">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link 
+                            href={`/admin/clients/${c.client_id}`}
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+                          >
+                            {c.clientName}
+                            <Icons.arrowUpRight className="size-3 opacity-60 group-hover:opacity-100" />
+                          </Link>
+                          <Badge variant="outline" className="text-2xs py-0 px-1.5 font-normal">
+                            {c.type === "promo" ? "Promo" : c.type === "event" ? "Event" : "Campaign"}
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-base font-semibold mt-1 group-hover:text-brand-accent transition-colors truncate">
+                          {c.name}
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1 flex items-center gap-1.5 text-muted-foreground">
+                          <Icons.calendar className="size-3.5 shrink-0" />
+                          {formatPeriod(c.start_date, c.end_date)}
+                        </CardDescription>
                       </div>
-                      <CardTitle className="text-base font-semibold mt-1 group-hover:text-brand-accent transition-colors truncate">
-                        {c.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs mt-1 flex items-center gap-1.5 text-muted-foreground">
-                        <Icons.calendar className="size-3.5 shrink-0" />
-                        {formatPeriod(c.start_date, c.end_date)}
-                      </CardDescription>
+
+                      <Badge 
+                        variant={isActive ? "default" : isCompleted ? "secondary" : "outline"} 
+                        className={`shrink-0 text-xs ${
+                          isActive 
+                            ? "bg-[hsl(var(--success))] hover:bg-[hsl(var(--success)/0.9)] text-[hsl(var(--success-foreground))] font-medium shadow-xs" 
+                            : isCompleted 
+                            ? "bg-muted text-muted-foreground" 
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {isActive ? "Aktif" : isCompleted ? "Selesai" : "Akan Datang"}
+                      </Badge>
                     </div>
 
-                    <Badge 
-                      variant={isActive ? "default" : isCompleted ? "secondary" : "outline"} 
-                      className={`shrink-0 text-xs ${
-                        isActive 
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-xs" 
-                          : isCompleted 
-                          ? "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300" 
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {isActive ? "Aktif" : isCompleted ? "Selesai" : "Akan Datang"}
-                    </Badge>
-                  </div>
-
-                  {c.notes && (
-                    <p className="text-xs text-muted-foreground/85 line-clamp-2 mt-2 pt-2 border-t border-border/30">
-                      {c.notes}
-                    </p>
-                  )}
-                </CardHeader>
-
-                <CardContent className="pt-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                    <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] font-semibold">Konten</p>
-                      <p className="font-semibold text-base tabular-nums">{c.stats.contentCount}</p>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] font-semibold">Reach</p>
-                      <p className="font-semibold text-base tabular-nums">{formatNumber(c.stats.reach)}</p>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] font-semibold">Engagement</p>
-                      <p className="font-semibold text-base tabular-nums">{formatNumber(c.stats.engagement)}</p>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <p className="text-muted-foreground text-[10px] font-semibold">Clicks / Inquiry</p>
-                      <p className="font-bold text-base text-brand-accent tabular-nums">
-                        {c.stats.clicks} <span className="text-foreground/70 text-xs font-normal">/</span> {c.stats.inquiries}
+                    {c.notes && (
+                      <p className="text-xs text-muted-foreground/85 line-clamp-2 mt-2 pt-2 border-t border-border/30">
+                        {c.notes}
                       </p>
-                    </div>
-                  </div>
+                    )}
+                  </CardHeader>
 
-                  {inquiryRate && (
-                    <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Icons.flame className="size-3 text-brand-accent" />
-                        Inquiry Conversion Rate
-                      </span>
-                      <span className="font-semibold text-foreground tabular-nums">
-                        {inquiryRate}%
-                      </span>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-muted-foreground text-2xs font-semibold">Konten</p>
+                        <p className="font-semibold text-base tabular-nums">
+                          <MetricTicker value={c.stats.contentCount} />
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-muted-foreground text-2xs font-semibold">Reach</p>
+                        <p className="font-semibold text-base tabular-nums">
+                          <MetricTicker value={c.stats.reach} />
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-muted-foreground text-2xs font-semibold">Engagement</p>
+                        <p className="font-semibold text-base tabular-nums">
+                          <MetricTicker value={c.stats.engagement} />
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-muted-foreground text-2xs font-semibold">Clicks / Inquiry</p>
+                        <p className="font-bold text-base text-brand-accent tabular-nums flex items-baseline gap-1">
+                          <MetricTicker value={c.stats.clicks} />
+                          <span className="text-foreground/70 text-xs font-normal">/</span>
+                          <MetricTicker value={c.stats.inquiries} />
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+
+                    {inquiryRate && (
+                      <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center justify-between text-1xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Icons.flame className="size-3 text-brand-accent" />
+                          Inquiry Conversion Rate
+                        </span>
+                        <span className="font-semibold text-foreground tabular-nums">
+                          {inquiryRate}%
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       )}
     </div>
   )

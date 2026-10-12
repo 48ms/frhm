@@ -54,7 +54,19 @@ vi.mock('sonner', () => ({
 }))
 
 vi.mock('motion/react', () => ({
-  motion: { div: ({ children, ...props }: any) => <div {...props}>{children}</div>, path: 'path' },
+  motion: new Proxy(
+    {},
+    {
+      get: (_target, prop: string) => {
+        const Comp = ({ children, whileHover, whileTap, whileFocus, transition, ...props }: any) => {
+          const Tag = prop as keyof JSX.IntrinsicElements
+          return <Tag {...props}>{children}</Tag>
+        }
+        Comp.displayName = `motion.${prop}`
+        return Comp
+      },
+    }
+  ),
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }))
 

@@ -9,10 +9,20 @@ import {
 } from "./campaign-data"
 import type { Campaign } from "@/features/campaigns/api/types"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/animate-ui/components/radix/dropdown-menu"
 
 type Step = "basics" | "schedule" | "review"
 
-const COLOR_SWATCHES = ["#4353FF", "#7D3AC0", "#059669", "#D97706", "#1A1B22", "#DC2626"]
+/**
+ * Campaign color swatches from the logo palette (DESIGN.md §2), plus one
+ * neutral slot for overflow. No more random hex values.
+ */
+const COLOR_SWATCHES = ["#0060E0", "#209060", "#F0B010", "#F03020", "#1D1D1F"]
 
 export function CampaignModal({
   open,
@@ -80,12 +90,15 @@ export function CampaignModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div
         className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={saving ? undefined : onClose}
       />
-      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div 
+        style={{ viewTransitionName: editing ? `campaign-${editing.id}` : 'campaign-new' } as React.CSSProperties}
+        className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-300"
+      >
         <div className="flex items-center justify-between border-b border-border/40 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center">
@@ -95,7 +108,7 @@ export function CampaignModal({
               <h3 className="font-syne font-bold text-foreground text-sm">
                 {editing ? "Edit Campaign" : "Create Campaign"}
               </h3>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 {editing ? "Update campaign details" : "Launch a new client campaign"}
               </p>
             </div>
@@ -115,7 +128,7 @@ export function CampaignModal({
               <div className="flex items-center gap-1.5">
                 <span
                   className={cn(
-                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
+                    "w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold transition-colors",
                     step === s.id
                       ? "bg-brand-accent text-brand-accent-foreground"
                       : "bg-muted text-muted-foreground"
@@ -125,7 +138,7 @@ export function CampaignModal({
                 </span>
                 <span
                   className={cn(
-                    "text-[10px] font-bold",
+                    "text-2xs font-bold",
                     step === s.id
                       ? "text-foreground"
                       : "text-muted-foreground"
@@ -145,10 +158,11 @@ export function CampaignModal({
         {step === "basics" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">
+              <label htmlFor="campaign-name" className="block text-xs font-semibold text-foreground mb-1">
                 Campaign Name
               </label>
               <input
+                id="campaign-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
@@ -158,20 +172,28 @@ export function CampaignModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">
+              <label htmlFor="campaign-client" className="block text-xs font-semibold text-foreground mb-1">
                 Client
               </label>
-              <select
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
-              >
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    id="campaign-client"
+                    className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>{clients.find((c) => c.id === clientId)?.name ?? "Pilih Client"}</span>
+                    <Icons.chevronDown className="size-3 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[calc(100vw-4rem)] sm:w-80 max-h-60 overflow-y-auto">
+                  {clients.map((c) => (
+                    <DropdownMenuItem key={c.id} onClick={() => setClientId(c.id)}>
+                      {c.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div>
@@ -225,10 +247,11 @@ export function CampaignModal({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label htmlFor="campaign-start" className="block text-xs font-semibold text-foreground mb-1">
                   Start Date
                 </label>
                 <input
+                  id="campaign-start"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -236,10 +259,11 @@ export function CampaignModal({
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label htmlFor="campaign-end" className="block text-xs font-semibold text-foreground mb-1">
                   End Date
                 </label>
                 <input
+                  id="campaign-end"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
@@ -249,10 +273,11 @@ export function CampaignModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">
+              <label htmlFor="campaign-notes" className="block text-xs font-semibold text-foreground mb-1">
                 Notes / Objectives
               </label>
               <textarea
+                id="campaign-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
@@ -263,7 +288,7 @@ export function CampaignModal({
 
             <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/40">
               <Icons.info className="size-4 text-brand-accent shrink-0" />
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-2xs text-muted-foreground">
                 Leave dates empty for an evergreen campaign with no fixed end.
               </span>
             </div>
@@ -284,7 +309,7 @@ export function CampaignModal({
                 <span className="block text-sm font-bold text-foreground truncate">
                   {name || "Untitled Campaign"}
                 </span>
-                <span className="block text-[10px] text-muted-foreground">
+                <span className="block text-2xs text-muted-foreground">
                   {clients.find((c) => c.id === clientId)?.name ?? "Unknown"}
                 </span>
               </div>
@@ -302,7 +327,7 @@ export function CampaignModal({
               ].map((row) => (
                 <div
                   key={row.label}
-                  className="flex items-center justify-between text-[11px] py-1.5 border-b border-border/20 last:border-0"
+                  className="flex items-center justify-between text-1xs py-1.5 border-b border-border/20 last:border-0"
                 >
                   <span className="text-muted-foreground">{row.label}</span>
                   <span className="font-semibold text-foreground">
@@ -314,10 +339,10 @@ export function CampaignModal({
 
             {notes.trim() && (
               <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
-                <span className="block text-[10px] font-bold text-muted-foreground mb-1">
+                <span className="block text-2xs font-bold text-muted-foreground mb-1">
                   Notes
                 </span>
-                <p className="text-[11px] text-foreground">{notes}</p>
+                <p className="text-1xs text-foreground">{notes}</p>
               </div>
             )}
           </div>

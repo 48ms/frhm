@@ -85,7 +85,7 @@ export function BrandProfileTab() {
               Atur pedoman merek, gaya bahasa (Tone of Voice), dan panduan untuk AI / Tim Kreatif saat membuat konten untuk klien ini.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+          <span className="px-3 py-1 rounded-full bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] text-xs font-semibold">
             {client?.name || "Client"}
           </span>
         </div>

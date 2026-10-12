@@ -88,14 +88,14 @@ const KEY_GLYPHS: Record<string, string> = {
 const MODIFIERS = new Set(["meta", "control", "shift", "alt"])
 
 const SIZES = {
-  sm: "h-6 min-w-[24px] px-1.5 text-[10px]",
+  sm: "h-6 min-w-[24px] px-1.5 text-2xs",
   md: "h-7 min-w-[28px] px-2 text-xs",
 } as const
 
-// Solid depth edge below the cap; hex = neutral-300 / neutral-600
-const EDGE_SHADOW = "shadow-[0_2px_0_0_#d4d4d4] dark:shadow-[0_2px_0_0_#525252]"
+// Solid depth edge below the cap; uses border token for light/dark consistency
+const EDGE_SHADOW = "shadow-[0_2px_0_0_hsl(var(--border)/0.6)] dark:shadow-[0_2px_0_0_hsl(var(--border)/0.8)]"
 const EDGE_SHADOW_PRESSED =
-  "shadow-[0_0_0_0_#d4d4d4] dark:shadow-[0_0_0_0_#525252]"
+  "shadow-[0_0_0_0_hsl(var(--border)/0.6)] dark:shadow-[0_0_0_0_hsl(var(--border)/0.8)]"
 
 /** Resolves a friendly key name ("cmd", "esc", "k") to its KeyboardEvent.key value */
 function toEventKey(name: string) {
@@ -183,7 +183,7 @@ export function KbdKey({
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
-      window.removeEventListener("blur-sm", handleBlur)
+      window.removeEventListener("blur", handleBlur)
     }
   }, [listen, resolvedKeyName, press, release])
 
@@ -337,7 +337,7 @@ export function KbdCombo({
           {index > 0 && (
             <span
               aria-hidden="true"
-              className="select-none text-[10px] text-neutral-400"
+              className="select-none text-2xs text-neutral-400"
             >
               +
             </span>

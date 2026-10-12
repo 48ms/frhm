@@ -7,26 +7,26 @@ import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
 } from '@/components/ui/command'
-import { StatusBadge } from '@/components/deliverable/status-badge'
 import { Button } from '@/components/ui/button'
 import { KbdCombo } from '@/components/spectrumui/kbd-key'
 import { useCreateClient } from '@/components/client/create-client-provider'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 
-type DeliverableHit = { id: string; title: string; status: 'draft' | 'sent' | 'approved' | 'revision_requested' }
 type ClientHit = { id: string; name: string }
 
 interface AdminCommandSearchProps {
   className?: string
 }
 
+// NOTE (fact): the /admin/deliverables* routes were removed in commit 3e36ff3,
+// so this palette no longer offers deliverable search or deep links. Client
+// results scope the shared dashboard via the ?clientId= query param (nuqs).
 export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
   const router = useRouter()
   const supabase = createClient()
   const { openCreateClient } = useCreateClient()
   const [open, setOpen] = useState(false)
-  const [deliverables, setDeliverables] = useState<DeliverableHit[]>([])
   const [clients, setClients] = useState<ClientHit[]>([])
 
   useEffect(() => {
@@ -41,11 +41,7 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
   }, [])
 
   const load = useCallback(async () => {
-    const [{ data: d }, { data: c }] = await Promise.all([
-      supabase.from('deliverables').select('id, title, status').order('updated_at', { ascending: false }).limit(50),
-      supabase.from('clients').select('id, name').order('name'),
-    ])
-    setDeliverables((d ?? []) as DeliverableHit[])
+    const { data: c } = await supabase.from('clients').select('id, name').order('name')
     setClients((c ?? []) as ClientHit[])
   }, [supabase])
 
@@ -58,7 +54,7 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
       <Button
         variant="outline"
         onClick={() => setOpen(true)}
-        aria-label="Cari deliverable atau client"
+        aria-label="Cari client"
         className={cn(
           "h-9 w-full justify-start gap-2 rounded-full border-white/60 bg-[hsl(var(--admin-surface-lowest))]/70 pl-4 pr-3 text-muted-foreground shadow-sm backdrop-blur-sm sm:w-72",
           className
@@ -72,7 +68,7 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
       </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Cari deliverable atau client..." />
+        <CommandInput placeholder="Cari client..." />
         <CommandList>
           <CommandEmpty>Tidak ada hasil.</CommandEmpty>
 
@@ -80,10 +76,6 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
             <CommandItem onSelect={() => { setOpen(false); openCreateClient() }}>
               <Icons.sparkles className="size-4 text-brand-accent" />
               Tambah Client Baru
-            </CommandItem>
-            <CommandItem onSelect={() => go('/admin/deliverables/new')}>
-              <Icons.add className="size-4" />
-              Deliverable Baru
             </CommandItem>
             <CommandItem onSelect={() => go('/admin/clients')}>
               <Icons.building2 className="size-4" />
@@ -100,24 +92,9 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
               <CommandSeparator />
               <CommandGroup heading="Client">
                 {clients.map((c) => (
-                  <CommandItem key={c.id} value={`client ${c.name}`} onSelect={() => go(`/admin/deliverables?client=${c.id}`)}>
+                  <CommandItem key={c.id} value={`client ${c.name}`} onSelect={() => go(`/admin/dashboard?clientId=${c.id}`)}>
                     <Icons.building2 className="size-4" />
                     {c.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </>
-          )}
-
-          {deliverables.length > 0 && (
-            <>
-              <CommandSeparator />
-              <CommandGroup heading="Deliverable">
-                {deliverables.map((d) => (
-                  <CommandItem key={d.id} value={d.title} onSelect={() => go(`/admin/deliverables/${d.id}`)}>
-                    <Icons.post className="size-4" />
-                    <span className="flex-1 truncate">{d.title}</span>
-                    <StatusBadge status={d.status} />
                   </CommandItem>
                 ))}
               </CommandGroup>

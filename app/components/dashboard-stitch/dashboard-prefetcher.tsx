@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { getQueryClient } from "@/lib/query-client"
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { socialQueries } from "@/features/social-accounts/api/queries"
@@ -11,10 +12,20 @@ interface DashboardPrefetcherProps {
   children: React.ReactNode
 }
 
-export async function DashboardPrefetcher({ clientId, children }: DashboardPrefetcherProps) {
+/**
+ * PERF FIX: Dashboard memakai 5 Parallel Route slots (@hero, @kpis, @chart,
+ * @pipeline, @hub), masing-masing membungkus kontennya dengan
+ * <DashboardPrefetcher>. Tanpa deduplikasi, prefetch 8 query dijalankan
+ * 5× (40 request redundant per page-load) dan memperlambat TTFB.
+ *
+ * `React.cache()` mendeduplikasi pemanggilan dalam SATU request render:
+ * prefetch + dehydrate dieksekusi sekali per clientId, hasilnya dibagi ke
+ * semua slot. Karena slot dirender paralel dalam request yang sama, cache()
+ * menjamin satu eksekusi.
+ */
+const prefetchDashboardState = cache(async (clientId: string) => {
   const queryClient = getQueryClient()
 
-  // Prefetch everything in parallel
   await Promise.all([
     queryClient.prefetchQuery(socialQueries.listClientsWithChannels()),
     queryClient.prefetchQuery(dashboardQueries.profile(clientId)),
@@ -26,8 +37,14 @@ export async function DashboardPrefetcher({ clientId, children }: DashboardPrefe
     queryClient.prefetchQuery(erpQueries.listAdSpendByClient(clientId)),
   ])
 
+  return dehydrate(queryClient)
+})
+
+export async function DashboardPrefetcher({ clientId, children }: DashboardPrefetcherProps) {
+  const state = await prefetchDashboardState(clientId)
+
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <HydrationBoundary state={state}>
       {children}
     </HydrationBoundary>
   )

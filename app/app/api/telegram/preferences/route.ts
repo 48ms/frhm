@@ -4,8 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+const bodySchema = z.object({
+  enabled: z.boolean(),
+  type: z.enum(['client', 'admin']),
+  id: z.string().min(1, 'id wajib diisi'),
+})
 
 export async function PATCH(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'telegram/preferences', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
@@ -26,16 +33,21 @@ export async function PATCH(request: Request) {
     return denyUnauthorized()
   }
 
-  let body: { enabled: boolean; type: 'client' | 'admin'; id: string }
+  let raw
   try {
-    body = await request.json()
+    raw = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
 
-  if (typeof body.enabled !== 'boolean') {
-    return NextResponse.json({ error: 'Field "enabled" harus boolean' }, { status: 400 })
+  const parsed = bodySchema.safeParse(raw)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || 'Payload tidak valid' },
+      { status: 400 },
+    )
   }
+  const body = parsed.data
 
   if (body.type === 'client') {
     // Pastikan user memiliki akses ke client ini

@@ -11,7 +11,7 @@ import {
   CommandList
 } from '@/components/ui/command';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/animate-ui/components/radix/popover';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
@@ -50,27 +50,25 @@ export function ComboboxField({
           if (!next) field.handleBlur();
         }}
       >
-        <PopoverTrigger
-          render={
-            <Button
-              id={field.name}
-              variant='outline'
-              role='combobox'
-              aria-controls={listboxId}
-              aria-expanded={open}
-              aria-invalid={isInvalid}
-              aria-describedby={isInvalid ? `${field.name}-error` : undefined}
-              className={cn(
-                'w-full justify-between font-normal',
-                !selected && 'text-muted-foreground'
-              )}
-            />
-          }
-        >
-          {selected?.label ?? placeholder}
-          <Icons.chevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+        <PopoverTrigger asChild>
+          <Button
+            id={field.name}
+            variant='outline'
+            role='combobox'
+            aria-controls={listboxId}
+            aria-expanded={open}
+            aria-invalid={isInvalid}
+            aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+            className={cn(
+              'w-full justify-between font-normal',
+              !selected && 'text-muted-foreground'
+            )}
+          >
+            {selected?.label ?? placeholder}
+            <Icons.chevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+          </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-(--anchor-width) p-0'>
+        <PopoverContent className='w-[--radix-popover-trigger-width] p-0'>
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
             <CommandList id={listboxId}>

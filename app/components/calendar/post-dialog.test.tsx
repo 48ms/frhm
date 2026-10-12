@@ -280,7 +280,7 @@ describe('PostDialog', () => {
     expect(deletePostMock).not.toHaveBeenCalled()
 
     // Confirming actually deletes.
-    fireEvent.click(screen.getByRole('button', { name: /^Hapus$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Hapus Postingan$/i }))
     await waitFor(() => {
       expect(deletePostMock).toHaveBeenCalledWith({ id: 'post-1', clientId: 'client-shell' })
     })

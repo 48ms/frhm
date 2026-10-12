@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
-import { ToggleGroup } from '@/components/ui/toggle-group';
+import { ToggleGroup } from '@/components/animate-ui/components/radix/toggle-group';
 import { useFieldContext, type BaseFieldProps } from '@/lib/form-context';
 
 /**
@@ -21,7 +21,7 @@ export function ToggleGroupField({
     <Field>
       <FieldLabel id={labelId}>{label}</FieldLabel>
       <ToggleGroup
-        multiple
+        type='multiple'
         variant='outline'
         aria-labelledby={labelId}
         value={field.state.value || []}

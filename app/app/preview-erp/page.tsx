@@ -3,26 +3,29 @@ import { getQueryClient } from "@/lib/query-client"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
+import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import { ErpDashboardClient } from "@/app/admin/erp/erp-client"
 import { Suspense } from "react"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
-import { dashboardSearchParams } from "@/features/dashboard/lib/searchparams"
+import { assertPreviewAllowed } from "@/lib/preview-guard"
 import "@/app/admin/admin-stage.css"
 
 export const dynamic = "force-dynamic"
 
 export default async function PreviewErp() {
+  assertPreviewAllowed()
   const queryClient = getQueryClient()
-  const DEFAULT_CLIENT_ID = dashboardSearchParams.clientId.defaultValue ?? ""
+  // Resolve the SAME clientId the client component will read via
+  // useActiveDashboard() (first valid client). Prefetching with a different key
+  // (e.g. listAll() or "") leaves the suspense query without cache -> it calls a
+  // Server Action during initial render -> "Server Functions cannot be called
+  // during initial render" crash. Mirrors the real /admin/erp/page.tsx pattern.
+  const clientId = await resolveClientId("")
 
-  // Prefetch so that `useSuspenseQuery` in ErpDashboardClient finds data in
-  // cache and does NOT trigger a Server Action during render (avoids
-  // "Server Functions cannot be called during initial render" + the React
-  // Router update warning). Mirrors the real /admin/erp/page.tsx pattern.
   await queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
-  await queryClient.prefetchQuery(scheduledPostQueries.listAll())
-  await queryClient.prefetchQuery(deliverableQueries.listByClient(DEFAULT_CLIENT_ID))
+  await queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId))
+  await queryClient.prefetchQuery(deliverableQueries.listByClient(clientId))
 
   return (
     <div className="admin-theme admin-viewport">

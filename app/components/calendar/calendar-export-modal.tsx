@@ -5,6 +5,15 @@ import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { PLATFORMS } from "@/features/calendar/types"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/animate-ui/components/radix/dialog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { Button } from "@/components/ui/button"
 import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 
 type Format = "csv" | "pdf" | "markdown"
@@ -159,126 +168,111 @@ export function CalendarExportModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-card rounded-2xl border border-border/80 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-border/30 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center">
-              <Icons.download className="size-[18px]" />
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-card border border-border shadow-2xl">
+        <DialogHeader className="p-5 border-b border-border/30 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center shrink-0">
+              <Icons.download className="size-4" />
             </div>
             <div>
-              <h3 className="font-syne font-bold text-foreground text-sm">
+              <DialogTitle className="font-syne font-bold text-foreground text-sm">
                 Export Content Schedule
-              </h3>
-              <p className="text-[10px] text-muted-foreground">
+              </DialogTitle>
+              <DialogDescription className="text-2xs text-muted-foreground">
                 {scoped.length} post · {clientName}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="p-5 space-y-4">
+          {scoped.length === 0 ? (
+            <div className="py-8 text-center space-y-2">
+              <Icons.activity className="size-6 mx-auto text-muted-foreground" />
+              <p className="text-sm font-semibold text-foreground">Tidak ada post pada rentang ini</p>
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                Pilih rentang lain atau jadwalkan post lebih dulu.
               </p>
             </div>
-          </div>
-          <button
-            type="button"
-            className="p-1 rounded-full hover:bg-muted text-muted-foreground transition-all cursor-pointer"
-            onClick={onClose}
-          >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
-
-        {scoped.length === 0 ? (
-          <div className="py-8 text-center space-y-2">
-            <Icons.activity className="size-6 mx-auto text-muted-foreground" />
-            <p className="text-sm font-semibold text-foreground">Tidak ada post pada rentang ini</p>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              Pilih rentang lain atau jadwalkan post lebih dulu.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-foreground">Format</label>
-              {FORMATS.map((f) => {
-                const IconCmp = (
-                  Icons as Record<string, React.ComponentType<{ className?: string }>>
-                )[f.icon]
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFormat(f.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer",
-                      format === f.id
-                        ? "border-brand-accent bg-brand-accent/5 shadow-sm"
-                        : "border-border/40 hover:bg-muted/50"
-                    )}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-brand-accent shrink-0">
-                      {IconCmp ? <IconCmp className="size-4" /> : <Icons.fileText className="size-4" />}
-                    </div>
-                    <div className="flex-1">
-                      <span className="block text-xs font-semibold text-foreground">{f.label}</span>
-                      <span className="block text-[10px] text-muted-foreground">{f.hint}</span>
-                    </div>
-                    {format === f.id && <Icons.circleCheck className="size-4 text-brand-accent" />}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Rentang tanggal
-              </label>
-              <div className="inline-flex p-1 rounded-full bg-muted/70 border border-border/40 w-full">
-                {RANGES.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setRange(r.id)}
-                    className={cn(
-                      "flex-1 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
-                      range === r.id
-                        ? "bg-card text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {r.label}
-                  </button>
-                ))}
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-foreground">Format</label>
+                {FORMATS.map((f) => {
+                  const IconCmp = (
+                    Icons as Record<string, React.ComponentType<{ className?: string }>>
+                  )[f.icon]
+                  const isSelected = format === f.id
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setFormat(f.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.99]",
+                        isSelected
+                          ? "border-brand-accent bg-brand-accent/5 shadow-xs"
+                          : "border-border/40 hover:bg-muted/50"
+                      )}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-brand-accent shrink-0">
+                        {IconCmp ? <IconCmp className="size-4" /> : <Icons.fileText className="size-4" />}
+                      </div>
+                      <div className="flex-1">
+                        <span className="block text-xs font-semibold text-foreground">{f.label}</span>
+                        <span className="block text-2xs text-muted-foreground">{f.hint}</span>
+                      </div>
+                      {isSelected && <Icons.circleCheck className="size-4 text-brand-accent shrink-0" />}
+                    </button>
+                  )
+                })}
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
-                onClick={onClose}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
-                onClick={handleExport}
-              >
-                {busy ? (
-                  <>
-                    <Icons.refresh className="size-4 animate-spin" />
-                    Mengekspor…
-                  </>
-                ) : (
-                  <>
-                    <Icons.download className="size-4" />
-                    Export Schedule
-                  </>
-                )}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  Rentang tanggal
+                </label>
+                <Tabs value={range} onValueChange={(val) => setRange(val as Range)}>
+                  <TabsList
+                    highlightClassName="bg-card text-foreground shadow-xs rounded-full"
+                    className="w-full grid grid-cols-3 h-9 p-0.5 bg-muted/60 rounded-full border border-border/40"
+                  >
+                    {RANGES.map((r) => (
+                      <TabsTrigger
+                        key={r.id}
+                        value={r.id}
+                        className="text-1xs font-semibold py-1 rounded-full"
+                      >
+                        {r.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/30">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+                  onClick={onClose}
+                >
+                  Batal
+                </button>
+                <Button
+                  onClick={handleExport}
+                  disabled={busy}
+                  isLoading={busy}
+                  className="rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shadow-sm"
+                >
+                  <Icons.download className="size-3.5" />
+                  Export Schedule
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

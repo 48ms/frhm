@@ -1,9 +1,6 @@
 import * as React from "react"
 
-// The sidebar renders as a docked column only when there is genuinely room for it next to
-// content. Below 1024px (phones and tablets) it becomes an overlay sheet, otherwise a 256px
-// rail plus content overflows the viewport at e.g. 768px. Keep in sync with Tailwind's `lg`.
-const MOBILE_BREAKPOINT = 1024
+const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)

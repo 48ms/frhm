@@ -1,6 +1,6 @@
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import {
   Field,
   FieldDescription,
@@ -53,7 +53,7 @@ export function CheckboxGroupField({
               aria-invalid={isInvalid}
               aria-describedby={isInvalid ? `${field.name}-error` : undefined}
               checked={field.state.value.includes(opt.value)}
-              onCheckedChange={(checked) => {
+              onCheckedChange={(checked: boolean | 'indeterminate') => {
                 if (checked) {
                   field.pushValue(opt.value);
                 } else {

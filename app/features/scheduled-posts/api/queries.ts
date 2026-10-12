@@ -50,7 +50,18 @@ export function useUpdateScheduledPost() {
   return useMutation({
     mutationFn: ({ id, clientId, ...patch }: { id: string; clientId: string } & UpdateScheduledPostInput) =>
       updateScheduledPost({ id, clientId, ...patch }),
-    onSuccess: (_, variables) => {
+    onMutate: async ({ id, clientId }) => {
+      await queryClient.cancelQueries({ queryKey: postKeys.list(clientId) })
+      const previousPosts = queryClient.getQueryData(postKeys.list(clientId))
+      queryClient.setQueryData(postKeys.list(clientId), (old: any[]) => 
+        old?.filter((p) => p.id !== id)
+      )
+      return { previousPosts }
+    },
+    onError: (_, variables, context) => {
+      queryClient.setQueryData(postKeys.list(variables.clientId), context?.previousPosts)
+    },
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
     },
   })
@@ -61,7 +72,18 @@ export function useDeleteScheduledPost() {
   return useMutation({
     mutationFn: ({ id, clientId }: { id: string; clientId: string }) =>
       deleteScheduledPost(id, clientId),
-    onSuccess: (_, variables) => {
+    onMutate: async ({ id, clientId }) => {
+      await queryClient.cancelQueries({ queryKey: postKeys.list(clientId) })
+      const previousPosts = queryClient.getQueryData(postKeys.list(clientId))
+      queryClient.setQueryData(postKeys.list(clientId), (old: any[]) => 
+        old?.filter((p) => p.id !== id)
+      )
+      return { previousPosts }
+    },
+    onError: (_, variables, context) => {
+      queryClient.setQueryData(postKeys.list(variables.clientId), context?.previousPosts)
+    },
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
     },
   })

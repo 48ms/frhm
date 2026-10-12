@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { CAMPAIGN_TYPE_META } from "./campaign-data"
 import type { Campaign } from "@/features/campaigns/api/types"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
+import { campaignTransitionName } from "@/lib/view-transition"
 
 /**
  * Status kampanye dihitung dari tanggal faktual (start/end), bukan angka rekaan.
@@ -75,22 +76,27 @@ export function CampaignDetailModal({
         className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div
+        className="relative w-full max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+        style={
+          { viewTransitionName: campaignTransitionName(campaign.id) } as React.CSSProperties
+        }
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3">
           <div className="flex items-start gap-3 min-w-0">
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-              style={{ backgroundColor: campaign.color ?? "#3b82f6" }}
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold"
+              style={{ backgroundColor: campaign.color || "hsl(var(--primary))" }}
             >
-              <Icons.campaign className="size-5 text-white" />
+              {campaign.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <h3 className="font-syne font-bold text-foreground text-sm truncate">
                 {campaign.name}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-2xs text-muted-foreground">
                   {client.name}
                 </span>
                 <span className={cn("admin-badge ml-1", meta.badge)}>{meta.label}</span>
@@ -98,6 +104,7 @@ export function CampaignDetailModal({
             </div>
           </div>
           <button
+            aria-label="关闭"
             className="p-1 rounded-full hover:bg-muted text-muted-foreground transition-all cursor-pointer shrink-0"
             onClick={onClose}
           >
@@ -134,7 +141,7 @@ export function CampaignDetailModal({
                   <span className="admin-stat-value block text-sm text-foreground break-words">
                     {s.value}
                   </span>
-                  <span className="block text-[9px] font-bold text-muted-foreground mt-0.5">
+                  <span className="block text-2xs font-bold text-muted-foreground mt-0.5">
                     {s.label}
                   </span>
                 </div>
@@ -142,15 +149,15 @@ export function CampaignDetailModal({
             </div>
 
             <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
-              <span className="block text-[10px] font-bold text-muted-foreground mb-1">
+              <span className="block text-2xs font-bold text-muted-foreground mb-1">
                 Notes
               </span>
-              <p className="text-[11px] text-foreground">
+              <p className="text-1xs text-foreground">
                 {campaign.notes || "Belum ada catatan."}
               </p>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] py-2 border-t border-border/20">
+            <div className="flex items-center justify-between text-1xs py-2 border-t border-border/20">
               <span className="text-muted-foreground">Campaign window</span>
               <span className="font-semibold text-foreground">
                 {campaign.start_date ?? "-"} → {campaign.end_date ?? "-"}
@@ -205,7 +212,7 @@ export function CampaignDetailModal({
               className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
               onClick={onClose}
             >
-              Close
+              关闭
             </button>
             <button
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"

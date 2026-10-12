@@ -1,10 +1,10 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import {
   Dialog,
   DialogContent,
-} from '@/components/ui/dialog'
+} from '@/components/animate-ui/components/radix/dialog'
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/icons'
 import { NICHE_OPTIONS, type NicheId } from '@/lib/onboarding/niche-packs'
@@ -336,7 +336,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
       </Dialog>
 
       {/* Success Launchpad Dialog */}
-      <Dialog open={createdCredentials !== null} onOpenChange={(o) => { if (!o) handleClose() }}>
+      <Dialog open={createdCredentials !== null} onOpenChange={(o: boolean) => { if (!o) handleClose() }}>
         <DialogContent className="max-w-md p-6 border-green-500/20 shadow-2xl">
           <div className="text-center space-y-3">
             <div className="size-14 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 flex items-center justify-center mx-auto shadow-inner">

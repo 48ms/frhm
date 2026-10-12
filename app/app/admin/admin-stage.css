@@ -9,6 +9,11 @@
   /* Lime chartreuse becomes the UI accent, exactly as on the login stage. */
   --brand-accent: 73 100% 60%;
   --brand-accent-foreground: 240 10% 10%;
+  /* Lime + ink, single source of truth for the accent pair (was hardcoded
+     #d4ff32 / #5e7400 / #1a1b22 scattered across CSS classes and TSX). */
+  --admin-lime: 73 100% 60%;
+  --admin-lime-ink: 70 60% 30%;
+  --admin-ink: 233 13% 12%;
   --primary: var(--brand-accent);
   --primary-foreground: var(--brand-accent-foreground);
   --accent: var(--brand-accent);
@@ -58,6 +63,9 @@
 .dark .admin-theme {
   --brand-accent: 73 100% 66%;
   --brand-accent-foreground: 240 10% 8%;
+  --admin-lime: 73 100% 66%;
+  --admin-lime-ink: 70 60% 12%;
+  --admin-ink: 250 20% 92%;
   --sidebar: 240 10% 6%;
   --sidebar-accent: 73 40% 14%;
   --sidebar-accent-foreground: 0 0% 98%;
@@ -215,9 +223,9 @@
 
 /* Avatar pill with lime ring (reference line 447: ring-2 ring-primary-container). */
 .admin-avatar {
-  background: #d4ff32;
-  color: #5e7400;
-  box-shadow: 0 0 0 2px #d4ff32, 0 1px 2px rgba(26, 27, 34, 0.08);
+  background: hsl(var(--admin-lime));
+  color: hsl(var(--admin-lime-ink));
+  box-shadow: 0 0 0 2px hsl(var(--admin-lime)), 0 1px 2px rgba(26, 27, 34, 0.08);
 }
 
 /* ---------------------------------------------------------------- nav ----- */
@@ -233,14 +241,14 @@
 /* Active item: solid lime capsule + ink text (reference code.html line 347). */
 .admin-theme .admin-nav-active[data-slot="sidebar-menu-button"],
 .admin-theme .admin-nav-active {
-  background: #d4ff32 !important;
-  color: #5e7400 !important;
+  background: hsl(var(--admin-lime)) !important;
+  color: hsl(var(--admin-lime-ink)) !important;
   font-weight: 600;
   box-shadow: 0 6px 18px -8px rgba(212, 255, 50, 0.75);
 }
 .admin-theme .admin-nav-active svg,
 .admin-theme .admin-nav-active span {
-  color: #5e7400 !important;
+  color: hsl(var(--admin-lime-ink)) !important;
 }
 
 .admin-nav-badge {
@@ -339,8 +347,8 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 .admin-pill-lime {
-  background: #d4ff32;
-  color: #1a1b22;
+  background: hsl(var(--admin-lime));
+  color: hsl(var(--admin-ink));
 }
 .admin-pill-lime:hover {
   transform: translateY(-1px);
@@ -351,7 +359,7 @@
 }
 .admin-pill-ghost {
   background: rgba(255, 255, 255, 0.8);
-  color: #1a1b22;
+  color: hsl(var(--admin-on-surface));
   border: 1px solid rgba(18, 19, 26, 0.08);
 }
 .admin-pill-ghost:hover {
@@ -372,8 +380,8 @@
   text-transform: uppercase;
 }
 .admin-badge-lime {
-  background: #d4ff32;
-  color: #5e7400;
+  background: hsl(var(--admin-lime));
+  color: hsl(var(--admin-lime-ink));
 }
 .admin-badge-cobalt {
   background: #e0e0ff;
@@ -766,7 +774,7 @@
   --secondary: #2333e7;
   --secondary-container: #4353ff;
   --primary: #485a00;
-  --primary-container: #d4ff32;
+  --primary-container: hsl(var(--admin-lime));
   --surface-container-lowest: #ffffff;
 }
 

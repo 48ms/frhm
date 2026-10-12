@@ -18,17 +18,17 @@ const statusConfig: Record<
   sent: {
     label: 'Terkirim',
     icon: Icons.send,
-    className: 'bg-sky-50 text-sky-700 ring-sky-600/20 dark:bg-sky-400/10 dark:text-sky-300 dark:ring-sky-300/25',
+    className: 'bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))] ring-[hsl(var(--admin-cobalt))]/20',
   },
   approved: {
     label: 'Disetujui',
     icon: Icons.circleCheck,
-    className: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-300/25',
+    className: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] ring-[hsl(var(--success))]/20',
   },
   revision_requested: {
     label: 'Minta Revisi',
     icon: Icons.refresh,
-    className: 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/25',
+    className: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))] ring-[hsl(var(--warning))]/20',
   },
 }
 

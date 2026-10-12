@@ -1,57 +1,39 @@
 import { test, expect } from '@playwright/test'
+import { loginAsAdmin } from './helpers/login'
 
-// R-35 click-through: verify the Connect Channel modal's authorize button
-// behaves correctly at runtime, not just in jsdom.
-test('Connect Channel modal: authorize button gating', async ({ page }) => {
+// R-35 click-through: verify the Connect Channel modal opens and its platform
+// cards behave correctly at runtime. The modal now uses platform OAuth
+// (handleStartOAuth) instead of a manual username/authorize step.
+test('Connect Channel modal: platform cards and gating', async ({ page }) => {
   const errors: string[] = []
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
-  await page.goto('/preview-social-accounts')
+  await loginAsAdmin(page)
+  await page.goto('/admin/social-accounts')
   await page.waitForLoadState('networkidle')
 
   // Open the wizard from the board header.
-  await page.getByRole('button', { name: /CONNECT CHANNEL/i }).click()
+  await page.getByRole('button', { name: /Connect account/i }).click()
 
-  const dialog = page.getByRole('dialog', { name: /Connect new channel/i })
+  // Dialog name is now "Connect social account" (not "Connect new channel")
+  const dialog = page.getByRole('dialog', { name: /Connect social account/i })
   await expect(dialog).toBeVisible()
 
-  // Step 1: pick a platform card to advance to the handle step.
-  await dialog.getByRole('button', { name: /^Instagram$/ }).click()
+  // Header
+  await expect(dialog.getByText('Connect social account')).toBeVisible()
 
-  const authBtn = dialog.getByRole('button', { name: /AUTHORIZE CONNECTION/i })
-  await expect(authBtn).toBeVisible()
+  // Platform grid renders
+  await expect(dialog.getByText('Choose a platform to connect')).toBeVisible()
 
-  // Handle input empty -> button MUST be disabled.
-  const disabledWhenEmpty = await authBtn.isDisabled()
-  const opacityWhenEmpty = await authBtn.evaluate(
-    (el) => getComputedStyle(el as HTMLElement).opacity
-  )
+  // Unavailable platforms must be marked "Soon" and disabled.
+  const soonCards = dialog.locator('button:has-text("Soon")')
+  const soonCount = await soonCards.count()
+  for (let i = 0; i < soonCount; i++) {
+    await expect(soonCards.nth(i)).toBeDisabled()
+  }
 
-  // Type a valid handle -> button MUST become enabled.
-  await dialog.getByPlaceholder('username').fill('taraju.official')
-  const disabledAfterFill = await authBtn.isDisabled()
-  const opacityAfterFill = await authBtn.evaluate(
-    (el) => getComputedStyle(el as HTMLElement).opacity
-  )
+  console.log('RESULT ' + JSON.stringify({ soonCount, errors }, null, 2))
 
-  // Click authorize -> modal closes and a success toast appears.
-  await authBtn.click()
-  const toast = page.getByText(/Successfully connected/i).first()
-  const toastVisible = await toast
-    .waitFor({ state: 'visible', timeout: 6000 })
-    .then(() => true)
-    .catch(() => false)
-
-  console.log('RESULT ' + JSON.stringify({
-    disabledWhenEmpty,
-    opacityWhenEmpty,
-    disabledAfterFill,
-    opacityAfterFill,
-    toastVisible,
-    errors,
-  }, null, 2))
-
-  expect(disabledWhenEmpty).toBe(true)
-  expect(disabledAfterFill).toBe(false)
-  expect(toastVisible).toBe(true)
+  // No console errors during the whole interaction.
+  expect(errors.filter((e) => !e.includes('sentry'))).toHaveLength(0)
 })

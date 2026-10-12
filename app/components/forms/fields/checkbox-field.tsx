@@ -1,6 +1,6 @@
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox';
 import {
   Field,
   FieldContent,
@@ -21,7 +21,7 @@ export function CheckboxField({ label, description, required }: BaseFieldProps) 
         id={field.name}
         name={field.name}
         checked={field.state.value}
-        onCheckedChange={(checked) => field.handleChange(checked === true)}
+        onCheckedChange={(checked: boolean | 'indeterminate') => field.handleChange(checked === true)}
         aria-invalid={isInvalid}
         aria-describedby={isInvalid ? `${field.name}-error` : undefined}
       />

@@ -111,11 +111,11 @@ export function AudienceTrajectory({
                   title={`${b.label}: reach ${b.reach}, engage ${b.engage}`}
                 >
                   <div
-                    className="w-full rounded-t-sm bg-[#2333E7] transition-all"
+                    className="w-full rounded-t-sm bg-chart-1 transition-all"
                     style={{ height: `${b.reachPct}%` }}
                   />
                   <div
-                    className="w-full rounded-t-sm bg-[#aed500] transition-all"
+                    className="w-full rounded-t-sm bg-chart-2 transition-all"
                     style={{ height: `${b.engagePct}%` }}
                   />
                 </div>
@@ -124,10 +124,10 @@ export function AudienceTrajectory({
 
             <div className="flex justify-between items-center relative z-10 text-xs text-muted-foreground font-medium pt-3">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#2333E7]" /> Reach
+                <span className="w-2 h-2 rounded-full bg-chart-1" /> Reach
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#aed500]" /> Engagement
+                <span className="w-2 h-2 rounded-full bg-chart-2" /> Engagement
               </span>
               <span className="bg-background px-2.5 py-0.5 rounded-full shadow-sm font-bold text-foreground">
                 Peak: {series.peak.label} ({series.peak.reach})

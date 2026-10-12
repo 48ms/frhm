@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit/log"
 import type { Campaign, CreateCampaignInput, UpdateCampaignInput } from "./types"
 
 /**
@@ -20,8 +21,6 @@ export async function getCampaigns(clientId: string): Promise<Campaign[]> {
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
 
-  // Degrade gracefully: JANGAN throw, agar useSuspenseQuery/useQuery tidak
-  // me-reject saat render (memicu warning "Cannot update Router while rendering").
   if (error) {
     logger.error("getCampaigns failed", { error })
     return []
@@ -39,6 +38,13 @@ export async function createCampaign(input: CreateCampaignInput): Promise<Campai
     .single()
 
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'campaign.create',
+    entityType: 'content_campaign',
+    entityId: data?.id ?? null,
+    clientId: input.client_id ?? null,
+    summary: `Created campaign "${input.name}"`,
+  })
   return data as Campaign
 }
 
@@ -56,6 +62,13 @@ export async function updateCampaign(
     .single()
 
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'campaign.update',
+    entityType: 'content_campaign',
+    entityId: id,
+    clientId: patch.client_id ?? null,
+    summary: `Updated campaign ${id}`,
+  })
   return data as Campaign
 }
 
@@ -64,4 +77,10 @@ export async function deleteCampaign(id: string): Promise<void> {
   const supabase = await createClient()
   const { error } = await supabase.from("content_campaigns").delete().eq("id", id)
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'campaign.delete',
+    entityType: 'content_campaign',
+    entityId: id,
+    summary: `Deleted campaign ${id}`,
+  })
 }

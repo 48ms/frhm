@@ -43,8 +43,8 @@ build/
 *.tsbuildinfo
 
 # Embedded third-party repos (not part of this project)
-animate-ui/
-anti-slop/
+/animate-ui/
+/anti-slop/
 
 # Windows reserved-name artifacts
 app/nul

@@ -1,4 +1,5 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { createTelegramLinkToken } from '@/lib/telegram/link-token'
 
 export interface TelegramButton {
   text: string
@@ -35,11 +36,16 @@ export function getTelegramBotUsername(): string {
 
 /**
  * Buat deep link Telegram untuk menghubungkan akun client atau admin.
- * Contoh: https://t.me/FrhmBot?start=client_c123
+ * Payload memakai token bertanda tangan HMAC (bukan UUID mentah) agar pihak
+ * lain tidak bisa membajak penautan dengan `/start client_<uuid>`.
  */
 export function generateTelegramDeepLink(type: 'client' | 'admin', id: string): string {
   const username = getTelegramBotUsername().replace(/^@/, '')
-  const token = `${type}_${id}`
+  const token = createTelegramLinkToken(type, id)
+  if (!token) {
+    // Fail-closed: tanpa secret, jangan pernah hasilkan link dengan id mentah.
+    return `https://t.me/${username}`
+  }
   return `https://t.me/${username}?start=${encodeURIComponent(token)}`
 }
 
@@ -197,7 +203,7 @@ export async function notifyClientContentReady(params: {
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const reviewUrl = `${appUrl}/app/client/deliverables`
+  const reviewUrl = `${appUrl}/admin/erp`
 
   const lines = [
     `<b>Konten Baru Siap Direview</b>`,
@@ -252,7 +258,7 @@ export async function notifyAdminClientFeedback(params: {
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const adminUrl = `${appUrl}/app/admin/deliverables`
+  const adminUrl = `${appUrl}/admin/erp`
 
   const isApproved = params.action === 'approved'
   const statusIcon = isApproved ? '[DISETUJUI]' : '[PERMINTAAN REVISI]'
@@ -407,7 +413,7 @@ export async function notifyZeroMetricsEscalation(params: {
   }
 
   const buttons: TelegramButton[][] = [[
-    { text: 'Buka Analytics Board', url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/app/admin/clients/${params.clientId}/analytics` },
+    { text: 'Buka Analytics Board', url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/analytics?clientId=${params.clientId}` },
   ]]
 
   return sendTelegramMessage({
@@ -433,7 +439,7 @@ export async function notifyClientReminder(params: {
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const calendarUrl = `${appUrl}/app/client/calendar`
+  const calendarUrl = `${appUrl}/admin/calendar`
 
   const dateStr = new Date(params.scheduledAt).toLocaleDateString('id-ID', {
     weekday: 'long',

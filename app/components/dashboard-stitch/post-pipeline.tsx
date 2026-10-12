@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation"
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-brand-accent/15 text-brand-accent border border-brand-accent/20",
   draft: "bg-muted/70 text-muted-foreground border border-border/40",
-  published: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
-  failed: "bg-destructive/10 text-destructive dark:text-red-400 border border-destructive/20",
+  published: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20",
+  failed: "bg-destructive/10 text-destructive border border-destructive/20",
   cancelled: "bg-muted/70 text-muted-foreground border border-border/40",
 }
 
@@ -120,13 +120,13 @@ export function DashboardStitchPostPipeline() {
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                  className={`px-2 py-0.5 rounded-full text-2xs font-semibold ${
                     STATUS_STYLES[post.status] ?? STATUS_STYLES.draft
                   }`}
                 >
                   {STATUS_LABEL[post.status] ?? post.status}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+                <span className="text-2xs text-muted-foreground font-medium whitespace-nowrap">
                   {formatSchedule(post.scheduled_at)}
                 </span>
               </div>

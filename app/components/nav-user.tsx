@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/animate-ui/components/radix/dropdown-menu"
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -33,38 +33,40 @@ export function NavUser({
   const router = useRouter()
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch {
+      // signOut gagal (mis. offline) tetap arahkan ke login agar session tidak nyangkut
+    }
     router.push("/auth/login")
     router.refresh()
   }
 
-  const initials = user.name
-    .split(" ")
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
+  const initials =
+    user.name
+      .split(" ")
+      .map((p) => p[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "U"
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="w-full mt-3 p-2.5 bg-white/80 dark:bg-zinc-950/80 rounded-2xl flex items-center gap-2.5 border border-white/60 shadow-sm transition-all hover:bg-white/90 active:scale-[0.98] cursor-pointer"
+            className="w-full mt-3 p-2.5 bg-card/80 rounded-2xl flex items-center gap-2.5 border border-border/60 shadow-sm transition-all hover:bg-card/90 active:scale-[0.98] cursor-pointer"
           >
-            <Avatar className="size-8 rounded-full object-cover ring-2 ring-[#d4ff32]">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback className="bg-[#d4ff32] text-[10px] font-bold text-[#5e7400]">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs ring-2 ring-primary/20 shrink-0">
+              {initials}
+            </div>
             <div className="grid min-w-0 flex-1 text-left">
-              <p className="font-label-lg text-label-lg text-[#1a1b22] dark:text-white leading-tight truncate">
+              <p className="font-label-lg text-label-lg text-foreground leading-tight truncate">
                 {user.name}
               </p>
-              <p className="font-body-sm text-body-sm text-zinc-500 truncate">
+              <p className="font-body-sm text-body-sm text-muted-foreground truncate">
                 Creative Director
               </p>
             </div>

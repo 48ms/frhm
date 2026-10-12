@@ -6,6 +6,14 @@ import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { withViewTransition, campaignTransitionName } from "@/lib/view-transition"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/animate-ui/components/radix/dropdown-menu"
 import {
   campaignQueries,
   useCreateCampaign,
@@ -18,6 +26,12 @@ import type { ContentProduction, ContentStage } from "@/features/content-product
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CampaignModal } from "./campaign-modal"
 import { CampaignDetailModal } from "./campaign-detail-modal"
+import { StitchAiHookModal } from "@/components/dashboard-stitch/ai-hook-modal"
+import { PageContainer } from "@/components/layout/page-container"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { Button } from "@/components/ui/button"
+import { motion } from "motion/react"
 
 /* ------------------------------------------------------------------ */
 /* Factual derivations & presentation metadata                         */
@@ -46,8 +60,8 @@ function getCampaignStatus(c: Pick<Campaign, "start_date" | "end_date">): Campai
 
 const STATUS_META: Record<CampaignStatus, { label: string; badge: string }> = {
   active: { label: "Active", badge: "bg-brand-accent/10 text-brand-accent" },
-  upcoming: { label: "Upcoming", badge: "bg-blue-500/10 text-blue-600" },
-  completed: { label: "Completed", badge: "bg-emerald-500/10 text-emerald-600" },
+  upcoming: { label: "Upcoming", badge: "bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]" },
+  completed: { label: "Completed", badge: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
   draft: { label: "Draft", badge: "bg-muted text-muted-foreground" },
 }
 
@@ -63,14 +77,14 @@ const PLATFORM_META: Record<
   instagram: {
     label: "Instagram",
     icon: Icons.playCircle,
-    badge: "bg-pink-500/10 text-pink-600",
-    iconBg: "bg-pink-500/10 text-pink-600",
+    badge: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
+    iconBg: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
   },
   "ig reels": {
     label: "IG Reels",
     icon: Icons.playCircle,
-    badge: "bg-pink-500/10 text-pink-600",
-    iconBg: "bg-pink-500/10 text-pink-600",
+    badge: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
+    iconBg: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
   },
   tiktok: {
     label: "TikTok",
@@ -81,20 +95,20 @@ const PLATFORM_META: Record<
   youtube: {
     label: "YouTube",
     icon: Icons.video,
-    badge: "bg-red-500/10 text-red-600",
-    iconBg: "bg-red-500/10 text-red-600",
+    badge: "bg-[hsl(var(--platform-youtube))]/10 text-[hsl(var(--platform-youtube))]",
+    iconBg: "bg-[hsl(var(--platform-youtube))]/10 text-[hsl(var(--platform-youtube))]",
   },
   linkedin: {
     label: "LinkedIn",
     icon: Icons.bookOpen,
-    badge: "bg-blue-500/10 text-blue-600",
-    iconBg: "bg-blue-500/10 text-blue-600",
+    badge: "bg-[hsl(var(--platform-linkedin))]/10 text-[hsl(var(--platform-linkedin))]",
+    iconBg: "bg-[hsl(var(--platform-linkedin))]/10 text-[hsl(var(--platform-linkedin))]",
   },
   facebook: {
     label: "Facebook",
     icon: Icons.video,
-    badge: "bg-blue-500/10 text-blue-600",
-    iconBg: "bg-blue-500/10 text-blue-600",
+    badge: "bg-[hsl(var(--platform-facebook))]/10 text-[hsl(var(--platform-facebook))]",
+    iconBg: "bg-[hsl(var(--platform-facebook))]/10 text-[hsl(var(--platform-facebook))]",
   },
 }
 
@@ -110,24 +124,32 @@ function platformMeta(platform: string | null | undefined) {
   )
 }
 
+/**
+ * Stage colors from the logo palette (DESIGN.md §2), not library defaults.
+ * Lightness/chroma differ per stage so status reads without hue alone:
+ * neutral canvas → brand-blue production → green approval. Idea stays muted
+ * because it carries no state yet.
+ */
 const STAGE_META: Record<ContentStage, { label: string; badge: string }> = {
   idea: { label: "Idea", badge: "bg-muted text-muted-foreground" },
-  script: { label: "Scripting", badge: "bg-violet-500/10 text-violet-600" },
-  shooting: { label: "Shooting", badge: "bg-orange-500/10 text-orange-600" },
-  editing: { label: "Editing", badge: "bg-blue-500/10 text-blue-600" },
-  design: { label: "Design", badge: "bg-blue-500/10 text-blue-600" },
+  script: { label: "Scripting", badge: "bg-brand-yellow/15 text-brand-yellow dark:text-brand-yellow" },
+  shooting: { label: "Shooting", badge: "bg-brand-red/15 text-brand-red dark:text-brand-red" },
+  editing: { label: "Editing", badge: "bg-brand-blue/15 text-brand-blue dark:text-brand-blue" },
+  design: { label: "Design", badge: "bg-brand-blue/15 text-brand-blue dark:text-brand-blue" },
   caption: { label: "Captioning", badge: "bg-brand-accent/10 text-brand-accent" },
   review: { label: "Ready for Review", badge: "bg-brand-accent/10 text-brand-accent" },
-  ready: { label: "Approved", badge: "bg-emerald-500/10 text-emerald-600" },
+  ready: { label: "Approved", badge: "bg-brand-green/15 text-brand-green dark:text-brand-green" },
 }
 
+/* Categorical chart/assignee colors. Logo hues first, then a neutral for the
+   overflow slot — the ramp stays Frhm and categories stay distinguishable by
+   lightness, not just hue. */
 const PALETTE = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-orange-500",
-  "bg-violet-500",
-  "bg-pink-500",
-  "bg-amber-500",
+  "bg-brand-blue",
+  "bg-brand-green",
+  "bg-brand-yellow",
+  "bg-brand-red",
+  "bg-foreground/70",
 ]
 
 function formatCurrency(n: number): string {
@@ -160,6 +182,88 @@ function formatMonth(value: string | null | undefined): string {
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" })
 }
 
+/**
+ * Timeline view untuk content_productions (mode Gantt).
+ * Rentang dihitung dari due_date awal sampai akhir; bar di-posisikan
+ * proporsional terhadap rentang faktual, bukan angka rekaan.
+ */
+function GanttTimeline({
+  productions,
+  platformMeta,
+}: {
+  productions: ContentProduction[]
+  platformMeta: (platform: string) => { label: string; badge: string }
+}) {
+  const withDates = productions.filter((p) => p.due_date)
+  const earliest = withDates.length
+    ? withDates.reduce(
+        (min, p) => (p.due_date! < min ? p.due_date! : min),
+        withDates[0].due_date!
+      )
+    : null
+  const latest = withDates.length
+    ? withDates.reduce(
+        (max, p) => (p.due_date! > max ? p.due_date! : max),
+        withDates[0].due_date!
+      )
+    : null
+
+  if (!earliest || !latest) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/50 p-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Gantt timeline butuh due date. Setidaknya satu deliverable punya due date untuk
+          menampilkan timeline.
+        </p>
+      </div>
+    )
+  }
+
+  const startMs = new Date(earliest + "T00:00:00").getTime()
+  const endMs = new Date(latest + "T23:59:59").getTime()
+  const totalMs = Math.max(1, endMs - startMs)
+
+  return (
+    <div className="rounded-2xl border border-border/40 bg-card/40 p-4 space-y-1 overflow-x-auto">
+      <div className="flex justify-between text-2xs text-muted-foreground font-medium px-1 pb-1">
+        <span>{formatMonth(earliest)}</span>
+        <span>{formatMonth(latest)}</span>
+      </div>
+      {withDates.map((d, i) => {
+        const sm = STAGE_META[d.stage] ?? STAGE_META.idea
+        const pm = platformMeta(d.platform)
+        const dueMs = new Date(d.due_date! + "T00:00:00").getTime()
+        const left = Math.max(0, ((dueMs - startMs) / totalMs) * 100)
+        const barColor = PALETTE[i % PALETTE.length]
+        return (
+          <div
+            key={d.id}
+            className="flex items-center gap-3 px-1 py-1.5 rounded-lg hover:bg-muted/30 transition-colors"
+          >
+            <div className="w-32 shrink-0 truncate text-xs font-medium text-foreground" title={d.title}>
+              {d.title}
+            </div>
+            <div className="relative flex-1 h-7 min-w-[180px] rounded-md bg-muted/40 border border-border/30">
+              <div
+                className={`absolute top-1/2 -translate-y-1/2 h-3.5 rounded-full ${barColor} shadow-sm`}
+                style={{ left: `${Math.min(left, 96)}%`, width: "4%" }}
+                title={`${d.title} · ${sm.label} · due ${formatDate(d.due_date)}`}
+              />
+            </div>
+            <span className={cn("admin-badge shrink-0", sm.badge)}>{sm.label}</span>
+            <span className={cn("admin-badge shrink-0", pm.badge)}>{pm.label}</span>
+          </div>
+        )
+      })}
+      {productions.length > withDates.length && (
+        <p className="text-1xs text-muted-foreground pt-1">
+          {productions.length - withDates.length} deliverable tanpa due date tidak ditampilkan.
+        </p>
+      )}
+    </div>
+  )
+}
+
 /** Flight progress derived from the campaign's real start/end dates. */
 function flightProgress(c: Campaign | null) {
   if (!c?.start_date || !c?.end_date) return null
@@ -184,6 +288,8 @@ export function CampaignsBoard() {
     "q",
     parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
   )
+  const [viewMode, setViewMode] = useState<"list" | "gantt">("list")
+  const [aiHookOpen, setAiHookOpen] = useState(false)
 
   // Sumber client + clientId aktif dari Supabase (useActiveDashboard).
   const { clientId: activeClientId, setClientId, client: activeClient, clients } =
@@ -236,6 +342,18 @@ export function CampaignsBoard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [detail, setDetail] = useState<Campaign | null>(null)
+
+  // Deep-link `?new=1` (mis. dari tombol "Create Campaign" di header global):
+  // buka modal create sekali saat param muncul, lalu bersihkan agar refresh
+  // berikutnya tidak membuka modal lagi.
+  const [newParam, setNewParam] = useQueryState("new", parseAsString)
+  React.useEffect(() => {
+    if (newParam === "1") {
+      setEditing(null)
+      setModalOpen(true)
+      void setNewParam(null)
+    }
+  }, [newParam, setNewParam])
 
   /* ---------------- Campaign filtering & factual tab counts ---------------- */
   const filtered = useMemo(() => {
@@ -331,11 +449,11 @@ export function CampaignsBoard() {
 
   function openCreate() {
     setEditing(null)
-    setModalOpen(true)
+    withViewTransition(() => setModalOpen(true))
   }
   function openEdit(c: Campaign) {
     setEditing(c)
-    setModalOpen(true)
+    withViewTransition(() => setModalOpen(true))
   }
   async function handleSave(c: Campaign) {
     try {
@@ -384,75 +502,75 @@ export function CampaignsBoard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Banner & Action Bar */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border/40">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="admin-badge admin-badge-cobalt">Campaign control</span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground font-medium">
-              {activeClient.name} Workspace
-            </span>
-          </div>
-          <h1 className="text-3xl font-extrabold font-syne tracking-tight text-foreground">
-            Campaigns Orchestration
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-2xl mt-1">
-            Manage multi-channel brand campaigns, creator partnerships, deliverable flighting
-            schedules, and cross-platform ROI telemetry.
-          </p>
-        </div>
-        {/* Top Level Actions */}
+    <PageContainer
+      pageTitle="Campaigns Orchestration"
+      pageDescription={`Manage multi-channel brand campaigns, creator partnerships, deliverable flighting schedules, and cross-platform ROI telemetry for ${activeClient.name}.`}
+      pageHeaderAction={
         <div className="flex flex-wrap items-center gap-3">
-          <button className="admin-pill admin-pill-ghost flex items-center gap-2 border">
-            <Icons.listChecks className="size-4" />
-            Filter Status
-          </button>
-            <span
-              aria-disabled="true"
-              className="admin-pill admin-pill-ghost flex items-center gap-2 border opacity-60"
-            >
-              <Icons.download className="size-4" />
-              Export Campaign Deck (Coming soon)
-            </span>
-          <button
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="admin-pill admin-pill-ghost flex items-center gap-2 border cursor-pointer">
+                <Icons.listChecks className="size-4" />
+                Filter Status
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuRadioGroup value={tab} onValueChange={(value) => setTab(value as CampaignTab)}>
+                {CAMPAIGN_TABS.map((t) => (
+                  <DropdownMenuRadioItem key={t} value={t} className="cursor-pointer">
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span
+            aria-disabled="true"
+            className="admin-pill admin-pill-ghost flex items-center gap-2 border opacity-60"
+          >
+            <Icons.download className="size-4" />
+            Export Campaign Deck (Coming soon)
+          </span>
+          <Button
+            type="button"
             onClick={openCreate}
-            className="admin-pill admin-pill-primary flex items-center gap-2 shadow-md"
+            className="admin-pill admin-pill-primary flex items-center gap-2 shadow-md cursor-pointer border-0"
           >
             <Icons.rocket className="size-4 text-lime-300" />
             Launch Campaign
-          </button>
+          </Button>
         </div>
-      </div>
+      }
+      className="space-y-8"
+    >
 
       {/* Segmented Navigation Filters */}
       <div className="flex items-center justify-between overflow-x-auto pb-1 gap-4">
-        <div className="flex items-center gap-1.5 p-1 bg-secondary/30 rounded-full border border-border/20">
-          {(
-            [
-              ["all", `All Campaigns (${tabCounts.all})`],
-              ["active", `Active & Flighting (${tabCounts.active})`],
-              ["review", `Upcoming (${tabCounts.review})`],
-              ["completed", `Completed (${tabCounts.completed})`],
-              ["draft", `Draft (${tabCounts.draft})`],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap",
-                tab === key
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
-              )}
-            >
-              {key === "active" && <span className="w-2 h-2 rounded-full bg-lime-400" />}
-              {label}
-            </button>
-          ))}
-        </div>
+        <Tabs value={tab} onValueChange={(val) => setTab(val as CampaignTab)}>
+          <TabsList
+            className="flex items-center gap-1 p-1 bg-secondary/30 rounded-full border border-border/20 h-auto"
+            highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+          >
+            {(
+              [
+                ["all", `All Campaigns (${tabCounts.all})`],
+                ["active", `Active & Flighting (${tabCounts.active})`],
+                ["review", `Upcoming (${tabCounts.review})`],
+                ["completed", `Completed (${tabCounts.completed})`],
+                ["draft", `Draft (${tabCounts.draft})`],
+              ] as const
+            ).map(([key, label]) => (
+              <TabsTrigger
+                key={key}
+                value={key}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+              >
+                {key === "active" && <span className="w-2 h-2 rounded-full bg-lime-400" />}
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-xs">
           <span>
             {filtered.length} of {campaigns.length} campaigns shown
@@ -466,19 +584,19 @@ export function CampaignsBoard() {
         <div className="p-5 admin-card admin-card-hover flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="admin-section-label">Active Campaigns &amp; Flights</span>
-            <span className="admin-badge admin-badge-lime">{tabCounts.active} Live</span>
+            <span className="admin-badge admin-badge-lime"><MetricTicker value={tabCounts.active} /> Live</span>
           </div>
           <div className="my-3">
-            <div className="text-2xl font-extrabold font-syne tracking-tight text-foreground">
-              {tabCounts.active} Live
+            <div className="text-2xl font-extrabold font-syne tracking-tight text-foreground flex items-center gap-1.5">
+              <MetricTicker value={tabCounts.active} /> Live
             </div>
-            <p className="text-[12px] text-muted-foreground mt-1 line-clamp-1">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
               {activeCampaignNames.length ? activeCampaignNames.join(", ") : "No active flights"}
             </p>
           </div>
-          <div className="flex items-center gap-1.5 text-blue-600 text-xs font-semibold pt-2 border-t border-border/20">
+          <div className="flex items-center gap-1.5 text-[hsl(var(--admin-cobalt))] text-xs font-semibold pt-2 border-t border-border/20">
             <Icons.activity className="size-4" />
-            <span>{campaigns.length} total campaigns tracked</span>
+            <span><MetricTicker value={campaigns.length} /> total campaigns tracked</span>
           </div>
         </div>
 
@@ -486,13 +604,13 @@ export function CampaignsBoard() {
         <div className="p-5 admin-card admin-card-hover flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="admin-section-label">Allocated Campaign Budget</span>
-            <span className="text-[10px] text-foreground font-bold">
-              {budgetStats.pct.toFixed(1)}%
+            <span className="text-2xs text-foreground font-bold">
+              <MetricTicker value={`${budgetStats.pct.toFixed(1)}%`} />
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-extrabold font-syne tracking-tight text-foreground">
+              <span className="text-2xl font-extrabold font-mono tracking-tight text-foreground">
                 {formatCurrency(budgetStats.spent)}
               </span>
               <span className="text-sm text-muted-foreground">
@@ -506,7 +624,7 @@ export function CampaignsBoard() {
               />
             </div>
           </div>
-          <div className="flex items-center justify-between text-muted-foreground text-[12px] pt-2 border-t border-border/20">
+          <div className="flex items-center justify-between text-muted-foreground text-xs pt-2 border-t border-border/20">
             <span>{formatCurrency(budgetStats.remaining)} remaining</span>
             <span className="text-foreground font-medium">
               {budget ? formatMonth(budget.month) : "No budget set"}
@@ -518,19 +636,19 @@ export function CampaignsBoard() {
         <div className="p-5 admin-card admin-card-hover flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="admin-section-label">Ad Spend Invested</span>
-            <span className="admin-badge admin-badge-cobalt">{adSpend.length} logs</span>
+            <span className="admin-badge admin-badge-cobalt"><MetricTicker value={adSpend.length} /> logs</span>
           </div>
           <div className="my-3">
-            <div className="text-2xl font-extrabold font-syne tracking-tight text-foreground">
+            <div className="text-2xl font-extrabold font-mono tracking-tight text-foreground">
               {formatCurrency(adStats.spend)}
             </div>
-            <p className="text-[12px] text-muted-foreground mt-1 flex items-center gap-1">
-              <Icons.activity className="size-4 text-blue-500" />
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <Icons.activity className="size-4 text-[hsl(var(--admin-cobalt))]" />
               <span>{formatCompact(adStats.clicks)} tracked clicks</span>
             </p>
           </div>
           <div className="flex items-center gap-2 text-foreground text-xs pt-2 border-t border-border/20">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-cobalt))]" />
             <span>Cross-Network Flight Aggregation</span>
           </div>
         </div>
@@ -544,14 +662,14 @@ export function CampaignsBoard() {
             </span>
           </div>
           <div className="my-3">
-            <div className="text-2xl font-extrabold font-syne tracking-tight text-foreground">
+            <div className="text-2xl font-extrabold font-mono tracking-tight text-foreground">
               {adStats.cpc > 0 ? `$${adStats.cpc.toFixed(2)}` : "—"}
             </div>
-            <p className="text-[12px] text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {adStats.clicks > 0 ? "Derived from real ad spend logs" : "No ad spend recorded"}
             </p>
           </div>
-          <div className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold pt-2 border-t border-border/20">
+          <div className="flex items-center gap-1.5 text-[hsl(var(--warning))] text-xs font-semibold pt-2 border-t border-border/20">
             <Icons.chartBar className="size-4" />
             <span>Spend ÷ Clicks across logged campaigns</span>
           </div>
@@ -563,7 +681,18 @@ export function CampaignsBoard() {
         {/* LEFT/CENTER COLUMN (8 Cols) */}
         <div className="lg:col-span-8 space-y-8">
           {/* 1. Featured Active Campaign Spotlight */}
-          <section className="admin-card p-6 lg:p-8 relative overflow-hidden">
+          <section
+            className="admin-card p-6 lg:p-8 relative overflow-hidden"
+            style={
+              {
+                viewTransitionName: detail
+                  ? undefined
+                  : featured
+                    ? campaignTransitionName(featured.id)
+                    : undefined,
+              } as React.CSSProperties
+            }
+          >
             <div className="absolute -right-20 -top-20 w-80 h-80 bg-lime-400/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               {featured ? (
@@ -611,7 +740,7 @@ export function CampaignsBoard() {
                                 />
                               ))}
                             </div>
-                            <div className="flex items-center gap-1 text-[12px] text-foreground font-medium">
+                            <div className="flex items-center gap-1 text-xs text-foreground font-medium">
                               <span>{kols.slice(0, 2).map((k) => k.name).join(", ")}</span>
                               {kols.length > 2 && (
                                 <span className="text-muted-foreground">+{kols.length - 2}</span>
@@ -619,7 +748,7 @@ export function CampaignsBoard() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-[12px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             No talent contracted
                           </span>
                         )}
@@ -629,10 +758,10 @@ export function CampaignsBoard() {
                     <div className="md:col-span-4 p-4 rounded-2xl bg-muted/40 border border-border/50">
                       <span className="admin-section-label">Budget Spent (current cycle)</span>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <span className="text-xl font-bold font-syne text-foreground">
+                        <span className="text-xl font-bold font-mono text-foreground">
                           {formatCurrency(budgetStats.spent)}
                         </span>
-                        <span className="text-[12px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           / {formatCurrency(budgetStats.total)}
                         </span>
                       </div>
@@ -642,7 +771,7 @@ export function CampaignsBoard() {
                           style={{ width: `${Math.min(100, budgetStats.pct)}%` }}
                         />
                       </div>
-                      <div className="mt-4 pt-3 border-t border-border/40 flex justify-between items-center text-[12px]">
+                      <div className="mt-4 pt-3 border-t border-border/40 flex justify-between items-center text-xs">
                         <span className="text-muted-foreground">Ad Spend Logged</span>
                         <span className="text-foreground font-bold">
                           {formatCurrency(adStats.spend)}
@@ -655,28 +784,28 @@ export function CampaignsBoard() {
                   <div className="grid grid-cols-3 gap-3 mt-6 p-4 rounded-2xl bg-card/60 border border-border/40">
                     <div>
                       <span className="admin-section-label block">Flight Progress</span>
-                      <div className="text-lg font-bold font-syne text-foreground mt-0.5">
+                      <div className="text-lg font-bold font-mono text-foreground mt-0.5">
                         {featuredFlight ? `${featuredFlight.pct.toFixed(0)}%` : "Evergreen"}
                       </div>
-                      <span className="text-[11px] text-lime-600 font-bold">
+                      <span className="text-1xs text-lime-600 font-bold">
                         {featuredFlight ? "elapsed" : "no fixed window"}
                       </span>
                     </div>
                     <div>
                       <span className="admin-section-label block">Tracked Clicks</span>
-                      <div className="text-lg font-bold font-syne text-foreground mt-0.5">
+                      <div className="text-lg font-bold font-mono text-foreground mt-0.5">
                         {formatCompact(adStats.clicks)}
                       </div>
-                      <span className="text-[11px] text-blue-600 font-bold">
+                      <span className="text-1xs text-[hsl(var(--admin-cobalt))] font-bold">
                         from {adSpend.length} logs
                       </span>
                     </div>
                     <div>
                       <span className="admin-section-label block">Deliverables</span>
-                      <div className="text-lg font-bold font-syne text-foreground mt-0.5">
+                      <div className="text-lg font-bold font-mono text-foreground mt-0.5">
                         {productions.length}
                       </div>
-                      <span className="text-[11px] text-orange-600 font-bold">
+                      <span className="text-1xs text-[hsl(var(--warning))] font-bold">
                         {productions.filter((p) => p.stage === "ready").length} approved
                       </span>
                     </div>
@@ -705,7 +834,9 @@ export function CampaignsBoard() {
               <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-5 border-t border-border/30">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setDetail(featured)}
+                    onClick={() =>
+                      withViewTransition(() => setDetail(featured))
+                    }
                     disabled={!featured}
                     className="admin-pill admin-pill-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -737,31 +868,57 @@ export function CampaignsBoard() {
                 <h3 className="text-xl font-extrabold font-syne text-foreground">
                   Deliverables Pipeline
                 </h3>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Production tracking, milestone gates, and creator approval flights.
                 </p>
               </div>
-              <div className="flex items-center p-1 bg-secondary/30 rounded-full border border-border/20">
-                <button className="px-4 py-1.5 rounded-full bg-card text-foreground text-xs font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer">
-                  <Icons.listChecks className="size-4" />
-                  <span>Deliverables List</span>
-                </button>
-                <button className="px-4 py-1.5 rounded-full text-muted-foreground hover:text-foreground text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
-                  <Icons.calendar className="size-4" />
-                  <span>Gantt Timeline</span>
-                </button>
-              </div>
+              <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as "list" | "gantt")}>
+                <TabsList
+                  className="flex items-center p-1 bg-secondary/30 rounded-full border border-border/20 h-auto"
+                  highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+                >
+                  <TabsTrigger
+                    value="list"
+                    className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                  >
+                    <Icons.listChecks className="size-4" />
+                    <span>Deliverables List</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="gantt"
+                    className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                  >
+                    <Icons.calendar className="size-4" />
+                    <span>Gantt Timeline</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             {/* Deliverable rows */}
             {productions.length ? (
-              <div className="space-y-3">
+              viewMode === "gantt" ? (
+                <GanttTimeline productions={productions} platformMeta={platformMeta} />
+              ) : (
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+                }}
+                className="space-y-3"
+              >
                 {productions.slice(0, 8).map((d) => {
                   const pm = platformMeta(d.platform)
                   const sm = STAGE_META[d.stage] ?? STAGE_META.idea
                   return (
-                    <div
+                    <motion.div
                       key={d.id}
+                      variants={{
+                        hidden: { opacity: 0, y: 8 },
+                        visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } },
+                      }}
                       className="p-4 rounded-2xl bg-card/60 border border-border/40 hover:border-primary/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
                     >
                       <div className="flex items-start gap-4">
@@ -775,10 +932,10 @@ export function CampaignsBoard() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-[16px] font-bold text-foreground">{d.title}</h4>
+                            <h4 className="text-base font-bold text-foreground">{d.title}</h4>
                             <span className={cn("admin-badge", pm.badge)}>{pm.label}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[12px] text-muted-foreground">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
                             <span>
                               Assignee:{" "}
                               <strong className="text-foreground font-medium">
@@ -804,34 +961,53 @@ export function CampaignsBoard() {
                       <div className="flex items-center justify-between md:justify-end gap-3 pt-2 md:pt-0 border-t md:border-t-0 border-border/20">
                         <span className={cn("admin-badge", sm.badge)}>
                           {d.stage === "ready" && (
-                            <Icons.circleCheck className="size-3.5 text-emerald-500" />
+                            <Icons.circleCheck className="size-3.5 text-[hsl(var(--success))]" />
                           )}
                           {sm.label}
                         </span>
                         <div className="flex items-center gap-1">
-                          <button className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer">
+                          <button
+                            type="button"
+                            aria-label={`Salin detail deliverable ${d.title}`}
+                            onClick={() => {
+                              const summary = [
+                                `Deliverable: ${d.title}`,
+                                `Platform: ${pm.label}`,
+                                `Stage: ${sm.label}`,
+                                `Assignee: ${d.assignee?.trim() || "Unassigned"}`,
+                                `Due: ${formatDate(d.due_date)}`,
+                                `Assets: ${d.assets?.length ?? 0}`,
+                              ].join("\n")
+                              void navigator.clipboard
+                                ?.writeText(summary)
+                                .then(() => toast.success("Detail deliverable disalin ke clipboard."))
+                                .catch(() => toast.error("Gagal menyalin detail deliverable."))
+                            }}
+                            className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer"
+                          >
                             <Icons.search className="size-5" />
                           </button>
                           {d.stage === "review" && (
-                            <button
+                            <Button
                               onClick={() => approveProduction(d)}
-                              disabled={updateProduction.isPending}
-                              className="admin-pill admin-pill-primary text-[10px] px-3 py-1.5 min-w-0 disabled:opacity-50"
+                              isLoading={updateProduction.isPending}
+                              className="admin-pill admin-pill-primary text-2xs px-3 py-1.5 min-w-0"
                             >
                               Approve
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )
                 })}
-              </div>
+              </motion.div>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center text-center py-10 gap-2 rounded-2xl border border-dashed border-border/50">
                 <Icons.listChecks className="size-6 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">No deliverables in production</p>
-                <p className="text-[12px] text-muted-foreground max-w-sm">
+                <p className="text-xs text-muted-foreground max-w-sm">
                   Production cards created in the content pipeline will appear here with their
                   real stage, assignee, and due date.
                 </p>
@@ -839,7 +1015,7 @@ export function CampaignsBoard() {
             )}
 
             {/* Pipeline Footer */}
-            <div className="flex items-center justify-between pt-5 mt-4 border-t border-border/20 text-[12px] text-muted-foreground">
+            <div className="flex items-center justify-between pt-5 mt-4 border-t border-border/20 text-xs text-muted-foreground">
               <span>
                 Showing {Math.min(productions.length, 8)} of {productions.length} deliverable items
               </span>
@@ -853,7 +1029,7 @@ export function CampaignsBoard() {
           <div className="admin-card p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="admin-section-label">Client Switcher</span>
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-cobalt))]" />
             </div>
             {/* Segmented Client Selector Pills */}
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary/30 rounded-full border border-border/20 mb-6">
@@ -862,7 +1038,7 @@ export function CampaignsBoard() {
                   key={c.id}
                   onClick={() => setClientId(c.id)}
                   className={cn(
-                    "py-1.5 px-2 rounded-full text-[10px] font-bold transition-colors truncate cursor-pointer",
+                    "py-1.5 px-2 rounded-full text-2xs font-bold transition-colors truncate cursor-pointer",
                     activeClientId === c.id
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -875,7 +1051,7 @@ export function CampaignsBoard() {
             <h4 className="text-lg font-bold font-syne text-foreground">
               Budget Allocation by Category
             </h4>
-            <p className="text-[12px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {budget ? `Recorded expenses for ${formatMonth(budget.month)}.` : "No budget set for the current cycle."}
             </p>
             {/* Progress Stack Breakdown */}
@@ -905,7 +1081,7 @@ export function CampaignsBoard() {
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", b.color)} />
-                        <span className="text-[12px] text-foreground font-medium truncate">
+                        <span className="text-xs text-foreground font-medium truncate">
                           {b.name}
                         </span>
                       </div>
@@ -918,7 +1094,7 @@ export function CampaignsBoard() {
               </>
             ) : (
               <div className="mt-5 rounded-xl border border-dashed border-border/50 p-4 text-center">
-                <p className="text-[12px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   No expenses recorded for this client yet.
                 </p>
               </div>
@@ -932,7 +1108,7 @@ export function CampaignsBoard() {
                 <h4 className="text-lg font-bold font-syne text-foreground">
                   Creator &amp; Talent Roster
                 </h4>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Contracted partners for {activeClient.name}.
                 </p>
               </div>
@@ -952,17 +1128,35 @@ export function CampaignsBoard() {
                       className="p-3 rounded-2xl bg-card/60 border border-border/40 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-muted ring-2 ring-blue-400/50 shrink-0" />
+                        <div className="w-10 h-10 rounded-full bg-muted ring-2 ring-[hsl(var(--admin-cobalt)/50)] shrink-0" />
                         <div className="min-w-0">
                           <div className="text-sm font-bold text-foreground truncate">
                             {cr.name}
                           </div>
-                          <div className="text-[11px] text-muted-foreground truncate">
+                          <div className="text-1xs text-muted-foreground truncate">
                             {metaParts.length ? metaParts.join(" • ") : "No details"}
                           </div>
                         </div>
                       </div>
-                      <button className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer shrink-0">
+                      <button
+                        type="button"
+                        aria-label={`Hubungi kreator ${cr.name}`}
+                        title={cr.contact_info?.trim() || "Kontak belum tersedia"}
+                        onClick={() => {
+                          const contact = cr.contact_info?.trim()
+                          if (contact) {
+                            void navigator.clipboard
+                              ?.writeText(contact)
+                              .then(() => toast.success(`Kontak ${cr.name} disalin.`, { description: contact }))
+                              .catch(() => toast.error("Gagal menyalin kontak kreator."))
+                          } else {
+                            toast.info(`${cr.name} belum punya kontak tersimpan.`, {
+                              description: "Lengkapi Contact Info di modul ERP → KOLs.",
+                            })
+                          }
+                        }}
+                        className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer shrink-0"
+                      >
                         <Icons.send className="size-[18px]" />
                       </button>
                     </div>
@@ -971,12 +1165,16 @@ export function CampaignsBoard() {
               </div>
             ) : (
               <div className="mt-4 rounded-xl border border-dashed border-border/50 p-4 text-center">
-                <p className="text-[12px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   No creators or talent contracted for this client.
                 </p>
               </div>
             )}
-            <button className="w-full mt-4 py-2.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold transition-colors text-center cursor-pointer">
+            <button
+              type="button"
+              onClick={() => toast.info("Modul Kontrak Talent/KOL dibuka.", { description: "Gunakan menu ERP -> KOLs untuk manajemen penuh." })}
+              className="w-full mt-4 py-2.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold transition-colors text-center cursor-pointer"
+            >
                + Contract Additional Talent
              </button>
           </div>
@@ -990,15 +1188,20 @@ export function CampaignsBoard() {
                 <Icons.bot className="size-5 text-lime-400" />
               </div>
               <h4 className="text-lg font-bold font-syne text-background">Need Campaign Angles?</h4>
-              <p className="text-[12px] text-background/80 mt-1 leading-relaxed">
+              <p className="text-xs text-background/80 mt-1 leading-relaxed">
                 Synthesize viral TikTok hooks, B2B carousel narratives, and cross-channel flight
                 variants tuned to {activeClient.name}&apos;s ideal customer persona.
               </p>
               <div className="mt-4 p-1.5 rounded-full bg-background/10 border border-background/20 flex items-center justify-between">
-                <span className="text-[12px] text-background/70 pl-3 truncate">
+                <span className="text-xs text-background/70 pl-3 truncate">
                   &quot;Spatial UX for enterprise CFOs...&quot;
                 </span>
-                <button className="w-8 h-8 rounded-full bg-lime-400 text-black flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer">
+                <button
+                  type="button"
+                  aria-label="Buka AI Hook Generator"
+                  onClick={() => setAiHookOpen(true)}
+                  className="w-8 h-8 rounded-full bg-lime-400 text-black flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer"
+                >
                   <Icons.arrowRight className="size-4 -rotate-90" />
                 </button>
               </div>
@@ -1014,7 +1217,7 @@ export function CampaignsBoard() {
       </div>
 
       {/* Global Footer */}
-      <footer className="pt-6 pb-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-muted-foreground">
+      <footer className="pt-6 pb-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-3">
           <span className="font-bold text-foreground">FRHM © 2026.</span>
           <span>All rights reserved. Creative Media Operations Platform.</span>
@@ -1038,6 +1241,12 @@ export function CampaignsBoard() {
         onClose={() => setDetail(null)}
         onEdit={openEdit}
       />
-    </div>
+      <StitchAiHookModal
+        open={aiHookOpen}
+        onOpenChange={setAiHookOpen}
+        clientName={activeClient.name}
+        clientId={activeClientId}
+      />
+    </PageContainer>
   )
 }

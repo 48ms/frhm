@@ -85,32 +85,36 @@ export default function SetPasswordPage() {
     }
 
     setLoading(true)
-    const supabase = createClient()
-    const { error: updateError } = await supabase.auth.updateUser({ password: parsed.data.password })
+    try {
+      const supabase = createClient()
+      const { error: updateError } = await supabase.auth.updateUser({ password: parsed.data.password })
 
-    if (updateError) {
+      if (updateError) {
+        setError(`Gagal mengubah password: ${updateError.message}`)
+        return
+      }
+
+      setPhase('done')
+
+      // Arahkan sesuai role: admin ke dashboard admin, klien ke portal klien.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        if (profile?.role === 'admin') router.push('/admin/dashboard')
+        else router.push('/admin/dashboard')
+      } else {
+        router.push('/auth/login')
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan jaringan. Coba lagi.')
+    } finally {
       setLoading(false)
-      setError(`Gagal mengubah password: ${updateError.message}`)
-      return
-    }
-
-    setLoading(false)
-    setPhase('done')
-
-    // Arahkan sesuai role: admin ke dashboard admin, klien ke portal klien.
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      if (profile?.role === 'admin') router.push('/admin/dashboard')
-      else router.push('/client/dashboard')
-    } else {
-      router.push('/auth/login')
     }
   }
 
@@ -148,7 +152,7 @@ export default function SetPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-4 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xl">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] font-bold text-xl">
             ✓
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Password Berhasil Diubah</h1>

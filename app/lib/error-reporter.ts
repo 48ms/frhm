@@ -2,8 +2,10 @@
  * Error reporter: sends formatted error details to Telegram + audit_log.
  *
  * Used by:
- * - `app/api/errors/report/route.ts` (client-side error boundaries call this)
- * - API routes that catch errors (direct call)
+ * - API routes that catch errors (direct call, e.g. cron/check-zero-metrics, cron/daily-insight)
+ *
+ * The former `app/api/errors/report/route.ts` HTTP entrypoint is archived; error
+ * boundaries now only log locally, so this module is called in-process.
  *
  * Always awaits logAudit for forensic trail.
  * Telegram delivery is fire-and-forget but non-blocking when chatId exists.

@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { loginAsAdmin } from './helpers/login'
 
 test.describe('Support Center', () => {
   test('renders sections and expands an FAQ item', async ({ page }) => {
-    await page.goto('/preview-support')
+    await loginAsAdmin(page)
+    await page.goto('/admin/support')
 
     await expect(page.locator('text=Support Center').first()).toBeVisible()
     await expect(page.locator('text=Email Support')).toBeVisible()
@@ -17,12 +19,13 @@ test.describe('Support Center', () => {
   })
 
   test('submitting the contact form shows a success toast', async ({ page }) => {
-    await page.goto('/preview-support')
+    await loginAsAdmin(page)
+    await page.goto('/admin/support')
 
     await page.getByLabel(/Subject/i).fill('Reels publish failing')
     await page.getByLabel(/Message/i).fill('Posts stay queued for the active client workspace.')
     await page.getByRole('button', { name: /Submit Request/i }).click()
 
-    await expect(page.locator('text=Support request submitted').first()).toBeVisible()
+    await expect(page.locator('text=Tiket dukungan dikirim').first()).toBeVisible()
   })
 })

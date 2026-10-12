@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit/log"
 import type { ContentProduction, CreateContentProductionInput, UpdateContentProductionInput } from "./types"
 
 /**
@@ -35,6 +36,13 @@ export async function createContentProduction(input: CreateContentProductionInpu
     .single()
 
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'content_production.create',
+    entityType: 'content_production',
+    entityId: data?.id ?? null,
+    clientId: input.client_id ?? null,
+    summary: `Created content production ${data?.id ?? ''}`,
+  })
   return data as ContentProduction
 }
 
@@ -51,6 +59,12 @@ export async function updateContentProduction(
     .single()
 
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'content_production.update',
+    entityType: 'content_production',
+    entityId: id,
+    summary: `Updated content production ${id}`,
+  })
   return data as ContentProduction
 }
 
@@ -58,4 +72,10 @@ export async function deleteContentProduction(id: string): Promise<void> {
   const supabase = await createClient()
   const { error } = await supabase.from("content_productions").delete().eq("id", id)
   if (error) throw new Error(error.message)
+  void logAudit({
+    action: 'content_production.delete',
+    entityType: 'content_production',
+    entityId: id,
+    summary: `Deleted content production ${id}`,
+  })
 }

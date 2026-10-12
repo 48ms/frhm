@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/animate-ui/components/radix/dialog"
 
 export interface DisconnectDialogProps {
   open: boolean
@@ -27,7 +27,7 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
       <DialogContent className="max-w-sm gap-0 overflow-hidden p-0">
         <div className="p-6 space-y-3 animate-in fade-in zoom-in-95 duration-300">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-destructive/15 text-destructive flex items-center justify-center shrink-0">
               <Icons.warning className="size-5" />
             </div>
             <div>
@@ -51,7 +51,7 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+            className="px-4 py-2 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold transition-all active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
           >
             Disconnect {handle}
           </button>

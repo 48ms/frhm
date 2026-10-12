@@ -3,16 +3,13 @@
 import React, { useState } from "react"
 import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
-import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
 import { formatDistanceToNow } from "date-fns"
 
 export function DashboardStitchHero() {
-  const { clients, clientId, profile } = useActiveDashboard()
-  // Safe client resolution: prefer explicit match, fall back to first available
-  const client = clients.find((c) => c.id === clientId) ?? clients[0] ?? { id: clientId, name: "Client" }
+  const { client, profile } = useActiveDashboard()
   const [exportOpen, setExportOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
 
@@ -37,7 +34,7 @@ export function DashboardStitchHero() {
               </span>
             </div>
             {/* Sync Status Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-[10px] font-bold text-muted-foreground cursor-help" title={`Data terakhir sinkron: ${profile.updated_at}`}>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-2xs font-bold text-muted-foreground cursor-help" title={`Data terakhir sinkron: ${profile.updated_at}`}>
               <Icons.refresh className="size-3" />
               <span>
                 Synced {profile.updated_at ? formatDistanceToNow(new Date(profile.updated_at), { addSuffix: true }) : 'never'}

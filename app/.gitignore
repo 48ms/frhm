@@ -31,3 +31,5 @@ run-output.txt
 run-e2e.sh
 .sentryclirc
 _archive_dead/
+*.png
+dogfood-output/

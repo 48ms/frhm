@@ -16,6 +16,8 @@ import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 
 function formatNumber(num: number): string {
   if (!num || isNaN(num)) return "0"
@@ -226,7 +228,9 @@ export function AnalyticsView() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-mono tracking-tight">{formatNumber(totals.reach)}</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight flex items-baseline">
+              <MetricTicker value={totals.reach} thousandSeparator="." />
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Total jangkauan dari metrik tercatat</span>
             </p>
@@ -241,7 +245,9 @@ export function AnalyticsView() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-mono tracking-tight">{totals.engagementRate}%</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight flex items-baseline">
+              <MetricTicker value={`${totals.engagementRate}%`} decimalSeparator="." />
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Interaksi dibagi jangkauan (metrik faktual)</span>
             </p>
@@ -256,7 +262,9 @@ export function AnalyticsView() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-mono tracking-tight">{formatNumber(totals.clicks)}</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight flex items-baseline">
+              <MetricTicker value={totals.clicks} thousandSeparator="." />
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Volume klik dari metrik tercatat</span>
             </p>
@@ -271,7 +279,9 @@ export function AnalyticsView() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-mono tracking-tight">{totals.inquiryRate}%</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight flex items-baseline">
+              <MetricTicker value={`${totals.inquiryRate}%`} decimalSeparator="." />
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Pertanyaan dibagi klik (metrik faktual)</span>
             </p>
@@ -300,7 +310,11 @@ export function AnalyticsView() {
                   className="gap-1.5 text-xs shadow-sm"
                 >
                   <Icons.sparkles className="size-3.5 text-primary" />
-                  <span>Audit METER (AI)</span>
+                  {isAuditing ? (
+                    <ShimmeringText text="Auditing METER..." className="text-xs" />
+                  ) : (
+                    <span>Audit METER (AI)</span>
+                  )}
                 </Button>
               </div>
             </CardHeader>
@@ -312,10 +326,10 @@ export function AnalyticsView() {
                   <div className={cn(
                     "p-3 rounded-xl border flex items-center justify-between",
                     auditReport.overallHealth === "EXCELLENT"
-                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                      ? "bg-success/10 border-success/20 text-success"
                       : auditReport.overallHealth === "STABLE"
                       ? "bg-primary/10 border-primary/20 text-primary"
-                      : "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400"
+                      : "bg-warning/10 border-warning/20 text-warning"
                   )}>
                     <div className="flex items-center gap-2">
                       <Icons.target className="size-4 shrink-0" />
@@ -337,7 +351,7 @@ export function AnalyticsView() {
                   {/* Winners & Underperformers */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-2xs">
                     <div className="p-2.5 rounded-lg border border-border/40 bg-muted/20 space-y-1">
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="font-bold text-success flex items-center gap-1">
                         <Icons.circleCheck className="size-3" /> Top Winner
                       </span>
                       {auditReport.winners[0] ? (
@@ -350,7 +364,7 @@ export function AnalyticsView() {
                       )}
                     </div>
                     <div className="p-2.5 rounded-lg border border-border/40 bg-muted/20 space-y-1">
-                      <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <span className="font-bold text-warning flex items-center gap-1">
                         <Icons.warning className="size-3" /> Underperformer
                       </span>
                       {auditReport.underperformers[0] ? (

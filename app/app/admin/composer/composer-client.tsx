@@ -26,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 import Link from "next/link"
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -628,13 +630,20 @@ export function ComposerClient() {
                           className="text-xs h-7 bg-[hsl(var(--admin-surface-low))] border-[hsl(var(--admin-outline-variant))] text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] min-w-[180px] flex justify-start"
                         >
                           {/* Icons.sparkles = AI Copilot caption generator (R-04 exception: AI feature with written justification) */}
-                          <Icons.sparkles className={cn("size-3 mr-1.5 shrink-0", isAnyAiLoading && "animate-spin")} />
-                          <span className={cn(isAnyAiLoading && "animate-pulse")}>
-                            {isGenerating ? copilotLoadingMessages[copilotMsgIdx] : 
-                             isGeneratingCarousel ? "Menyusun slide carousel..." :
-                             isGeneratingHooks ? "Meracik 5 variasi hook..." :
-                             "Generate AI Copilot"}
-                          </span>
+                          <Icons.sparkles className={cn("size-3 mr-1.5 shrink-0 text-brand-accent", isAnyAiLoading && "animate-spin")} />
+                          {isAnyAiLoading ? (
+                            <ShimmeringText
+                              text={
+                                isGenerating ? copilotLoadingMessages[copilotMsgIdx] : 
+                                isGeneratingCarousel ? "Menyusun slide carousel..." :
+                                isGeneratingHooks ? "Meracik 5 variasi hook..." :
+                                "Generating AI content..."
+                              }
+                              className="text-xs"
+                            />
+                          ) : (
+                            <span>Generate AI Copilot</span>
+                          )}
                         </Button>
                       </div>
                       <Textarea
@@ -706,7 +715,7 @@ export function ComposerClient() {
                           {validationResult && (
                             <span className={cn(
                               "text-xs px-2 py-0.5 rounded-full font-semibold",
-                              validationResult.score >= 80 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                              validationResult.score >= 80 ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
                             )}>
                               Skor Platform: {validationResult.score}/100
                             </span>
@@ -844,17 +853,14 @@ export function ComposerClient() {
                       </div>
                       <div className="flex items-end gap-3">
                         <div className="space-y-1.5 flex-1">
-                          <Label htmlFor="composer-duration">Target Durasi</Label>
-                          <select
-                            id="composer-duration"
-                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            value={videoDuration}
-                            onChange={(e) => setVideoDuration(e.target.value)}
-                          >
-                            <option value="15 seconds">15 Detik (Shorts/Reels)</option>
-                            <option value="30 seconds">30 Detik (Standard)</option>
-                            <option value="60 seconds">60 Detik (Deep Dive)</option>
-                          </select>
+                          <Label htmlFor="composer-duration" className="text-xs font-semibold">Target Durasi</Label>
+                          <Tabs value={videoDuration} onValueChange={setVideoDuration}>
+                            <TabsList className="w-full grid grid-cols-3 h-10 p-1 bg-muted rounded-xl">
+                              <TabsTrigger value="15 seconds" className="text-xs font-bold rounded-lg py-1">15s (Shorts)</TabsTrigger>
+                              <TabsTrigger value="30 seconds" className="text-xs font-bold rounded-lg py-1">30s (Standard)</TabsTrigger>
+                              <TabsTrigger value="60 seconds" className="text-xs font-bold rounded-lg py-1">60s (Deep Dive)</TabsTrigger>
+                            </TabsList>
+                          </Tabs>
                         </div>
                         <Button 
                           onClick={handleGenerateVideoScript}
@@ -936,7 +942,7 @@ export function ComposerClient() {
                     {mediaUrl ? (
                       <img src={mediaUrl} className="w-full h-12 object-cover rounded-lg mb-2" alt="thumb" />
                     ) : (
-                      <div className="w-full h-12 bg-slate-100 rounded-lg mb-2 flex items-center justify-center text-slate-300">
+                      <div className="w-full h-12 bg-muted rounded-lg mb-2 flex items-center justify-center text-muted-foreground/40">
                         <Icons.media className="size-5" />
                       </div>
                     )}
@@ -992,14 +998,14 @@ export function ComposerClient() {
                             isSelected ? "bg-[hsl(var(--success))] scale-100 shadow-[0_0_8px_hsl(var(--success)/0.5)]" : "bg-transparent scale-0"
                           )} />
                           
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-black/5 bg-slate-100 flex items-center justify-center text-slate-400">
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/40 bg-muted flex items-center justify-center text-muted-foreground">
                             {channel.avatar_url ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={channel.avatar_url} alt={channel.handle || "Avatar"} className="w-full h-full object-cover" />
                             ) : (
                               <IconComp className="size-6" />
                             )}
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-white flex items-center justify-center shadow-sm border border-slate-100 p-0.5 text-black">
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-card flex items-center justify-center shadow-sm border border-border p-0.5 text-foreground">
                                <IconComp className="w-full h-full" />
                             </div>
                           </div>
@@ -1213,8 +1219,8 @@ export function ComposerClient() {
                 Selanjutnya
               </Button>
             ) : (
-              <Button onClick={handlePublish} disabled={loading} className="bg-[hsl(var(--success))] hover:bg-[hsl(var(--success)/0.9)] text-[hsl(var(--success-foreground))] shadow-lg">
-                {loading ? "Menjadwalkan..." : "Jadwalkan & Publish Otomatis"}
+              <Button onClick={handlePublish} isLoading={loading} className="bg-[hsl(var(--success))] hover:bg-[hsl(var(--success)/0.9)] text-[hsl(var(--success-foreground))] shadow-lg">
+                Jadwalkan & Publish Otomatis
               </Button>
             )}
           </div>

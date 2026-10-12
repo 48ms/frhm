@@ -96,7 +96,7 @@ export function ExportReportModal({
 
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} role="button" aria-label="Tutup modal" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClose()} />
       <div className="relative w-full max-w-md bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-border/30 pb-3">
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export function ExportReportModal({
               <h3 className="font-syne font-bold text-foreground text-sm">
                 Export Performance Report
               </h3>
-              <p className="text-[10px] text-muted-foreground">{client.name}</p>
+              <p className="text-2xs text-muted-foreground">{client.name}</p>
             </div>
           </div>
           <button
@@ -162,7 +162,7 @@ export function ExportReportModal({
                       <span className="block text-xs font-semibold text-foreground">
                         {f.label}
                       </span>
-                      <span className="block text-[10px] text-muted-foreground">
+                      <span className="block text-2xs text-muted-foreground">
                         {f.hint}
                       </span>
                     </div>
@@ -185,7 +185,7 @@ export function ExportReportModal({
                     type="button"
                     onClick={() => setRange(r.id)}
                     className={cn(
-                      "flex-1 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+                      "flex-1 px-3 py-1.5 rounded-full text-1xs font-semibold transition-all cursor-pointer",
                       range === r.id
                         ? "bg-card text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -199,7 +199,7 @@ export function ExportReportModal({
 
             <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/30">
               <Icons.info className="size-4 text-brand-accent shrink-0" />
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-2xs text-muted-foreground">
                 Laporan memuat {model.totals.posts} postingan tercatat pada rentang ini:
                 reach, engagement, rincian per platform, dan catatan AI yang tersimpan.
               </span>

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react"
 import { useQueryState, parseAsStringEnum } from "nuqs"
+import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { type Timeframe } from "@/features/dashboard/api/types"
@@ -45,33 +46,40 @@ export function DashboardStitchChart() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <span className="text-xs font-semibold text-muted-foreground block">
-            Audience trajectory · {client.name.substring(0, 5)}
+            Audience trajectory · {client.name}
           </span>
           <h2 className="font-syne font-bold text-lg text-foreground">
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
-        {/* Timeframe selector , URL state via nuqs */}
-        <div className="inline-flex p-1 rounded-full bg-muted/70 border border-border/30">
+        {/* Timeframe selector — Animate UI spring-sliding indicator, URL state via nuqs */}
+        <div role="group" aria-label="Chart time range" className="inline-flex p-1 rounded-full bg-muted/70 border border-border/30">
           {TIMEFRAMES.map((t) => (
             <button
               key={t.id}
               onClick={() => setTf(t.id)}
               aria-pressed={tf === t.id}
               className={cn(
-                "px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer",
+                "relative px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer",
                 tf === t.id
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {t.label}
+              {tf === t.id && (
+                <motion.span
+                  layoutId="timeframe-pill"
+                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10">{t.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 w-full min-h-[240px] bg-muted/20 rounded-2xl p-4 border border-border/40 relative">
+      <div className="flex-1 w-full aspect-[16/9] max-h-[280px] bg-muted/20 rounded-2xl p-4 border border-border/40 relative">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
             <defs>
@@ -88,6 +96,7 @@ export function DashboardStitchChart() {
               dy={10}
             />
             <YAxis 
+              domain={[0, 'auto']}
               axisLine={false} 
               tickLine={false} 
               tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
@@ -134,7 +143,7 @@ export function DashboardStitchChart() {
             <span className="w-2 h-2 rounded-full bg-brand-accent border border-brand-accent/50" /> Engagement
           </span>
         </div>
-        <span className="bg-background border border-border/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-foreground shadow-sm">
+        <span className="bg-background border border-border/40 px-2.5 py-0.5 rounded-full text-2xs font-bold text-foreground shadow-sm">
           {profile.peak_label}: {profile.peak_value}
         </span>
       </div>
@@ -142,9 +151,13 @@ export function DashboardStitchChart() {
       {/* Insight Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
         {profile.insights.map((card, idx) => (
-          <div
+          <motion.div
             key={idx}
-            className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-card hover:shadow-sm transition-all"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24, delay: idx * 0.06 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="p-3.5 rounded-xl bg-muted/60 border border-border/40 hover:bg-card hover:shadow-sm transition-colors"
           >
             <p className="text-xs font-semibold text-muted-foreground">
               {card.label}
@@ -155,7 +168,7 @@ export function DashboardStitchChart() {
             <p className="text-xs font-semibold mt-0.5 text-brand-accent">
               {card.sub}
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

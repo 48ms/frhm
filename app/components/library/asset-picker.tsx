@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/animate-ui/components/radix/dialog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
@@ -116,23 +117,22 @@ export function AssetPicker({
               className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-          <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full border border-border/20 w-max">
-            {TYPE_TABS.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-                  tab === t
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {t === "all" ? "Semua" : t === "image" ? "Gambar" : "Video"}
-              </button>
-            ))}
-          </div>
+          <Tabs value={tab} onValueChange={(t) => setTab(t as TypeTab)}>
+            <TabsList
+              className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full border border-border/20 w-max h-auto"
+              highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+            >
+              {TYPE_TABS.map((t) => (
+                <TabsTrigger
+                  key={t}
+                  value={t}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                >
+                  {t === "all" ? "Semua" : t === "image" ? "Gambar" : "Video"}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Upload Dropzone */}
@@ -177,9 +177,9 @@ export function AssetPicker({
                     src={thumbnailUrl(asset.url)}
                     alt={asset.publicId}
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold">
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-2xs font-bold">
                     {asset.fileType}
                   </span>
                   <span className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

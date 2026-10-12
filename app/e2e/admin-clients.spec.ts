@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.use({ baseURL: 'http://localhost:3004' });
+test.use({ baseURL: 'http://localhost:3000' });
 
 test.describe('Admin Clients UI', () => {
   test('should redirect to login when not authenticated', async ({ page }) => {

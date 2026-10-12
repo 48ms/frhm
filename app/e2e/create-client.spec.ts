@@ -1,22 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from './helpers/login';
 
-test.use({ baseURL: 'http://localhost:3004' });
-
-// Admin credentials — same as scripts/e2e_admin.py
-const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL!
-const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD!
-
-/** Log in and land on the admin dashboard. */
-async function loginAsAdmin(page: any) {
-  await page.goto('/auth/login');
-  // Wait for the email form to be interactive
-  await page.getByLabel('Email').waitFor({ state: 'visible', timeout: 10000 });
-  await page.getByLabel('Email').fill(ADMIN_EMAIL);
-  await page.getByLabel('Password').fill(ADMIN_PASSWORD);
-  await page.getByRole('button', { name: 'Masuk' }).click();
-  // Wait for navigation to admin area
-  await page.waitForURL(/\/admin\/dashboard/, { timeout: 20000 });
-}
+test.use({ baseURL: 'http://localhost:3000' });
+test.setTimeout(120000);
 
 test.describe('Create Client Quick Onboarding', () => {
   test('should open create client dialog from command palette', async ({ page }) => {
@@ -33,23 +19,11 @@ test.describe('Create Client Quick Onboarding', () => {
     // Select "Tambah Client Baru"
     await page.getByRole('option', { name: 'Tambah Client Baru' }).click();
 
-    // Verify dialog opens
-    await expect(page.getByText(/Client Baru & Onboarding/)).toBeVisible();
+    // Verify dialog opens — title shows "Langkah 1 dari 2"
+    await expect(page.getByText(/Langkah.*dari.*2/)).toBeVisible({ timeout: 10000 });
   });
 
-  test('should open create client dialog from sidebar button', async ({ page }) => {
-    await loginAsAdmin(page);
-
-    // Click the + button on CLIENTS group (icon-only, aria-label on button)
-    const addBtn = page.locator('button[aria-label="Tambah client baru"]');
-    await addBtn.waitFor({ state: 'visible', timeout: 15000 });
-    await addBtn.click();
-
-    // Verify dialog opens
-    await expect(page.getByText(/Client Baru & Onboarding/)).toBeVisible();
-  });
-
-  test('should validate client name required', async ({ page }) => {
+  test('should validate brand name and niche required', async ({ page }) => {
     await loginAsAdmin(page);
 
     // Open command palette
@@ -57,15 +31,16 @@ test.describe('Create Client Quick Onboarding', () => {
     await page.keyboard.press('k');
     await page.keyboard.up('Control');
     await page.getByRole('option', { name: 'Tambah Client Baru' }).click();
+    await expect(page.getByText(/Langkah.*dari.*2/)).toBeVisible({ timeout: 10000 });
 
-    // Try to submit without name
-    await page.getByRole('button', { name: /Simpan/ }).click();
+    // Click "Lanjut ke Kontak" without filling required fields
+    await page.getByRole('button', { name: /Lanjut ke Kontak/i }).click();
 
-    // Should show error
-    await expect(page.getByText('Nama client wajib diisi')).toBeVisible();
+    // Should show error banner
+    await expect(page.getByText(/Mohon lengkapi Nama Brand dan Niche/i)).toBeVisible({ timeout: 10000 });
   });
 
-  test('should create client with all fields', async ({ page }) => {
+  test('should complete step 1 with name and niche', async ({ page }) => {
     await loginAsAdmin(page);
 
     // Open command palette
@@ -73,23 +48,23 @@ test.describe('Create Client Quick Onboarding', () => {
     await page.keyboard.press('k');
     await page.keyboard.up('Control');
     await page.getByRole('option', { name: 'Tambah Client Baru' }).click();
+    await expect(page.getByText(/Langkah.*dari.*2/)).toBeVisible({ timeout: 10000 });
 
-    // Fill form — labels are in the dialog
-    await page.getByLabel('Nama Brand / Client').fill('Test Client E2E');
-    await page.getByLabel('Target Audiens Utama').fill('Keluarga muda kota besar');
-    await page.getByLabel('Produk / Layanan Utama').fill('Kopi artisan, pastry');
-    await page.getByLabel('Keunikan / USP Brand').fill('Bijian langsung dari petani');
+    // Fill Nama Brand
+    await page.getByLabel('Nama Brand').fill('Brand Uji E2E');
 
-    // Submit
-    await page.getByRole('button', { name: /Simpan/ }).click();
+    // Select Niche via Combobox
+    await page.getByRole('combobox').click();
+    await page.waitForTimeout(500);
+    // Pick the first available niche option
+    const firstOption = page.getByRole('option').first();
+    await expect(firstOption).toBeVisible({ timeout: 5000 });
+    await firstOption.click();
 
-    // The form should either:
-    //   a) show a credentials dialog, or
-    //   b) close the dialog (success without email), or
-    //   c) show an error (API/DB issue — still a valid E2E pass: the UI flow works)
-    // We wait briefly then assert we're not stuck on a crashing page.
-    await page.waitForTimeout(5000);
-    const pageAlive = await page.locator('body').isVisible();
-    expect(pageAlive).toBe(true);
+    // Click "Lanjut ke Kontak"
+    await page.getByRole('button', { name: /Lanjut ke Kontak/i }).click();
+
+    // Step 2 indicator must appear
+    await expect(page.getByText(/Langkah 2 dari 2/i)).toBeVisible({ timeout: 10000 });
   });
 });

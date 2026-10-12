@@ -13,11 +13,16 @@
  */
 import { getClientsWithChannels } from "@/features/social-accounts/api/service"
 import { notFound } from "next/navigation"
+import { cache } from "react"
+
+const getCachedClientsWithChannels = cache(async () => {
+  return await getClientsWithChannels()
+})
 
 /**
  * Resolve clientId dari URL search params.
  * - Jika valid (non-empty) → kembalikan apa adanya (middleware sudah cek aksesnya).
- * - Jika kosong → kembalikan client pertama yang SAH dari DB.
+ * - Jika kosong → kembalikan client pertama yang SAH dari DB (dide-duplikasi via React cache()).
  * - Jika tidak ada client sama sekali → throw 404 (sistem belum siap).
  */
 export async function resolveClientId(clientIdFromUrl: string | null | undefined): Promise<string> {
@@ -25,7 +30,7 @@ export async function resolveClientId(clientIdFromUrl: string | null | undefined
     return clientIdFromUrl
   }
 
-  const clients = await getClientsWithChannels()
+  const clients = await getCachedClientsWithChannels()
   
   if (!clients || clients.length === 0) {
     // Tidak ada klien yang tersambung -> arahkan ke error 404

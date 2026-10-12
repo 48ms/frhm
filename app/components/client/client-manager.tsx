@@ -30,6 +30,7 @@ export function ClientManager() {
         {clients?.map((client) => (
           <div
             key={client.id}
+            data-client-id={client.id}
             className="p-6 rounded-2xl bg-card border border-border/50 hover:border-brand-accent/60 transition-all"
           >
             <div className="flex items-center gap-4 mb-4">

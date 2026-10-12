@@ -102,7 +102,7 @@ export function SchedulePostModal({
 
   return (
     <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} role="button" aria-label="Tutup modal" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClose()} />
       <div className="relative w-full max-w-lg bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-border/30 pb-3">
           <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export function SchedulePostModal({
             </div>
             <div>
               <h3 className="font-syne font-bold text-foreground text-sm">Schedule a Post</h3>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 Publishing for {client?.name ?? "Client"}
               </p>
             </div>
@@ -150,7 +150,7 @@ export function SchedulePostModal({
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5">Channels</label>
             {channels.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-1xs text-muted-foreground">
                 Belum ada channel terhubung untuk klien ini. Hubungkan akun sosial lebih dulu di
                 halaman Social Accounts.
               </p>
@@ -168,7 +168,7 @@ export function SchedulePostModal({
                       type="button"
                       onClick={() => toggle(p)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-semibold transition-all cursor-pointer",
+                        "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-1xs font-semibold transition-all cursor-pointer",
                         on
                           ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
                           : "border-border/40 text-muted-foreground hover:text-foreground"
@@ -203,7 +203,7 @@ export function SchedulePostModal({
                     type="button"
                     onClick={() => setWhen(t)}
                     className={cn(
-                      "px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer",
+                      "px-2.5 py-1.5 rounded-full text-1xs font-semibold border transition-all cursor-pointer",
                       when === t
                         ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
                         : "border-border/40 text-muted-foreground hover:text-foreground"

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendTelegramMessage } from '@/lib/telegram/service'
 import { verifyTelegramWebhookSecret } from '@/lib/telegram/verify-webhook'
+import { verifyTelegramLinkToken } from '@/lib/telegram/link-token'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { logger } from '@/lib/logger'
 import { logAudit } from '@/lib/audit/log'
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
   // Tangani perintah /start
   if (text.startsWith('/start')) {
     const parts = text.split(' ')
-    const startPayload = parts[1] // contoh: "client_123" atau "admin_456"
+    const startPayload = parts[1] // token bertanda tangan (lihat lib/telegram/link-token)
 
     if (!startPayload) {
       await sendTelegramMessage({
@@ -90,9 +91,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true })
     }
 
-    // Kasus 1: Penautan Akun Klien (client_<clientId>)
-    if (startPayload.startsWith('client_')) {
-      const clientId = startPayload.replace('client_', '')
+    // Verifikasi token: signature + masa berlaku. Payload lama `client_<uuid>`
+    // tidak lagi diterima karena id mentah bisa dipalsukan siapa pun.
+    const link = verifyTelegramLinkToken(startPayload)
+    if (!link) {
+      await sendTelegramMessage({
+        chatId,
+        text: `Tautan tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru dari portal Frhm.`,
+      })
+      return NextResponse.json({ ok: true })
+    }
+
+    // Kasus 1: Penautan Akun Klien
+    if (link.type === 'client') {
+      const clientId = link.id
 
       const { data: client, error: fetchErr } = await supabase
         .from('clients')
@@ -142,7 +154,7 @@ export async function POST(request: Request) {
           [
             {
               text: 'Buka Portal Frhm',
-              url: `${appUrl}/app/client/deliverables`,
+              url: `${appUrl}/admin/erp`,
             },
           ],
         ],
@@ -163,9 +175,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, linked: 'client', clientId })
     }
 
-    // Kasus 2: Penautan Akun Admin (admin_<userId>)
-    if (startPayload.startsWith('admin_')) {
-      const adminUserId = startPayload.replace('admin_', '')
+    // Kasus 2: Penautan Akun Admin
+    if (link.type === 'admin') {
+      const adminUserId = link.id
 
       const { data: user, error: fetchUserErr } = await supabase
         .from('users')
@@ -212,7 +224,7 @@ export async function POST(request: Request) {
           [
             {
               text: 'Buka Dashboard Admin',
-              url: `${appUrl}/app/admin/dashboard`,
+              url: `${appUrl}/admin/dashboard`,
             },
           ],
         ],

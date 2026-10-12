@@ -4,15 +4,17 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CreateDeliverableDialog } from "@/components/deliverable/create-deliverable-dialog"
+import { PageContainer } from "@/components/layout/page-container"
+import { Button } from "@/components/ui/button"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 export function ErpDashboardClient() {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const { clientId, client } = useActiveDashboard()
   // Data khusus client aktif dari DB (bukan listAll() lalu filter).
   const { data: posts } = useSuspenseQuery(scheduledPostQueries.listByClient(clientId))
@@ -62,35 +64,31 @@ export function ErpDashboardClient() {
   )
 
   return (
-    <main className="flex-1 p-6 lg:p-8 space-y-6 max-w-[1440px] w-full mx-auto">
-      {/* TITLE BAR & ACTIONS */}
-      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold font-headline-xl text-[hsl(var(--admin-on-surface))] tracking-tight">
-            Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-[hsl(var(--admin-outline))] mt-1">
-            Ringkasan deliverable dan performa konten klien
-          </p>
-        </div>
+    <PageContainer
+      pageTitle="Dashboard"
+      pageDescription="Ringkasan deliverable dan performa konten klien"
+      pageHeaderAction={
         <div className="flex items-center gap-2.5">
-          <button
+          <Button
             onClick={handleNotifyTelegram}
-            disabled={notifSending}
-            className="admin-pill admin-pill-ghost inline-flex items-center gap-2 px-4 py-2 cursor-pointer disabled:opacity-50"
+            isLoading={notifSending}
+            variant="ghost"
+            className="admin-pill admin-pill-ghost inline-flex items-center gap-2 px-4 py-2 cursor-pointer border"
           >
             <Icons.send className="size-4 text-[hsl(var(--admin-cobalt))]" />
-            {notifSending ? "Mengirim..." : "Notifikasi Telegram"}
-          </button>
-          <button
+            Notifikasi Telegram
+          </Button>
+          <Button
             onClick={() => setCreateOpen(true)}
-            className="admin-pill admin-pill-lime inline-flex items-center gap-2 px-4 py-2 cursor-pointer"
+            className="admin-pill admin-pill-lime inline-flex items-center gap-2 px-4 py-2 cursor-pointer border-0"
           >
             <Icons.add className="size-4" />
             Deliverable Baru
-          </button>
+          </Button>
         </div>
-      </section>
+      }
+      className="space-y-6 max-w-[1440px] w-full mx-auto"
+    >
 
       <CreateDeliverableDialog open={createOpen} onOpenChange={setCreateOpen} />
 
@@ -102,8 +100,8 @@ export function ErpDashboardClient() {
             TOTAL DELIVERABLE
           </p>
           <div className="my-4">
-            <span className="text-5xl font-black font-headline-xl text-[hsl(var(--admin-cobalt))] tracking-tight">
-              {totalDeliverable}
+            <span className="text-5xl font-black font-mono text-[hsl(var(--admin-cobalt))] tracking-tight">
+              <MetricTicker value={totalDeliverable} />
             </span>
           </div>
           <p className="text-xs text-[hsl(var(--admin-outline))]">
@@ -115,17 +113,17 @@ export function ErpDashboardClient() {
         <div className="lg:col-span-4 p-6 admin-card flex flex-col justify-center space-y-3">
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[hsl(var(--admin-cobalt))]/10 border border-[hsl(var(--admin-cobalt))]/20 text-[hsl(var(--admin-cobalt))]">
             <Icons.clock className="size-[18px]" />
-            <span className="text-xs font-semibold">{waitingReview}</span>
+            <span className="text-xs font-semibold"><MetricTicker value={waitingReview} /></span>
             <span className="text-xs font-medium text-[hsl(var(--admin-on-surface))]">Menunggu review client</span>
           </div>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]">
             <Icons.warning className="size-[18px]" />
-            <span className="text-xs font-semibold">{draft}</span>
+            <span className="text-xs font-semibold"><MetricTicker value={draft} /></span>
             <span className="text-xs font-medium text-[hsl(var(--admin-on-surface))]">Perlu revisi dari kamu</span>
           </div>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20 text-[hsl(var(--success))]">
             <Icons.check className="size-[18px]" />
-            <span className="text-xs font-semibold">{approved}</span>
+            <span className="text-xs font-semibold"><MetricTicker value={approved} /></span>
             <span className="text-xs font-medium text-[hsl(var(--admin-on-surface))]">Disetujui, siap publish</span>
           </div>
         </div>
@@ -158,7 +156,7 @@ export function ErpDashboardClient() {
       {/* CLIENT WORKSPACES GRID */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] font-headline-md tracking-tight">
+          <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] admin-headline-md tracking-tight">
             Klien Aktif: {client.name}
           </h2>
         </div>
@@ -169,7 +167,7 @@ export function ErpDashboardClient() {
              <div className="mt-4">
                <div className="flex items-center justify-between text-xs text-[hsl(var(--admin-on-surface-variant))] mb-1.5">
                  <span>Channel Terhubung</span>
-                 <span className="font-mono text-[11px] text-[hsl(var(--admin-outline))]">{client.channels?.length || 0} / 10</span>
+                 <span className="font-mono text-1xs text-[hsl(var(--admin-outline))]">{client.channels?.length || 0} / 10</span>
                </div>
                <div className="w-full bg-[hsl(var(--admin-surface-high))] h-1.5 rounded-full overflow-hidden">
                  <div className="bg-[hsl(var(--admin-cobalt))] h-full rounded-full transition-all" style={{ width: `${((client.channels?.length || 0) / 10) * 100}%` }}></div>
@@ -183,6 +181,6 @@ export function ErpDashboardClient() {
            </div>
         </div>
       </section>
-    </main>
+    </PageContainer>
   )
 }

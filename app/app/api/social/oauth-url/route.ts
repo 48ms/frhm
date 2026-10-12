@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
+import { createOAuthState, OAUTH_STATE_COOKIE, OAUTH_STATE_TTL_SECONDS } from '@/lib/social/oauth-state'
+import { z } from 'zod'
+
+const bodySchema = z.object({
+  clientId: z.string().min(1, 'clientId wajib diisi'),
+  platform: z.string().min(1, 'platform wajib diisi'),
+})
 
 export async function POST(req: Request) {
   try {
@@ -10,10 +17,15 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { clientId, platform } = await req.json()
-    if (!clientId || !platform) {
-      return NextResponse.json({ error: 'Missing clientId or platform' }, { status: 400 })
+    const rawBody = await req.json().catch(() => ({}))
+    const parsed = bodySchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || 'Missing clientId or platform' },
+        { status: 400 },
+      )
     }
+    const { clientId, platform } = parsed.data
 
     const { data: profile } = await supabase
       .from('users')
@@ -74,7 +86,19 @@ export async function POST(req: Request) {
     const callbackUrl = new URL(process.env.NEXT_PUBLIC_APP_URL + '/api/social/callback')
     callbackUrl.searchParams.set('clientId', clientId)
     callbackUrl.searchParams.set('platform', platform)
-    
+
+    // Mint a signed, short-lived state token bound to this user + tenant and
+    // return it in an httpOnly cookie. The callback verifies the cookie instead
+    // of trusting clientId from the query string (prevents cross-tenant writes).
+    const stateToken = createOAuthState({ clientId, platform, userId: user.id })
+    if (!stateToken) {
+      return NextResponse.json(
+        { error: 'OAuth state secret not configured' },
+        { status: 500 },
+      )
+    }
+    callbackUrl.searchParams.set('state', stateToken)
+
     const redirectUrl = `https://app.ayrshare.com/link?profileKey=${profileKey}&platform=${platform}&redirect_uri=${encodeURIComponent(callbackUrl.toString())}`
 
     void logAudit({
@@ -86,7 +110,17 @@ export async function POST(req: Request) {
       metadata: { platform, profileKey },
     })
 
-    return NextResponse.json({ success: true, url: redirectUrl })
+    const response = NextResponse.json({ success: true, url: redirectUrl })
+    response.cookies.set({
+      name: OAUTH_STATE_COOKIE,
+      value: stateToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: OAUTH_STATE_TTL_SECONDS,
+    })
+    return response
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal Server Error' },

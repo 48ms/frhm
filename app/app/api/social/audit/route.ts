@@ -3,8 +3,18 @@ import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+// Body: { accountId, handle, platform, oldScopes, newScopes }
+const bodySchema = z.object({
+  accountId: z.string().min(1, 'accountId wajib diisi'),
+  handle: z.string().min(1, 'handle wajib diisi'),
+  platform: z.string().min(1, 'platform wajib diisi'),
+  oldScopes: z.array(z.string()),
+  newScopes: z.array(z.string()),
+})
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'social/audit', RATE_LIMITS.mutation.limit, RATE_LIMITS.mutation.windowMs)
@@ -24,26 +34,26 @@ export async function POST(request: Request) {
     return denyUnauthorized()
   }
 
-  let body: {
-    accountId: string
-    handle: string
-    platform: string
-    oldScopes: string[]
-    newScopes: string[]
-  }
-
+  let body
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
 
-  if (!body.accountId || !body.handle) {
-    return NextResponse.json({ error: 'Missing accountId or handle' }, { status: 400 })
+  const parsed = bodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || 'Payload tidak valid' },
+      { status: 400 },
+    )
   }
 
-  const added = body.newScopes.filter((s) => !body.oldScopes.includes(s))
-  const removed = body.oldScopes.filter((s) => !body.newScopes.includes(s))
+  // Destructure after Zod validation so TypeScript knows the types.
+  const { accountId, handle, platform, oldScopes, newScopes } = parsed.data
+
+  const added = newScopes.filter((s) => !oldScopes.includes(s))
+  const removed = oldScopes.filter((s) => !newScopes.includes(s))
 
   if (added.length === 0 && removed.length === 0) {
     return NextResponse.json({ ok: true, changed: false })

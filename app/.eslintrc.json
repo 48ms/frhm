@@ -37,7 +37,8 @@
     {
       "files": [
         "lib/supabase/service.ts",
-        "lib/supabase/client.ts"
+        "lib/supabase/client.ts",
+        "test-supabase.ts"
       ],
       "rules": {
         "no-restricted-imports": "off"

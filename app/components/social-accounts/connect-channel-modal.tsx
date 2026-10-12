@@ -4,8 +4,6 @@ import * as React from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 
-import type { ClientChannel } from "@/features/social-accounts/api/types"
-import { PLATFORM_SCOPES } from "./social-scopes"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -13,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"
+} from "@/components/animate-ui/components/radix/dialog"
 
 type PlatformId = "Instagram" | "TikTok" | "YouTube" | "LinkedIn" | "Twitter" | "Facebook"
 const ALL_PLATFORMS: PlatformId[] = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Twitter", "Facebook"]
@@ -33,7 +31,7 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   Instagram: {
     available: true,
     icon: "instagram",
-    iconClass: "text-rose-500",
+    iconClass: "text-destructive",
     blurb: "Reels, carousels, stories and insights",
   },
   TikTok: {
@@ -45,13 +43,13 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   YouTube: {
     available: true,
     icon: "play",
-    iconClass: "text-red-500",
+    iconClass: "text-[hsl(var(--platform-youtube))]",
     blurb: "Long-form, Shorts and Studio analytics",
   },
   LinkedIn: {
     available: true,
     icon: "building",
-    iconClass: "text-sky-600",
+    iconClass: "text-[hsl(var(--platform-linkedin))]",
     blurb: "Company pages and sponsored content",
   },
   Twitter: {
@@ -63,7 +61,7 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   Facebook: {
     available: true,
     icon: "facebook",
-    iconClass: "text-blue-600",
+    iconClass: "text-[hsl(var(--platform-facebook))]",
     blurb: "Pages, groups and ads",
   },
 }
@@ -202,7 +200,7 @@ export function ConnectChannelModal({
                           )}
                         </div>
                         {already && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
                             <Icons.check className="size-3" />
                             Connected
                           </span>
@@ -212,12 +210,12 @@ export function ConnectChannelModal({
                         <span className="flex items-center gap-1.5 text-sm font-bold min-w-0">
                           <span className="truncate">{p}</span>
                           {disabled && (
-                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shrink-0">
+                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-2xs font-semibold text-muted-foreground shrink-0">
                               Soon
                             </span>
                           )}
                         </span>
-                        <span className="block text-[11px] leading-snug text-muted-foreground line-clamp-2">
+                        <span className="block text-1xs leading-snug text-muted-foreground line-clamp-2">
                           {m.blurb}
                         </span>
                       </div>

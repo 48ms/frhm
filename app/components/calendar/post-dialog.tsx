@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog'
+} from '@/components/animate-ui/components/radix/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +18,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+} from '@/components/animate-ui/components/radix/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/animate-ui/components/radix/radio-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -361,7 +361,7 @@ export function PostDialog({
                       placeholder="e.g. Campaign Natal 2026"
                       value={reservedFor}
                       onChange={(e) => setReservedFor(e.target.value)}
-                      className="h-11 text-[15px] font-medium"
+                      className="h-11 text-sm-plus font-medium"
                     />
                   </div>
                 )}
@@ -377,7 +377,7 @@ export function PostDialog({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required={!isCampaignMode}
-                    className="h-11 text-[15px] font-medium"
+                    className="h-11 text-sm-plus font-medium"
                   />
                 </div>
 
@@ -392,7 +392,7 @@ export function PostDialog({
                         id="post-content-count"
                         aria-live="polite"
                         className={cn(
-                          "text-[11px] tabular-nums transition-colors",
+                          "text-1xs tabular-nums transition-colors",
                           captionOverLimit ? "text-destructive font-semibold" : "text-muted-foreground/70"
                         )}
                       >
@@ -408,7 +408,7 @@ export function PostDialog({
                       aria-invalid={captionOverLimit}
                       aria-describedby={captionOverLimit ? "post-content-count post-content-error" : "post-content-count"}
                       className={cn(
-                        "min-h-[180px] resize-none border-border/60 bg-muted/20 focus-visible:bg-background transition-colors text-[15px] leading-relaxed",
+                        "min-h-[180px] resize-none border-border/60 bg-muted/20 focus-visible:bg-background transition-colors text-sm-plus leading-relaxed",
                         captionOverLimit && "border-destructive focus-visible:border-destructive"
                       )}
                     />
@@ -498,24 +498,25 @@ export function PostDialog({
                 {/* Planning Layer: Priority & Campaign via shadcn Select */}
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="post-priority" className="text-xs">Prioritas</Label>
-                    <Select
+                    <Label id="priority-label" className="text-xs">Prioritas</Label>
+                    <RadioGroup
+                      aria-labelledby="priority-label"
                       value={priority}
-                      onValueChange={(v) => v && setPriority(v as 'low' | 'normal' | 'high' | 'urgent')}
+                      onValueChange={(v) => setPriority(v as 'low' | 'normal' | 'high' | 'urgent')}
+                      className="grid grid-cols-4 gap-2"
                     >
-                      <SelectTrigger id="post-priority" className="w-full h-10">
-                        <SelectValue placeholder="Pilih prioritas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {PRIORITY_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.id} value={opt.id}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      {PRIORITY_OPTIONS.map((opt) => (
+                        <div key={opt.id}>
+                          <RadioGroupItem value={opt.id} id={`prio-${opt.id}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`prio-${opt.id}`}
+                            className="flex items-center justify-center h-10 px-2 rounded-lg border bg-popover hover:bg-accent peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:text-primary cursor-pointer text-xs font-bold transition-all"
+                          >
+                            {opt.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
                   </div>
 
                   <div className="space-y-1.5">
@@ -644,17 +645,15 @@ export function PostDialog({
             <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm p-4 flex items-center gap-2">
               {editingPost && onDelete && (
                 <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="destructive-outline"
-                        loading={loading}
-                        className="h-9"
-                      />
-                    }
-                  >
-                    Hapus
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      isLoading={loading}
+                      className="h-9 text-destructive border-destructive/30 hover:bg-destructive/10"
+                    >
+                      Hapus
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -666,13 +665,13 @@ export function PostDialog({
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogCancel>Batalkan</AlertDialogCancel>
                       <AlertDialogAction
                         variant="destructive"
                         onClick={handleDelete}
                         disabled={loading}
                       >
-                        {loading ? 'Menghapus...' : 'Hapus'}
+                        {loading ? 'Menghapus...' : 'Hapus Postingan'}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

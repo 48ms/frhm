@@ -8,7 +8,7 @@ import {
   FieldLegend,
   FieldSet
 } from '@/components/ui/field';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { RadioGroup, RadioGroupItem } from '@/components/animate-ui/components/radix/radio-group';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
 
 export function RadioGroupField({

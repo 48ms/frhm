@@ -21,7 +21,9 @@ export default async function WaitlistPage() {
     .single()
 
   if (profile?.role) {
-    redirect(profile.role === 'admin' ? '/admin/dashboard' : '/client/dashboard')
+    // No /client/* portal exists — all roles land on the shared admin routes,
+    // scoped by ?clientId= for non-admins (see middleware tenant guard).
+    redirect('/admin/dashboard')
   }
 
   return (

@@ -1,21 +1,57 @@
 import { test, expect } from '@playwright/test'
+import { loginAsAdmin } from './helpers/login'
 
-const BASE = 'http://localhost:3004'
+test.describe('Composer module', () => {
+  test.setTimeout(120000)
 
-test.use({
-  // Bypass UI login: directly inject Supabase auth session cookie/token if we could, 
-  // but simpler to just use the actual UI once.
-})
+  test('renders either the empty state or the full 4-step workflow', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/composer')
+    await page.waitForLoadState('networkidle')
 
-test.describe('Admin User Journey', () => {
-  test.beforeEach(async ({ page }) => {
-    // 1. Authenticate via UI (seeding / DB must have this test user)
-    await page.goto(`${BASE}/auth/login`)
-    // Because we might hit rate limit or fail auth if the real DB lacks the user,
-    // we just want to verify the pages DO NOT CRASH if forced to render.
+    const emptyState = page.getByText(/Belum ada akun|hubungkan akun/i)
+    const isEmptyVisible = await emptyState.first().isVisible().catch(() => false)
+
+    if (isEmptyVisible) {
+      // Empty state must not leak an undefined client id into its links.
+      await expect(page).not.toHaveURL(/clientId=undefined/)
+      return
+    }
+
+    // Full workflow: 4-step indicator
+    await expect(page.getByText('Tulis / Upload')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('Pilih Platform')).toBeVisible()
+    await expect(page.getByText('Atur Jadwal')).toBeVisible()
+    await expect(page.getByText('Publish')).toBeVisible()
+
+    // Step 1 fields have associated labels (WCAG 1.3.1)
+    await expect(page.getByLabel('Judul Postingan / Referensi Internal')).toBeVisible()
+    await expect(page.getByLabel('Caption & Copywriting')).toBeVisible()
   })
-  
-  test('Composer: Step 1 (Platform), Step 2 (AI), Step 3 (Library)', async ({ page }) => {
-    test.skip(true, 'Test bypass: Kita verifikasi kode backendnya langsung.')
+
+  test('all composer form inputs have accessible labels', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/composer')
+    await page.waitForLoadState('networkidle')
+
+    const emptyState = page.getByText(/Belum ada akun|hubungkan akun/i)
+    const isEmptyVisible = await emptyState.first().isVisible().catch(() => false)
+    if (isEmptyVisible) return
+
+    const unlabeled = await page.evaluate(() => {
+      const main = document.querySelector('main')
+      if (!main) return -1
+      const inputs = Array.from(main.querySelectorAll('input, textarea, select'))
+        // Ignore hidden/submit inputs and platform checkbox toggles (they have aria-labels)
+        .filter((el) => el.getAttribute('type') !== 'hidden')
+      return inputs.filter((el) => {
+        const id = el.getAttribute('id')
+        const aria = el.getAttribute('aria-label') || el.getAttribute('aria-labelledby')
+        if (aria) return false
+        if (!id) return true
+        return !document.querySelector(`label[for="${id}"]`)
+      }).length
+    })
+    expect(unlabeled, 'all composer inputs must have accessible labels').toBe(0)
   })
 })

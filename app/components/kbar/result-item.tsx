@@ -54,7 +54,7 @@ const ResultItem = React.forwardRef(
             </span>
           )}
           <div className='flex min-w-0 flex-col'>
-            <div className='flex items-center truncate text-[13px] leading-tight'>
+            <div className='flex items-center truncate text-xs-plus leading-tight'>
               {ancestors.length > 0 &&
                 ancestors.map((ancestor) => (
                   <React.Fragment key={ancestor.id}>
@@ -65,7 +65,7 @@ const ResultItem = React.forwardRef(
               <span className='truncate'>{action.name}</span>
             </div>
             {action.subtitle && (
-              <span className='mt-0.5 truncate text-[11px] text-muted-foreground'>
+              <span className='mt-0.5 truncate text-1xs text-muted-foreground'>
                 {action.subtitle}
               </span>
             )}

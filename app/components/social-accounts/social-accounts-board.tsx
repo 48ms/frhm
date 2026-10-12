@@ -17,20 +17,22 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/animate-ui/components/radix/dropdown-menu"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 import { socialQueries, useDisconnectChannel, useSyncChannel } from "@/features/social-accounts/api/queries"
 import type { ClientChannel } from "@/features/social-accounts/api/types"
 
 export function getPlatformUI(platform: string) {
   const p = (platform || "").toLowerCase()
-  if (p === 'instagram') return { icon: 'instagram', bg: 'bg-pink-500', fg: 'text-white' }
-  if (p === 'tiktok') return { icon: 'tiktok', bg: 'bg-black', fg: 'text-white' }
-  if (p === 'youtube') return { icon: 'youtube', bg: 'bg-red-500', fg: 'text-white' }
-  if (p === 'linkedin') return { icon: 'linkedin', bg: 'bg-blue-600', fg: 'text-white' }
-  if (p === 'twitter' || p === 'x') return { icon: 'twitter', bg: 'bg-sky-500', fg: 'text-white' }
-  if (p === 'facebook') return { icon: 'facebook', bg: 'bg-blue-600', fg: 'text-white' }
-  return { icon: 'hub', bg: 'bg-gray-500', fg: 'text-white' }
+  if (p === 'instagram') return { icon: 'instagram', bg: 'bg-[hsl(var(--platform-instagram))]', fg: 'text-white' }
+  if (p === 'tiktok') return { icon: 'tiktok', bg: 'bg-[hsl(var(--admin-on-surface))]', fg: 'text-white' }
+  if (p === 'youtube') return { icon: 'youtube', bg: 'bg-[hsl(var(--platform-youtube))]', fg: 'text-white' }
+  if (p === 'linkedin') return { icon: 'linkedin', bg: 'bg-[hsl(var(--platform-linkedin))]', fg: 'text-white' }
+  if (p === 'twitter' || p === 'x') return { icon: 'twitter', bg: 'bg-[hsl(var(--platform-twitter))]', fg: 'text-white' }
+  if (p === 'facebook') return { icon: 'facebook', bg: 'bg-[hsl(var(--platform-facebook))]', fg: 'text-white' }
+  return { icon: 'hub', bg: 'bg-muted-foreground', fg: 'text-white' }
 }
 
 function statusBadge(status: ClientChannel["status"]) {
@@ -55,7 +57,7 @@ export function ClientChannelsBoard() {
   React.useEffect(() => {
     const success = searchParams?.get("success")
     const error = searchParams?.get("error")
-    
+
     if (success === "connected") {
       toast.success("Social account connected successfully")
     } else if (error) {
@@ -69,7 +71,8 @@ export function ClientChannelsBoard() {
       url.searchParams.delete("error")
       window.history.replaceState({}, '', url.toString())
     }
-  }, [searchParams])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   
   const [connectOpen, setConnectOpen] = React.useState(false)
   const { openCreateClient } = useCreateClient()
@@ -251,35 +254,32 @@ export function ClientChannelsBoard() {
         role="region"
         aria-label="Filter accounts horizontally"
       >
-        <div
-          role="tablist"
-          aria-label="Filter social accounts"
-          className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20"
-        >
-          {TABS.map(t => {
-              if (t === "Action Required" && actionNeededCount === 0) return null;
-              
+        <Tabs value={tab} onValueChange={(val) => setTab(val)}>
+          <TabsList
+            aria-label="Filter social accounts"
+            className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20 h-auto"
+            highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+          >
+            {TABS.map((t) => {
+              if (t === "Action Required" && actionNeededCount === 0) return null
+
               return (
-                <button
+                <TabsTrigger
                   key={t}
-                  role="tab"
-                  aria-selected={tab === t}
-                  onClick={() => setTab(t)}
-                  className={cn(
-                    "px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                    tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
-                  )}
+                  value={t}
+                  className="px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
                 >
-                    {t} {t === "All Accounts" && `(${activeClient.channels.length})`}
-                    {t === "Action Required" && actionNeededCount > 0 && (
-                       <span className="ml-1.5 bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-full text-[10px]">
-                         {actionNeededCount}
-                       </span>
-                    )}
-                </button>
+                  {t} {t === "All Accounts" && `(${activeClient.channels.length})`}
+                  {t === "Action Required" && actionNeededCount > 0 && (
+                    <span className="ml-1.5 bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-full text-2xs">
+                      {actionNeededCount}
+                    </span>
+                  )}
+                </TabsTrigger>
               )
-          })}
-        </div>
+            })}
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* KPI cards */}
@@ -326,7 +326,7 @@ export function ClientChannelsBoard() {
             subtitle="Connected through the Meta Graph API"
             accounts={filteredAccounts.filter(a => a.platform.toLowerCase() === "instagram")}
             icon="instagram"
-            iconClass="bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white"
+            iconClass="bg-gradient-to-tr from-warning via-destructive to-brand-lavender text-destructive-foreground"
             bulkLabel="Refresh data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
@@ -403,19 +403,21 @@ function KPICard({ label, value, badge, sub, icon, tone, onClick }: {
           aria-label={onClick ? `Show ${label}` : undefined}
           className={cn(
           "p-5 admin-card flex items-center justify-between relative overflow-hidden group transition-all",
-          isError ? "border-rose-500/30" : "admin-card-hover",
+          isError ? "border-destructive/30" : "admin-card-hover",
           onClick && "cursor-pointer hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         )}>
             <div className="space-y-1 min-w-0">
                 <span className="admin-section-label block">{label}</span>
                 <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-2xl font-extrabold font-syne text-foreground tabular-nums">{value}</span>
+                    <span className="text-2xl font-extrabold font-mono text-foreground tabular-nums">
+                      <MetricTicker value={value} />
+                    </span>
                     <span className={cn(
                       "admin-badge",
-                      isError ? "bg-rose-500/15 text-rose-600" : "admin-badge-cobalt"
+                      isError ? "bg-destructive/15 text-destructive" : "admin-badge-cobalt"
                     )}>{badge}</span>
                 </div>
-                <p className={cn("text-[11px] truncate", isError ? "text-destructive" : "text-muted-foreground")}>{sub}</p>
+                <p className={cn("text-1xs truncate", isError ? "text-destructive" : "text-muted-foreground")}>{sub}</p>
             </div>
             <div className={cn(
               "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
@@ -469,13 +471,13 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
             </div>
 
             {accounts.length === 0 ? (
-              <div className="p-8 rounded-2xl border border-dashed border-border/50 bg-card/30 flex flex-col items-center justify-center text-center space-y-3">
+              <div className="p-8 py-12 rounded-2xl border border-dashed border-border/50 bg-card/30 flex flex-col items-center justify-center text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <Icons.link className="size-5 text-muted-foreground" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-foreground">No accounts connected</p>
-                  <p className="text-xs text-muted-foreground">Connect a {title} account to start syncing analytics and messages.</p>
+                  <p className="text-xs text-muted-foreground max-w-[250px]">Connect a {title} account to start syncing analytics and messages.</p>
                 </div>
               </div>
             ) : (
@@ -548,7 +550,7 @@ export function AccountCard({ account: a, onDisconnect, onReconnect, onRefreshOn
               <Icons.warning className="size-4" />
               Connection needs attention
             </div>
-            <p className="text-[11px] leading-tight opacity-90">
+            <p className="text-1xs leading-tight opacity-90">
               Data sync is paused until you reconnect this account.
             </p>
           </div>
@@ -568,7 +570,7 @@ export function AccountCard({ account: a, onDisconnect, onReconnect, onRefreshOn
         {isExpiring ? (
           <button
             onClick={() => onReconnect(a)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-[11px] font-bold transition-all active:scale-95 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-1xs font-bold transition-all active:scale-95 cursor-pointer"
           >
             <Icons.warning className="size-4" />
             Reconnect account

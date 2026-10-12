@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options: _options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -49,28 +49,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Tenant Strict Guard: Cek apakah user berhak mengakses clientId di URL
+  // Tenant Strict Guard: non-admin users may ONLY ever see their own client's
+  // data on the shared /admin/* routes (there is no separate /client portal).
+  // If a clientId param is absent or does not match their binding, force it to
+  // their own client_id so they cannot read another tenant via clients[0].
   if (user && isProtectedAdmin) {
     const requestedClientId = request.nextUrl.searchParams.get('clientId')
-    
-    // Jika ada clientId di URL, lakukan verifikasi akses
-    if (requestedClientId) {
-      // Ambil profile user dari public.users untuk cek role & binding
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('role, client_id')
-        .eq('id', user.id)
-        .single()
 
-      // Jika user bukan super-admin dan mencoba mengakses client_id yang bukan miliknya
-      if (userProfile && userProfile.role !== 'admin' && userProfile.client_id !== requestedClientId) {
+    // Ambil profile user dari public.users untuk cek role & binding
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('role, client_id')
+      .eq('id', user.id)
+      .single()
+
+    if (userProfile && userProfile.role !== 'admin') {
+      const ownClientId = userProfile.client_id
+      // Only enforce when we know the tenant; otherwise let the page render.
+      if (ownClientId && requestedClientId !== ownClientId) {
         const url = request.nextUrl.clone()
-        // Override clientId ke milik user sendiri
-        if (userProfile.client_id) {
-          url.searchParams.set('clientId', userProfile.client_id)
-        } else {
-          url.searchParams.delete('clientId')
-        }
+        url.searchParams.set('clientId', ownClientId)
         return NextResponse.redirect(url)
       }
     }
@@ -82,6 +80,23 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/admin/dashboard'
     return NextResponse.redirect(url)
   }
+
+  // Inject security headers
+  supabaseResponse.headers.set('X-Frame-Options', 'DENY')
+  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
+  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  supabaseResponse.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  supabaseResponse.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://*.supabase.co https://app.ayrshare.com https://api.woopsocial.com",
+      "frame-ancestors 'none'",
+    ].join('; ')
+  )
 
   return supabaseResponse
 }

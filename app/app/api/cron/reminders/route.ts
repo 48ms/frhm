@@ -131,14 +131,14 @@ export async function POST(request: Request) {
         .update({ last_sent_at: new Date().toISOString() })
         .eq('client_id', client.id)
 
-      // Audit trail
-      await supabase.from('audit_log').insert({
-        actor_role: 'system',
-        actor_name: 'Cron Scheduler',
+      // Audit trail (via helper: mengisi forensik + tidak pernah throw)
+      void logAudit({
+        actorRole: 'system',
+        actorName: 'Cron Scheduler',
         action: 'cron.reminders.sent',
-        entity_type: 'client',
-        entity_id: client.id,
-        client_id: client.id,
+        entityType: 'client',
+        entityId: client.id,
+        clientId: client.id,
         summary: `Sistem mengirim ${upcomingPosts.length} pengingat jadwal tayang ke ${client.name}`,
         metadata: { posts: upcomingPosts.length, hour: currentHour },
       })

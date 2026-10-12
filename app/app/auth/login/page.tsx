@@ -13,8 +13,8 @@ import type { AnyFieldApi } from '@tanstack/react-form'
 import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/animate-ui/components/radix/tabs'
+import { Checkbox } from '@/components/animate-ui/components/radix/checkbox'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/animate-ui/primitives/radix/tabs'
 import { ThemeModeToggle } from '@/components/themes/theme-mode-toggle'
 import { PRODUCT_NAME } from '@/lib/config'
 import { Icons } from '@/components/icons'
@@ -100,7 +100,7 @@ function Notice({ tone, children }: { tone: 'error' | 'success'; children: React
       className={
         tone === 'error'
           ? 'mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive'
-          : 'mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-400'
+          : 'mt-4 rounded-2xl border border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/10 px-4 py-3 text-sm font-medium text-[hsl(var(--success))]'
       }
     >
       {children}
@@ -207,15 +207,20 @@ function LoginForm() {
     setAuthError(null)
     setSignupNotice(null)
     setGoogleLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
-      },
-    })
-    if (error) {
-      const label = provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : 'LinkedIn'
-      setAuthError(`Gagal masuk dengan ${label}: ${error.message}`)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
+        },
+      })
+      if (error) {
+        const label = provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : 'LinkedIn'
+        setAuthError(`Gagal masuk dengan ${label}: ${error.message}`)
+      }
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'Terjadi kesalahan jaringan. Coba lagi.')
+    } finally {
       setGoogleLoading(false)
     }
   }
@@ -237,9 +242,9 @@ function LoginForm() {
       />
 
       {/* Master centre architectural glass container. */}
-      <main className='auth-container relative z-10 flex w-full max-w-[1140px] flex-col overflow-hidden rounded-[3rem]'>
+      <main className='auth-container relative z-10 flex w-full max-w-[1140px] flex-col overflow-hidden rounded-[var(--admin-radius-xl)]'>
         {/* Integrated shared navigation bar. */}
-        <header className='auth-nav flex w-full items-center justify-between rounded-t-[3rem] px-8 py-6'>
+        <header className='auth-nav flex w-full items-center justify-between rounded-t-[var(--admin-radius-xl)] px-8 py-6'>
           <div className='flex items-center gap-3'>
             <Link
               href='/'
@@ -264,14 +269,14 @@ function LoginForm() {
           <nav className='hidden items-center gap-8 md:flex' aria-label='Primary'>
             <Link
               href='/'
-              className='font-syne text-[11px] font-bold text-foreground transition-colors duration-200 hover:text-brand-accent active:scale-95'
+              className='font-syne text-1xs font-bold text-foreground transition-colors duration-200 hover:text-brand-accent active:scale-95'
             >
               Home
             </Link>
-            <span className='font-syne text-[11px] font-medium text-muted-foreground'>
+            <span className='font-syne text-1xs font-medium text-muted-foreground'>
               Explore
             </span>
-            <span className='font-syne text-[11px] font-medium text-muted-foreground'>
+            <span className='font-syne text-1xs font-medium text-muted-foreground'>
               About
             </span>
           </nav>
@@ -298,7 +303,7 @@ function LoginForm() {
             </div>
 
             {/* Recessed glass form card. */}
-            <div className='auth-card my-6 rounded-[2rem] p-6 sm:p-7'>
+            <div className='auth-card my-6 rounded-[var(--admin-radius-lg)] p-6 sm:p-7'>
               <Tabs
                 value={mode}
                 onValueChange={(v) => {
@@ -311,13 +316,13 @@ function LoginForm() {
                 <TabsList className='[&_[data-slot=motion-highlight]]:!bg-transparent [&_[data-slot=motion-highlight]]:shadow-none grid h-10 w-full grid-cols-2 rounded-full bg-white/60 p-1 ring-1 ring-white/60 backdrop-blur-sm dark:bg-white/5 dark:ring-white/10'>
                   <TabsTrigger
                     value='login'
-                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
+                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-1xs font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_hsl(var(--admin-lime)/0.7)]'
                   >
                     Log in
                   </TabsTrigger>
                   <TabsTrigger
                     value='signup'
-                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-[11px] font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_rgba(212,255,50,0.7)]'
+                    className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-1xs font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_hsl(var(--admin-lime)/0.7)]'
                   >
                     Sign up
                   </TabsTrigger>
@@ -387,7 +392,7 @@ function LoginForm() {
                       <label className='flex cursor-pointer items-center gap-2 select-none'>
                         <Checkbox
                           checked={remember}
-                          onCheckedChange={(v) => setRemember(v === true)}
+                          onCheckedChange={(v: boolean | 'indeterminate') => setRemember(v === true)}
                           name='remember'
                           className='size-4 rounded-md border-border data-[state=checked]:bg-brand-accent'
                         />
@@ -408,7 +413,7 @@ function LoginForm() {
                             type='submit'
                             loading={isSubmitting}
                             loadingLabel='Sedang masuk'
-                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold text-lum-ink !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
+                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-1xs font-bold text-lum-ink !shadow-[0_10px_24px_-4px_hsl(var(--admin-lime)/0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
                             Log in
                           </LoadingButton>
@@ -516,7 +521,7 @@ function LoginForm() {
                             type='submit'
                             loading={isSubmitting}
                             loadingLabel='Sedang membuat akun'
-                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-[11px] font-bold text-lum-ink !shadow-[0_10px_24px_-4px_rgba(212,255,50,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
+                            className='h-12 w-full rounded-full bg-lum-primary font-syne text-1xs font-bold text-lum-ink !shadow-[0_10px_24px_-4px_hsl(var(--admin-lime)/0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
                             Sign up
                           </LoadingButton>
@@ -532,7 +537,7 @@ function LoginForm() {
 
               {/* Social fast-connect. */}
               <div className='mt-6 text-center'>
-                <span className='mb-3 block font-syne text-[11px] text-muted-foreground'>
+                <span className='mb-3 block font-syne text-1xs text-muted-foreground'>
                   or you can log in with
                 </span>
                 <div className='flex items-center justify-center gap-3'>
@@ -559,7 +564,7 @@ function LoginForm() {
                     onClick={() => void handleOAuth('linkedin_oidc')}
                     disabled={googleLoading}
                     aria-label='Login with LinkedIn'
-                    className='flex size-9 items-center justify-center rounded-full bg-[#0077B5] text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
+                    className='flex size-9 items-center justify-center rounded-full bg-[hsl(var(--platform-linkedin))] text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <LinkedInMark />
                   </button>
@@ -621,7 +626,7 @@ function LoginForm() {
                 style={{ transform: 'translateY(-56px) rotate(1deg)' }}
               >
                 <h2
-                  className='inline-block font-syne text-[44px] font-extrabold tracking-tighter text-lum-on-surface select-none md:text-[54px]'
+                  className='inline-block font-syne text-display-sm font-extrabold tracking-tighter text-lum-on-surface select-none md:text-display-lg'
                 >
                   DIGITAL
                 </h2>
@@ -649,7 +654,7 @@ function LoginForm() {
               {/* Layer 6: lower monolith typography. */}
               <div className='absolute -bottom-14 right-14 z-30 select-none'>
                 <h2
-                  className='inline-block font-syne text-[48px] font-extrabold tracking-tighter text-lum-on-surface md:text-[60px]'
+                  className='inline-block font-syne text-display-md font-extrabold tracking-tighter text-lum-on-surface md:text-display-xl'
                 >
                   SPACE
                 </h2>
@@ -679,7 +684,7 @@ function LoginForm() {
         </div>
 
         <footer className='w-full border-t border-white/40 bg-white/30 py-3 text-center dark:bg-white/[0.02]'>
-          <p className='font-syne text-[11px] text-muted-foreground select-none'>
+          <p className='font-syne text-1xs text-muted-foreground select-none'>
             &copy; {new Date().getFullYear()} {PRODUCT_NAME}. All rights reserved.
           </p>
         </footer>

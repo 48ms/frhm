@@ -1,36 +1,69 @@
 import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { verifyOAuthState, OAUTH_STATE_COOKIE } from '@/lib/social/oauth-state'
+
+function readCookie(req: Request, name: string): string | null {
+  const header = req.headers.get('cookie')
+  if (!header) return null
+  for (const part of header.split(';')) {
+    const [k, ...v] = part.trim().split('=')
+    if (k === name) return decodeURIComponent(v.join('='))
+  }
+  return null
+}
 
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url)
-    const clientId = url.searchParams.get('clientId')
     const platform = url.searchParams.get('platform')
     const error = url.searchParams.get('error')
+    const stateParam = url.searchParams.get('state')
+    const cookieState = readCookie(req, OAUTH_STATE_COOKIE)
 
-    // Provider rejected / user cancelled.
-    if (error) {
-      if (clientId && platform) {
-        void logAudit({
-          action: 'social.oauth_failed',
-          entityType: 'social_account',
-          clientId,
-          summary: `OAuth connection failed or was cancelled for ${platform}`,
-          metadata: { platform, error },
-        })
-      }
-      
-      let errorMessage = error
-      if (error === 'access_denied') errorMessage = 'Koneksi dibatalkan oleh pengguna'
-      if (error === 'user_cancelled') errorMessage = 'Koneksi dibatalkan oleh pengguna'
-      
+    // The callback must present the signed state token minted by /api/social/
+    // oauth-url. It is accepted from the query string OR the httpOnly cookie;
+    // both must be present and identical to prevent tampering.
+    const state = verifyOAuthState(stateParam)
+    if (!state || !cookieState || stateParam !== cookieState) {
+      void logAudit({
+        action: 'social.oauth_rejected',
+        entityType: 'social_account',
+        summary: 'OAuth callback rejected: missing or invalid state token',
+        metadata: { platform, hasStateParam: Boolean(stateParam), hasCookie: Boolean(cookieState) },
+      })
       return NextResponse.redirect(
-        new URL(`/admin/social-accounts?error=${encodeURIComponent(errorMessage)}`, req.url)
+        new URL('/admin/social-accounts?error=invalid_oauth_state', req.url)
       )
     }
 
-    if (!clientId || !platform) {
+    // From here on, trust ONLY the signed payload — never the raw query string.
+    const clientId = state.clientId
+    const signedPlatform = state.platform
+
+    // Provider rejected / user cancelled.
+    if (error) {
+      void logAudit({
+        actorId: state.userId,
+        action: 'social.oauth_failed',
+        entityType: 'social_account',
+        clientId,
+        summary: `OAuth connection failed or was cancelled for ${signedPlatform}`,
+        metadata: { platform: signedPlatform, error },
+      })
+
+      let errorMessage = error
+      if (error === 'access_denied') errorMessage = 'Koneksi dibatalkan oleh pengguna'
+      if (error === 'user_cancelled') errorMessage = 'Koneksi dibatalkan oleh pengguna'
+
+      const failed = NextResponse.redirect(
+        new URL(`/admin/social-accounts?error=${encodeURIComponent(errorMessage)}`, req.url)
+      )
+      failed.cookies.delete(OAUTH_STATE_COOKIE)
+      return failed
+    }
+
+    if (!clientId || !signedPlatform) {
       return NextResponse.redirect(new URL('/admin/social-accounts?error=missing_params', req.url))
     }
 
@@ -43,7 +76,7 @@ export async function GET(req: Request) {
 
     // Persist to client_channels to display in the dashboard
     const supabase = await createSupabaseServiceClient()
-    
+
     // Fetch profile key
     const { data: clientData } = await supabase
       .from('clients')
@@ -52,7 +85,7 @@ export async function GET(req: Request) {
       .single()
 
     let avatar_url: string | null = null
-    let handle = `${platform} account`
+    let handle = `${signedPlatform} account`
 
     if (clientData?.ayrshare_profile_key) {
       try {
@@ -64,7 +97,7 @@ export async function GET(req: Request) {
           }
         })
         const profiles = await res.json()
-        const pData = profiles[platform.toLowerCase()]
+        const pData = profiles[signedPlatform.toLowerCase()]
         if (pData) {
           if (pData.picture) avatar_url = pData.picture
           if (pData.username) handle = pData.username
@@ -79,7 +112,7 @@ export async function GET(req: Request) {
       .from('client_channels')
       .select('id')
       .eq('client_id', clientId)
-      .eq('platform', platform)
+      .eq('platform', signedPlatform)
       .maybeSingle()
 
     if (!existing) {
@@ -87,7 +120,7 @@ export async function GET(req: Request) {
         .from('client_channels')
         .insert({
           client_id: clientId,
-          platform: platform,
+          platform: signedPlatform,
           status: 'terhubung',
           handle,
           avatar_url,
@@ -96,27 +129,30 @@ export async function GET(req: Request) {
     } else {
       await supabase
         .from('client_channels')
-        .update({ 
-          status: 'terhubung', 
-          handle, 
+        .update({
+          status: 'terhubung',
+          handle,
           avatar_url,
           confirmed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString() 
+          updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
     }
 
     void logAudit({
+      actorId: state.userId,
       action: 'social.oauth_connected',
       entityType: 'social_account',
       clientId,
-      summary: `Connected ${platform} account via Ayrshare`,
-      metadata: { platform },
+      summary: `Connected ${signedPlatform} account via Ayrshare`,
+      metadata: { platform: signedPlatform },
     })
 
-    return NextResponse.redirect(
+    const ok = NextResponse.redirect(
       new URL(`/admin/social-accounts?clientId=${clientId}&success=connected`, req.url)
     )
+    ok.cookies.delete(OAUTH_STATE_COOKIE)
+    return ok
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.redirect(new URL(`/admin/social-accounts?error=${encodeURIComponent(msg)}`, req.url))

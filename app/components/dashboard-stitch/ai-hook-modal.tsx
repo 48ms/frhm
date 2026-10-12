@@ -33,16 +33,20 @@ export function StitchAiHookModal({
   async function generate() {
     setError(null)
     setHooks([])
-    const res = await generateIdeas({
-      clientId,
-      count: 3,
-      trendOrTopic: prompt.trim(),
-    })
-    if (res.error) {
-      setError(res.error)
-      return
+    try {
+      const res = await generateIdeas({
+        clientId,
+        count: 3,
+        trendOrTopic: prompt.trim(),
+      })
+      if (res.error) {
+        setError(res.error)
+        return
+      }
+      setHooks(res.ideas.map((idea) => idea.hook))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal terhubung ke AI.")
     }
-    setHooks(res.ideas.map((idea) => idea.hook))
   }
 
   function copy(i: number, text: string) {
@@ -70,7 +74,7 @@ export function StitchAiHookModal({
               <h3 className="font-syne font-bold text-foreground text-sm">
                 Studio AI Hook Generator
               </h3>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 Hook untuk {clientName}
               </p>
             </div>
@@ -151,7 +155,7 @@ export function StitchAiHookModal({
                     title="Salin hook"
                   >
                     {copied === i ? (
-                      <Icons.check className="size-3.5 text-emerald-600" />
+                      <Icons.check className="size-3.5 text-[hsl(var(--success))]" />
                     ) : (
                       <Icons.copy className="size-3.5" />
                     )}
@@ -163,13 +167,13 @@ export function StitchAiHookModal({
 
           {hooks.length > 0 && (
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-2xs text-muted-foreground">
                 {hooks.length} hook dihasilkan
               </span>
               <button
                 type="button"
                 onClick={generate}
-                className="text-[11px] font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
+                className="text-1xs font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
               >
                 <Icons.refresh className="size-3.5" />
                 Buat ulang

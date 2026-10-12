@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import "../globals.css";
 
 import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/animate-ui/components/radix/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";

@@ -6,19 +6,65 @@ import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data
 import { supportTicketQueries } from "@/features/support/api/queries"
 import type { SupportTicket, SupportTicketPriority, SupportTicketStatus } from "@/features/support/api/types"
 import { toast } from "sonner"
+import { Icons } from "@/components/icons"
+import { cn } from "@/lib/utils"
+import { motion } from "motion/react"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/animate-ui/components/radix/accordion"
+import { PageContainer } from "@/components/layout/page-container"
+import { Button } from "@/components/ui/button"
 
+/**
+ * Status badges ride the logo palette (DESIGN.md §2). Open stays primary-
+ * accent because it signals "waiting for action"; in-progress becomes the
+ * warning yellow; resolved is the success green. Closed returns to neutral
+ * because the ticket is out of the active loop.
+ */
 const STATUS_META: Record<SupportTicketStatus, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-  in_progress: { label: "In Progress", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  resolved: { label: "Resolved", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+  open: { label: "Open", cls: "bg-brand-accent/10 text-brand-accent" },
+  in_progress: { label: "In Progress", cls: "bg-warning/10 text-warning dark:text-warning" },
+  resolved: { label: "Resolved", cls: "bg-success/10 text-success dark:text-success" },
   closed: { label: "Closed", cls: "bg-muted text-muted-foreground" },
 }
 
+/**
+ * Priority uses semantic tokens — red for critical, amber for high — so a
+ * color-blind user can still distinguish Urgent from Normal by hue alone,
+ * and the hierarchy reads without relying on saturation.
+ */
 const PRIORITY_CLS: Record<SupportTicketPriority, string> = {
   Low: "text-muted-foreground",
   Normal: "text-foreground",
-  High: "text-orange-600 dark:text-orange-400",
-  Urgent: "text-red-600 dark:text-red-400",
+  High: "text-brand-yellow",
+  Urgent: "text-brand-red",
+}
+
+const ticketListVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+}
+
+const ticketItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 350,
+      damping: 25,
+    },
+  },
 }
 
 function formatDate(iso: string): string {
@@ -52,8 +98,8 @@ const FAQS = [
 
 const CHANNELS = [
   {
-    icon: "mail",
-    iconClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    Icon: Icons.mail,
+    iconClass: "bg-brand-blue/10 text-brand-blue dark:text-brand-blue",
     title: "Email Support",
     desc: "support@frhm.agency",
     meta: "Send us the details",
@@ -61,7 +107,7 @@ const CHANNELS = [
     href: "mailto:support@frhm.agency",
   },
   {
-    icon: "forum",
+    Icon: Icons.chat,
     iconClass: "bg-brand-accent/10 text-brand-accent",
     title: "Priority Live Chat",
     desc: "Enterprise tier",
@@ -70,8 +116,8 @@ const CHANNELS = [
     soon: true,
   },
   {
-    icon: "menu_book",
-    iconClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    Icon: Icons.bookOpen,
+    iconClass: "bg-muted/40 text-muted-foreground",
     title: "Knowledge Base",
     desc: "Guides & API references",
     meta: "Coming soon",
@@ -89,7 +135,6 @@ export function SupportView() {
     enabled: Boolean(activeClient?.id),
   })
 
-  const [openFaq, setOpenFaq] = React.useState<number | null>(0)
   const [subject, setSubject] = React.useState("")
   const [message, setMessage] = React.useState("")
   const [priority, setPriority] = React.useState<SupportTicketPriority>("Normal")
@@ -133,24 +178,11 @@ export function SupportView() {
   }
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            Help &amp; Support Center
-          </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Support Center</h1>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-3xl">
-            Get help with workspace configuration, publishing pipelines, and API integrations for{" "}
-            <span className="font-semibold text-foreground">
-              {activeClient?.name ?? "your workspace"}
-            </span>
-            .
-          </p>
-        </div>
-      </div>
+    <PageContainer
+      pageTitle="Support Center"
+      pageDescription={`Get help with workspace configuration, publishing pipelines, and API integrations for ${activeClient?.name ?? "your workspace"}.`}
+      className="pb-20 space-y-8"
+    >
 
       {/* Quick Help Channels */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -163,7 +195,7 @@ export function SupportView() {
               <span
                 className={`inline-flex w-12 h-12 rounded-2xl items-center justify-center mb-4 ${c.iconClass}`}
               >
-                <span className="material-symbols-outlined text-[24px]">{c.icon}</span>
+                <c.Icon className="size-6" />
               </span>
               <h3 className="text-lg font-bold text-foreground">{c.title}</h3>
               <p className="text-sm text-muted-foreground mt-1">{c.desc}</p>
@@ -199,38 +231,22 @@ export function SupportView() {
               Quick answers to the most common workspace and publishing questions.
             </p>
           </div>
-          <div className="space-y-3">
-            {FAQS.map((f, i) => {
-              const isOpen = openFaq === i
-              return (
-                <div
-                  key={f.q}
-                  className="rounded-2xl bg-muted/40 border border-border/40 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    className="w-full flex items-center justify-between gap-4 p-4 text-left"
-                  >
-                    <span className="text-sm font-semibold text-foreground">{f.q}</span>
-                    <span
-                      className={`material-symbols-outlined text-[20px] text-muted-foreground transition-transform duration-200 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
-                      {f.a}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <Accordion type="single" collapsible defaultValue="faq-0" className="space-y-3">
+            {FAQS.map((f, i) => (
+              <AccordionItem
+                key={f.q}
+                value={`faq-${i}`}
+                className="rounded-2xl bg-muted/40 border border-border/40 overflow-hidden px-4"
+              >
+                <AccordionTrigger className="hover:no-underline py-4 text-sm font-semibold text-foreground">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
 
         {/* Contact Form */}
@@ -260,17 +276,17 @@ export function SupportView() {
               <label className="text-sm font-semibold text-foreground block" htmlFor="sup-priority">
                 Priority
               </label>
-              <select
-                id="sup-priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as SupportTicketPriority)}
-                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:ring-2 focus:ring-brand-accent focus:outline-none cursor-pointer"
-              >
-                <option>Low</option>
-                <option>Normal</option>
-                <option>High</option>
-                <option>Urgent</option>
-              </select>
+              <Tabs value={priority} onValueChange={(val) => setPriority(val as SupportTicketPriority)}>
+                <TabsList
+                  className="w-full grid grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl"
+                  highlightClassName="bg-card shadow-sm rounded-lg"
+                >
+                  <TabsTrigger value="Low" className="text-xs font-bold rounded-lg py-1.5">Low</TabsTrigger>
+                  <TabsTrigger value="Normal" className="text-xs font-bold rounded-lg py-1.5">Normal</TabsTrigger>
+                  <TabsTrigger value="High" className="text-xs font-bold rounded-lg py-1.5">High</TabsTrigger>
+                  <TabsTrigger value="Urgent" className="text-xs font-bold rounded-lg py-1.5 text-destructive font-extrabold">Urgent</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             <div className="space-y-2">
@@ -287,18 +303,14 @@ export function SupportView() {
               />
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:shadow-none"
+              isLoading={isSubmitting}
+              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2"
             >
-              {isSubmitting ? (
-                <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-              ) : (
-                <span className="material-symbols-outlined text-[18px]">send</span>
-              )}
+              <Icons.send className="size-4" />
               Submit Request
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -325,7 +337,7 @@ export function SupportView() {
           </div>
         ) : tickets.length === 0 ? (
           <div className="py-12 text-center space-y-2" data-testid="tickets-empty">
-            <span className="material-symbols-outlined text-[32px] text-foreground/40">inbox</span>
+            <Icons.inbox className="size-8 mx-auto text-foreground/40" />
             <p className="text-sm font-semibold text-foreground">Belum ada tiket</p>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
               Kirim permintaan lewat formulir di atas. Setiap tiket yang dikirim akan tercatat di sini
@@ -333,37 +345,44 @@ export function SupportView() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3" data-testid="tickets-list">
+          <motion.div
+            variants={ticketListVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-3"
+            data-testid="tickets-list"
+          >
             {tickets.map((t: SupportTicket) => {
               const status = STATUS_META[t.status] ?? STATUS_META.open
               return (
-                <div
+                <motion.div
                   key={t.id}
-                  className="rounded-2xl border border-border/40 bg-muted/20 p-5"
+                  variants={ticketItemVariants}
+                  className="rounded-2xl border border-border/40 bg-muted/20 p-5 transition-shadow hover:shadow-sm"
                 >
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${status.cls}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-1xs font-semibold ${status.cls}`}>
                       {status.label}
                     </span>
-                    <span className={`text-[11px] font-semibold ${PRIORITY_CLS[t.priority] ?? PRIORITY_CLS.Normal}`}>
+                    <span className={`text-1xs font-semibold ${PRIORITY_CLS[t.priority] ?? PRIORITY_CLS.Normal}`}>
                       {t.priority}
                     </span>
-                    <span className="text-[11px] text-muted-foreground ml-auto">{formatDate(t.created_at)}</span>
+                    <span className="text-1xs text-muted-foreground ml-auto">{formatDate(t.created_at)}</span>
                   </div>
                   <h3 className="text-sm font-bold text-foreground">{t.subject}</h3>
                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{t.message}</p>
                   {t.admin_reply && (
                     <div className="mt-3 rounded-xl bg-brand-accent/10 border border-brand-accent/20 p-3">
-                      <p className="text-[11px] font-semibold text-brand-accent mb-1">Balasan Tim Support</p>
+                      <p className="text-1xs font-semibold text-brand-accent mb-1">Balasan Tim Support</p>
                       <p className="text-xs text-foreground whitespace-pre-line">{t.admin_reply}</p>
                     </div>
                   )}
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }

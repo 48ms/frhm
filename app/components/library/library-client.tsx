@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { PageContainer } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/animate-ui/components/radix/checkbox"
 import { FileUploader } from "@/components/file-uploader"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import {
@@ -43,7 +43,9 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/animate-ui/components/radix/dialog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 export function LibraryClient() {
   const router = useRouter()
@@ -298,34 +300,34 @@ export function LibraryClient() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20 mt-4">
-        {(["all", "image", "video"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFileType(f)}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              fileType === f
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
-          </button>
-        ))}
-      </div>
+      <Tabs value={fileType} onValueChange={(f) => setFileType(f)} className="mt-4">
+        <TabsList
+          className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20 h-auto"
+          highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+        >
+          {(["all", "image", "video"] as const).map((f) => (
+            <TabsTrigger
+              key={f}
+              value={f}
+              className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+            >
+              {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Tag filter chips */}
       {allTags.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 mt-3">
-          <span className="text-[10px] font-bold text-muted-foreground mr-1">Tags</span>
+          <span className="text-2xs font-bold text-muted-foreground mr-1">Tags</span>
           {allTags.map(([tag, count]) => (
             <button
               key={tag}
               type="button"
               onClick={() => setTagFilter(tagFilter === tag ? "" : tag)}
               className={cn(
-                "px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer border",
+                "px-2.5 py-1 rounded-full text-1xs font-bold transition-all cursor-pointer border",
                 tagFilter === tag
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
@@ -339,7 +341,7 @@ export function LibraryClient() {
             <button
               type="button"
               onClick={() => setTagFilter("")}
-              className="px-2.5 py-1 rounded-full text-[11px] font-bold text-destructive hover:bg-destructive/10 transition-colors"
+              className="px-2.5 py-1 rounded-full text-1xs font-bold text-destructive hover:bg-destructive/10 transition-colors"
             >
               Reset
             </button>
@@ -406,24 +408,28 @@ export function LibraryClient() {
       {/* Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground">Total</p>
-          <p className="text-lg font-black text-foreground">{assets.length}</p>
-        </div>
-        <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground">Images</p>
+          <p className="text-2xs font-bold text-muted-foreground">Total</p>
           <p className="text-lg font-black text-foreground">
-            {assets.filter((a) => a.fileType === "image").length}
+            <MetricTicker value={assets.length} />
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground">Videos</p>
+          <p className="text-2xs font-bold text-muted-foreground">Images</p>
           <p className="text-lg font-black text-foreground">
-            {assets.filter((a) => a.fileType === "video").length}
+            <MetricTicker value={assets.filter((a) => a.fileType === "image").length} />
           </p>
         </div>
         <div className="p-3 rounded-xl bg-card border border-border">
-          <p className="text-[10px] font-bold text-muted-foreground">Storage</p>
-          <p className="text-lg font-black text-foreground">{assets.length} files</p>
+          <p className="text-2xs font-bold text-muted-foreground">Videos</p>
+          <p className="text-lg font-black text-foreground">
+            <MetricTicker value={assets.filter((a) => a.fileType === "video").length} />
+          </p>
+        </div>
+        <div className="p-3 rounded-xl bg-card border border-border">
+          <p className="text-2xs font-bold text-muted-foreground">Storage</p>
+          <p className="text-lg font-black text-foreground">
+            <MetricTicker value={assets.length} /> files
+          </p>
         </div>
       </div>
 
@@ -476,7 +482,7 @@ export function LibraryClient() {
         ) : filteredAssets.length === 0 ? (
           <div className="col-span-full py-16 text-center space-y-3">
             <Icons.media className="size-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-on-surface">Belum ada aset.</p>
+            <p className="text-sm font-semibold text-foreground">Belum ada aset.</p>
             <p className="text-xs text-muted-foreground">Upload file gambar atau video ke library untuk mulai menjadwalkan.</p>
           </div>
         ) : (
@@ -524,20 +530,20 @@ export function LibraryClient() {
               {/* Metadata */}
               <div className="p-5 flex flex-col gap-4 overflow-y-auto">
                 <div>
-                  <p className="text-[10px] font-bold text-muted-foreground">File ID</p>
+                  <p className="text-2xs font-bold text-muted-foreground">File ID</p>
                   <p className="text-sm font-mono text-foreground break-all">
                     {previewAsset.publicId}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-2xs font-bold">
                     {previewAsset.fileType}
                   </span>
                   {previewAsset.tags.length > 0 &&
                     previewAsset.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold"
+                        className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-2xs font-bold"
                       >
                         #{tag}
                       </span>
@@ -550,7 +556,7 @@ export function LibraryClient() {
                 {/* AI caption draft */}
                 <div className="rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-1xs font-bold text-muted-foreground">
                       <Icons.sparkles className="size-3.5" /> Caption AI
                     </span>
                     <Button
@@ -709,7 +715,7 @@ function SortableAsset({
         alt={asset.publicId}
         loading="lazy"
         draggable={false}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         onClick={() => setPreviewAsset(asset)}
       />
 
@@ -739,17 +745,17 @@ function SortableAsset({
           size="sm"
           variant="destructive"
           className="gap-1 text-xs"
-          disabled={deletingId === asset.id}
+          isLoading={deletingId === asset.id}
           onClick={() => void handleDelete(asset.id)}
         >
           <Icons.trash className="size-3" />
-          {deletingId === asset.id ? "Deleting..." : "Delete"}
+          Delete
         </Button>
       </div>
 
       {/* File Type Badge */}
       <div className="absolute top-2 right-2 pointer-events-none">
-        <span className="px-2 py-0.5 rounded-full bg-black/60 text-white text-[9px] font-bold">
+        <span className="px-2 py-0.5 rounded-full bg-black/60 text-white text-2xs font-bold">
           {asset.fileType}
         </span>
       </div>
@@ -761,13 +767,13 @@ function SortableAsset({
             {asset.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-1.5 py-0.5 rounded-md bg-primary/70 text-white text-[9px] font-bold"
+                className="px-1.5 py-0.5 rounded-md bg-primary/70 text-white text-2xs font-bold"
               >
                 #{tag}
               </span>
             ))}
             {asset.tags.length > 3 && (
-              <span className="px-1.5 py-0.5 text-white text-[9px] font-bold">
+              <span className="px-1.5 py-0.5 text-white text-2xs font-bold">
                 +{asset.tags.length - 3}
               </span>
             )}

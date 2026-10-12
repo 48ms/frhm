@@ -14,7 +14,7 @@ import {
 } from 'kbar';
 import { Kbd } from '@/components/ui/kbd';
 import { Icons } from '@/components/icons';
-import { adminNavGroups, clientNavGroups } from '@/config/nav-config';
+import { adminNavStitch } from '@/config/nav-config';
 import RenderResults from './render-result';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { socialQueries } from '@/features/social-accounts/api/queries';
@@ -37,27 +37,22 @@ export function KBar({ children }: { children: React.ReactNode }) {
       router.push(url);
     };
 
-    const combinedGroups = [...adminNavGroups, ...clientNavGroups];
-    const navActions: Action[] = [];
-
-    // 1. Navigation Actions
-    combinedGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (item.url && item.url !== '#') {
-          const IconComponent = item.icon ? Icons[item.icon as keyof typeof Icons] : undefined;
-          navActions.push({
-            id: `nav-${item.url}`,
-            name: item.title,
-            shortcut: item.shortcut,
-            keywords: `${item.title} ${group.label}`.toLowerCase(),
-            section: group.label || 'Navigasi',
-            subtitle: `Buka halaman ${item.title}`,
-            icon: IconComponent ? <IconComponent className='size-4' /> : undefined,
-            perform: () => navigateTo(item.url)
-          });
-        }
+    // Build actions from the flat adminNavStitch (source of truth for sidebar).
+    const navActions: Action[] = adminNavStitch
+      .filter((item) => item.url && item.url !== '#')
+      .map((item) => {
+        const IconComponent = item.icon ? Icons[item.icon as keyof typeof Icons] : undefined;
+        return {
+          id: `nav-${item.url}`,
+          name: item.title,
+          shortcut: item.shortcut,
+          keywords: `${item.title}`.toLowerCase(),
+          section: 'Navigasi',
+          subtitle: `Buka halaman ${item.title}`,
+          icon: IconComponent ? <IconComponent className='size-4' /> : undefined,
+          perform: () => navigateTo(item.url)
+        };
       });
-    });
 
     // Dynamic Client Switcher Actions via URL searchParam mutation
     const clientActions: Action[] = (rawClients || []).map((client) => ({
@@ -126,7 +121,7 @@ function KBarComponent({ children }: { children: React.ReactNode }) {
                 defaultPlaceholder='Ketik perintah atau cari halaman (misal: d d untuk Dashboard)...'
                 className='w-full border-none bg-transparent py-3.5 text-sm outline-none placeholder:text-muted-foreground/70 focus:ring-0'
               />
-              <span className='shrink-0 rounded-md border border-border/60 bg-muted/50 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground'>
+              <span className='shrink-0 rounded-md border border-border/60 bg-muted/50 px-1.5 py-0.5 text-2xs font-semibold text-muted-foreground'>
                 ESC
               </span>
             </div>
@@ -150,7 +145,7 @@ function KBarComponent({ children }: { children: React.ReactNode }) {
                   <Kbd>esc</Kbd> tutup
                 </span>
               </div>
-              <span className='hidden text-[10px] text-foreground/60 sm:inline'>
+              <span className='hidden text-2xs text-foreground/60 sm:inline'>
                 FRHM Command
               </span>
             </div>

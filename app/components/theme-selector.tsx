@@ -13,8 +13,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+} from "@/components/animate-ui/components/radix/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/animate-ui/components/radix/tooltip"
 
 export interface ThemePreset {
   id: string
@@ -113,18 +113,14 @@ export function ThemeSelector() {
   return (
     <DropdownMenu>
       <Tooltip>
-        <TooltipTrigger
-          render={
-            <DropdownMenuTrigger
-              render={
-                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Ubah Tema">
-                  <Icons.palette className="h-4 w-4 text-foreground/80 hover:text-foreground" />
-                </Button>
-              }
-            />
-          }
-        />
-        <TooltipContent>Pilih Tema & Tampilan</TooltipContent>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9 cursor-pointer" aria-label="Ubah Tema">
+              <Icons.palette className="h-4 w-4 text-foreground/80 hover:text-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Pilih Tema &amp; Tampilan</TooltipContent>
       </Tooltip>
 
       <DropdownMenuContent align="end" className="w-52">

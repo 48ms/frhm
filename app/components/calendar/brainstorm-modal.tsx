@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/animate-ui/components/radix/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +18,7 @@ import type { GeneratedIdea, TrendEvaluation } from "@/features/copilot/api/type
 import { useCreateScheduledPost } from "@/features/scheduled-posts/api/queries"
 import { addDays } from "date-fns"
 import { cn } from "@/lib/utils"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 
 interface BrainstormModalProps {
   clientId: string
@@ -166,39 +167,30 @@ export function BrainstormModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Tab Navigation Segmented */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/40 mt-1">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "ideation"}
-            onClick={() => setActiveTab("ideation")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-              activeTab === "ideation"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+        {/* Tab Navigation Segmented via Animate UI Tabs */}
+        <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as TabMode)} className="mt-1">
+          <TabsList
+            highlightClassName="bg-card text-foreground shadow-xs rounded-lg"
+            className="w-full grid grid-cols-2 h-10 p-1 bg-muted/60 rounded-xl border border-border/40"
           >
-            <Icons.sparkles className="size-3.5" />
-            <span>SPARK Ideation</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "trend"}
-            onClick={() => setActiveTab("trend")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-              activeTab === "trend"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Icons.flame className="size-3.5 text-amber-500" />
-            <span>Audit Tren (3-Gate)</span>
-          </button>
-        </div>
+            <TabsTrigger
+              value="ideation"
+              onClick={() => setActiveTab("ideation")}
+              className="text-xs font-semibold py-1.5 flex items-center justify-center gap-2"
+            >
+              <Icons.sparkles className="size-3.5 text-primary" />
+              <span>SPARK Ideation</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="trend"
+              onClick={() => setActiveTab("trend")}
+              className="text-xs font-semibold py-1.5 flex items-center justify-center gap-2"
+            >
+              <Icons.flame className="size-3.5 text-warning" />
+              <span>Audit Tren (3-Gate)</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* TAB 1: SPARK IDEATION */}
         {activeTab === "ideation" && (
@@ -303,17 +295,14 @@ export function BrainstormModal({
                 <Label htmlFor="trend-platform" className="text-xs font-semibold">
                   Platform Target
                 </Label>
-                <select
-                  id="trend-platform"
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="Instagram">Instagram (Reels / Carousel)</option>
-                  <option value="TikTok">TikTok</option>
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="Twitter">Twitter / X</option>
-                </select>
+                <Tabs value={platform} onValueChange={setPlatform}>
+                  <TabsList className="w-full grid grid-cols-4 h-9 p-0.5 bg-muted rounded-xl">
+                    <TabsTrigger value="Instagram" className="text-xs font-bold rounded-lg py-1">Instagram</TabsTrigger>
+                    <TabsTrigger value="TikTok" className="text-xs font-bold rounded-lg py-1">TikTok</TabsTrigger>
+                    <TabsTrigger value="LinkedIn" className="text-xs font-bold rounded-lg py-1">LinkedIn</TabsTrigger>
+                    <TabsTrigger value="Twitter" className="text-xs font-bold rounded-lg py-1">X / Twitter</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
               <Button
@@ -335,7 +324,7 @@ export function BrainstormModal({
                   className={cn(
                     "p-3.5 rounded-xl border flex items-center justify-between",
                     trendResult.overallApproved
-                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                      ? "bg-success/10 border-success/20 text-success"
                       : "bg-destructive/10 border-destructive/20 text-destructive"
                   )}
                 >
@@ -378,7 +367,7 @@ export function BrainstormModal({
                         className={cn(
                           "text-2xs font-semibold",
                           trendResult.gateFit.pass
-                            ? "bg-emerald-500/10 text-emerald-600"
+                            ? "bg-success/10 text-success"
                             : "bg-destructive/10 text-destructive"
                         )}
                       >
@@ -402,7 +391,7 @@ export function BrainstormModal({
                         className={cn(
                           "text-2xs font-semibold",
                           trendResult.gateSafety.pass
-                            ? "bg-emerald-500/10 text-emerald-600"
+                            ? "bg-success/10 text-success"
                             : "bg-destructive/10 text-destructive"
                         )}
                       >

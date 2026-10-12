@@ -4,8 +4,14 @@ import { sendTelegramMessage } from '@/lib/telegram/service'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+const bodySchema = z.object({
+  chatId: z.string().optional(),
+  message: z.string().optional(),
+})
 
 export async function POST(request: Request) {
   // Throttle: this route sends a real Telegram message, so cap it to avoid spam.
@@ -40,9 +46,17 @@ export async function POST(request: Request) {
 
   let body: { chatId?: string; message?: string } = {}
   try {
-    body = await request.json()
+    const raw = await request.json()
+    const parsed = bodySchema.safeParse(raw)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || 'Payload tidak valid' },
+        { status: 400 },
+      )
+    }
+    body = parsed.data
   } catch {
-    // optional body
+    // optional body (empty/no-JSON is allowed; falls back to defaults)
   }
 
   const targetChatId = body.chatId || userProfile.telegram_chat_id

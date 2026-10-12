@@ -5,6 +5,7 @@ import { ClientChannelsBoard } from "@/components/social-accounts/social-account
 import { Suspense } from "react"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { assertPreviewAllowed } from "@/lib/preview-guard"
 import "@/app/admin/admin-stage.css"
 
 // Temporary E2E preview route: renders the Social Accounts board without the
@@ -14,6 +15,7 @@ import "@/app/admin/admin-stage.css"
 export const dynamic = "force-dynamic"
 
 export default async function PreviewSocialAccounts() {
+  assertPreviewAllowed()
   const queryClient = getQueryClient()
 
   // Prefetch so `useSuspenseQuery` in ClientChannelsBoard does NOT trigger a

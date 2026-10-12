@@ -2,9 +2,17 @@
 
 import * as React from "react"
 import { useQueryState, parseAsString } from "nuqs"
-import { Switch } from "@/components/ui/switch"
+import { Switch } from "@/components/animate-ui/components/radix/switch"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/animate-ui/components/radix/dropdown-menu"
+import { PageContainer } from "@/components/layout/page-container"
 
 const TABS = [
   { id: "workspace", label: "Workspace", icon: "domain" },
@@ -20,60 +28,43 @@ export function SettingsView() {
   const activeTab = TABS.some((t) => t.id === tab) ? tab : "workspace"
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-semibold mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-            Workspace Administration
-          </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            Agency Configuration &amp; Settings
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-3xl">
-            Manage workspace parameters, billing schedules, API integrations, and collaborative user
-            permissions for{" "}
-            <span className="font-semibold text-foreground">
-              {activeClient?.name ?? "B2B Shell Reps"}
-            </span>
-            .
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-start md:self-auto text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/30">
-          <span className="material-symbols-outlined text-[16px] text-primary">sync</span>
+    <PageContainer
+      pageTitle="Agency Configuration & Settings"
+      pageDescription={`Manage workspace parameters, billing schedules, API integrations, and collaborative user permissions for ${activeClient?.name ?? "B2B Shell Reps"}.`}
+      pageHeaderAction={
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/30">
+          <span className="material-symbols-outlined text-base text-primary">sync</span>
           <span>Last synced: Today at 14:32 WIB</span>
         </div>
-      </div>
+      }
+      className="pb-20 space-y-8"
+    >
 
       {/* Tab Navigation */}
-      <div role="tablist" aria-label="Settings sections" className="flex border-b border-border/20 gap-8">
-        {TABS.map((t) => {
-          const isActive = activeTab === t.id
-          return (
-            <button
+      <Tabs value={activeTab} onValueChange={(val) => setTab(val)}>
+        <TabsList
+          aria-label="Settings sections"
+          className="flex items-center gap-1.5 p-1 bg-secondary/40 rounded-full border border-border/20 w-max h-auto"
+          highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+        >
+          {TABS.map((t) => (
+            <TabsTrigger
               key={t.id}
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => setTab(t.id)}
-              className={`pb-4 text-sm font-bold transition-all border-b-2 ${
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              value={t.id}
+              className="px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
             >
               {t.label}
-            </button>
-          )
-        })}
-      </div>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Tab Panels */}
       {activeTab === "workspace" && <WorkspaceTab />}
       {activeTab === "billing" && <BillingTab />}
       {activeTab === "integrations" && <IntegrationsTab />}
       {activeTab === "user-access" && <UserAccessTab />}
-    </div>
+    </PageContainer>
   )
 }
 
@@ -102,7 +93,7 @@ function WorkspaceTab() {
               identifiers.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-semibold">
+          <span className="px-3 py-1 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-xs font-semibold">
             ID: WS-88910
           </span>
         </div>
@@ -145,16 +136,14 @@ function WorkspaceTab() {
             <label className="text-sm font-semibold text-foreground block">
               Default Dispatch Timezone
             </label>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
-            >
-              <option>UTC+7 Bangkok/Jakarta (WIB)</option>
-              <option>UTC+0 London / GMT</option>
-              <option>UTC-5 New York / EST</option>
-              <option>UTC+8 Singapore / SGT</option>
-            </select>
+            <Tabs value={timezone} onValueChange={setTimezone}>
+              <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl">
+                <TabsTrigger value="UTC+7 Bangkok/Jakarta (WIB)" className="text-xs font-bold rounded-lg py-1.5">WIB (UTC+7)</TabsTrigger>
+                <TabsTrigger value="UTC+0 London / GMT" className="text-xs font-bold rounded-lg py-1.5">GMT (UTC+0)</TabsTrigger>
+                <TabsTrigger value="UTC-5 New York / EST" className="text-xs font-bold rounded-lg py-1.5">EST (UTC-5)</TabsTrigger>
+                <TabsTrigger value="UTC+8 Singapore / SGT" className="text-xs font-bold rounded-lg py-1.5">SGT (UTC+8)</TabsTrigger>
+              </TabsList>
+            </Tabs>
             <p className="text-xs text-muted-foreground">
               Determines scheduling slots, prime audience heatmaps, and content calendar drops.
             </p>
@@ -162,16 +151,14 @@ function WorkspaceTab() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground block">Primary Currency</label>
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
-            >
-              <option>USD ($) - United States Dollar</option>
-              <option>EUR (€) - Eurozone</option>
-              <option>GBP (£) - British Pound</option>
-              <option>SGD (S$) - Singapore Dollar</option>
-            </select>
+            <Tabs value={currency} onValueChange={setCurrency}>
+              <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl">
+                <TabsTrigger value="USD ($) - United States Dollar" className="text-xs font-bold rounded-lg py-1.5">USD ($)</TabsTrigger>
+                <TabsTrigger value="EUR (€) - Eurozone" className="text-xs font-bold rounded-lg py-1.5">EUR (€)</TabsTrigger>
+                <TabsTrigger value="GBP (£) - British Pound" className="text-xs font-bold rounded-lg py-1.5">GBP (£)</TabsTrigger>
+                <TabsTrigger value="SGD (S$) - Singapore Dollar" className="text-xs font-bold rounded-lg py-1.5">SGD (S$)</TabsTrigger>
+              </TabsList>
+            </Tabs>
             <p className="text-xs text-muted-foreground">
               Standardized currency for media buying estimations and client budget tracking.
             </p>
@@ -190,7 +177,7 @@ function WorkspaceTab() {
               Safeguards, automated content pipelines, and retention lifecycle rules.
             </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/40 border border-primary-container text-foreground text-[11px] font-semibold">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/40 border border-primary-container text-foreground text-1xs font-semibold">
             <span className="w-2 h-2 rounded-full bg-primary" />
             Active Pipeline Guard
           </div>
@@ -204,7 +191,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   Strict Client Approval Gate
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-highest text-foreground">
+                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-muted text-foreground">
                   Mandatory
                 </span>
               </div>
@@ -223,7 +210,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   AI Caption Auto-Optimization
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary-fixed text-on-tertiary-fixed">
+                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-lum-tertiary-fixed-dim text-lum-on-primary">
                   Smart Dispatch
                 </span>
               </div>
@@ -242,7 +229,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   High-Bandwidth 4K Video Preservation
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed">
+                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-lum-secondary-fixed-dim text-lum-on-primary">
                   Pro Quality
                 </span>
               </div>
@@ -309,7 +296,7 @@ function BillingTab() {
       <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-border/20 pb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-1xs font-semibold mb-3">
               Active Subscription
             </div>
             <h2 className="text-3xl font-bold text-foreground">
@@ -322,12 +309,24 @@ function BillingTab() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm hover:bg-surface-container-high/40 transition-all flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+            <button
+              type="button"
+              onClick={() =>
+                toast.info("Halaman Invoice", {
+                  description: "Invoice tersedia di menu ERP → Budgets & Expenses. Unduh langsung dari sana.",
+                })
+              }
+              className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm hover:bg-muted/40 transition-all flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">receipt_long</span>
               Download Tax Invoices
             </button>
-            <button className="px-6 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">bolt</span>
+            <button
+              type="button"
+              onClick={() => toast.info("Menu Upgrade Quota", { description: "Hubungi admin untuk peninjauan plan dan penambahan kuota." })}
+              className="px-6 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">bolt</span>
               Upgrade Quota
             </button>
           </div>
@@ -337,7 +336,7 @@ function BillingTab() {
         <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-8 rounded bg-on-surface text-surface-container-lowest flex items-center justify-center font-bold text-xs">
+              <div className="w-12 h-8 rounded bg-foreground text-background flex items-center justify-center font-bold text-xs">
                 MC
               </div>
               <div>
@@ -347,12 +346,18 @@ function BillingTab() {
                 </p>
               </div>
             </div>
-            <button className="text-xs text-secondary font-semibold hover:underline">Manage</button>
+            <button
+              type="button"
+              onClick={() => toast.info("Manajemen Billing", { description: "Gunakan portal payment gateway terintegrasi untuk ubah metode pembayaran." })}
+              className="text-xs text-secondary font-semibold hover:underline"
+            >
+              Manage
+            </button>
           </div>
 
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-tertiary text-[24px]">verified</span>
+              <span className="material-symbols-outlined text-lum-tertiary text-2xl">verified</span>
               <div>
                 <p className="text-sm font-bold text-foreground">Tax Exemption #EU-88290-X</p>
                 <p className="text-xs text-muted-foreground">
@@ -360,7 +365,7 @@ function BillingTab() {
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-foreground text-xs font-semibold">
+            <span className="px-2.5 py-0.5 rounded-full bg-muted text-foreground text-xs font-semibold">
               Active
             </span>
           </div>
@@ -373,11 +378,11 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground">
+              <span className="text-1xs font-semibold text-muted-foreground">
                 Resource Meter
               </span>
               <span className="p-2 rounded-full bg-muted/60 text-foreground">
-                <span className="material-symbols-outlined text-[18px]">group_work</span>
+                <span className="material-symbols-outlined text-lg">group_work</span>
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">Connected Workspaces</h3>
@@ -391,7 +396,7 @@ function BillingTab() {
                 </span>
                 <span className="text-sm font-semibold text-secondary">30% Used</span>
               </div>
-              <div className="w-full h-3 rounded-full bg-surface-container-high overflow-hidden">
+              <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
                 <div className="h-full bg-secondary rounded-full" style={{ width: "30%" }} />
               </div>
             </div>
@@ -405,11 +410,11 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground">
+              <span className="text-1xs font-semibold text-muted-foreground">
                 Throughput
               </span>
               <span className="p-2 rounded-full bg-primary-container text-foreground">
-                <span className="material-symbols-outlined text-[18px]">bolt</span>
+                <span className="material-symbols-outlined text-lg">bolt</span>
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">API Webhook Dispatches</h3>
@@ -421,12 +426,12 @@ function BillingTab() {
                 </span>
                 <span className="text-sm font-semibold text-primary">84% Used</span>
               </div>
-              <div className="w-full h-3 rounded-full bg-surface-container-high overflow-hidden">
+              <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
                 <div className="h-full bg-primary-container rounded-full" style={{ width: "84%" }} />
               </div>
             </div>
           </div>
-          <p className="text-xs text-error font-medium pt-2 border-t border-border/20">
+          <p className="text-xs text-destructive font-medium pt-2 border-t border-border/20">
             Approaching 85% soft threshold.
           </p>
         </div>
@@ -435,11 +440,11 @@ function BillingTab() {
         <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted-foreground">
+              <span className="text-1xs font-semibold text-muted-foreground">
                 Object Vault
               </span>
-              <span className="p-2 rounded-full bg-tertiary-container text-on-tertiary-container">
-                <span className="material-symbols-outlined text-[18px]">cloud</span>
+              <span className="p-2 rounded-full bg-lum-tertiary-container text-lum-tertiary">
+                <span className="material-symbols-outlined text-lg">cloud</span>
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">Cloud Video Storage</h3>
@@ -449,10 +454,10 @@ function BillingTab() {
                 <span className="text-3xl font-bold text-foreground">
                   2.4 TB <span className="text-base font-normal text-muted-foreground">/ 5 TB</span>
                 </span>
-                <span className="text-sm font-semibold text-tertiary">48% Used</span>
+                <span className="text-sm font-semibold text-lum-tertiary">48% Used</span>
               </div>
-              <div className="w-full h-3 rounded-full bg-surface-container-high overflow-hidden">
-                <div className="h-full bg-tertiary rounded-full" style={{ width: "48%" }} />
+              <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-lum-tertiary rounded-full" style={{ width: "48%" }} />
               </div>
             </div>
           </div>
@@ -474,7 +479,7 @@ function IntegrationsTab() {
   const integrations = [
     {
       badge: "M",
-      badgeClass: "bg-secondary-fixed text-secondary",
+      badgeClass: "bg-lum-secondary-fixed-dim text-secondary",
       title: "Meta Graph API v19.0",
       status: "CONNECTED",
       action: "Re-authenticate",
@@ -488,7 +493,7 @@ function IntegrationsTab() {
     },
     {
       badge: "TT",
-      badgeClass: "bg-on-surface text-surface-container-lowest",
+      badgeClass: "bg-foreground text-background",
       title: "TikTok Open API & Commercial Content Engine",
       status: "CONNECTED",
       action: "Permissions",
@@ -502,14 +507,14 @@ function IntegrationsTab() {
     },
     {
       badge: "forum",
-      badgeClass: "bg-tertiary-container text-on-tertiary-container material-symbols-outlined",
+      badgeClass: "bg-lum-tertiary-container text-lum-tertiary material-symbols-outlined",
       title: "Slack / Discord Dispatch Webhook",
       status: "ACTIVE",
       action: "Test Alert",
       desc: (
         <>
           Direct channel alerts configured to{" "}
-          <code className="px-2 py-0.5 rounded bg-surface-container text-foreground font-mono text-xs">
+          <code className="px-2 py-0.5 rounded bg-muted text-foreground font-mono text-xs">
             #client-b2b-shell-alerts
           </code>
           .
@@ -520,7 +525,7 @@ function IntegrationsTab() {
     {
       badge: "send",
       badgeClass:
-        "bg-secondary-fixed text-on-secondary-fixed material-symbols-outlined",
+        "bg-lum-secondary-fixed-dim text-lum-on-primary material-symbols-outlined",
       title: "Telegram Real-time Approval Bot",
       status: "ONLINE",
       action: "Configure Commands",
@@ -564,8 +569,12 @@ function IntegrationsTab() {
               Verify downstream dispatch authenticity on your custom agency middleware endpoint.
             </p>
           </div>
-          <button className="px-4 py-2 rounded-full bg-secondary-fixed text-on-secondary-fixed text-sm font-semibold hover:bg-secondary-fixed-dim transition-colors flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[18px]">network_ping</span>
+          <button
+            type="button"
+            onClick={() => toast.success("Test Ping Sent", { description: "Webhook endpoint menerima ping dengan success 200." })}
+            className="px-4 py-2 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-sm font-semibold hover:bg-lum-secondary-fixed-dim/80 transition-colors flex items-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-lg">network_ping</span>
             Send Test Ping
           </button>
         </div>
@@ -580,7 +589,7 @@ function IntegrationsTab() {
                 readOnly
                 type={secretVisible ? "text" : "password"}
                 value={secret}
-                className="w-full h-12 px-5 font-mono text-sm bg-muted/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none"
+                className="w-full h-12 px-5 font-mono text-sm bg-muted/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               />
               <button
                 type="button"
@@ -588,7 +597,7 @@ function IntegrationsTab() {
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label={secretVisible ? "Hide secret" : "Show secret"}
               >
-                <span className="material-symbols-outlined text-[20px]">
+                <span className="material-symbols-outlined text-xl">
                   {secretVisible ? "visibility_off" : "visibility"}
                 </span>
               </button>
@@ -599,9 +608,9 @@ function IntegrationsTab() {
                 navigator.clipboard?.writeText(secret)
                 toast.success("Signing secret copied to clipboard.")
               }}
-              className="h-12 px-6 rounded-full bg-card border border-border/60 hover:bg-surface-container-high/40 text-foreground text-sm font-bold transition-all flex items-center gap-2"
+              className="h-12 px-6 rounded-full bg-card border border-border/60 hover:bg-muted/40 text-foreground text-sm font-bold transition-all flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">content_copy</span>
+              <span className="material-symbols-outlined text-lg">content_copy</span>
               Copy Secret
             </button>
           </div>
@@ -644,7 +653,7 @@ function IntegrationRow({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-foreground">{title}</h3>
-            <span className="px-2.5 py-0.5 rounded-full bg-primary-container text-foreground text-[11px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-primary-container text-foreground text-1xs font-bold">
               {status}
             </span>
           </div>
@@ -652,7 +661,15 @@ function IntegrationRow({
         </div>
       </div>
       <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
-        <button className="px-4 py-2 rounded-full border border-border/40 bg-card text-foreground text-xs font-semibold hover:bg-surface-container-high/40 transition-colors">
+        <button
+          type="button"
+          onClick={() =>
+            toast.info(`${action} · ${title}`, {
+              description: "Kelola detail integrasi ini dari dashboard platform terkait.",
+            })
+          }
+          className="px-4 py-2 rounded-full border border-border/40 bg-card text-foreground text-xs font-semibold hover:bg-muted/40 transition-colors"
+        >
           {action}
         </button>
         <Switch checked={on} onCheckedChange={setOn} />
@@ -671,13 +688,13 @@ function UserAccessTab() {
   const members = [
     {
       initials: "AV",
-      avatarClass: "bg-secondary-fixed text-on-secondary-fixed",
+      avatarClass: "bg-lum-secondary-fixed-dim text-lum-on-primary",
       name: "Amara Vance",
       isYou: true,
       email: "amara.v@frhm.agency",
       role: "Studio Director",
       roleLocked: true,
-      roleClass: "bg-secondary-fixed text-on-secondary-fixed",
+      roleClass: "bg-lum-secondary-fixed-dim text-lum-on-primary",
       twofa: "Hardware Token (YubiKey)",
       twofaIcon: "verified_user",
       twofaClass: "text-primary",
@@ -700,7 +717,7 @@ function UserAccessTab() {
     },
     {
       initials: "MT",
-      avatarClass: "bg-tertiary-fixed text-on-tertiary-fixed",
+      avatarClass: "bg-lum-tertiary-fixed-dim text-lum-on-primary",
       name: "Maya Thorne",
       isYou: false,
       email: "maya.t@frhm.agency",
@@ -714,13 +731,13 @@ function UserAccessTab() {
     },
     {
       initials: "DH",
-      avatarClass: "bg-surface-container-highest text-foreground",
+      avatarClass: "bg-muted text-foreground",
       name: "Derrick Holt",
       isYou: false,
       email: "d.holt@shellreps-corp.com",
       role: "Client Guest Reviewer",
       roleLocked: true,
-      roleClass: "bg-surface-container-highest text-foreground",
+      roleClass: "bg-muted text-foreground",
       twofa: "SMS Backup (Pending App)",
       twofaIcon: "sms",
       twofaClass: "text-muted-foreground",
@@ -751,7 +768,7 @@ function UserAccessTab() {
               Enforce agency compliance protocols and multi-factor authentication mandates.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-bold">
+          <span className="px-3 py-1 rounded-full bg-lum-tertiary-fixed-dim text-lum-on-primary text-1xs font-bold">
             SOC-2 Type II Compliant
           </span>
         </div>
@@ -762,7 +779,7 @@ function UserAccessTab() {
               <span className="text-sm font-bold text-foreground">
                 Mandatory Google Workspace 2FA for all team members
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-container text-foreground">
+              <span className="px-2 py-0.5 rounded text-2xs font-bold bg-primary-container text-foreground">
                 Enforced
               </span>
             </div>
@@ -787,8 +804,12 @@ function UserAccessTab() {
               <span className="font-semibold text-foreground">B2B Shell Reps</span>.
             </p>
           </div>
-          <button className="px-5 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2 self-start sm:self-auto">
-            <span className="material-symbols-outlined text-[18px]">person_add</span>
+          <button
+            type="button"
+            onClick={() => toast.info("Form Tambah Anggota", { description: "Gunakan baris input cepat di bawah untuk mengundang anggota." })}
+            className="px-5 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2 self-start sm:self-auto"
+          >
+            <span className="material-symbols-outlined text-lg">person_add</span>
             + Invite Collaborator
           </button>
         </div>
@@ -796,7 +817,7 @@ function UserAccessTab() {
         {/* Quick Invite Input Bar */}
         <div className="p-4 rounded-2xl bg-muted/40 border border-border/25 mb-6 flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-muted-foreground">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
               mail
             </span>
             <input
@@ -807,22 +828,20 @@ function UserAccessTab() {
               className="w-full h-11 pl-10 pr-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus:outline-none"
             />
           </div>
-          <div className="relative w-full md:w-56">
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value)}
-              className="w-full h-11 px-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus:outline-none cursor-pointer"
-            >
-              <option>Content Creator</option>
-              <option>Campaign Lead</option>
-              <option>Client Guest Reviewer</option>
-              <option>Studio Director</option>
-            </select>
+          <div className="w-full md:w-auto flex-1">
+            <Tabs value={inviteRole} onValueChange={setInviteRole}>
+              <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/30 rounded-xl">
+                <TabsTrigger value="Content Creator" className="text-xs font-bold rounded-lg py-1.5">Creator</TabsTrigger>
+                <TabsTrigger value="Campaign Lead" className="text-xs font-bold rounded-lg py-1.5">Lead</TabsTrigger>
+                <TabsTrigger value="Client Guest Reviewer" className="text-xs font-bold rounded-lg py-1.5">Reviewer</TabsTrigger>
+                <TabsTrigger value="Studio Director" className="text-xs font-bold rounded-lg py-1.5">Director</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           <button
             type="button"
             onClick={handleInvite}
-            className="w-full md:w-auto h-11 px-6 rounded-full bg-on-surface text-surface-container-lowest text-sm font-bold hover:bg-on-surface/90 transition-all shrink-0"
+            className="w-full md:w-auto h-11 px-6 rounded-full bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-all shrink-0"
           >
             Send Invite
           </button>
@@ -832,7 +851,7 @@ function UserAccessTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border/30 text-muted-foreground text-[11px] font-semibold">
+              <tr className="border-b border-border/30 text-muted-foreground text-1xs font-semibold">
                 <th className="py-3 px-4">Member Name &amp; Email</th>
                 <th className="py-3 px-4">Role Permission</th>
                 <th className="py-3 px-4">2FA Status</th>
@@ -869,14 +888,28 @@ function UserAccessTab() {
                         {m.role}
                       </span>
                     ) : (
-                      <select
-                        defaultValue={m.role}
-                        className="h-8 px-3 rounded-full bg-muted/60 border border-border/30 text-xs font-medium text-foreground cursor-pointer"
-                      >
-                        <option>Campaign Lead</option>
-                        <option>Content Creator</option>
-                        <option>Client Guest Reviewer</option>
-                      </select>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="h-8 px-3 rounded-full bg-muted/60 hover:bg-muted border border-border/30 text-xs font-medium text-foreground inline-flex items-center gap-1.5 transition-colors"
+                          >
+                            <span>{m.role}</span>
+                            <span className="material-symbols-outlined text-xs">expand_more</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem onClick={() => toast.success(`Role ${m.name} diubah ke Campaign Lead`)}>
+                            Campaign Lead
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.success(`Role ${m.name} diubah ke Content Creator`)}>
+                            Content Creator
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.success(`Role ${m.name} diubah ke Client Guest Reviewer`)}>
+                            Client Guest Reviewer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </td>
                   <td className="py-4 px-4">
@@ -884,7 +917,7 @@ function UserAccessTab() {
                       className={`inline-flex items-center gap-1.5 text-xs font-semibold ${m.twofaClass}`}
                     >
                       <span
-                        className="material-symbols-outlined text-[16px]"
+                        className="material-symbols-outlined text-base"
                         style={{ fontVariationSettings: "'FILL' 1" }}
                       >
                         {m.twofaIcon}
@@ -902,9 +935,10 @@ function UserAccessTab() {
                       <button
                         type="button"
                         title="Revoke Access"
-                        className="text-muted-foreground hover:text-error transition-colors p-1"
+                        onClick={() => toast.success(`Akses untuk ${m.name} dicabut.`)}
+                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
                       >
-                        <span className="material-symbols-outlined text-[18px]">
+                        <span className="material-symbols-outlined text-lg">
                           person_remove
                         </span>
                       </button>

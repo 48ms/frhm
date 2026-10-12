@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit/log"
 import { resolveProvider } from "@/lib/ai/server"
 import { chatJson } from "@/lib/ai/providers"
 import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
@@ -14,47 +15,61 @@ import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileI
 /** Mengambil daftar semua klien beserta akun sosial (channels) mereka */
 export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
   const supabase = await createClient()
-  
-  // Mengambil data klien faktual (bukan tabel fiktif)
-  const { data: clients, error: clientsError } = await supabase
-    .from("clients")
-    .select("*")
-    .not("name", "ilike", "%Test Client%")
-    .order('created_at', { ascending: false })
-    
-  // Catatan faktual: service ini dipanggil dari `useSuspenseQuery` saat render.
-  // Jika kita `throw`, React Query me-reject promise saat render dan memicu
-  // warning "Cannot update a component (Router) while rendering". Degrade
-  // gracefully: kembalikan [] agar UI memakai fallback, bukan crash.
+
+  // PERF FIX: ketiga query independen (tidak saling bergantung) — jalankan
+  // paralel via Promise.all alih-alih 3 round-trip sequential (waterfall).
+  // Sebelumnya: T_total = T_clients + T_channels + T_profiles.
+  // Sekarang:    T_total = max(T_clients, T_channels, T_profiles).
+  const [clientsRes, channelsRes, profilesRes] = await Promise.all([
+    supabase
+      .from("clients")
+      .select("*")
+      .not("name", "ilike", "%Test Client%")
+      .order('created_at', { ascending: false }),
+    supabase
+      .from("client_channels")
+      .select("*"),
+    supabase
+      .from("dashboard_profiles")
+      .select("client_id, metrics"),
+  ])
+
+  const { data: clients, error: clientsError } = clientsRes
+  const { data: channels, error: channelsError } = channelsRes
+  const { data: profiles } = profilesRes
+
   if (clientsError) {
     logger.error("getClientsWithChannels (clients) failed", { error: clientsError })
     return []
   }
   if (!clients) return []
 
-  // Mengambil data channel sosial faktual
-  const { data: channels, error: channelsError } = await supabase
-    .from("client_channels")
-    .select("*")
-
   if (channelsError) {
     logger.error("getClientsWithChannels (channels) failed", { error: channelsError })
     return clients.map((client) => ({ ...client, channels: [] })) as ClientWithChannels[]
   }
 
-  // Fetch dashboard profiles
-  const { data: profiles } = await supabase
-    .from("dashboard_profiles")
-    .select("client_id, metrics")
+  // PERF FIX: ganti .find()/.filter() di dalam loop (O(n×m)) dengan Map
+  // lookup (O(n+m)). Penting saat jumlah klien & channel bertambah.
+  const profileByClient = new Map<string, { audience_size: number }>()
+  for (const p of profiles ?? []) {
+    const metricsObj = p.metrics as Record<string, unknown> | undefined
+    profileByClient.set(p.client_id, { audience_size: Number(metricsObj?.audience_size ?? 0) })
+  }
 
-  // Menggabungkan data
+  const channelsByClient = new Map<string, typeof channels>()
+  for (const ch of channels ?? []) {
+    const list = channelsByClient.get(ch.client_id)
+    if (list) list.push(ch)
+    else channelsByClient.set(ch.client_id, [ch])
+  }
+
   return clients.map((client) => {
-    const profile = profiles?.find((p) => p.client_id === client.id)
-    const metricsObj = profile?.metrics as Record<string, unknown> | undefined
+    const dashboardProfile = profileByClient.get(client.id)
     return {
       ...client,
-      channels: (channels || []).filter((ch) => ch.client_id === client.id),
-      dashboard_profile: profile ? { audience_size: metricsObj?.audience_size ?? 0 } : undefined
+      channels: channelsByClient.get(client.id) ?? [],
+      dashboard_profile: dashboardProfile,
     }
   }) as ClientWithChannels[]
 }
@@ -63,22 +78,32 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
 export async function disconnectChannel(channelId: string): Promise<void> {
   const supabase = await createClient()
   
-  // Sesuai dengan woopsocial.md & 014_client_channels, disconnect 
-  // berarti menghapus record dari table client_channels (atau mengubah status).
-  // Di sini kita menghapus dari client_channels.
+  const { data: channel } = await supabase
+    .from("client_channels")
+    .select("client_id")
+    .eq("id", channelId)
+    .single()
+
   const { error } = await supabase
     .from("client_channels")
     .delete()
     .eq("id", channelId)
 
   if (error) throw new Error(error.message)
+
+  void logAudit({
+    action: 'social.disconnect',
+    entityType: 'client_channel',
+    entityId: channelId,
+    clientId: channel?.client_id ?? null,
+    summary: `Disconnected channel ${channelId}`,
+  })
 }
 
 /** Menyinkronkan ulang akun (Refresh Data) via Bridge */
 export async function syncChannel(channelId: string): Promise<void> {
   const supabase = await createClient()
   
-  // 1. Fetch channel and client info
   const { data: channel, error: channelError } = await supabase
     .from("client_channels")
     .select("client_id, platform")
@@ -104,7 +129,6 @@ export async function syncChannel(channelId: string): Promise<void> {
     throw new Error("Ayrshare API key not configured")
   }
 
-  // 2. Fetch profiles from Ayrshare
   const res = await fetch("https://app.ayrshare.com/api/profiles", {
     method: "GET",
     headers: {
@@ -120,7 +144,6 @@ export async function syncChannel(channelId: string): Promise<void> {
   const profiles = await res.json()
   const pData = profiles[channel.platform.toLowerCase()]
 
-  // 3. Update database
   if (pData) {
     const avatar_url = pData.picture || null
     const handle = pData.username || `${channel.platform} account`
@@ -136,8 +159,15 @@ export async function syncChannel(channelId: string): Promise<void> {
       .eq("id", channelId)
 
     if (updateError) throw new Error(updateError.message)
+    
+    void logAudit({
+      action: 'social.sync_success',
+      entityType: 'client_channel',
+      entityId: channelId,
+      clientId: channel.client_id,
+      summary: `Synced channel ${channelId}`,
+    })
   } else {
-    // If it's missing from Ayrshare profiles, it might be disconnected.
     await supabase
       .from("client_channels")
       .update({
@@ -146,6 +176,13 @@ export async function syncChannel(channelId: string): Promise<void> {
       })
       .eq("id", channelId)
       
+    void logAudit({
+      action: 'social.sync_failed',
+      entityType: 'client_channel',
+      entityId: channelId,
+      clientId: channel.client_id,
+      summary: `Failed sync for channel ${channelId}`,
+    })
     throw new Error(`Platform ${channel.platform} not found in Ayrshare profiles`)
   }
 }
@@ -192,7 +229,14 @@ export async function updateBrandProfile(clientId: string, profile: any): Promis
 
   if (error) throw new Error(error.message)
 
-  // Sync the canonical brand-profile.md so every skill-driven Copilot call reads the same source.
+  void logAudit({
+    action: 'brand.update',
+    entityType: 'client',
+    entityId: clientId,
+    clientId,
+    summary: `Updated brand profile for ${clientId}`,
+  })
+
   const markdown = brandProfileToMarkdown(profile)
   const { error: fileError } = await supabase
     .from("client_files")

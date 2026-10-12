@@ -18,7 +18,8 @@ Pergeseran dari "Dashboard Sederhana" ke "Pusat Kendali Profesional".
 * **Sisi Klien:** Kurva belajar nol (*zero-learning curve*). Visual berbasis *Card* berukuran besar yang sangat mudah disentuh. Menggunakan navigasi *Bottom-Bar* murni (*Mobile-First*).
 
 ## 2. Identitas Visual & Interaksi (Powered by Animate UI)
-* **Tipografi:** Keluarga font **Geist** (Geist Sans untuk teks utama, Geist Mono untuk kode/angka mutlak).
+* **Tipografi:** Keluarga font **Hanken Grotesk** (body copy utama, 100-900 variable), **Syne** (display/heading di login stage), **Geist Mono** untuk kode/angka mutlak. Keputusan pemilik produk 2026-10-11: Hanken Grotesk dipilih sebagai body font resmi karena kerning lebih rapat untuk kepadatan data dashboard.
+* **Skala tipografi (token Tailwind v4, `globals.css` `@theme`):** `text-3xs` 9px, `text-2xs` 10px, `text-1xs` 11px, `text-xs` 12px, `text-xs-plus` 13px, `text-sm` 14px, `text-sm-plus` 15px, `text-base` 16px, `text-lg` 18px, `text-xl` 20px, `text-2xl` 24px. Token mikro font-size-only (tanpa `--line-height`) supaya 1:1 tanpa reflow. Display: `text-display-sm/md/lg/xl` = 44/48/54/60px (Syne login hero). **Larangan: `text-[Npx]` arbitrary** — pakai token di atas.
 * **Warna & Ekstraksi Logo:** Latar belakang *Neutral Gray* (`#F5F5F7`), teks *Charcoal/Nyaris Hitam* (`#1D1D1F`). **ATURAN BARU:** Warna Aksen Utama (untuk tombol CTA, *progress bar*, dan status aktif) dilarang menggunakan warna *default* bawaan *library*. Warna aksen **wajib diekstrak langsung dari palet warna logo Frhm (`logo-frhm.png`)**. Ini memastikan seluruh UI terasa menyatu dan memiliki identitas *brand* yang sangat kuat.
 * **Bentuk & Transisi:** Sudut membulat (*Rounded-xl* hingga *2xl*), bayangan lembut (*soft shadow*). Interaksi wajib memiliki *spring physics* (bernyawa) saat diklik atau di-hover, menggunakan komponen Motion.
 

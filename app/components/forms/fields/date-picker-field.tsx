@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/animate-ui/components/radix/popover';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -31,22 +31,20 @@ export function DatePickerField({
         {required && ' *'}
       </FieldLabel>
       <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              id={field.name}
-              variant='outline'
-              aria-invalid={isInvalid}
-              aria-describedby={isInvalid ? `${field.name}-error` : undefined}
-              className={cn(
-                'w-full justify-start text-left font-normal',
-                !field.state.value && 'text-muted-foreground'
-              )}
-            />
-          }
-        >
-          <Icons.calendar className='mr-2 h-4 w-4' />
-          {field.state.value ? format(field.state.value, 'PPP') : <span>{placeholder}</span>}
+        <PopoverTrigger asChild>
+          <Button
+            id={field.name}
+            variant='outline'
+            aria-invalid={isInvalid}
+            aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+            className={cn(
+              'w-full justify-start text-left font-normal',
+              !field.state.value && 'text-muted-foreground'
+            )}
+          >
+            <Icons.calendar className='mr-2 h-4 w-4' />
+            {field.state.value ? format(field.state.value, 'PPP') : <span>{placeholder}</span>}
+          </Button>
         </PopoverTrigger>
         <PopoverContent className='w-auto p-0' align='start'>
           <Calendar
@@ -82,32 +80,30 @@ export function DateRangeField({
         {required && ' *'}
       </FieldLabel>
       <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              id={field.name}
-              variant='outline'
-              aria-invalid={isInvalid}
-              aria-describedby={isInvalid ? `${field.name}-error` : undefined}
-              className={cn(
-                'w-full justify-start text-left font-normal',
-                !range?.from && 'text-muted-foreground'
-              )}
-            />
-          }
-        >
-          <Icons.calendar className='mr-2 h-4 w-4' />
-          {range?.from ? (
-            range.to ? (
-              <>
-                {format(range.from, 'LLL dd, y')} - {format(range.to, 'LLL dd, y')}
-              </>
+        <PopoverTrigger asChild>
+          <Button
+            id={field.name}
+            variant='outline'
+            aria-invalid={isInvalid}
+            aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+            className={cn(
+              'w-full justify-start text-left font-normal',
+              !range?.from && 'text-muted-foreground'
+            )}
+          >
+            <Icons.calendar className='mr-2 h-4 w-4' />
+            {range?.from ? (
+              range.to ? (
+                <>
+                  {format(range.from, 'LLL dd, y')} - {format(range.to, 'LLL dd, y')}
+                </>
+              ) : (
+                format(range.from, 'LLL dd, y')
+              )
             ) : (
-              format(range.from, 'LLL dd, y')
-            )
-          ) : (
-            <span>{placeholder}</span>
-          )}
+              <span>{placeholder}</span>
+            )}
+          </Button>
         </PopoverTrigger>
         <PopoverContent className='w-auto p-0' align='start'>
           <Calendar

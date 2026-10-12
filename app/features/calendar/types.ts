@@ -45,32 +45,29 @@ export type ScheduledPostUpdate = Partial<
 >
 
 export const PLATFORMS: Record<string, { name: string; color: string; bg: string; icon: string }> = {
-  instagram: { name: 'Instagram', color: 'text-pink-600', bg: 'bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600', icon: 'photo_camera' },
-  tiktok: { name: 'TikTok', color: 'text-neutral-900 dark:text-neutral-100', bg: 'bg-[hsl(var(--admin-on-surface))]', icon: 'music_note' },
-  linkedin: { name: 'LinkedIn', color: 'text-blue-600', bg: 'bg-[hsl(var(--admin-cobalt))]', icon: 'work' },
-  youtube: { name: 'YouTube', color: 'text-red-600', bg: 'bg-[#ba1a1a]', icon: 'smart_display' },
-  facebook: { name: 'Facebook', color: 'text-blue-700', bg: 'bg-[hsl(var(--admin-cobalt))]', icon: 'thumb_up' },
-  x: { name: 'Twitter / X', color: 'text-neutral-900 dark:text-neutral-100', bg: 'bg-[hsl(var(--admin-on-surface))]', icon: 'twitter' },
-  // Alias: Ayrshare/Cron bridge normalizes to "twitter", but the UI exposes X as "x".
-  // Mapping both names ensures PlatformChip / PlatformIcon resolve to the same visual.
-  twitter: { name: 'Twitter / X', color: 'text-neutral-900 dark:text-neutral-100', bg: 'bg-[hsl(var(--admin-on-surface))]', icon: 'twitter' },
+  instagram: { name: 'Instagram', color: 'text-[hsl(var(--platform-instagram))]', bg: 'bg-[hsl(var(--platform-instagram))]', icon: 'photo_camera' },
+  tiktok: { name: 'TikTok', color: 'text-[hsl(var(--platform-tiktok))]', bg: 'bg-[hsl(var(--platform-tiktok))]', icon: 'music_note' },
+  linkedin: { name: 'LinkedIn', color: 'text-[hsl(var(--platform-linkedin))]', bg: 'bg-[hsl(var(--platform-linkedin))]', icon: 'work' },
+  youtube: { name: 'YouTube', color: 'text-[hsl(var(--platform-youtube))]', bg: 'bg-[hsl(var(--platform-youtube))]', icon: 'smart_display' },
+  facebook: { name: 'Facebook', color: 'text-[hsl(var(--platform-facebook))]', bg: 'bg-[hsl(var(--platform-facebook))]', icon: 'thumb_up' },
+  x: { name: 'Twitter / X', color: 'text-[hsl(var(--platform-twitter))]', bg: 'bg-[hsl(var(--platform-twitter))]', icon: 'twitter' },
+  twitter: { name: 'Twitter / X', color: 'text-[hsl(var(--platform-twitter))]', bg: 'bg-[hsl(var(--platform-twitter))]', icon: 'twitter' },
 }
 
 export const STATUS_DOT: Record<string, Record<string, string>> = {
-  instagram: { published: 'bg-pink-500', scheduled: 'bg-pink-400', draft: 'bg-pink-300', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  tiktok: { published: 'bg-neutral-800 dark:bg-neutral-200', scheduled: 'bg-neutral-600', draft: 'bg-neutral-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  linkedin: { published: 'bg-blue-600', scheduled: 'bg-blue-500', draft: 'bg-blue-300', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  youtube: { published: 'bg-red-600', scheduled: 'bg-red-500', draft: 'bg-red-300', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  facebook: { published: 'bg-blue-700', scheduled: 'bg-blue-600', draft: 'bg-blue-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  x: { published: 'bg-neutral-800 dark:bg-neutral-200', scheduled: 'bg-neutral-600', draft: 'bg-neutral-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
-  // Mirror of "x" for posts stored with the Ayrshare-normalized name "twitter".
-  twitter: { published: 'bg-neutral-800 dark:bg-neutral-200', scheduled: 'bg-neutral-600', draft: 'bg-neutral-400', failed: 'bg-red-500', cancelled: 'bg-neutral-400' },
+  instagram: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  tiktok: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  linkedin: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  youtube: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  facebook: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  x: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
+  twitter: { published: 'bg-[hsl(var(--success))]', scheduled: 'bg-[hsl(var(--warning))]', draft: 'bg-neutral-400', failed: 'bg-[hsl(var(--destructive))]', cancelled: 'bg-neutral-400' },
 }
 
 export const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {
-  published: { label: 'Published', badge: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30', dot: 'bg-green-500' },
-  scheduled: { label: 'Terjadwal', badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30', dot: 'bg-amber-500' },
+  published: { label: 'Published', badge: 'bg-[hsl(var(--success))/15] text-[hsl(var(--success))] border-[hsl(var(--success))/30]', dot: 'bg-[hsl(var(--success))]' },
+  scheduled: { label: 'Terjadwal', badge: 'bg-[hsl(var(--warning))/15] text-[hsl(var(--warning))] border-[hsl(var(--warning))/30]', dot: 'bg-[hsl(var(--warning))]' },
   draft: { label: 'Draft', badge: 'bg-neutral-500/15 text-neutral-700 dark:text-neutral-400 border-neutral-500/30', dot: 'bg-neutral-400' },
-  failed: { label: 'Gagal', badge: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30', dot: 'bg-red-500' },
+  failed: { label: 'Gagal', badge: 'bg-[hsl(var(--destructive))/15] text-[hsl(var(--destructive))] border-[hsl(var(--destructive))/30]', dot: 'bg-[hsl(var(--destructive))]' },
   cancelled: { label: 'Batal', badge: 'bg-neutral-400/15 text-neutral-500 border-neutral-400/30', dot: 'bg-neutral-300' },
 }

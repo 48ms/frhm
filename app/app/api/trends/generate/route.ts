@@ -10,8 +10,20 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-
 import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 import { logAudit } from '@/lib/audit/log'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+// Validasi body inbound: trendTopic wajib, trendSnippet opsional tapi harus string
+// jika ada, providerId harus UUID valid (di-validasi juga oleh query DB, tapi Zod
+// menolak tipe salah sebelum hit provider lookup).
+const bodySchema = z.object({
+  clientId: z.string().min(1, 'clientId wajib diisi'),
+  trendTopic: z.string().min(1, 'trendTopic wajib diisi'),
+  trendSnippet: z.string().optional(),
+  providerId: z.string().uuid().optional(),
+  campaignTag: z.string().optional(),
+})
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(getClientIp(request.headers), 'trends/generate', RATE_LIMITS.ai.limit, RATE_LIMITS.ai.windowMs)
@@ -60,11 +72,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}))
-  const { clientId, trendTopic, trendSnippet, providerId, campaignTag } = body
-
-  if (!clientId || !trendTopic) {
-    return NextResponse.json({ error: 'Parameter clientId dan trendTopic wajib diisi' }, { status: 400 })
+  const parsed = bodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || 'Payload tidak valid' },
+      { status: 400 },
+    )
   }
+  const { clientId, trendTopic, trendSnippet, providerId, campaignTag } = parsed.data
 
   // 1. Ambil data klien
   const { data: client, error: clientErr } = await supabase

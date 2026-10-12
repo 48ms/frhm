@@ -7,7 +7,7 @@ import {
   FieldError,
   FieldLabel
 } from '@/components/ui/field';
-import { Switch } from '@/components/ui/switch';
+import { Switch } from '@/components/animate-ui/components/radix/switch';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
 
 export function SwitchField({ label, description, required }: BaseFieldProps) {

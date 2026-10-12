@@ -12,9 +12,9 @@ describe('safeRedirect', () => {
   })
 
   it('allows internal relative paths', () => {
-    expect(safeRedirect('/client/dashboard', FB)).toBe('/client/dashboard')
+    expect(safeRedirect('/admin/calendar', FB)).toBe('/admin/calendar')
     expect(safeRedirect('/admin/clients?sort=name', FB)).toBe('/admin/clients?sort=name')
-    expect(safeRedirect('  /client  ', FB)).toBe('/client')
+    expect(safeRedirect('  /admin/erp  ', FB)).toBe('/admin/erp')
   })
 
   it('blocks external absolute URLs', () => {

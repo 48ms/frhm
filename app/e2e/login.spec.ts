@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.use({ baseURL: 'http://localhost:3004' });
+test.use({ baseURL: 'http://localhost:3000' });
 
 test.describe('Login page UI', () => {
   test('should display login form', async ({ page }) => {

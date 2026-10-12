@@ -43,10 +43,15 @@
   --font-sans: var(--font-hanken-src), ui-sans-serif, system-ui, sans-serif;
   --font-syne: var(--font-syne-src), ui-sans-serif, sans-serif;
   --font-hanken: var(--font-hanken-src), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   /**
-   * Frhm brand palette , extracted from logo-frhm.png (absolute rule, DESIGN.md §2).
-   * Do not substitute placeholders; these are the brand identity.
-   */
+   /* Platform Colors (Brand Identity) */
+   --platform-instagram: 340 82% 52%;
+   --platform-tiktok: 184 100% 50%;
+   --platform-youtube: 0 100% 50%;
+   --platform-linkedin: 200 100% 35%;
+   --platform-facebook: 214 89% 52%;
+   --platform-twitter: 203 89% 53%;
   --color-brand-blue: hsl(var(--brand-blue));
   --color-brand-red: hsl(var(--brand-red));
   --color-brand-green: hsl(var(--brand-green));
@@ -88,10 +93,29 @@
   --color-lum-error: #ba1a1a;
   --color-lum-error-container: #ffdad6;
   --font-display: var(--font-syne-src), ui-sans-serif, sans-serif;
+  /* Micro type scale , replaces arbitrary text-[Npx] (G2 audit).
+     Intentionally font-size only (no --line-height) to match the exact
+     rendering of the arbitrary utilities being replaced (1:1, no reflow). */
+  --text-1xs: 0.6875rem;  /* 11px */
+  --text-2xs: 0.625rem;   /* 10px */
+  --text-3xs: 0.5625rem;  /* 9px */
+  /* In-between steps on the micro scale (13/15px) , exact-value tokens so
+     no reflow occurs; prefer standard text-xs/sm/base for new work. */
+  --text-xs-plus: 0.8125rem; /* 13px */
+  --text-sm-plus: 0.9375rem; /* 15px */
+  --text-icon-lg: 2rem;      /* 32px , large material symbol (empty states) */
+  /* Display type scale , Syne hero headings on the login stage. */
+  --text-display-sm: 2.75rem;  /* 44px */
+  --text-display-md: 3rem;     /* 48px */
+  --text-display-lg: 3.375rem; /* 54px */
+  --text-display-xl: 3.75rem;  /* 60px */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --admin-radius-card: 1rem;
+  --admin-radius-lg: 2rem;
+  --admin-radius-xl: 3rem;
 }
 @layer base {
   :root {
@@ -137,6 +161,14 @@
     --success-foreground: 0 0% 100%;
     --warning: var(--brand-yellow);
     --warning-foreground: 0 0% 10%;
+    /* Chart ramp from the logo hues (DESIGN.md §2). Data categories ride the
+       same four brand pigments plus a logo-blue tint, so charts read as Frhm
+       and stay distinguishable by lightness, not hue alone. */
+    --chart-1: var(--brand-blue);
+    --chart-2: var(--brand-yellow);
+    --chart-3: var(--brand-red);
+    --chart-4: var(--brand-green);
+    --chart-5: 217 80% 32%;
     --border: 240 5% 85%;
     --input: 240 5% 85%;
     --ring: var(--brand-accent);
@@ -179,6 +211,13 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    /* Chart ramp mirrors the light ramp; lightness raised so each category
+       holds contrast on #09090B. Hue comes from the logo, not category habit. */
+    --chart-1: var(--brand-blue);
+    --chart-2: var(--brand-yellow);
+    --chart-3: var(--brand-red);
+    --chart-4: var(--brand-green);
+    --chart-5: 217 72% 48%;
     --border: 240 10% 15%;
     --input: 240 10% 15%;
     --ring: var(--brand-accent);

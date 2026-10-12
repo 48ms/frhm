@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/animate-ui/components/radix/tooltip';
 import { Kbd } from '@/components/ui/kbd';
 import { startThemeTransition } from '@/lib/theme-transition';
 
@@ -44,18 +44,16 @@ export function ThemeModeToggle() {
 
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant='secondary'
-            size='icon'
-            className='group/toggle size-8'
-            onClick={handleThemeToggle}
-          />
-        }
-      >
-        <Icons.brightness />
-        <span className='sr-only'>Toggle theme</span>
+      <TooltipTrigger asChild>
+        <Button
+          variant='secondary'
+          size='icon'
+          className='group/toggle size-8'
+          onClick={handleThemeToggle}
+        >
+          <Icons.brightness />
+          <span className='sr-only'>Toggle theme</span>
+        </Button>
       </TooltipTrigger>
       <TooltipContent>
         Toggle theme <Kbd>⌘⇧D</Kbd> <Kbd>D D</Kbd>

@@ -17,13 +17,13 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@/components/animate-ui/components/radix/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/animate-ui/components/radix/tooltip"
 import { Icons } from '@/components/icons'
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
@@ -81,7 +81,7 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax`
     },
     [setOpenProp, open]
   )
@@ -512,7 +512,7 @@ function SidebarMenuButton({
       },
       props
     ),
-    render: !tooltip ? render : <TooltipTrigger render={render} />,
+    render,
     state: {
       slot: "sidebar-menu-button",
       sidebar: "menu-button",
@@ -533,7 +533,9 @@ function SidebarMenuButton({
 
   return (
     <Tooltip>
-      {comp}
+      <TooltipTrigger asChild>
+        {comp}
+      </TooltipTrigger>
       <TooltipContent
         side="right"
         align="center"

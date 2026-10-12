@@ -55,20 +55,24 @@ export default function ForgotPasswordPage() {
     setFieldError(null)
     setLoading(true)
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-      redirectTo: `${window.location.origin}/auth/set-password`,
-    })
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+        redirectTo: `${window.location.origin}/auth/set-password`,
+      })
 
-    if (resetError) {
-      setError(describeError(resetError))
+      if (resetError) {
+        setError(describeError(resetError))
+        return
+      }
+
+      setMessage(
+        'Tautan pemulihan password telah dikirim ke email Anda. Buka email dan ikuti tautannya untuk membuat password baru.',
+      )
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan jaringan. Coba lagi.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    setMessage(
-      'Tautan pemulihan password telah dikirim ke email Anda. Buka email dan ikuti tautannya untuk membuat password baru.',
-    )
-    setLoading(false)
   }
 
   return (
@@ -131,7 +135,7 @@ export default function ForgotPasswordPage() {
         {message && (
           <div
             role="status"
-            className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium"
+            className="rounded-lg border border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/10 px-3 py-2 text-sm text-[hsl(var(--success))] font-medium"
           >
             {message}
           </div>

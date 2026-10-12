@@ -1,12 +1,23 @@
 "use client"
 
 import { useAppForm } from "@/lib/form"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { z } from "zod"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/animate-ui/components/radix/dialog"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
-import { createDeliverable, createDeliverableSchema } from "@/features/deliverables/api/service"
+import { createDeliverable } from "@/features/deliverables/api/service"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+
+// Skema khusus form (tanpa clientId — diambil dari useActiveDashboard saat submit).
+const deliverableFormSchema = z.object({
+  type: z.enum(["brief", "content", "report"]),
+  title: z.string().min(3, "Judul minimal 3 karakter").max(120, "Judul terlalu panjang"),
+  content_md: z.string(),
+  external_link: z.string().url("URL eksternal tidak valid").or(z.literal("")),
+})
+
+type DeliverableFormValues = z.infer<typeof deliverableFormSchema>
 
 export function CreateDeliverableDialog({
   open,
@@ -20,13 +31,13 @@ export function CreateDeliverableDialog({
 
   const form = useAppForm({
     defaultValues: {
-      type: "content" as const,
+      type: "content",
       title: "",
       content_md: "",
       external_link: "",
-    },
+    } as DeliverableFormValues,
     validators: {
-      onSubmit: createDeliverableSchema,
+      onSubmit: deliverableFormSchema,
     },
     onSubmit: async ({ value }) => {
       if (!clientId) {

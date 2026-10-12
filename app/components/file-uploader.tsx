@@ -7,7 +7,7 @@ import Dropzone, { type DropzoneProps, type FileRejection } from 'react-dropzone
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Progress } from '@/components/animate-ui/components/radix/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { cn, formatBytes } from '@/lib/utils';

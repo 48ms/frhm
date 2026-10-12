@@ -3,9 +3,13 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AdminHeader } from "@/app/admin/header"
 import AdminDashboardPage from "@/app/admin/dashboard/page"
+import { assertPreviewAllowed } from "@/lib/preview-guard"
 import "@/app/admin/admin-stage.css"
 
+export const dynamic = "force-dynamic"
+
 export default async function PreviewShell() {
+  assertPreviewAllowed()
   // The dashboard tree reads URL state (nuqs), so it must sit inside a
   // Suspense boundary for static prerendering to bail out cleanly.
   const dashboard = await AdminDashboardPage()

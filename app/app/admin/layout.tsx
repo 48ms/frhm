@@ -28,12 +28,7 @@ export default async function AdminLayout({
     .eq("id", user.id)
     .single()
 
-  if (profile?.role !== "admin") redirect("/client/dashboard")
-
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("id, name")
-    .order("name")
+  if (profile?.role !== "admin") redirect("/admin/dashboard")
 
   return (
     <div className="admin-theme admin-viewport">
@@ -59,7 +54,8 @@ export default async function AdminLayout({
                 userName={profile?.full_name || user.email || "Admin"}
                 unreadCount={1}
               />
-              <div data-slot="admin-main" className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-6 lg:p-8">
+              {/* Mobile: 16px top padding for header; Desktop: no extra padding */}
+              <div data-slot="admin-main" className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-4 pb-6 lg:p-8 md:pt-0">
                 {children}
                 <AdminFooter />
               </div>

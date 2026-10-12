@@ -3,6 +3,16 @@ import { createScheduledPost, deleteScheduledPost } from './service'
 import { CreateScheduledPostSchema, type CreateScheduledPostInput } from './types'
 
 // ---------------------------------------------------------------------------
+// Audit spy: verify consequential mutations are recorded (audit coverage gap).
+// ---------------------------------------------------------------------------
+const auditCalls: Array<Record<string, unknown>> = []
+vi.mock('@/lib/audit/log', () => ({
+  logAudit: vi.fn(async (input: Record<string, unknown>) => {
+    auditCalls.push(input)
+  }),
+}))
+
+// ---------------------------------------------------------------------------
 // Mock Supabase client — mirrors the chain API the service actually calls.
 // ---------------------------------------------------------------------------
 
@@ -40,6 +50,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   insertedRows.length = 0
   deleteFilters.length = 0
+  auditCalls.length = 0
 })
 
 function validPayload(): CreateScheduledPostInput {
@@ -132,5 +143,24 @@ describe('deleteScheduledPost', () => {
     const columns = deleteFilters.map((f) => f.column)
     expect(columns).toContain('id')
     expect(columns).not.toContain('client_id')
+  })
+})
+
+describe('audit coverage (logAudit must be called on mutations)', () => {
+  it('records an audit row when a post is created', async () => {
+    await createScheduledPost(validPayload())
+    expect(auditCalls.length).toBe(1)
+    expect(auditCalls[0]).toMatchObject({ action: 'scheduled_post.create' })
+    expect(auditCalls[0].clientId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa6')
+  })
+
+  it('records an audit row when a post is deleted', async () => {
+    await deleteScheduledPost('post-123', 'client-abc')
+    expect(auditCalls.length).toBe(1)
+    expect(auditCalls[0]).toMatchObject({
+      action: 'scheduled_post.delete',
+      entityId: 'post-123',
+      clientId: 'client-abc',
+    })
   })
 })
