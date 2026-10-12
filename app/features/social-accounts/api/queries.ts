@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getClientsWithChannels, disconnectChannel, syncChannel, updateBrandProfile, generateBrandProfile } from "./service"
-import type { GenerateBrandProfileInput } from "./types"
+import type { ClientWithChannels, GenerateBrandProfileInput } from "./types"
 
 export const socialKeys = {
   all: ["social-channels"] as const,
@@ -20,8 +20,29 @@ export function useDisconnectChannel() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: disconnectChannel,
-    onSuccess: () => {
-      // Invalidate queries untuk me-refresh data
+    onMutate: async (channelId: string) => {
+      // Optimistic Update (Aturan #16: Zero-Latency Feel)
+      await queryClient.cancelQueries({ queryKey: socialKeys.clients() })
+      const previousClients = queryClient.getQueryData<ClientWithChannels[]>(socialKeys.clients())
+
+      if (previousClients) {
+        queryClient.setQueryData<ClientWithChannels[]>(
+          socialKeys.clients(),
+          previousClients.map((client) => ({
+            ...client,
+            channels: client.channels.filter((ch) => ch.id !== channelId),
+          }))
+        )
+      }
+
+      return { previousClients }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousClients) {
+        queryClient.setQueryData(socialKeys.clients(), context.previousClients)
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
     },
   })
