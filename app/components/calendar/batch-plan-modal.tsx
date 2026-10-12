@@ -310,13 +310,14 @@ export function BatchPlanModal({
           </div>
 
           <div className="p-4 border-t border-border/40 flex justify-end gap-2.5 bg-muted/10">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 rounded-full font-bold text-xs text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="rounded-full font-bold text-xs"
             >
               Batalkan
-            </button>
+            </Button>
             {step === "config" ? (
               <Button
                 onClick={handleGenerate}

@@ -682,7 +682,7 @@ export function PostDialog({
               </Button>
               <Button
                 type="submit"
-                loading={loading}
+                isLoading={loading}
                 loadingLabel="Menyimpan..."
                 className="h-9 shadow-md min-w-[140px]"
               >

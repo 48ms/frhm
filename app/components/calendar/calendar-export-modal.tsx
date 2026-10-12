@@ -252,13 +252,14 @@ export function CalendarExportModal({
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/30">
-                <button
+                <Button
                   type="button"
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+                  variant="ghost"
+                  className="rounded-full text-xs font-semibold"
                   onClick={onClose}
                 >
                   Batal
-                </button>
+                </Button>
                 <Button
                   onClick={handleExport}
                   disabled={busy}
