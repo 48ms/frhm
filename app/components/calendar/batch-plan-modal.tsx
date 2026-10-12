@@ -17,6 +17,8 @@ import {
 } from "@/components/animate-ui/components/radix/dialog"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 
 export function BatchPlanModal({ 
   open,
@@ -269,7 +271,11 @@ export function BatchPlanModal({
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-foreground">Review ({generatedPosts.length} Post)</h3>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1">
+                    <span>Review (</span>
+                    <MetricTicker value={generatedPosts.length} />
+                    <span> Post)</span>
+                  </h3>
                   <Button
                     type="button"
                     variant="link"
@@ -329,16 +335,22 @@ export function BatchPlanModal({
                 isLoading={isPending}
                 className="rounded-full font-bold text-xs bg-[hsl(var(--admin-cobalt))] text-white shadow-sm"
               >
-                Generate Kalender
+                {isPending ? (
+                  <ShimmeringText text="Merancang Batch Kalender…" className="text-xs font-semibold" />
+                ) : (
+                  "Generate Kalender"
+                )}
               </Button>
             ) : (
               <Button
                 onClick={handleSaveSelected}
                 disabled={isSaving}
                 isLoading={isSaving}
-                className="rounded-full font-bold text-xs bg-[hsl(var(--admin-cobalt))] text-white shadow-sm"
+                className="rounded-full font-bold text-xs bg-[hsl(var(--admin-cobalt))] text-white shadow-sm flex items-center gap-1"
               >
-                Simpan {generatedPosts.filter((p) => p.selected).length} Post
+                <span>Simpan </span>
+                <MetricTicker value={generatedPosts.filter((p) => p.selected).length} />
+                <span> Post</span>
               </Button>
             )}
           </div>
