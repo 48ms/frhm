@@ -113,12 +113,15 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
             )}
           </div>
           {unreadCount > 0 && (
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={markAllAsRead}
-              className='text-xs text-muted-foreground hover:text-foreground font-medium transition-colors'
+              className="text-xs text-muted-foreground hover:text-foreground font-medium p-0 h-auto hover:bg-transparent"
             >
               Tandai semua dibaca
-            </button>
+            </Button>
           )}
         </div>
 

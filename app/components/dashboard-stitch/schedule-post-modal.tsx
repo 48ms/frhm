@@ -156,14 +156,16 @@ export function SchedulePostModal({
                 {safeChannels.map((c) => {
                   const active = selected.includes(c.platform)
                   return (
-                    <button
+                    <Button
                       key={c.id}
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => toggle(c.platform)}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer h-auto",
                         active
-                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/15"
                           : "border-border/40 text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -172,7 +174,7 @@ export function SchedulePostModal({
                       {c.handle && (
                         <span className="text-2xs opacity-70">({c.handle})</span>
                       )}
-                    </button>
+                    </Button>
                   )
                 })}
               </div>
@@ -193,19 +195,21 @@ export function SchedulePostModal({
               <label className="block text-xs font-semibold text-foreground mb-1">Time slot</label>
               <div className="flex flex-wrap gap-1.5">
                 {TIME_SLOTS.map((t) => (
-                  <button
+                  <Button
                     key={t}
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => setWhen(t)}
                     className={cn(
-                      "px-2.5 py-1.5 rounded-full text-1xs font-semibold border transition-all cursor-pointer",
+                      "px-2.5 py-1.5 rounded-full text-1xs font-semibold border transition-all cursor-pointer h-auto",
                       when === t
-                        ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                        ? "border-brand-accent bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/15"
                         : "border-border/40 text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {t}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

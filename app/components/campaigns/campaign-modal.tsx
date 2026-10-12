@@ -173,14 +173,15 @@ export function CampaignModal({
               </label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     id="campaign-client"
-                    className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer h-auto"
                   >
                     <span>{clients.find((c) => c.id === clientId)?.name ?? "Pilih Client"}</span>
                     <Icons.chevronDown className="size-3 text-muted-foreground" />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-[calc(100vw-4rem)] sm:w-80 max-h-60 overflow-y-auto">
                   {clients.map((c) => (
@@ -198,18 +199,21 @@ export function CampaignModal({
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(CAMPAIGN_TYPE_META) as CampaignType[]).map((t) => (
-                  <button
+                  <Button
                     key={t}
+                    type="button"
+                    variant={type === t ? "default" : "outline"}
+                    size="sm"
                     onClick={() => setType(t)}
                     className={cn(
-                      "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer",
+                      "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer h-auto",
                       type === t
-                        ? "bg-brand-accent text-brand-accent-foreground border-transparent"
+                        ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90"
                         : "border-border/40 text-foreground hover:bg-muted"
                     )}
                   >
                     {CAMPAIGN_TYPE_META[t].label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -348,51 +352,64 @@ export function CampaignModal({
         <div className="flex items-center justify-end gap-2 pt-2">
           {step === "basics" && (
             <>
-              <button
-                className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="rounded-full text-xs font-semibold"
                 onClick={onClose}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                size="sm"
                 disabled={!canContinue}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:hover:scale-100"
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm"
                 onClick={() => setStep("schedule")}
               >
                 Continue
                 <Icons.arrowRight className="size-4" />
-              </button>
+              </Button>
             </>
           )}
 
           {step === "schedule" && (
             <>
-              <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="inline-flex items-center gap-1.5 rounded-full text-xs font-semibold"
                 onClick={() => setStep("basics")}
               >
                 <Icons.arrowLeft className="size-4" />
                 Back
-              </button>
-              <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm"
                 onClick={() => setStep("review")}
               >
                 Review
                 <Icons.arrowRight className="size-4" />
-              </button>
+              </Button>
             </>
           )}
 
           {step === "review" && (
             <>
-              <button
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="inline-flex items-center gap-1.5 rounded-full text-xs font-semibold"
                 onClick={() => setStep("schedule")}
               >
                 <Icons.arrowLeft className="size-4" />
                 Back
-              </button>
+              </Button>
               <Button
                 type="button"
                 size="sm"

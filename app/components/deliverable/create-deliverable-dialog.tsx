@@ -3,6 +3,7 @@
 import { useAppForm } from "@/lib/form"
 import { z } from "zod"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/animate-ui/components/radix/dialog"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { createDeliverable } from "@/features/deliverables/api/service"
@@ -135,13 +136,15 @@ export function CreateDeliverableDialog({
           />
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => onOpenChange(false)}
-              className="px-5 py-2.5 rounded-full font-bold text-sm text-muted-foreground hover:bg-muted transition-colors"
+              className="rounded-full font-bold text-xs text-muted-foreground hover:bg-muted"
             >
               Batal
-            </button>
+            </Button>
             <form.SubmitButton disabled={false}>
               Buat Deliverable
             </form.SubmitButton>

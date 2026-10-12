@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 
 /**
  * Titik data metrik faktual untuk satu titik waktu.
@@ -72,22 +73,19 @@ export function AudienceTrajectory({
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
-        <div className="inline-flex p-1 rounded-full bg-muted border border-border/30">
-          {TIMEFRAMES.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTf(t)}
-              className={cn(
-                "px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer",
-                tf === t
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <Tabs value={tf} onValueChange={(val) => setTf(val as Timeframe)}>
+          <TabsList className="bg-muted p-1 rounded-full border border-border/30 h-8" highlightClassName="bg-background text-foreground shadow-sm rounded-full">
+            {TIMEFRAMES.map((t) => (
+              <TabsTrigger
+                key={t}
+                value={t}
+                className="px-3 py-1 rounded-full text-xs font-semibold h-6"
+              >
+                {t}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
       {!series ? (

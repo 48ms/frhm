@@ -461,12 +461,14 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
                 </div>
               </div>
               {accounts.length > 0 && (
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => onBulkRefresh(accounts)}
-                  className="px-4 py-1.5 rounded-full bg-card border border-border/40 hover:bg-muted text-foreground text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto"
+                  className="rounded-full bg-card border border-border/40 hover:bg-muted text-foreground text-xs font-semibold self-start sm:self-auto h-auto py-1.5 px-4"
                 >
                   {bulkLabel}
-                </button>
+                </Button>
               )}
             </div>
 
@@ -568,21 +570,26 @@ export function AccountCard({ account: a, onDisconnect, onReconnect, onRefreshOn
       {/* Card actions */}
       <div className="pt-4 border-t border-border/20 flex items-center justify-between gap-2 relative">
         {isExpiring ? (
-          <button
+          <Button
+            variant="destructive"
             onClick={() => onReconnect(a)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-1xs font-bold transition-all active:scale-95 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-1xs font-bold cursor-pointer h-auto"
           >
             <Icons.warning className="size-4" />
             Reconnect account
-          </button>
+          </Button>
         ) : (
           <>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label={`More actions for ${a.handle}`}
-                className="p-2.5 rounded-full hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <Icons.more_vert className="size-4" />
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`More actions for ${a.handle}`}
+                  className="rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <Icons.more_vert className="size-4" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem onClick={() => onRefreshOne(a)}>

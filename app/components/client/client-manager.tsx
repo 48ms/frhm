@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 
 export function ClientManager() {
   const { data: clients, isLoading } = useQuery(socialQueries.listClientsWithChannels())
@@ -50,15 +51,16 @@ export function ClientManager() {
           </div>
         ))}
 
-        <button
+        <Button
+          variant="outline"
           onClick={openCreateClient}
-          className="p-6 min-h-32 rounded-2xl border-2 border-dashed border-border/50 hover:border-brand-accent/50 hover:bg-brand-accent/5 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          className="p-6 h-auto min-h-32 rounded-2xl border-2 border-dashed border-border/50 hover:border-brand-accent/50 hover:bg-brand-accent/5 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center" aria-hidden>
             <Icons.add className="size-6 text-muted-foreground" />
           </div>
           <span className="font-bold text-sm">Add New Client</span>
-        </button>
+        </Button>
       </div>
     </div>
   )

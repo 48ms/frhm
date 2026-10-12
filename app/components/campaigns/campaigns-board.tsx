@@ -509,10 +509,10 @@ export function CampaignsBoard() {
         <div className="flex flex-wrap items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" className="admin-pill admin-pill-ghost flex items-center gap-2 border cursor-pointer">
+              <Button type="button" variant="outline" size="sm" className="admin-pill admin-pill-ghost flex items-center gap-2 border cursor-pointer">
                 <Icons.listChecks className="size-4" />
                 Filter Status
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuRadioGroup value={tab} onValueChange={(value) => setTab(value as CampaignTab)}>
@@ -823,17 +823,17 @@ export function CampaignsBoard() {
                     Launch the first campaign for {activeClient.name} to track flighting, budget,
                     deliverables, and talent in one place.
                   </p>
-                  <button onClick={openCreate} className="admin-pill admin-pill-primary mt-1">
+                  <Button onClick={openCreate} className="admin-pill admin-pill-primary mt-1">
                     <Icons.rocket className="size-4 text-lime-300" />
                     Launch Campaign
-                  </button>
+                  </Button>
                 </div>
               )}
 
               {/* Quick Action Bar */}
               <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-5 border-t border-border/30">
                 <div className="flex items-center gap-3">
-                  <button
+                  <Button
                     onClick={() =>
                       withViewTransition(() => setDetail(featured))
                     }
@@ -841,7 +841,7 @@ export function CampaignsBoard() {
                     className="admin-pill admin-pill-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Manage Deliverables
-                  </button>
+                  </Button>
                   <span
                     aria-disabled="true"
                     title="Creative assets live in the Media Library."
@@ -966,8 +966,10 @@ export function CampaignsBoard() {
                           {sm.label}
                         </span>
                         <div className="flex items-center gap-1">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             aria-label={`Salin detail deliverable ${d.title}`}
                             onClick={() => {
                               const summary = [
@@ -986,7 +988,7 @@ export function CampaignsBoard() {
                             className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer"
                           >
                             <Icons.search className="size-5" />
-                          </button>
+                          </Button>
                           {d.stage === "review" && (
                             <Button
                               onClick={() => approveProduction(d)}
@@ -1034,18 +1036,20 @@ export function CampaignsBoard() {
             {/* Segmented Client Selector Pills */}
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary/30 rounded-full border border-border/20 mb-6">
               {clients.map((c) => (
-                <button
+                <Button
                   key={c.id}
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setClientId(c.id)}
                   className={cn(
-                    "py-1.5 px-2 rounded-full text-2xs font-bold transition-colors truncate cursor-pointer",
+                    "py-1.5 px-2 rounded-full text-2xs font-bold transition-colors truncate cursor-pointer h-auto",
                     activeClientId === c.id
-                      ? "bg-card text-foreground shadow-sm"
+                      ? "bg-card text-foreground shadow-sm hover:bg-card"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {c.name}
-                </button>
+                </Button>
               ))}
             </div>
             <h4 className="text-lg font-bold font-sans text-foreground">
@@ -1138,8 +1142,10 @@ export function CampaignsBoard() {
                           </div>
                         </div>
                       </div>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         aria-label={`Hubungi kreator ${cr.name}`}
                         title={cr.contact_info?.trim() || "Kontak belum tersedia"}
                         onClick={() => {
@@ -1155,10 +1161,10 @@ export function CampaignsBoard() {
                             })
                           }
                         }}
-                        className="p-2 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer shrink-0"
+                        className="size-8 rounded-full hover:bg-muted text-foreground transition-colors cursor-pointer shrink-0"
                       >
-                        <Icons.send className="size-[18px]" />
-                      </button>
+                        <Icons.send className="size-4" />
+                      </Button>
                     </div>
                   )
                 })}
@@ -1170,13 +1176,14 @@ export function CampaignsBoard() {
                 </p>
               </div>
             )}
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => toast.info("Modul Kontrak Talent/KOL dibuka.", { description: "Gunakan menu ERP -> KOLs untuk manajemen penuh." })}
-              className="w-full mt-4 py-2.5 rounded-full bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold transition-colors text-center cursor-pointer"
+              className="w-full mt-4 rounded-full text-xs font-semibold"
             >
                + Contract Additional Talent
-             </button>
+             </Button>
           </div>
 
           {/* 3. AI Campaign Assistant Hook Generator */}
@@ -1196,14 +1203,15 @@ export function CampaignsBoard() {
                 <span className="text-xs text-background/70 pl-3 truncate">
                   &quot;Spatial UX for enterprise CFOs...&quot;
                 </span>
-                <button
+                <Button
                   type="button"
+                  size="icon"
                   aria-label="Buka AI Hook Generator"
                   onClick={() => setAiHookOpen(true)}
-                  className="w-8 h-8 rounded-full bg-lime-400 text-black flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-lime-400 text-black flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer hover:bg-lime-300"
                 >
                   <Icons.arrowRight className="size-4 -rotate-90" />
-                </button>
+                </Button>
               </div>
               <span
                 aria-disabled="true"

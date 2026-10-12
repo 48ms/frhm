@@ -587,10 +587,11 @@ export function PostDialog({
                         </div>
                       </div>
                     ) : (
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         onClick={() => setPickerOpen(true)}
-                        className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/40 hover:bg-muted/60 hover:border-primary/40 transition-all py-6 group cursor-pointer"
+                        className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/40 hover:bg-muted/60 hover:border-primary/40 transition-all py-6 h-auto group cursor-pointer"
                       >
                         <div className="size-9 rounded-full bg-muted/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                           <Icons.media className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -598,7 +599,7 @@ export function PostDialog({
                         <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium">
                           Pilih dari Media Library
                         </span>
-                      </button>
+                      </Button>
                     )}
                   </div>
                 )}

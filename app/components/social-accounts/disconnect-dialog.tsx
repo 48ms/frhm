@@ -1,6 +1,7 @@
 "use client"
 
 import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -18,8 +19,7 @@ export interface DisconnectDialogProps {
 /**
  * Destructive confirmation for disconnecting a channel.
  *
- * Uses the shadcn Dialog (Base UI) so focus trap, scroll lock, Escape,
- * and focus restore come from the primitive instead of hand-rolled code.
+ * Uses Radix UI Dialog & Button primitives for accessibility and smooth interactions.
  */
 export function DisconnectDialog({ open, handle, onConfirm, onClose }: DisconnectDialogProps) {
   return (
@@ -43,18 +43,24 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
         </div>
 
         <div className="p-4 bg-muted/50 border-t flex items-center justify-end gap-2">
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={onClose}
-            className="px-4 py-2 rounded-full border border-border bg-background text-foreground text-xs font-semibold hover:bg-accent transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-full text-xs font-semibold"
           >
             Keep account
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
             onClick={onConfirm}
-            className="px-4 py-2 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold transition-all active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+            className="rounded-full text-xs font-bold"
           >
             Disconnect {handle}
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

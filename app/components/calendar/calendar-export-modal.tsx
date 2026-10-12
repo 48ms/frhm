@@ -205,14 +205,15 @@ export function CalendarExportModal({
                   )[f.icon]
                   const isSelected = format === f.id
                   return (
-                    <button
+                    <Button
                       key={f.id}
                       type="button"
+                      variant="outline"
                       onClick={() => setFormat(f.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.99]",
+                        "w-full h-auto flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer",
                         isSelected
-                          ? "border-brand-accent bg-brand-accent/5 shadow-xs"
+                          ? "border-brand-accent bg-brand-accent/5 shadow-xs hover:bg-brand-accent/10"
                           : "border-border/40 hover:bg-muted/50"
                       )}
                     >
@@ -224,7 +225,7 @@ export function CalendarExportModal({
                         <span className="block text-2xs text-muted-foreground">{f.hint}</span>
                       </div>
                       {isSelected && <Icons.circleCheck className="size-4 text-brand-accent shrink-0" />}
-                    </button>
+                    </Button>
                   )
                 })}
               </div>

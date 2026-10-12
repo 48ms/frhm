@@ -93,13 +93,15 @@ export function BrandProfileTab() {
 
         <div className="mb-8">
           {!aiPanelOpen ? (
-            <button 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setAiPanelOpen(true)}
-              className="w-full py-4 border-2 border-dashed border-brand-accent/20 rounded-xl bg-brand-accent/5 text-brand-accent hover:bg-brand-accent/10 transition-colors flex items-center justify-center gap-2 font-bold"
+              className="w-full h-auto py-4 border-2 border-dashed border-brand-accent/30 rounded-xl bg-brand-accent/5 text-brand-accent hover:bg-brand-accent/10 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
             >
               <Icons.sparkles className="size-5" />
               Gunakan AI untuk Ekstrak Brand DNA
-            </button>
+            </Button>
           ) : (
             <div className="p-6 rounded-2xl bg-brand-accent/5 border border-brand-accent/20">
               <div className="flex items-center justify-between mb-4">
@@ -107,9 +109,15 @@ export function BrandProfileTab() {
                   <Icons.sparkles className="size-4 text-brand-accent" />
                   AI Brand DNA Extractor
                 </h4>
-                <button onClick={() => setAiPanelOpen(false)} className="text-muted-foreground hover:text-brand-accent">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAiPanelOpen(false)}
+                  className="h-8 text-xs text-muted-foreground hover:text-brand-accent"
+                >
                   Tutup
-                </button>
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground mb-4">
                 Paste teks dari website, profil perusahaan, atau kumpulan post lama. AI akan merumuskan Voice, POV, dan Guardrails secara otomatis sesuai standar Social Media.

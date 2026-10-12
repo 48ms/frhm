@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { dashboardQueries } from "@/features/dashboard/api/queries"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,11 +44,12 @@ export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
     <div className={cn("workspace-switcher-container relative w-full z-50", className ?? "mb-6")}>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
             type="button"
+            variant="outline"
             aria-label={`Current workspace: ${activeClient.name}`}
             className={cn(
-              "w-full flex items-center justify-between p-2.5 rounded-2xl bg-card border border-border/40 hover:border-brand-accent/50 transition-all cursor-pointer shadow-sm group select-none text-left",
+              "w-full h-auto flex items-center justify-between p-2.5 rounded-2xl bg-card border border-border/40 hover:border-brand-accent/50 transition-all cursor-pointer shadow-sm group select-none text-left",
               open && "ring-2 ring-brand-accent/20 border-brand-accent/50"
             )}
           >
@@ -70,7 +72,7 @@ export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
                 open && "rotate-180"
               )}
             />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent

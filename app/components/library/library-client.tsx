@@ -322,12 +322,14 @@ export function LibraryClient() {
         <div className="flex flex-wrap items-center gap-1.5 mt-3">
           <span className="text-2xs font-bold text-muted-foreground mr-1">Tags</span>
           {allTags.map(([tag, count]) => (
-            <button
+            <Button
               key={tag}
               type="button"
+              variant={tagFilter === tag ? "default" : "outline"}
+              size="xs"
               onClick={() => setTagFilter(tagFilter === tag ? "" : tag)}
               className={cn(
-                "px-2.5 py-1 rounded-full text-1xs font-bold transition-all cursor-pointer border",
+                "rounded-full text-1xs font-bold transition-all cursor-pointer h-6 px-2.5",
                 tagFilter === tag
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
@@ -335,16 +337,18 @@ export function LibraryClient() {
             >
               #{tag}
               <span className="ml-1 opacity-60">{count}</span>
-            </button>
+            </Button>
           ))}
           {tagFilter && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="xs"
               onClick={() => setTagFilter("")}
-              className="px-2.5 py-1 rounded-full text-1xs font-bold text-destructive hover:bg-destructive/10 transition-colors"
+              className="rounded-full text-1xs font-bold text-destructive hover:bg-destructive/10 transition-colors h-6 px-2.5"
             >
               Reset
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -456,10 +460,12 @@ export function LibraryClient() {
         {/* Select all header */}
         {assets.length > 0 && (
           <div className="col-span-full flex items-center gap-3 mb-1">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={selectAll}
-              className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary/50 transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary/50 transition-colors h-auto"
             >
               <Checkbox
                 checked={selected.size === assets.length && assets.length > 0}
@@ -467,7 +473,7 @@ export function LibraryClient() {
                 aria-label="Pilih semua aset"
               />
               {selected.size === assets.length ? "Batalkan semua" : "Pilih semua"}
-            </button>
+            </Button>
             {selected.size > 0 && (
               <span className="text-xs text-muted-foreground">
                 {selected.size} / {assets.length} dipilih

@@ -236,19 +236,21 @@ export function BatchPlanModal({
                     {["instagram", "tiktok", "linkedin", "shorts", "twitter"].map((p) => {
                       const active = platforms.includes(p)
                       return (
-                        <button
+                        <Button
                           key={p}
                           type="button"
+                          variant={active ? "default" : "outline"}
+                          size="sm"
                           onClick={() => togglePlatform(p)}
                           className={cn(
-                            "px-3 py-1.5 rounded-full text-xs font-bold capitalize border transition-all cursor-pointer active:scale-95",
+                            "rounded-full text-xs font-bold capitalize border transition-all cursor-pointer h-auto py-1 px-3",
                             active
-                              ? "bg-[hsl(var(--admin-cobalt))] text-[hsl(var(--admin-cobalt-foreground))] border-[hsl(var(--admin-cobalt))] shadow-xs"
+                              ? "bg-[hsl(var(--admin-cobalt))] text-[hsl(var(--admin-cobalt-foreground))] border-[hsl(var(--admin-cobalt))] shadow-xs hover:bg-[hsl(var(--admin-cobalt))]/90"
                               : "bg-muted/50 border-border/40 hover:bg-muted text-muted-foreground"
                           )}
                         >
                           {p}
-                        </button>
+                        </Button>
                       )
                     })}
                   </div>
@@ -268,13 +270,15 @@ export function BatchPlanModal({
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-foreground">Review ({generatedPosts.length} Post)</h3>
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
+                    size="sm"
                     onClick={() => setStep("config")}
-                    className="text-xs font-semibold text-[hsl(var(--admin-cobalt))] hover:underline cursor-pointer"
+                    className="text-xs font-semibold text-[hsl(var(--admin-cobalt))] p-0 h-auto"
                   >
                     ← Kembali ke Config
-                  </button>
+                  </Button>
                 </div>
                 <div className="space-y-2">
                   {generatedPosts.map((p, idx) => (

@@ -141,21 +141,22 @@ export function ExportReportModal({
                 {FORMATS.map((f) => {
                   const active = format === f.id
                   return (
-                    <button
+                    <Button
                       key={f.id}
                       type="button"
+                      variant="outline"
                       onClick={() => setFormat(f.id)}
                       aria-pressed={active}
                       className={cn(
-                        "p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1",
+                        "p-2.5 h-auto rounded-xl border text-left transition-all cursor-pointer flex flex-col items-start gap-1 justify-start",
                         active
-                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/15"
                           : "border-border/40 hover:border-border text-muted-foreground hover:text-foreground"
                       )}
                     >
                       <span className="text-xs font-bold leading-tight">{f.label}</span>
                       <span className="text-2xs opacity-75 leading-tight">{f.hint}</span>
-                    </button>
+                    </Button>
                   )
                 })}
               </div>
@@ -169,20 +170,22 @@ export function ExportReportModal({
                 {RANGES.map((r) => {
                   const active = range === r.id
                   return (
-                    <button
+                    <Button
                       key={r.id}
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => setRange(r.id)}
                       aria-pressed={active}
                       className={cn(
-                        "py-1.5 px-2 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
+                        "py-1.5 px-2 h-auto rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
                         active
-                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/15"
                           : "border-border/40 hover:border-border text-muted-foreground hover:text-foreground"
                       )}
                     >
                       {r.label}
-                    </button>
+                    </Button>
                   )
                 })}
               </div>

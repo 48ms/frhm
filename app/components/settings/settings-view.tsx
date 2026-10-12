@@ -360,13 +360,15 @@ function BillingTab() {
                 </p>
               </div>
             </div>
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
               onClick={() => toast.info("Manajemen Billing", { description: "Gunakan portal payment gateway terintegrasi untuk ubah metode pembayaran." })}
-              className="text-xs text-secondary font-semibold hover:underline"
+              className="text-xs text-secondary font-semibold p-0 h-auto hover:underline"
             >
               Manage
-            </button>
+            </Button>
           </div>
 
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
@@ -607,14 +609,16 @@ function IntegrationsTab() {
                 value={secret}
                 className="w-full h-12 px-5 font-mono text-sm bg-muted/60 border border-border/40 rounded-full text-foreground select-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSecretVisible((v) => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 size-8 text-muted-foreground hover:text-foreground rounded-full"
                 aria-label={secretVisible ? "Hide secret" : "Show secret"}
               >
-                {secretVisible ? <Icons.eyeOff className="size-4.5" /> : <Icons.eye className="size-4.5" />}
-              </button>
+                {secretVisible ? <Icons.eyeOff className="size-4" /> : <Icons.eye className="size-4" />}
+              </Button>
             </div>
             <Button
               type="button"
@@ -684,17 +688,19 @@ function IntegrationRow({
         </div>
       </div>
       <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() =>
             toast.info(`${action} · ${title}`, {
               description: "Kelola detail integrasi ini dari dashboard platform terkait.",
             })
           }
-          className="px-4 py-2 rounded-full border border-border/40 bg-card text-foreground text-xs font-semibold hover:bg-muted/40 transition-colors"
+          className="rounded-full text-xs font-semibold"
         >
           {action}
-        </button>
+        </Button>
         <Switch checked={on} onCheckedChange={setOn} />
       </div>
     </div>
@@ -911,13 +917,15 @@ function UserAccessTab() {
                     ) : (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             className="h-8 px-3 rounded-full bg-muted/60 hover:bg-muted border border-border/30 text-xs font-medium text-foreground inline-flex items-center gap-1.5 transition-colors"
                           >
                             <span>{m.role}</span>
                             <Icons.chevronDown className="size-3" />
-                          </button>
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
                           <DropdownMenuItem onClick={() => toast.success(`Role ${m.name} diubah ke Campaign Lead`)}>
@@ -954,14 +962,16 @@ function UserAccessTab() {
                         Protected
                       </span>
                     ) : (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         title="Revoke Access"
                         onClick={() => toast.success(`Akses untuk ${m.name} dicabut.`)}
-                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                        className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
                       >
                         <Icons.userX className="size-4 text-destructive" />
-                      </button>
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>
