@@ -103,6 +103,18 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
           </>
         ) : (
           <div className="flex flex-col items-center py-2 gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
+                  aria-label="New Post"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-white shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer"
+                >
+                  <Icons.add className="size-5" />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="right">New Post</TooltipContent>
+            </Tooltip>
             {adminNavStitch.map((item) => {
               const active = isActiveFor(pathname, item.url)
               const targetUrl = activeClientId ? `${item.url}?clientId=${activeClientId}` : item.url
