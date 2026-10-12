@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useQuery } from '@tanstack/react-query'
+import { dashboardQueries } from '@/features/dashboard/api/queries'
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
@@ -24,10 +25,14 @@ interface AdminCommandSearchProps {
 // results scope the shared dashboard via the ?clientId= query param (nuqs).
 export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
   const router = useRouter()
-  const supabase = createClient()
   const { openCreateClient } = useCreateClient()
   const [open, setOpen] = useState(false)
-  const [clients, setClients] = useState<ClientHit[]>([])
+  
+  const { data: clientsData = [] } = useQuery({
+    ...dashboardQueries.clients(),
+    enabled: open,
+  })
+  const clients = clientsData as ClientHit[]
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -39,13 +44,6 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [])
-
-  const load = useCallback(async () => {
-    const { data: c } = await supabase.from('clients').select('id, name').order('name')
-    setClients((c ?? []) as ClientHit[])
-  }, [supabase])
-
-  useEffect(() => { if (open) load() }, [open, load])
 
   const go = (path: string) => { setOpen(false); router.push(path) }
 
