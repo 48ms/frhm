@@ -296,3 +296,17 @@ Output JSON: { "who": "...", "audience": "...", "voice": "...", "pov": "...", "p
     return { error: error.message || "Failed to generate brand profile" }
   }
 }
+
+/** Meminta OAuth authorization URL untuk platform sosial tertentu via API handler */
+export async function requestOAuthUrl(params: { clientId: string; platform: string }): Promise<{ url: string }> {
+  const res = await fetch('/api/social/oauth-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok || !data.url) {
+    throw new Error(data.error || 'Failed to get OAuth URL')
+  }
+  return { url: data.url }
+}

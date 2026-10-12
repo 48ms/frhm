@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
-import { supportTicketQueries } from "@/features/support/api/queries"
+import { supportTicketQueries, useCreateSupportTicket } from "@/features/support/api/queries"
 import type { SupportTicket, SupportTicketPriority, SupportTicketStatus } from "@/features/support/api/types"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
@@ -139,7 +139,7 @@ export function SupportView() {
   const [message, setMessage] = React.useState("")
   const [priority, setPriority] = React.useState<SupportTicketPriority>("Normal")
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const { mutateAsync: createTicket, isPending: isSubmitting } = useCreateSupportTicket()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -148,19 +148,13 @@ export function SupportView() {
       return
     }
     
-    setIsSubmitting(true)
     try {
-      const res = await fetch("/api/support/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: subject.trim(),
-          message: message.trim(),
-          priority,
-          clientId: activeClient?.id,
-        })
+      await createTicket({
+        clientId: activeClient?.id ?? "",
+        subject: subject.trim(),
+        message: message.trim(),
+        priority,
       })
-      if (!res.ok) throw new Error("Gagal mengirim tiket")
       
       toast.success("Tiket dukungan dikirim", {
         description: `Tiket antre untuk ${activeClient?.name ?? "workspace Anda"} · Prioritas: ${priority}`,
@@ -168,12 +162,8 @@ export function SupportView() {
       setSubject("")
       setMessage("")
       setPriority("Normal")
-      // Refresh daftar tiket agar tiket baru langsung muncul di "Recent Tickets".
-      queryClient.invalidateQueries({ queryKey: supportTicketQueries.listByClient(activeClient?.id ?? "").queryKey })
     } catch (err) {
       toast.error("Gagal mengirim permintaan.")
-    } finally {
-      setIsSubmitting(false)
     }
   }
 

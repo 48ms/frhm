@@ -16,6 +16,10 @@ vi.mock("@/features/support/api/queries", () => ({
       queryFn: async () => [],
     }),
   },
+  useCreateSupportTicket: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 describe("SupportView", () => {

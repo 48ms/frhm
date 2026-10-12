@@ -1,5 +1,6 @@
-import { queryOptions } from "@tanstack/react-query"
-import { getSupportTicketsByClient } from "./service"
+import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getSupportTicketsByClient, createSupportTicket } from "./service"
+import type { CreateSupportTicketInput } from "./types"
 
 export const supportTicketKeys = {
   all: ["support-tickets"] as const,
@@ -14,4 +15,17 @@ export const supportTicketQueries = {
       queryFn: () => getSupportTicketsByClient(clientId),
       enabled: Boolean(clientId),
     }),
+}
+
+export function useCreateSupportTicket() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateSupportTicketInput) => createSupportTicket(input),
+    onSuccess: (_, variables) => {
+      if (variables.clientId) {
+        queryClient.invalidateQueries({ queryKey: supportTicketKeys.byClient(variables.clientId) })
+      }
+      queryClient.invalidateQueries({ queryKey: supportTicketKeys.all })
+    },
+  })
 }

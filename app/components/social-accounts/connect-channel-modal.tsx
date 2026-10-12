@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { requestOAuthUrl } from "@/features/social-accounts/api/service"
 
 import { toast } from "sonner"
 import {
@@ -113,19 +114,12 @@ export function ConnectChannelModal({
     setLoadingPlatform(selectedPlatform)
 
     try {
-      const res = await fetch('/api/social/oauth-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId: activeClientId, platform: selectedPlatform })
+      const { url } = await requestOAuthUrl({
+        clientId: activeClientId,
+        platform: selectedPlatform,
       })
-      const data = await res.json()
-
-      if (data.url) {
-        // Redirect user to Ayrshare OAuth URL
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || 'Failed to get OAuth URL')
-      }
+      // Redirect user to Ayrshare OAuth URL
+      window.location.href = url
     } catch (err: any) {
       toast.error(err.message || 'Error connecting to provider')
       setLoadingPlatform(null)

@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
-import type { SupportTicket } from "./types"
+import { logAudit } from "@/lib/audit/log"
+import type { SupportTicket, CreateSupportTicketInput } from "./types"
 
 /**
  * Service Layer untuk Support Tickets.
@@ -24,4 +25,43 @@ export async function getSupportTicketsByClient(clientId: string): Promise<Suppo
     return []
   }
   return (data ?? []) as SupportTicket[]
+}
+
+export async function createSupportTicket(input: CreateSupportTicketInput): Promise<SupportTicket> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .insert({
+      client_id: input.clientId || null,
+      created_by: user.id,
+      subject: input.subject.trim(),
+      message: input.message.trim(),
+      priority: input.priority,
+      status: "open",
+    })
+    .select()
+    .single()
+
+  if (error) {
+    logger.error("createSupportTicket failed", { error })
+    throw new Error("Gagal menyimpan tiket dukungan")
+  }
+
+  void logAudit({
+    action: "support_ticket.create",
+    entityType: "support_ticket",
+    entityId: data?.id ?? null,
+    clientId: input.clientId || null,
+    summary: `Created support ticket: ${input.subject}`,
+  })
+
+  return data as SupportTicket
 }
