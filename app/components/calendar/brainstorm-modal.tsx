@@ -20,6 +20,8 @@ import { useCreateScheduledPost } from "@/features/scheduled-posts/api/queries"
 import { addDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 
 interface BrainstormModalProps {
   clientId: string
@@ -151,9 +153,15 @@ export function BrainstormModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {!hideTrigger && (
-        <DialogTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 gap-2 cursor-pointer">
-          <Icons.sparkles className="h-4 w-4 text-primary" />
-          <span>AI Brainstorm</span>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="inline-flex items-center justify-center gap-2 h-9 px-4 py-2 cursor-pointer shadow-sm"
+          >
+            <Icons.sparkles className="h-4 w-4 text-primary" />
+            <span>AI Brainstorm</span>
+          </Button>
         </DialogTrigger>
       )}
       
@@ -211,7 +219,9 @@ export function BrainstormModal({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="idea-count">Jumlah Ide</Label>
-                    <span className="text-xs font-bold text-primary">{count} Ide</span>
+                    <span className="text-xs font-bold text-primary">
+                      <MetricTicker value={`${count} Ide`} />
+                    </span>
                   </div>
                   <Slider 
                     id="idea-count"
@@ -234,13 +244,19 @@ export function BrainstormModal({
                   disabled={isGenerating}
                 >
                   <Icons.sparkles className="h-4 w-4" />
-                  {isGenerating ? "Menganalisis Brand Profile..." : "Generate Ideas"}
+                  {isGenerating ? (
+                    <ShimmeringText text="Menganalisis Brand Profile…" className="text-xs font-semibold" />
+                  ) : (
+                    "Generate Ideas"
+                  )}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4 py-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm text-muted-foreground">{ideas.length} Ide Ditemukan</h3>
+                  <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-1">
+                    <MetricTicker value={ideas.length} /> Ide Ditemukan
+                  </h3>
                   <Button variant="ghost" size="sm" onClick={() => setIdeas([])} className="h-8">Reset</Button>
                 </div>
                 
@@ -319,7 +335,11 @@ export function BrainstormModal({
                 className="w-full gap-2"
               >
                 <Icons.shield className="size-4" />
-                {isAuditing ? "Mengaudit 3-Gate Framework..." : "Audit Kelayakan Tren (3-Gate)"}
+                {isAuditing ? (
+                  <ShimmeringText text="Mengaudit 3-Gate Framework…" className="text-xs font-semibold" />
+                ) : (
+                  "Audit Kelayakan Tren (3-Gate)"
+                )}
               </Button>
             </div>
 
