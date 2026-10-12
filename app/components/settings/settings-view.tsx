@@ -14,6 +14,16 @@ import {
   DropdownMenuItem,
 } from "@/components/animate-ui/components/radix/dropdown-menu"
 import { PageContainer } from "@/components/layout/page-container"
+import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"
 
 const TABS = [
   { id: "workspace", label: "Workspace", icon: "domain" },
@@ -34,7 +44,7 @@ export function SettingsView() {
       pageDescription={`Manage workspace parameters, billing schedules, API integrations, and collaborative user permissions for ${activeClient?.name ?? "B2B Shell Reps"}.`}
       pageHeaderAction={
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/30">
-          <span className="material-symbols-outlined text-base text-primary">sync</span>
+          <Icons.refresh className="size-4 text-primary" />
           <span>Last synced: Today at 14:32 WIB</span>
         </div>
       }
@@ -94,7 +104,7 @@ function WorkspaceTab() {
               identifiers.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-xs font-semibold">
+          <span className="px-3 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-semibold">
             ID: WS-88910
           </span>
         </div>
@@ -211,7 +221,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   AI Caption Auto-Optimization
                 </span>
-                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-lum-tertiary-fixed-dim text-lum-on-primary">
+                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-accent text-accent-foreground">
                   Smart Dispatch
                 </span>
               </div>
@@ -230,7 +240,7 @@ function WorkspaceTab() {
                 <span className="text-sm font-bold text-foreground">
                   High-Bandwidth 4K Video Preservation
                 </span>
-                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-lum-secondary-fixed-dim text-lum-on-primary">
+                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-secondary/20 text-secondary">
                   Pro Quality
                 </span>
               </div>
@@ -299,7 +309,7 @@ function BillingTab() {
       <div className="bg-card/85 backdrop-blur-2xl rounded-2xl border border-border/30 p-8 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-border/20 pb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-1xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/20 text-secondary text-1xs font-semibold mb-3">
               Active Subscription
             </div>
             <h2 className="text-3xl font-bold text-foreground">
@@ -312,26 +322,27 @@ function BillingTab() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() =>
                 toast.info("Halaman Invoice", {
                   description: "Invoice tersedia di menu ERP → Budgets & Expenses. Unduh langsung dari sana.",
                 })
               }
-              className="px-5 py-2.5 rounded-full bg-card border border-border/40 text-foreground text-sm hover:bg-muted/40 transition-all flex items-center gap-2"
+              className="rounded-full"
             >
-              <span className="material-symbols-outlined text-lg">receipt_long</span>
+              <Icons.fileText className="size-4 mr-2" />
               Download Tax Invoices
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => toast.info("Menu Upgrade Quota", { description: "Hubungi admin untuk peninjauan plan dan penambahan kuota." })}
-              className="px-6 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2"
+              className="rounded-full font-bold"
             >
-              <span className="material-symbols-outlined text-lg">bolt</span>
+              <Icons.bolt className="size-4 mr-2" />
               Upgrade Quota
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -360,7 +371,7 @@ function BillingTab() {
 
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/20">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-lum-tertiary text-2xl">verified</span>
+              <Icons.checkCircle className="size-5 text-primary" />
               <div>
                 <p className="text-sm font-bold text-foreground">Tax Exemption #EU-88290-X</p>
                 <p className="text-xs text-muted-foreground">
@@ -385,7 +396,7 @@ function BillingTab() {
                 Resource Meter
               </span>
               <span className="p-2 rounded-full bg-muted/60 text-foreground">
-                <span className="material-symbols-outlined text-lg">group_work</span>
+                <Icons.users className="size-5" />
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">Connected Workspaces</h3>
@@ -417,7 +428,7 @@ function BillingTab() {
                 Throughput
               </span>
               <span className="p-2 rounded-full bg-primary-container text-foreground">
-                <span className="material-symbols-outlined text-lg">bolt</span>
+                <Icons.bolt className="size-5" />
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">API Webhook Dispatches</h3>
@@ -446,8 +457,8 @@ function BillingTab() {
               <span className="text-1xs font-semibold text-muted-foreground">
                 Object Vault
               </span>
-              <span className="p-2 rounded-full bg-lum-tertiary-container text-lum-tertiary">
-                <span className="material-symbols-outlined text-lg">cloud</span>
+              <span className="p-2 rounded-full bg-secondary/15 text-secondary">
+                <Icons.cloud className="size-5" />
               </span>
             </div>
             <h3 className="text-lg font-bold text-foreground">Cloud Video Storage</h3>
@@ -457,10 +468,10 @@ function BillingTab() {
                 <span className="text-3xl font-bold text-foreground">
                   2.4 TB <span className="text-base font-normal text-muted-foreground">/ 5 TB</span>
                 </span>
-                <span className="text-sm font-semibold text-lum-tertiary">48% Used</span>
+                <span className="text-sm font-semibold text-secondary">48% Used</span>
               </div>
               <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-lum-tertiary rounded-full" style={{ width: "48%" }} />
+                <div className="h-full bg-secondary rounded-full" style={{ width: "48%" }} />
               </div>
             </div>
           </div>
@@ -482,7 +493,7 @@ function IntegrationsTab() {
   const integrations = [
     {
       badge: "M",
-      badgeClass: "bg-lum-secondary-fixed-dim text-secondary",
+      badgeClass: "bg-secondary/15 text-secondary",
       title: "Meta Graph API v19.0",
       status: "CONNECTED",
       action: "Re-authenticate",
@@ -510,7 +521,8 @@ function IntegrationsTab() {
     },
     {
       badge: "forum",
-      badgeClass: "bg-lum-tertiary-container text-lum-tertiary material-symbols-outlined",
+      badgeClass: "bg-accent text-accent-foreground",
+      iconType: "chat",
       title: "Slack / Discord Dispatch Webhook",
       status: "ACTIVE",
       action: "Test Alert",
@@ -527,8 +539,8 @@ function IntegrationsTab() {
     },
     {
       badge: "send",
-      badgeClass:
-        "bg-lum-secondary-fixed-dim text-lum-on-primary material-symbols-outlined",
+      badgeClass: "bg-secondary/15 text-secondary",
+      iconType: "send",
       title: "Telegram Real-time Approval Bot",
       status: "ONLINE",
       action: "Configure Commands",
@@ -572,14 +584,15 @@ function IntegrationsTab() {
               Verify downstream dispatch authenticity on your custom agency middleware endpoint.
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => toast.success("Test Ping Sent", { description: "Webhook endpoint menerima ping dengan success 200." })}
-            className="px-4 py-2 rounded-full bg-lum-secondary-fixed-dim text-lum-on-primary text-sm font-semibold hover:bg-lum-secondary-fixed-dim/80 transition-colors flex items-center gap-1.5"
+            className="rounded-full text-sm font-semibold"
           >
-            <span className="material-symbols-outlined text-lg">network_ping</span>
+            <Icons.activity className="size-4 mr-1.5" />
             Send Test Ping
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -600,22 +613,21 @@ function IntegrationsTab() {
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label={secretVisible ? "Hide secret" : "Show secret"}
               >
-                <span className="material-symbols-outlined text-xl">
-                  {secretVisible ? "visibility_off" : "visibility"}
-                </span>
+                {secretVisible ? <Icons.eyeOff className="size-4.5" /> : <Icons.eye className="size-4.5" />}
               </button>
             </div>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => {
                 navigator.clipboard?.writeText(secret)
                 toast.success("Signing secret copied to clipboard.")
               }}
-              className="h-12 px-6 rounded-full bg-card border border-border/60 hover:bg-muted/40 text-foreground text-sm font-bold transition-all flex items-center gap-2"
+              className="h-12 px-6 rounded-full font-bold"
             >
-              <span className="material-symbols-outlined text-lg">content_copy</span>
+              <Icons.copy className="size-4 mr-2" />
               Copy Secret
-            </button>
+            </Button>
           </div>
           <p className="text-xs text-muted-foreground">
             Never expose this secret in client-side code repositories. Rotate keys immediately if
@@ -630,6 +642,7 @@ function IntegrationsTab() {
 function IntegrationRow({
   badge,
   badgeClass,
+  iconType,
   title,
   status,
   action,
@@ -638,6 +651,7 @@ function IntegrationRow({
 }: {
   badge: string
   badgeClass: string
+  iconType?: string
   title: string
   status: string
   action: string
@@ -651,7 +665,13 @@ function IntegrationRow({
         <div
           className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shrink-0 ${badgeClass}`}
         >
-          {badge}
+          {iconType === "chat" ? (
+            <Icons.chat className="size-6" />
+          ) : iconType === "send" ? (
+            <Icons.send className="size-6" />
+          ) : (
+            badge
+          )}
         </div>
         <div>
           <div className="flex items-center gap-2">
@@ -691,13 +711,13 @@ function UserAccessTab() {
   const members = [
     {
       initials: "AV",
-      avatarClass: "bg-lum-secondary-fixed-dim text-lum-on-primary",
+      avatarClass: "bg-secondary/20 text-secondary",
       name: "Amara Vance",
       isYou: true,
       email: "amara.v@frhm.agency",
       role: "Studio Director",
       roleLocked: true,
-      roleClass: "bg-lum-secondary-fixed-dim text-lum-on-primary",
+      roleClass: "bg-secondary/20 text-secondary",
       twofa: "Hardware Token (YubiKey)",
       twofaIcon: "verified_user",
       twofaClass: "text-primary",
@@ -720,7 +740,7 @@ function UserAccessTab() {
     },
     {
       initials: "MT",
-      avatarClass: "bg-lum-tertiary-fixed-dim text-lum-on-primary",
+      avatarClass: "bg-accent text-accent-foreground",
       name: "Maya Thorne",
       isYou: false,
       email: "maya.t@frhm.agency",
@@ -771,7 +791,7 @@ function UserAccessTab() {
               Enforce agency compliance protocols and multi-factor authentication mandates.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-lum-tertiary-fixed-dim text-lum-on-primary text-1xs font-bold">
+          <span className="px-3 py-1 rounded-full bg-accent text-accent-foreground text-1xs font-bold">
             SOC-2 Type II Compliant
           </span>
         </div>
@@ -807,22 +827,20 @@ function UserAccessTab() {
               <span className="font-semibold text-foreground">B2B Shell Reps</span>.
             </p>
           </div>
-          <button
+          <Button
             type="button"
             onClick={() => toast.info("Form Tambah Anggota", { description: "Gunakan baris input cepat di bawah untuk mengundang anggota." })}
-            className="px-5 py-2.5 rounded-full bg-primary-container text-foreground text-sm font-bold hover:shadow-md transition-all flex items-center gap-2 self-start sm:self-auto"
+            className="rounded-full font-bold self-start sm:self-auto"
           >
-            <span className="material-symbols-outlined text-lg">person_add</span>
-            + Invite Collaborator
-          </button>
+            <Icons.userPlus className="size-4 mr-2" />
+            Invite Collaborator
+          </Button>
         </div>
 
         {/* Quick Invite Input Bar */}
         <div className="p-4 rounded-2xl bg-muted/40 border border-border/25 mb-6 flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
-              mail
-            </span>
+            <Icons.mail className="size-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="email"
               value={inviteEmail}
@@ -841,31 +859,31 @@ function UserAccessTab() {
               </TabsList>
             </Tabs>
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleInvite}
-            className="w-full md:w-auto h-11 px-6 rounded-full bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-all shrink-0"
+            className="w-full md:w-auto h-11 px-6 rounded-full font-bold shrink-0"
           >
             Send Invite
-          </button>
+          </Button>
         </div>
 
         {/* Team Members Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border/30 text-muted-foreground text-1xs font-semibold">
-                <th className="py-3 px-4">Member Name &amp; Email</th>
-                <th className="py-3 px-4">Role Permission</th>
-                <th className="py-3 px-4">2FA Status</th>
-                <th className="py-3 px-4">Workspace Access</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/20 text-sm">
+        <div className="rounded-xl border border-border/30 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40 sticky top-0 z-10">
+              <TableRow className="border-b border-border/30 text-muted-foreground text-1xs font-semibold hover:bg-transparent">
+                <TableHead className="py-3 px-4">Member Name &amp; Email</TableHead>
+                <TableHead className="py-3 px-4">Role Permission</TableHead>
+                <TableHead className="py-3 px-4">2FA Status</TableHead>
+                <TableHead className="py-3 px-4">Workspace Access</TableHead>
+                <TableHead className="py-3 px-4 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {members.map((m) => (
-                <tr key={m.email} className="hover:bg-muted/30 transition-colors">
-                  <td className="py-4 px-4">
+                <TableRow key={m.email} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${m.avatarClass}`}
@@ -882,8 +900,8 @@ function UserAccessTab() {
                         <p className="text-xs text-muted-foreground">{m.email}</p>
                       </div>
                     </div>
-                  </td>
-                  <td className="py-4 px-4">
+                  </TableCell>
+                  <TableCell className="py-4 px-4">
                     {m.roleLocked ? (
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${m.roleClass}`}
@@ -898,7 +916,7 @@ function UserAccessTab() {
                             className="h-8 px-3 rounded-full bg-muted/60 hover:bg-muted border border-border/30 text-xs font-medium text-foreground inline-flex items-center gap-1.5 transition-colors"
                           >
                             <span>{m.role}</span>
-                            <span className="material-symbols-outlined text-xs">expand_more</span>
+                            <Icons.chevronDown className="size-3" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
@@ -914,22 +932,23 @@ function UserAccessTab() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
-                  </td>
-                  <td className="py-4 px-4">
+                  </TableCell>
+                  <TableCell className="py-4 px-4">
                     <div
                       className={`inline-flex items-center gap-1.5 text-xs font-semibold ${m.twofaClass}`}
                     >
-                      <span
-                        className="material-symbols-outlined text-base"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        {m.twofaIcon}
-                      </span>
+                      {m.twofaIcon === "verified_user" ? (
+                        <Icons.shieldCheck className="size-4" />
+                      ) : m.twofaIcon === "check_circle" ? (
+                        <Icons.checkCircle className="size-4" />
+                      ) : (
+                        <Icons.chat className="size-4" />
+                      )}
                       {m.twofa}
                     </div>
-                  </td>
-                  <td className="py-4 px-4 text-muted-foreground text-xs">{m.access}</td>
-                  <td className="py-4 px-4 text-right">
+                  </TableCell>
+                  <TableCell className="py-4 px-4 text-muted-foreground text-xs">{m.access}</TableCell>
+                  <TableCell className="py-4 px-4 text-right">
                     {m.action === "Protected" ? (
                       <span className="text-muted-foreground cursor-not-allowed text-xs font-semibold">
                         Protected
@@ -941,16 +960,14 @@ function UserAccessTab() {
                         onClick={() => toast.success(`Akses untuk ${m.name} dicabut.`)}
                         className="text-muted-foreground hover:text-destructive transition-colors p-1"
                       >
-                        <span className="material-symbols-outlined text-lg">
-                          person_remove
-                        </span>
+                        <Icons.userX className="size-4 text-destructive" />
                       </button>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>

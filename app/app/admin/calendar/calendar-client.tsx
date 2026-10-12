@@ -55,7 +55,7 @@ const PLATFORM_META: Record<
 const STATUS_META: Record<string, { label: string; pill: string; dot: string }> = {
   scheduled: {
     label: "Scheduled",
-    pill: "bg-lum-secondary-fixed-dim text-secondary",
+    pill: "bg-secondary/15 text-secondary",
     dot: "bg-secondary",
   },
   published: {
@@ -628,7 +628,7 @@ export function AdminCalendarClient() {
               {release ? `${release.platform} · ${release.title}` : "Schedule a post to fill this slot"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-lum-secondary-fixed-dim flex items-center justify-center text-secondary shrink-0">
+          <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
             <Icons.clock className="size-6" />
           </div>
         </div>
@@ -1063,7 +1063,7 @@ export function AdminCalendarClient() {
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-card-foreground">Today&apos;s Dispatches</h3>
               </div>
-              <span className="text-2xs bg-lum-secondary-fixed-dim text-secondary px-2.5 py-1 rounded-full font-bold">
+              <span className="text-2xs bg-secondary/15 text-secondary px-2.5 py-1 rounded-full font-bold">
                 {todayStr}
               </span>
             </div>
@@ -1072,7 +1072,7 @@ export function AdminCalendarClient() {
             <div className="rounded-2xl bg-secondary-container text-on-secondary-container p-4 shadow-sm relative overflow-hidden">
               <div className="relative z-10 flex items-center justify-between">
                 <div className="min-w-0">
-                  <span className="text-2xs text-lum-on-primary font-bold">
+                  <span className="text-2xs text-secondary-foreground font-bold">
                     Next Flight Countdown
                   </span>
                   <p className="text-2xl font-bold tracking-tight text-white mt-0.5 tabular-nums">
@@ -1166,9 +1166,7 @@ export function AdminCalendarClient() {
           <div className="bg-card/60 rounded-3xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-warning text-xl">
-                  <Icons.alertCircle className="size-5 text-warning" />
-                </span>
+                <Icons.alertCircle className="size-5 text-warning" />
                 <h3 className="text-lg font-bold text-card-foreground">Approval Gate</h3>
               </div>
               <span className="text-2xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full font-bold">

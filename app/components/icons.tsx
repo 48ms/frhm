@@ -132,6 +132,9 @@ import {
   IconBriefcase,
   IconApps,
   IconThumbUp,
+  IconMail,
+  IconCloud,
+  IconShieldCheck,
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -209,7 +212,12 @@ export const Icons = {
   video: IconVideo,
   send: IconSend,
   paperclip: IconPaperclip,
-  mail: IconSend,
+  mail: IconMail,
+  cloud: IconCloud,
+  shieldCheck: IconShieldCheck,
+  checkCircle: IconCircleCheck,
+  users: IconUsers,
+  userX: IconUserX,
 
   // Files
   page: IconFile,
