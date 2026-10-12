@@ -33,13 +33,20 @@ vi.mock("@/features/copilot/api/queries", () => ({
   useGenerateContentIdeas: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
-vi.mock("motion/react", () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    section: ({ children, ...props }: any) => <section {...props}>{children}</section>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}))
+vi.mock("motion/react", async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  const filterMotionProps = ({ whileHover, whileTap, variants, transition, initial, animate, exit, ...rest }: any) => rest
+  return {
+    ...actual,
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+    motion: {
+      ...actual.motion,
+      div: ({ children, ...props }: any) => <div {...filterMotionProps(props)}>{children}</div>,
+      section: ({ children, ...props }: any) => <section {...filterMotionProps(props)}>{children}</section>,
+      span: ({ children, ...props }: any) => <span {...filterMotionProps(props)}>{children}</span>,
+    },
+  }
+})
 
 describe("RightPanel (G4: client name truncation)", () => {
   it("renders full client name in sentences, not substring(0,5)", () => {

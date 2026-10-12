@@ -7,6 +7,7 @@ import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
 import { useAppStore } from "@/lib/store/app-store"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui/components/radix/tooltip"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -47,13 +48,18 @@ export function DashboardStitchConnectedHub() {
                 {accounts.length} accounts connected
               </p>
             </div>
-            <button
-              onClick={() => setConnectOpen(true)}
-              className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center hover:scale-105 active:scale-90 transition-transform shadow-sm cursor-pointer"
-              title="Connect New Account for Active Client"
-            >
-              <Icons.add className="size-5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setConnectOpen(true)}
+                  className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center hover:scale-105 active:scale-90 transition-transform shadow-sm cursor-pointer"
+                  aria-label="Connect New Account for Active Client"
+                >
+                  <Icons.add className="size-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Connect New Account for Active Client</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Client Info Capsule — read-only. Switching now lives in the sidebar WorkspaceSwitcher. */}
@@ -123,13 +129,18 @@ export function DashboardStitchConnectedHub() {
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => setDisconnectId(ch.id)}
-                className="ml-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                title="Disconnect channel"
-              >
-                <Icons.close className="size-3.5" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setDisconnectId(ch.id)}
+                    className="ml-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                    aria-label="Disconnect channel"
+                  >
+                    <Icons.close className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Disconnect channel</TooltipContent>
+              </Tooltip>
             </div>
           ))}
 

@@ -9,6 +9,7 @@ import {
 } from "@/components/animate-ui/components/radix/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
@@ -208,15 +209,21 @@ export function BrainstormModal({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="idea-count">Jumlah Ide ({count})</Label>
-                  <input 
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="idea-count">Jumlah Ide</Label>
+                    <span className="text-xs font-bold text-primary">{count} Ide</span>
+                  </div>
+                  <Slider 
                     id="idea-count"
-                    type="range" 
-                    min="1" 
-                    max="10" 
-                    value={count} 
-                    onChange={(e) => setCount(parseInt(e.target.value))}
-                    className="w-full"
+                    min={1} 
+                    max={10} 
+                    step={1}
+                    value={[count]} 
+                    onValueChange={(val) => {
+                      const v = Array.isArray(val) ? val[0] : val
+                      if (typeof v === "number") setCount(v)
+                    }}
+                    className="w-full py-2"
                   />
                 </div>
 

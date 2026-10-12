@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useQueryState, parseAsString } from "nuqs"
 import { Switch } from "@/components/animate-ui/components/radix/switch"
+import { RadioGroup, RadioGroupItem } from "@/components/animate-ui/components/radix/radio-group"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { toast } from "sonner"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
@@ -246,7 +247,11 @@ function WorkspaceTab() {
             <label className="text-sm font-semibold text-foreground block mb-3">
               Default Content Retention Period
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <RadioGroup
+              value={retention}
+              onValueChange={setRetention}
+              className="grid grid-cols-2 md:grid-cols-4 gap-3"
+            >
               {[
                 { value: "90", label: "90 Days" },
                 { value: "180", label: "180 Days" },
@@ -257,19 +262,17 @@ function WorkspaceTab() {
                 return (
                   <label
                     key={opt.value}
+                    htmlFor={`retention-${opt.value}`}
                     className={`flex items-center gap-3 p-3 rounded-full cursor-pointer transition-colors ${
                       isActive
                         ? "bg-primary-container/20 border-2 border-primary-container"
                         : "bg-muted/50 border border-border/30 hover:bg-card"
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="retention"
+                    <RadioGroupItem
+                      id={`retention-${opt.value}`}
                       value={opt.value}
-                      checked={isActive}
-                      onChange={() => setRetention(opt.value)}
-                      className="w-4 h-4 ml-1 accent-primary"
+                      className="ml-1"
                     />
                     <span
                       className={`text-sm text-foreground ${isActive ? "font-bold" : "font-medium"}`}
@@ -279,7 +282,7 @@ function WorkspaceTab() {
                   </label>
                 )
               })}
-            </div>
+            </RadioGroup>
           </div>
         </div>
       </div>
