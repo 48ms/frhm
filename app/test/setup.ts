@@ -66,6 +66,14 @@ if (typeof Element !== 'undefined' && typeof Element.prototype.getAnimations !==
   } as unknown as typeof Element.prototype.getAnimations
 }
 
+// Radix UI's Select calls `candidate.scrollIntoView()` when opening the menu to
+// keep the highlighted item in view. jsdom does not implement scrollIntoView, so
+// the call throws "candidate?.scrollIntoView is not a function". A no-op stub
+// keeps the component working under jsdom.
+if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = function scrollIntoView() {}
+}
+
 /**
  * nuqs needs an adapter to work outside Next.js. Before each test we reset the
  * URL so useQueryState starts from a clean state, and stub next/navigation so

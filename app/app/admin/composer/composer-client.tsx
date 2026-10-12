@@ -25,7 +25,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/animate-ui/components/radix/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 import Link from "next/link"

@@ -34,7 +34,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/animate-ui/components/radix/select'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
