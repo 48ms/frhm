@@ -72,7 +72,30 @@ export function KBar({ children }: { children: React.ReactNode }) {
       }
     }));
 
-    return [...navActions, ...clientActions];
+    const extraNavActions: Action[] = [
+      {
+        id: 'nav-/admin/settings',
+        name: 'Agency Settings',
+        shortcut: ['g', 't'],
+        keywords: 'settings konfigurasi agensi workspace billing api',
+        section: 'Navigasi',
+        subtitle: 'Buka pengaturan agensi, integrasi, dan hak akses',
+        icon: <Icons.settings className='size-4' />,
+        perform: () => navigateTo('/admin/settings'),
+      },
+      {
+        id: 'nav-/admin/support',
+        name: 'Support & Helpdesk',
+        shortcut: ['g', 'h'],
+        keywords: 'support bantuan help ticket cs contact',
+        section: 'Navigasi',
+        subtitle: 'Buka pusat bantuan dan tiket dukungan teknis',
+        icon: <Icons.help className='size-4' />,
+        perform: () => navigateTo('/admin/support'),
+      },
+    ];
+
+    return [...navActions, ...extraNavActions, ...clientActions];
   }, [router, rawClients, queryClient, setClientId]);
 
   return (

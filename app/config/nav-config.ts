@@ -6,11 +6,12 @@ import { NavItem } from '@/types/nav';
  * or feature is re-architected (was removed in commit 3e36ff3 cleanup).
  */
 export const adminNavStitch: NavItem[] = [
-  { title: 'Overview', url: '/admin/dashboard', icon: 'dashboard' },
-  { title: 'Marketing ERP', url: '/admin/erp', icon: 'layers' },
-  { title: 'Social Accounts', url: '/admin/social-accounts', icon: 'hub' },
-  { title: 'Composer', url: '/admin/composer', icon: 'rocket' },
-  { title: 'Campaigns', url: '/admin/campaigns', icon: 'campaign' },
-  { title: 'Content Calendar', url: '/admin/calendar', icon: 'calendar_month' },
-  { title: 'Analytics', url: '/admin/analytics', icon: 'monitoring' },
+  { title: 'Overview', url: '/admin/dashboard', icon: 'dashboard', shortcut: ['g', 'd'] },
+  { title: 'Marketing ERP', url: '/admin/erp', icon: 'layers', shortcut: ['g', 'e'] },
+  { title: 'Social Accounts', url: '/admin/social-accounts', icon: 'hub', shortcut: ['g', 's'] },
+  { title: 'Composer', url: '/admin/composer', icon: 'rocket', shortcut: ['g', 'c'] },
+  { title: 'Campaigns', url: '/admin/campaigns', icon: 'campaign', shortcut: ['g', 'm'] },
+  { title: 'Content Calendar', url: '/admin/calendar', icon: 'calendar_month', shortcut: ['g', 'k'] },
+  { title: 'Analytics', url: '/admin/analytics', icon: 'monitoring', shortcut: ['g', 'a'] },
+  { title: 'Media Library', url: '/admin/library', icon: 'media', shortcut: ['g', 'l'] },
 ];
