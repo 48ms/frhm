@@ -31,7 +31,7 @@ export default async function PreviewSocialAccounts() {
         <Suspense fallback={null}>
           <AppSidebar user={{ name: "Auditor", email: "audit@frhm.com", avatar: "" }} />
         </Suspense>
-        <SidebarInset className="md:pl-64">
+        <SidebarInset className="flex-1">
           <HydrationBoundary state={dehydrate(queryClient)}>
             <Suspense
               fallback={

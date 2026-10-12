@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/animate-ui/components/radix/dropdown-menu"
 
-export function WorkspaceSwitcher() {
+export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
   const { clients, clientId, setClientId } = useActiveDashboard()
   const { openCreateClient } = useCreateClient()
   const queryClient = useQueryClient()
@@ -40,7 +40,7 @@ export function WorkspaceSwitcher() {
   if (!activeClient) return null
 
   return (
-    <div className="workspace-switcher-container relative w-full mb-6 z-50">
+    <div className={cn("workspace-switcher-container relative w-full z-50", className ?? "mb-6")}>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button

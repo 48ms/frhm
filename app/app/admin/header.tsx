@@ -58,7 +58,7 @@ export function AdminHeader({
   }
 
   return (
-    <header className="admin-header sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 px-4 w-full md:h-14 md:px-6">
+    <header className="admin-header sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 px-4 w-full md:h-14 md:px-6 border-b border-border/40">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1 h-9 w-9" />
         <Separator orientation="vertical" className="h-4 opacity-50 data-[orientation=vertical]:self-center" />

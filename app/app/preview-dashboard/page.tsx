@@ -25,7 +25,7 @@ export default async function PreviewShell() {
         <Suspense fallback={null}>
           <AppSidebar user={{ name: "Auditor", email: "audit@frhm.com", avatar: "" }} />
         </Suspense>
-        <SidebarInset className="md:pl-64">
+        <SidebarInset className="flex-1">
           <AdminHeader userName="Auditor" />
           <Suspense fallback={null}>{dashboard}</Suspense>
         </SidebarInset>

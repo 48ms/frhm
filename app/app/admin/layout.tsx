@@ -45,7 +45,7 @@ export default async function AdminLayout({
             avatar: "",
           }}
         />
-        <SidebarInset id="main-content" className="min-h-svh md:pl-64">
+        <SidebarInset id="main-content" className="min-h-svh flex-1">
           <SkipLink />
           <InfobarProvider defaultOpen={false}>
             <CreateClientProvider>
