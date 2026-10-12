@@ -116,7 +116,7 @@ export function SchedulePostModal({
             <Icons.send className="size-[18px]" />
           </div>
           <div>
-            <DialogTitle className="font-syne font-bold text-foreground text-sm">Schedule a Post</DialogTitle>
+            <DialogTitle className="font-sans font-bold text-foreground text-sm">Schedule a Post</DialogTitle>
             <DialogDescription className="text-2xs text-muted-foreground">
               Publishing for {client?.name ?? "Client"}
             </DialogDescription>

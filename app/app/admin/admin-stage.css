@@ -504,20 +504,20 @@
 .admin-theme h1,
 .admin-theme h2,
 .admin-theme h3 {
-  font-family: var(--font-syne);
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .admin-theme ::selection {
   background: hsl(var(--brand-accent) / 0.35);
 }
 
-/* Display numerals: Syne, tabular. */
+/* Display numerals: font-mono tabular for clarity and precision. */
 .admin-stat-value {
-  font-family: var(--font-syne);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 

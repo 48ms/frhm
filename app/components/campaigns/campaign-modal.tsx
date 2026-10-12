@@ -108,7 +108,7 @@ export function CampaignModal({
             <Icons.campaign className="size-[18px]" />
           </div>
           <div>
-            <DialogTitle className="font-syne font-bold text-foreground text-sm">
+            <DialogTitle className="font-sans font-bold text-foreground text-sm">
               {editing ? "Edit Campaign" : "Create Campaign"}
             </DialogTitle>
             <DialogDescription className="text-2xs text-muted-foreground">

@@ -61,7 +61,17 @@ export function MetricTicker({
           decimalSeparator={decimalSeparator}
           thousandSeparator={thousandSeparator}
         />
-        {suffix && <span>{suffix}</span>}
+        {suffix && (
+          <span
+            className={
+              suffix.trim() === "%"
+                ? "ml-0.5 text-lg font-bold text-foreground"
+                : "ml-1.5 text-sm font-semibold text-muted-foreground"
+            }
+          >
+            {suffix.trim()}
+          </span>
+        )}
       </span>
     </span>
   )

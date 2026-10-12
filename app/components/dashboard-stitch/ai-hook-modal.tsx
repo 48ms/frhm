@@ -72,7 +72,7 @@ export function StitchAiHookModal({
               <Icons.sparkles className="size-4" />
             </div>
             <div>
-              <DialogTitle className="font-syne font-bold text-foreground text-sm">
+              <DialogTitle className="font-sans font-bold text-foreground text-sm">
                 Studio AI Hook Generator
               </DialogTitle>
               <DialogDescription className="text-2xs text-muted-foreground">
@@ -139,10 +139,12 @@ export function StitchAiHookModal({
                     <p className="text-xs text-foreground leading-relaxed">
                       {hook}
                     </p>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => copy(i, hook)}
-                      className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
+                      className="shrink-0 h-7 w-7 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
                       title="Salin hook"
                     >
                       {copied === i ? (
@@ -150,7 +152,7 @@ export function StitchAiHookModal({
                       ) : (
                         <Icons.copy className="size-3.5" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -161,14 +163,16 @@ export function StitchAiHookModal({
                 <span className="text-2xs text-muted-foreground">
                   {hooks.length} hook dihasilkan
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={generate}
-                  className="text-1xs font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
+                  className="h-7 px-2 text-1xs font-bold text-brand-accent hover:text-brand-accent hover:bg-brand-accent/10 cursor-pointer inline-flex items-center gap-1"
                 >
                   <Icons.refresh className="size-3.5" />
                   Buat ulang
-                </button>
+                </Button>
               </div>
             )}
           </div>

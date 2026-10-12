@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
@@ -42,7 +43,7 @@ export function DashboardStitchHero() {
             </div>
           </div>
 
-          <h1 className="font-syne font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
+          <h1 className="font-sans font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
             {profile.greeting}
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground">
@@ -51,20 +52,23 @@ export function DashboardStitchHero() {
         </div>
 
         <div className="relative z-10 flex flex-wrap items-center gap-2.5">
-          <button
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => setExportOpen(true)}
-            className="px-4 py-2 rounded-full bg-white border border-border/50 text-foreground text-xs font-semibold hover:bg-muted/70 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="rounded-full text-xs font-semibold gap-1.5 shadow-sm"
           >
             <Icons.ios_share className="size-4" />
             Export Report
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
             onClick={() => setScheduleOpen(true)}
-            className="px-4 py-2 rounded-full bg-brand-accent text-white text-xs font-semibold hover:bg-brand-accent/90 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-semibold gap-1.5 shadow-md"
           >
             <Icons.send className="size-4" />
             Schedule Post
-          </button>
+          </Button>
         </div>
       </motion.section>
 

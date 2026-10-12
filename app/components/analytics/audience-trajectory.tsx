@@ -68,7 +68,7 @@ export function AudienceTrajectory({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <span className="admin-section-label">Audience trajectory</span>
-          <h2 className="font-syne font-bold text-lg text-foreground mt-1">
+          <h2 className="font-sans font-bold text-lg text-foreground mt-1">
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
@@ -139,7 +139,7 @@ export function AudienceTrajectory({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
               <p className="admin-section-label">Total reach</p>
-              <p className="font-syne font-bold text-foreground text-base mt-1">
+              <p className="font-mono font-bold text-foreground text-base mt-1">
                 {series.totalReach.toLocaleString("id-ID")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -148,7 +148,7 @@ export function AudienceTrajectory({
             </div>
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
               <p className="admin-section-label">Total engagement</p>
-              <p className="font-syne font-bold text-foreground text-base mt-1">
+              <p className="font-mono font-bold text-foreground text-base mt-1">
                 {series.totalEngage.toLocaleString("id-ID")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -157,7 +157,7 @@ export function AudienceTrajectory({
             </div>
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
               <p className="admin-section-label">Titik terbaik</p>
-              <p className="font-syne font-bold text-foreground text-base mt-1">
+              <p className="font-mono font-bold text-foreground text-base mt-1">
                 {series.peak.label}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">

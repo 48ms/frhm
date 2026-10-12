@@ -48,7 +48,7 @@ export function DashboardStitchChart() {
           <span className="text-xs font-semibold text-muted-foreground block">
             Audience trajectory · {client.name}
           </span>
-          <h2 className="font-syne font-bold text-lg text-foreground">
+          <h2 className="font-sans font-bold text-base sm:text-lg text-foreground tracking-tight">
             Performance &amp; Engagement Dynamics
           </h2>
         </div>

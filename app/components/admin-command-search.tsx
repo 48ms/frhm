@@ -60,9 +60,11 @@ export function AdminCommandSearch({ className }: AdminCommandSearchProps) {
           className
         )}
       >
-        <Icons.search className="size-4" />
-        <span className="text-sm">Cari...</span>
-        <span className="ml-auto hidden sm:block">
+        <Icons.search className="size-4 shrink-0 text-muted-foreground" />
+        <span className="text-xs sm:text-sm font-medium truncate flex-1 text-left">
+          Cari client atau workspace...
+        </span>
+        <span className="ml-2 hidden sm:flex shrink-0">
           <KbdCombo keys="meta+k" listen={false} size="sm" />
         </span>
       </Button>

@@ -176,7 +176,7 @@ export function CalendarExportModal({
               <Icons.download className="size-4" />
             </div>
             <div>
-              <DialogTitle className="font-syne font-bold text-foreground text-sm">
+              <DialogTitle className="font-sans font-bold text-foreground text-sm">
                 Export Content Schedule
               </DialogTitle>
               <DialogDescription className="text-2xs text-muted-foreground">

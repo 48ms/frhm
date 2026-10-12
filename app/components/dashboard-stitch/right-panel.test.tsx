@@ -44,6 +44,7 @@ vi.mock("motion/react", async (importOriginal) => {
       div: ({ children, ...props }: any) => <div {...filterMotionProps(props)}>{children}</div>,
       section: ({ children, ...props }: any) => <section {...filterMotionProps(props)}>{children}</section>,
       span: ({ children, ...props }: any) => <span {...filterMotionProps(props)}>{children}</span>,
+      button: ({ children, ...props }: any) => <button {...filterMotionProps(props)}>{children}</button>,
     },
   }
 })

@@ -95,7 +95,7 @@ export function CampaignDetailModal({
             {campaign.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <DialogTitle className="font-syne font-bold text-foreground text-sm truncate">
+            <DialogTitle className="font-sans font-bold text-foreground text-sm truncate">
               {campaign.name}
             </DialogTitle>
             <DialogDescription className="flex items-center gap-1.5 mt-0.5 text-2xs text-muted-foreground">

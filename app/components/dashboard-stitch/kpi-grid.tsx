@@ -109,12 +109,12 @@ export function DashboardStitchKpis() {
               <div className="flex items-baseline gap-2">
                 <MetricTicker
                   value={kpi.value}
-                  className="font-syne font-bold text-2xl text-foreground"
+                  className="font-sans font-bold text-2xl text-foreground tracking-tight"
                 />
                 {kpi.growth && (
                   <span
                     className={
-                      kpi.isNeutral
+                      kpi.isNeutral || kpi.growth === "N/A"
                         ? "text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/40"
                         : kpi.growthUp
                         ? "text-xs font-bold px-2 py-0.5 rounded-full bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20"

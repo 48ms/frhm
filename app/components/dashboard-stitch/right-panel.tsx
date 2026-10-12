@@ -18,6 +18,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/animate-ui/components/radix/alert-dialog"
+import { Button } from "@/components/ui/button"
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, profile } = useActiveDashboard()
@@ -41,7 +42,7 @@ export function DashboardStitchConnectedHub() {
         <div className="space-y-3 border-b border-border/30 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-syne font-bold text-lg text-foreground">
+              <h2 className="font-sans font-bold text-base sm:text-lg text-foreground tracking-tight">
                 Connected Hub
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -50,26 +51,28 @@ export function DashboardStitchConnectedHub() {
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  type="button"
+                  size="icon"
                   onClick={() => setConnectOpen(true)}
-                  className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center hover:scale-105 active:scale-90 transition-transform shadow-sm cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground hover:bg-brand-accent/90 hover:scale-105 active:scale-95 transition-transform shadow-sm cursor-pointer"
                   aria-label="Connect New Account for Active Client"
                 >
                   <Icons.add className="size-5" />
-                </button>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>Connect New Account for Active Client</TooltipContent>
             </Tooltip>
           </div>
 
-          {/* Client Info Capsule — read-only. Switching now lives in the sidebar WorkspaceSwitcher. */}
-          <div className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-muted border border-border/40">
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+          {/* Client Info Capsule — read-only. Switching lives in the sidebar WorkspaceSwitcher. */}
+          <div className="w-full flex items-center justify-between p-3 rounded-2xl bg-muted/60 border border-border/40">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                 {client.name.charAt(0).toUpperCase()}
               </div>
-              <div className="truncate leading-tight text-left">
-                <span className="block text-2xs font-bold text-muted-foreground">
+              <div className="truncate text-left space-y-0.5">
+                <span className="block text-2xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Klien aktif
                 </span>
                 <span className="block text-xs font-bold text-foreground truncate">
@@ -131,26 +134,31 @@ export function DashboardStitchConnectedHub() {
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setDisconnectId(ch.id)}
-                    className="ml-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                    className="h-7 w-7 ml-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                     aria-label="Disconnect channel"
                   >
                     <Icons.close className="size-3.5" />
-                  </button>
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>Disconnect channel</TooltipContent>
               </Tooltip>
             </div>
           ))}
 
-          <button
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => setConnectOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-2xs font-bold text-muted-foreground hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
+            className="w-full h-10 rounded-full border-dashed border-border/60 text-xs font-bold gap-2 text-muted-foreground hover:text-foreground mt-2"
           >
-            <Icons.hub className="size-3.5" />
+            <Icons.add className="size-4" />
             Connect Channel to Client
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -171,7 +179,7 @@ export function DashboardStitchConnectedHub() {
         </div>
         <div className="pt-6">
           <div className="p-3.5 rounded-2xl bg-muted/60 border border-border/40 shadow-sm">
-            <p className="font-syne font-bold text-sm text-foreground">
+            <p className="font-sans font-bold text-sm text-foreground">
               Campaign Velocity: {profile.velocity}%
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -181,12 +189,8 @@ export function DashboardStitchConnectedHub() {
               <span className="text-2xs font-bold text-brand-accent">
                 Status: {profile.velocity >= 90 ? "Accelerating" : "Steady"}
               </span>
-              <span
-                aria-disabled="true"
-                title="Campaign velocity breakdown is not built yet."
-                className="px-2.5 py-0.5 rounded-full bg-muted text-foreground/70 text-2xs font-semibold cursor-not-allowed"
-              >
-                Detail (Coming soon)
+              <span className="px-2.5 py-0.5 rounded-full bg-secondary/15 text-secondary text-2xs font-bold">
+                Active Amplification
               </span>
             </div>
           </div>
@@ -198,20 +202,21 @@ export function DashboardStitchConnectedHub() {
         <div className="w-10 h-10 mx-auto rounded-full bg-brand-accent flex items-center justify-center text-brand-accent-foreground shadow-sm mb-2.5">
           <Icons.sparkles className="size-5" />
         </div>
-        <h3 className="font-syne font-bold text-base text-foreground">
+        <h3 className="font-sans font-bold text-base text-foreground">
           Need AI Content Hooks?
         </h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
           Generate caption, klaster hashtag, dan konsep video untuk{" "}
           {client.name}.
         </p>
-        <button
+        <Button
+          type="button"
           onClick={() => setAiOpen(true)}
-          className="mt-3.5 w-full py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:bg-brand-accent/80 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          className="mt-3.5 w-full rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shadow-sm"
         >
           <Icons.bot className="size-4" />
           Launch Studio AI
-        </button>
+        </Button>
       </div>
 
       <AlertDialog open={Boolean(disconnectId)} onOpenChange={(open) => !open && setDisconnectId(null)}>
@@ -220,7 +225,7 @@ export function DashboardStitchConnectedHub() {
             <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
               <Icons.warning className="size-6" />
             </div>
-            <AlertDialogTitle className="font-syne font-bold text-foreground text-lg">
+            <AlertDialogTitle className="font-sans font-bold text-foreground text-lg">
               Disconnect Channel?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-muted-foreground">

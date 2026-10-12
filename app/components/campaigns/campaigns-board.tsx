@@ -587,7 +587,7 @@ export function CampaignsBoard() {
             <span className="admin-badge admin-badge-lime"><MetricTicker value={tabCounts.active} /> Live</span>
           </div>
           <div className="my-3">
-            <div className="text-2xl font-extrabold font-syne tracking-tight text-foreground flex items-center gap-1.5">
+            <div className="text-2xl font-bold font-mono tracking-tight text-foreground flex items-center gap-1.5">
               <MetricTicker value={tabCounts.active} /> Live
             </div>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
@@ -721,7 +721,7 @@ export function CampaignsBoard() {
                   {/* Spotlight Hero Content */}
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                     <div className="md:col-span-8">
-                      <h2 className="text-2xl font-extrabold font-syne text-foreground tracking-tight">
+                      <h2 className="text-2xl font-bold font-sans text-foreground tracking-tight">
                         {featured.name}
                       </h2>
                       <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
@@ -816,7 +816,7 @@ export function CampaignsBoard() {
                   <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground">
                     <Icons.campaign className="size-7" />
                   </div>
-                  <h2 className="text-lg font-bold font-syne text-foreground">
+                  <h2 className="text-lg font-bold font-sans text-foreground">
                     No campaigns yet
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-md">
@@ -865,7 +865,7 @@ export function CampaignsBoard() {
           <section className="admin-card p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h3 className="text-xl font-extrabold font-syne text-foreground">
+                <h3 className="text-xl font-bold font-sans text-foreground">
                   Deliverables Pipeline
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -1048,7 +1048,7 @@ export function CampaignsBoard() {
                 </button>
               ))}
             </div>
-            <h4 className="text-lg font-bold font-syne text-foreground">
+            <h4 className="text-lg font-bold font-sans text-foreground">
               Budget Allocation by Category
             </h4>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1105,7 +1105,7 @@ export function CampaignsBoard() {
           <div className="admin-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h4 className="text-lg font-bold font-syne text-foreground">
+                <h4 className="text-lg font-bold font-sans text-foreground">
                   Creator &amp; Talent Roster
                 </h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -1187,7 +1187,7 @@ export function CampaignsBoard() {
                 <span className="admin-badge bg-background text-foreground">FRHM AI V3.4</span>
                 <Icons.bot className="size-5 text-lime-400" />
               </div>
-              <h4 className="text-lg font-bold font-syne text-background">Need Campaign Angles?</h4>
+              <h4 className="text-lg font-bold font-sans text-background">Need Campaign Angles?</h4>
               <p className="text-xs text-background/80 mt-1 leading-relaxed">
                 Synthesize viral TikTok hooks, B2B carousel narratives, and cross-channel flight
                 variants tuned to {activeClient.name}&apos;s ideal customer persona.

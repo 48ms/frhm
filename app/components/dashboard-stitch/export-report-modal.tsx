@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
@@ -110,7 +110,7 @@ export function ExportReportModal({
             <Icons.ios_share className="size-[18px]" />
           </div>
           <div>
-            <DialogTitle className="font-syne font-bold text-foreground text-sm">
+            <DialogTitle className="font-sans font-bold text-foreground text-sm">
               Export Performance Report
             </DialogTitle>
             <DialogDescription className="text-2xs text-muted-foreground">{client.name}</DialogDescription>
@@ -145,6 +145,7 @@ export function ExportReportModal({
                       key={f.id}
                       type="button"
                       onClick={() => setFormat(f.id)}
+                      aria-pressed={active}
                       className={cn(
                         "p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1",
                         active
@@ -172,6 +173,7 @@ export function ExportReportModal({
                       key={r.id}
                       type="button"
                       onClick={() => setRange(r.id)}
+                      aria-pressed={active}
                       className={cn(
                         "py-1.5 px-2 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer",
                         active

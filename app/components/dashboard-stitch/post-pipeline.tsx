@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 import { useActiveDashboard } from "./dashboard-data"
 import { SchedulePostModal } from "./schedule-post-modal"
 import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
@@ -62,7 +63,7 @@ export function DashboardStitchPostPipeline() {
           <span className="text-xs font-semibold text-muted-foreground block">
             Post pipeline
           </span>
-          <h2 className="font-syne font-bold text-lg text-foreground">
+          <h2 className="font-sans font-bold text-base sm:text-lg text-foreground tracking-tight">
             Content Queue &amp; Upcoming Dispatch
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -70,20 +71,25 @@ export function DashboardStitchPostPipeline() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button
+          <Button
+            type="button"
+            size="sm"
             onClick={() => setScheduleOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold hover:bg-brand-accent/80 transition-all cursor-pointer active:scale-95 shadow-sm"
+            className="rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shadow-sm"
           >
             <Icons.add className="size-4" />
             Tambah post
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => router.push(`/admin/calendar?clientId=${client.id}`)}
-            className="text-xs text-brand-accent font-bold hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs text-brand-accent font-bold hover:text-brand-accent hover:bg-brand-accent/10 flex items-center gap-1 cursor-pointer h-8 px-2.5 rounded-full"
           >
             Lihat kalender
             <Icons.arrow_forward className="size-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
