@@ -18,6 +18,7 @@ import {
 } from "@/components/animate-ui/components/radix/accordion"
 import { PageContainer } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 /**
  * Status badges ride the logo palette (DESIGN.md §2). Open stays primary-
@@ -309,7 +310,14 @@ export function SupportView() {
       <div className="admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Your Recent Tickets</h2>
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <span>Your Recent Tickets</span>
+              {tickets.length > 0 && (
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted border border-border/40 font-mono font-semibold">
+                  <MetricTicker value={tickets.length} />
+                </span>
+              )}
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Track the status of requests raised by your agency team.
             </p>
