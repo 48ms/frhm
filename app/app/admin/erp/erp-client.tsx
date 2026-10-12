@@ -144,13 +144,15 @@ export function ErpDashboardClient() {
             </p>
           </div>
         </div>
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => router.push("/admin/calendar")}
-          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold border border-[hsl(var(--admin-outline-variant))]/50 transition-colors cursor-pointer"
+          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[hsl(var(--admin-surface-low))] hover:bg-[hsl(var(--admin-surface-high))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold border border-[hsl(var(--admin-outline-variant))]/50 transition-colors cursor-pointer h-auto"
         >
           Kalender
           <Icons.chevronRight className="size-4 ml-1" />
-        </button>
+        </Button>
       </section>
 
       {/* CLIENT WORKSPACES GRID */}

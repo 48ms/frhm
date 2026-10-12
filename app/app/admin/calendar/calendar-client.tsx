@@ -35,6 +35,7 @@ import { useScheduledPosts, useUpdateScheduledPost } from "@/features/scheduled-
 import { useLatestPrediction } from "@/features/analytics/api/hooks"
 import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 import { PageContainer } from "@/components/layout/page-container"
+import { Button } from "@/components/ui/button"
 
 
 
@@ -428,21 +429,24 @@ export function AdminCalendarClient() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setExportOpen(true)}
             aria-label="Quick Export"
-            className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-full border border-border/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-full border border-border/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer h-auto"
           >
             <Icons.download className="size-4" />
             <span className="hidden sm:inline">Quick Export</span>
-          </button>
-          <button
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          </Button>
+          <Button
+            size="sm"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--brand-accent))] text-[hsl(var(--brand-accent-foreground))] text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer h-auto"
             onClick={() => handleAddPost(new Date())}
           >
             <Icons.send className="size-[18px]" />
             Schedule New Dispatch
-          </button>
+          </Button>
         </div>
       }
       className="space-y-6"
@@ -465,12 +469,14 @@ export function AdminCalendarClient() {
             <span>Gagal memuat jadwal</span>
           </div>
           <p className="text-sm text-muted-foreground">Tidak bisa mengambil data posting. Periksa koneksi atau coba lagi.</p>
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded-full bg-destructive text-destructive-foreground text-sm font-bold hover:bg-destructive/90 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer"
           >
             Coba Lagi
-          </button>
+          </Button>
         </div>
       )}
 
@@ -503,32 +509,38 @@ export function AdminCalendarClient() {
 
         {/* Navigation & Month Selector */}
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={goPrev}
-            className="w-8 h-8 rounded-full border border-border/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-card-foreground hover:bg-card/60 hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="size-8 rounded-full border border-border/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-card-foreground hover:bg-card/60 hover:border-border transition-colors cursor-pointer"
             aria-label={viewMode === "month" ? "Previous month" : "Previous week"}
           >
             <Icons.chevronLeft className="size-[18px]" />
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
             <Icons.calendar className="size-5 text-secondary" />
             <span className="admin-headline-md font-bold text-card-foreground">
               {viewMode === "month" ? monthLabel : `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
             </span>
           </div>
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={goNext}
-            className="w-8 h-8 rounded-full border border-border/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-card-foreground hover:bg-card/60 hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="size-8 rounded-full border border-border/40 bg-[hsl(var(--admin-surface-lowest))] flex items-center justify-center text-card-foreground hover:bg-card/60 hover:border-border transition-colors cursor-pointer"
             aria-label={viewMode === "month" ? "Next month" : "Next week"}
           >
             <Icons.chevronRight className="size-[18px]" />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
             onClick={() => setCursor(new Date())}
-            className="px-3 py-1 rounded-full bg-card/60 text-card-foreground text-2xs font-bold hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="px-3 py-1 rounded-full bg-card/60 text-card-foreground text-2xs font-bold hover:bg-muted transition-colors cursor-pointer h-auto"
           >
             Today
-          </button>
+          </Button>
         </div>
 
         {/* Platform Filter Pills */}
@@ -744,15 +756,17 @@ export function AdminCalendarClient() {
                           )}
                         </div>
                         {dayPosts.length === 0 && (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="xs"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleAddPost(d)
                             }}
-                            className="mt-auto w-full py-1 rounded-md border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-2xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+                            className="mt-auto w-full py-1 h-auto rounded-md border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-2xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs"
                           >
                             <Icons.add className="size-3" /> Add Post
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )
@@ -816,12 +830,14 @@ export function AdminCalendarClient() {
                           <span className="text-2xs text-border mt-0.5">No scheduled posts</span>
                         )}
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => handleAddPost(d)}
-                        className="w-full py-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                        className="w-full py-1.5 h-auto rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
                       >
                         <Icons.add className="size-3.5" /> Quick Slot
-                      </button>
+                      </Button>
                     </div>
                   )
                 }
@@ -1044,13 +1060,15 @@ export function AdminCalendarClient() {
                   </span>
                 ))}
               </div>
-              <button
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => setViewMode("month")}
-                className="text-2xs text-secondary hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                className="text-2xs text-secondary hover:underline flex items-center gap-1 font-bold cursor-pointer p-0 h-auto"
               >
                 <span>View Full Month Matrix</span>
                 <Icons.arrowRight className="size-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1125,19 +1143,23 @@ export function AdminCalendarClient() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <button
+                <Button
+                  variant="outline"
+                  size="xs"
                   onClick={handleEditMedia}
-                  className="bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer"
+                  className="bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer h-auto"
                 >
                   Edit Media
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
                   onClick={handleRescheduleRelease}
                   disabled={!release}
-                  className="bg-card/60 hover:bg-card/60/80 text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-card/60 hover:bg-card/60/80 text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed h-auto"
                 >
                   Reschedule (+1 day)
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -1199,7 +1221,9 @@ export function AdminCalendarClient() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/20">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="xs"
                       onClick={() =>
                         updatePost(
                           { id: draft.id, clientId: selectedClientId, status: "draft" },
@@ -1209,11 +1233,13 @@ export function AdminCalendarClient() {
                           }
                         )
                       }
-                      className="flex-1 bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-2xs font-bold text-center transition-all shadow-xs cursor-pointer"
+                      className="flex-1 bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-2xs font-bold text-center transition-all shadow-xs cursor-pointer h-auto"
                     >
                       Request Revision
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="xs"
                       onClick={() =>
                         updatePost(
                           { id: draft.id, clientId: selectedClientId, status: "scheduled" },
@@ -1226,10 +1252,10 @@ export function AdminCalendarClient() {
                           }
                         )
                       }
-                      className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-2xs font-bold transition-all shadow-xs cursor-pointer"
+                      className="flex-1 bg-primary-container hover:bg-primary-fixed text-on-primary-container py-1.5 rounded-full text-2xs font-bold transition-all shadow-xs cursor-pointer h-auto"
                     >
                       Approve
-                    </button>
+                    </Button>
                   </div>
                 </div>
                )
@@ -1271,13 +1297,15 @@ export function AdminCalendarClient() {
               </>
             )}
 
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => toast.info("Suggestion feature", { description: "Content suggestions require a higher tiered subscription." })}
-              className="w-full bg-card/60 hover:bg-muted text-foreground text-1xs py-2.5 rounded-full font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              className="w-full bg-card/60 hover:bg-muted text-foreground text-1xs py-2.5 rounded-full font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs h-auto"
             >
               <Icons.refresh className="size-4" />
               <span>Apply Suggestion</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1291,19 +1319,21 @@ export function AdminCalendarClient() {
             </span>
             <div className="flex items-center gap-2 flex-wrap">
               {clients.map((c) => (
-                <button
+                <Button
                   key={c.id}
+                  variant="ghost"
+                  size="xs"
                   onClick={() => setClientId(c.id)}
                   className={cn(
-                    "px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer",
+                    "px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer h-auto",
                     selectedClientId === c.id
-                      ? "bg-primary-container text-on-primary-container shadow-xs flex items-center gap-1.5"
+                      ? "bg-primary-container text-on-primary-container shadow-xs flex items-center gap-1.5 hover:bg-primary-container/90"
                       : "bg-card hover:bg-card/60 text-card-foreground border border-border/30"
                   )}
                 >
                   {selectedClientId === c.id && <span className="w-2 h-2 rounded-full bg-primary" />}
                   {c.name}
-                </button>
+                </Button>
               ))}
             </div>
           </div>

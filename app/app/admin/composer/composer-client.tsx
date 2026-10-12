@@ -531,21 +531,16 @@ export function ComposerClient() {
                     className="h-12 bg-white/50 border-white"
                   />
                 </div>
-                <div className="flex gap-2 p-1 bg-muted/50 rounded-lg mb-4">
-                  <button 
-                    onClick={() => setContentMode("standard")} 
-                    className={cn("flex-1 py-1.5 text-sm font-medium rounded-md transition-all", contentMode === "standard" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:bg-white/50")}
-                  >
-                    Standard Content
-                  </button>
-                  <button 
-                    onClick={() => setContentMode("video_script")} 
-                    className={cn("flex-1 flex items-center justify-center gap-2 py-1.5 text-sm font-medium rounded-md transition-all", contentMode === "video_script" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:bg-white/50")}
-                  >
-                    {/* Icons.sparkles = AI-powered video script generator (R-04 exception: AI feature with written justification) */}
-                    <Icons.sparkles className="size-4" /> AI Video Script
-                  </button>
-                </div>
+                <Tabs value={contentMode} onValueChange={(val) => setContentMode(val as "standard" | "video_script")} className="w-full mb-4">
+                  <TabsList className="w-full grid grid-cols-2 h-10 p-1 bg-muted/50 rounded-lg">
+                    <TabsTrigger value="standard" className="text-sm font-medium">
+                      Standard Content
+                    </TabsTrigger>
+                    <TabsTrigger value="video_script" className="flex items-center justify-center gap-2 text-sm font-medium">
+                      <Icons.sparkles className="size-4" /> AI Video Script
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                   
                 {contentMode === "standard" ? (
                   <div className="space-y-5">
@@ -579,48 +574,22 @@ export function ComposerClient() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="flex items-center gap-1 bg-muted/40 p-0.5 rounded-lg border border-border/40">
-                            <button
-                              type="button"
-                              onClick={() => setAiFormat("caption")}
-                              className={cn(
-                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
-                                aiFormat === "caption" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                              )}
-                            >
-                              Caption
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAiFormat("carousel")}
-                              className={cn(
-                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
-                                aiFormat === "carousel" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                              )}
-                            >
-                              Carousel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAiFormat("video_script")}
-                              className={cn(
-                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
-                                aiFormat === "video_script" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                              )}
-                            >
-                              Script
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAiFormat("hooks")}
-                              className={cn(
-                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
-                                aiFormat === "hooks" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-                              )}
-                            >
-                              Hooks
-                            </button>
-                          </div>
+                          <Tabs value={aiFormat} onValueChange={(val) => setAiFormat(val as any)}>
+                            <TabsList className="h-7 p-0.5 bg-muted/40 rounded-lg border border-border/40">
+                              <TabsTrigger value="caption" className="px-2 py-0.5 text-2xs font-semibold">
+                                Caption
+                              </TabsTrigger>
+                              <TabsTrigger value="carousel" className="px-2 py-0.5 text-2xs font-semibold">
+                                Carousel
+                              </TabsTrigger>
+                              <TabsTrigger value="video_script" className="px-2 py-0.5 text-2xs font-semibold">
+                                Script
+                              </TabsTrigger>
+                              <TabsTrigger value="hooks" className="px-2 py-0.5 text-2xs font-semibold">
+                                Hooks
+                              </TabsTrigger>
+                            </TabsList>
+                          </Tabs>
                         </div>
                         <Button 
                           variant="outline" 
@@ -767,25 +736,29 @@ export function ComposerClient() {
                       ) : (
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button
+                            <Button
                               type="button"
+                              variant="outline"
                               onClick={() => setPickerOpen(true)}
-                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[hsl(var(--admin-outline-variant))] bg-white/30 hover:bg-white/60 transition-colors text-[hsl(var(--admin-outline))]"
+                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[hsl(var(--admin-outline-variant))] bg-white/30 hover:bg-white/60 transition-colors text-[hsl(var(--admin-outline))] cursor-pointer"
                             >
                               <Icons.media className="size-5" />
                               <span className="text-xs font-semibold">Pilih dari Media Library</span>
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="outline"
                               onClick={handleGenerateVisualPrompt}
                               disabled={isGeneratingVisualPrompt}
-                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors text-primary"
+                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors text-primary cursor-pointer"
                             >
                               <Icons.sparkles className={cn("size-5", isGeneratingVisualPrompt && "animate-spin")} />
-                              <span className="text-xs font-semibold">
-                                {isGeneratingVisualPrompt ? "Meracik Prompt Visual..." : "Buat AI Visual Prompt (Flux/Ideogram)"}
-                              </span>
-                            </button>
+                              {isGeneratingVisualPrompt ? (
+                                <ShimmeringText text="Meracik Prompt Visual..." className="text-xs font-semibold" />
+                              ) : (
+                                <span className="text-xs font-semibold">Buat AI Visual Prompt (Flux/Ideogram)</span>
+                              )}
+                            </Button>
                           </div>
 
                           {/* Visual Prompt Result Card */}
@@ -1118,16 +1091,18 @@ export function ComposerClient() {
                               {meta?.callToAction && (
                                 <div className="text-2xs text-muted-foreground flex items-center justify-between pt-1">
                                   <span><b className="text-foreground">CTA:</b> {meta.callToAction}</span>
-                                  <button
+                                  <Button
                                     type="button"
+                                    variant="link"
+                                    size="sm"
                                     onClick={() => {
                                       setContent(val)
                                       toast.success(`Draf utama diisi dengan versi ${p}`)
                                     }}
-                                    className="text-primary hover:underline font-semibold cursor-pointer"
+                                    className="text-primary hover:underline font-semibold cursor-pointer p-0 h-auto text-2xs"
                                   >
                                     Salin ke Draf Utama
-                                  </button>
+                                  </Button>
                                 </div>
                               )}
                             </div>
