@@ -12,6 +12,8 @@ import type { Asset, AssetFileType } from "@/features/library/api/types"
 import { thumbnailUrl } from "@/lib/media/transform"
 import { FileUploader } from "@/components/file-uploader"
 import { Button } from "@/components/ui/button"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 import { toast } from "sonner"
 
 const TYPE_TABS = ["all", "image", "video"] as const
@@ -123,27 +125,40 @@ export function AssetPicker({
               className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full border border-border/20 w-max h-auto"
               highlightClassName="bg-card text-foreground shadow-sm rounded-full"
             >
-              {TYPE_TABS.map((t) => (
-                <TabsTrigger
-                  key={t}
-                  value={t}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
-                >
-                  {t === "all" ? "Semua" : t === "image" ? "Gambar" : "Video"}
-                </TabsTrigger>
-              ))}
+              {TYPE_TABS.map((t) => {
+                const count = t === "all" ? assets.length : assets.filter((a) => a.fileType === t).length
+                const label = t === "all" ? "Semua" : t === "image" ? "Gambar" : "Video"
+                return (
+                  <TabsTrigger
+                    key={t}
+                    value={t}
+                    className="px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+                  >
+                    <span>{label}</span>
+                    {assets.length > 0 && (
+                      <span className="opacity-75 font-mono text-2xs">(<MetricTicker value={count} />)</span>
+                    )}
+                  </TabsTrigger>
+                )
+              })}
             </TabsList>
           </Tabs>
         </div>
 
-        {/* Upload Dropzone */}
-        <div className="mb-4">
+        {/* Upload Dropzone & Loading state */}
+        <div className="space-y-2">
           <FileUploader
             onUpload={handleUpload}
             maxFiles={5}
             maxSize={25 * 1024 * 1024}
             disabled={uploading}
           />
+          {uploading && (
+            <div className="flex items-center justify-center gap-2 py-1.5 text-xs">
+              <Icons.spinner className="size-4 animate-spin text-primary" />
+              <ShimmeringText text="Mengunggah aset ke Media Library…" className="font-semibold text-xs" />
+            </div>
+          )}
         </div>
 
         {/* Grid body */}
