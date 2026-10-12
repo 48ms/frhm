@@ -23,9 +23,11 @@ export default async function PreviewErp() {
   // during initial render" crash. Mirrors the real /admin/erp/page.tsx pattern.
   const clientId = await resolveClientId("")
 
-  await queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
-  await queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId))
-  await queryClient.prefetchQuery(deliverableQueries.listByClient(clientId))
+  await Promise.all([
+    queryClient.prefetchQuery(socialQueries.listClientsWithChannels()),
+    queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(deliverableQueries.listByClient(clientId)),
+  ])
 
   return (
     <div className="admin-theme admin-viewport">

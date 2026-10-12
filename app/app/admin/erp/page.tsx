@@ -21,11 +21,13 @@ export default async function AdminErpPage(props: {
   const clientId = await resolveClientId(parsedClientId)
   const queryClient = getQueryClient()
 
-  // Server-side prefetching agar `useSuspenseQuery` di client menemukan data
-  // di cache dan tidak memicu Server Action saat render.
-  await queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
-  await queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId))
-  await queryClient.prefetchQuery(deliverableQueries.listByClient(clientId))
+  // Frahma Rule 3: Parallel Server-side prefetching agar `useSuspenseQuery` di client
+  // menemukan data di cache tanpa waterfall latensi.
+  await Promise.all([
+    queryClient.prefetchQuery(socialQueries.listClientsWithChannels()),
+    queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(deliverableQueries.listByClient(clientId)),
+  ])
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

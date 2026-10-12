@@ -11,7 +11,7 @@ export default async function SocialAccountsPage() {
   const queryClient = getQueryClient()
   
   // 1. Server-side data prefetching agar UX instan
-  void queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
+  await queryClient.prefetchQuery(socialQueries.listClientsWithChannels())
 
   return (
     <PageContainer
