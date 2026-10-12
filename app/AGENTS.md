@@ -4,9 +4,10 @@
 > Client brands: Taraju (Pak Adit), Pawon Sengon (Bunda)
 
 Lihat aturan lengkap di file root: [AGENTS.md](file:///c:/Users/bimam/Downloads/Tools%20Frahma/AGENTS.md).
-Semua pengembangan wajib mematuhi standar arsitektur `next-shadcn-dashboard-starter` dan kedaulatan 100% Supabase Auth + PostgreSQL RLS.
+Semua pengembangan wajib mematuhi standar arsitektur acuan **Radix UI & Animate UI (https://animate-ui.com/)** dan kedaulatan 100% Supabase Auth + PostgreSQL RLS.
 
 ## Aturan wajib (ringkas, lengkap di root AGENTS.md)
+- **Sumber UI = Radix UI & Animate UI (MUTLAK).** Seluruh komponen interaktif, dialog, dropdown, tabs wajib berbasis **Radix UI Primitives** (`@/components/animate-ui/components/radix/` atau `@/components/ui/`) demi 100% kepatuhan a11y & keyboard trap. Seluruh mikro-interaksi, transisi layout, teks animated, dan metrik dinamis wajib menggunakan **Animate UI** (`@/components/animate-ui/` — `<MetricTicker>`, `<ShimmeringText>`, `<SlidingNumber>`). Dilarang keras div interaktif mentah atau warna hex hardcoded.
 - **URL state = `nuqs` (MUTLAK).** Setiap filter/tab/pencarian/sorting/paginasi/ID seleksi disimpan di URL via `nuqs` (https://github.com/47ng/nuqs). `NuqsAdapter` wajib ada di `app/layout.tsx`. Server pakai `createSearchParamsCache`, client pakai `useQueryStates({ shallow: true })`. Dilarang `useState` lokal untuk filter atau menulis search params manual.
 
 <!-- antislop:start -->

@@ -14,13 +14,30 @@ For UI, copy, people, mobile layout, or code comments work, load the antislop sk
 - Code comments: `antislop-code`
 Mode antislop diaplikasikan: **during the work** (selama pengerjaan berlangsung).
 
-jadikan animate-ui, RadixUI sebagai source
+### Sumber Pengerjaan UI Mutlak (MUTLAK):
+- **Radix UI (`@radix-ui/*`)**: Sumber mutlak seluruh komponen interaktif & primitives aksesibilitas (Dialog, AlertDialog, DropdownMenu, Tabs, Checkbox, RadioGroup, Tooltip, Popover, Select, Accordion, Slider, Switch). Wajib 100% kepatuhan a11y, focus trap, ARIA, keyboard navigation.
+- **Animate UI (`https://animate-ui.com/`)**: Sumber mutlak seluruh mikro-interaksi, layout animations, teks/angka dinamis (`MetricTicker`, `ShimmeringText`, `SlidingNumber`, `RollingText`), dan spring physics.
 <!-- antislop:end -->
 
 ---
 
 # STANDAR & ATURAN UTAMA PENGEMBANGAN FRHM (MUTLAK)
-Semua pengembangan Frhm ke depan **WAJIB** tunduk pada arsitektur acuan `Radix UI, Animate UI https://animate-ui.com/ ` dan aturan kedaulatan platform berikut:
+Semua pengembangan Frhm ke depan **WAJIB** tunduk pada arsitektur acuan `Radix UI & Animate UI (https://animate-ui.com/)` dan aturan kedaulatan platform berikut:
+
+### 0. Sumber Pengerjaan UI Mutlak: Radix UI & Animate UI (MUTLAK)
+Semua pengerjaan komponen antarmuka (UI), dialog, menu, interaksi, dan motion di Frhm **WAJIB** bersumber dari Radix UI dan Animate UI:
+1. **Radix UI Primitives (`@/components/animate-ui/components/radix/` atau `@/components/ui/`)**:
+   - Dilarang membuat modal/dialog/popover/dropdown ad-hoc dari div mentah tanpa primitives Radix UI.
+   - Wajib menggunakan Radix UI Primitives untuk: `Dialog`, `AlertDialog`, `DropdownMenu`, `Tabs`, `Checkbox`, `RadioGroup`, `Tooltip`, `Popover`, `Select`, `Switch`, `Slider`.
+   - Menjamin 100% kepatuhan aksesibilitas: keyboard navigation (Tab/Shift+Tab, Escape dismiss, arrow keys roving tabindex), focus lock/trap, dan ARIA attributes.
+2. **Animate UI Primitives (`@/components/animate-ui/`)**:
+   - **Metrik & Angka Dinamis**: Wajib memakai `<MetricTicker>` atau `<SlidingNumber>` untuk angka metrik yang berubah (reach, impressions, channel count, ticket counts, audience trajectory).
+   - **AI & Asynchronous Feedback**: Wajib memakai `<ShimmeringText>` pada kondisi loading/generating (AI Hook Generator, Copilot, Batch Plan Generator, Dropzone media upload).
+   - **Tab & Segment Transitions**: Wajib memakai animated transitions dari Animate UI Tabs.
+   - **Spring Physics & Micro-Interactions**: Menggunakan spring motion physics dari Animate UI / Motion tanpa layout shift.
+3. **Kombinasi Desain Sistem Token HSL**:
+   - Seluruh komponen Radix UI & Animate UI wajib dibungkus dengan token HSL semantik (`bg-card`, `bg-primary`, `text-foreground`, `border-border/40`). Dilarang keras menggunakan warna hex hardcoded di dalam styling komponen.
+
 
 ### 1. Kedaulatan Auth & Backend (Aturan Khusus Frhm)
 - **100% Supabase Auth & PostgreSQL RLS**: Dilarang menggunakan Clerk di Frhm. Seluruh session, autentikasi, otorisasi, dan multi-tenant isolation dikelola via Supabase Auth + PostgreSQL RLS policies.
