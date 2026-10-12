@@ -31,8 +31,30 @@ export function useUpdateContentProduction() {
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: UpdateContentProductionInput }) =>
       updateContentProduction(id, patch),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: contentProductionKeys.byClient(data.client_id) })
+    onMutate: async ({ id, patch }) => {
+      await queryClient.cancelQueries({ queryKey: contentProductionKeys.all })
+      const previousData = queryClient.getQueriesData<import("./types").ContentProduction[]>({
+        queryKey: contentProductionKeys.all,
+      })
+      queryClient.setQueriesData<import("./types").ContentProduction[]>({ queryKey: contentProductionKeys.all }, (old) => {
+        if (!old) return old
+        return old.map((item) => (item.id === id ? { ...item, ...patch } : item))
+      })
+      return { previousData }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: (data) => {
+      if (data?.client_id) {
+        queryClient.invalidateQueries({ queryKey: contentProductionKeys.byClient(data.client_id) })
+      } else {
+        queryClient.invalidateQueries({ queryKey: contentProductionKeys.all })
+      }
     },
   })
 }
@@ -41,7 +63,25 @@ export function useDeleteContentProduction() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteContentProduction(id),
-    onSuccess: () => {
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: contentProductionKeys.all })
+      const previousData = queryClient.getQueriesData<import("./types").ContentProduction[]>({
+        queryKey: contentProductionKeys.all,
+      })
+      queryClient.setQueriesData<import("./types").ContentProduction[]>({ queryKey: contentProductionKeys.all }, (old) => {
+        if (!old) return old
+        return old.filter((item) => item.id !== id)
+      })
+      return { previousData }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: contentProductionKeys.all })
     },
   })

@@ -32,8 +32,28 @@ export function useUpdateCampaign() {
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: UpdateCampaignInput }) =>
       updateCampaign(id, patch),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: campaignKeys.byClient(data.client_id) })
+    onMutate: async ({ id, patch }) => {
+      await queryClient.cancelQueries({ queryKey: campaignKeys.all })
+      const previousData = queryClient.getQueriesData<import("./types").Campaign[]>({ queryKey: campaignKeys.all })
+      queryClient.setQueriesData<import("./types").Campaign[]>({ queryKey: campaignKeys.all }, (old) => {
+        if (!old) return old
+        return old.map((c) => (c.id === id ? { ...c, ...patch } : c))
+      })
+      return { previousData }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: (data) => {
+      if (data?.client_id) {
+        queryClient.invalidateQueries({ queryKey: campaignKeys.byClient(data.client_id) })
+      } else {
+        queryClient.invalidateQueries({ queryKey: campaignKeys.all })
+      }
     },
   })
 }
@@ -42,7 +62,23 @@ export function useDeleteCampaign() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteCampaign(id),
-    onSuccess: () => {
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: campaignKeys.all })
+      const previousData = queryClient.getQueriesData<import("./types").Campaign[]>({ queryKey: campaignKeys.all })
+      queryClient.setQueriesData<import("./types").Campaign[]>({ queryKey: campaignKeys.all }, (old) => {
+        if (!old) return old
+        return old.filter((c) => c.id !== id)
+      })
+      return { previousData }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.all })
     },
   })
