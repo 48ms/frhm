@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { Icons } from '@/components/icons'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 /**
  * Admin-segment error boundary.
@@ -42,12 +43,12 @@ export default function AdminError({
           )}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <button
+          <Button
             onClick={reset}
             className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Icons.refresh className="size-4" /> Coba lagi
-          </button>
+          </Button>
           <Link
             href="/admin/dashboard"
             className="inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-muted"
