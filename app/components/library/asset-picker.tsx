@@ -11,6 +11,7 @@ import { assetKeys, assetListOptions } from "@/features/library/api/queries"
 import type { Asset, AssetFileType } from "@/features/library/api/types"
 import { thumbnailUrl } from "@/lib/media/transform"
 import { FileUploader } from "@/components/file-uploader"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
 const TYPE_TABS = ["all", "image", "video"] as const
@@ -167,11 +168,12 @@ export function AssetPicker({
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {visible.map((asset) => (
-                <button
+                <Button
                   key={asset.id}
                   type="button"
+                  variant="outline"
                   onClick={() => handlePick(asset)}
-                  className="group relative aspect-square rounded-xl overflow-hidden border border-border hover:border-primary focus-visible:ring-2 focus-visible:ring-ring outline-none cursor-pointer"
+                  className="group relative aspect-square h-auto p-0 rounded-xl overflow-hidden border border-border hover:border-primary focus-visible:ring-2 focus-visible:ring-ring outline-none cursor-pointer"
                 >
                   <img
                     src={thumbnailUrl(asset.url)}
@@ -185,7 +187,7 @@ export function AssetPicker({
                   <span className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Icons.check className="size-6 text-white" />
                   </span>
-                </button>
+                </Button>
               ))}
             </div>
           )}

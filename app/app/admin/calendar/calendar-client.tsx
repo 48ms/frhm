@@ -593,7 +593,9 @@ export function AdminCalendarClient() {
             <span className="text-2xs text-muted-foreground font-bold">
               Slots Status Pipeline
             </span>
-            <span className="text-2xs text-secondary font-bold">{filteredPosts.length} TOTAL</span>
+            <span className="text-2xs text-secondary font-bold flex items-center gap-1">
+              <MetricTicker value={filteredPosts.length} /> TOTAL
+            </span>
           </div>
           <div className="flex items-center gap-2 pt-1">
             {(() => {
@@ -608,20 +610,20 @@ export function AdminCalendarClient() {
                     <div className="bg-secondary h-full" style={{ width: `${(scheduledCount / total) * 100}%` }} title={`${scheduledCount} Scheduled`} />
                     <div className="bg-border h-full" style={{ width: `${(draftCount / total) * 100}%` }} title={`${draftCount} Drafts`} />
                   </div>
-                  <span className="text-1xs font-bold text-muted-foreground">{filteredPosts.length}</span>
+                  <MetricTicker value={filteredPosts.length} className="text-1xs font-bold text-muted-foreground" />
                 </>
               )
             })()}
           </div>
           <div className="flex justify-between text-1xs text-muted-foreground pt-0.5">
             <span className="flex items-center gap-1 font-semibold text-card-foreground">
-              <span className="w-2 h-2 rounded-full bg-primary" /> {filteredPosts.filter((p) => p.status === "published").length} Published
+              <span className="w-2 h-2 rounded-full bg-primary" /> <MetricTicker value={filteredPosts.filter((p) => p.status === "published").length} /> Published
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-secondary" /> {filteredPosts.filter((p) => p.status === "scheduled").length} Scheduled
+              <span className="w-2 h-2 rounded-full bg-secondary" /> <MetricTicker value={filteredPosts.filter((p) => p.status === "scheduled").length} /> Scheduled
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-border" /> {filteredPosts.filter((p) => p.status === "draft").length} Drafts
+              <span className="w-2 h-2 rounded-full bg-border" /> <MetricTicker value={filteredPosts.filter((p) => p.status === "draft").length} /> Drafts
             </span>
           </div>
         </div>
@@ -652,7 +654,7 @@ export function AdminCalendarClient() {
               Social Channels
             </span>
             <p className="text-base font-bold text-card-foreground flex items-center gap-2">
-              <span>{connectedCount} Connected</span>
+              <span className="flex items-center gap-1"><MetricTicker value={connectedCount} /> Connected</span>
               <span
                 className={cn(
                   "w-2.5 h-2.5 rounded-full shrink-0",

@@ -4,6 +4,7 @@ import React, { useMemo } from "react"
 import { useQueryState, parseAsStringEnum } from "nuqs"
 import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { useActiveDashboard } from "./dashboard-data"
 import { type Timeframe } from "@/features/dashboard/api/types"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -52,31 +53,24 @@ export function DashboardStitchChart() {
             Performance &amp; Engagement Dynamics
           </h2>
         </div>
-        {/* Timeframe selector — Animate UI spring-sliding indicator, URL state via nuqs */}
-        <div role="group" aria-label="Chart time range" className="inline-flex p-1 rounded-full bg-muted/70 border border-border/30">
-          {TIMEFRAMES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTf(t.id)}
-              aria-pressed={tf === t.id}
-              className={cn(
-                "relative px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer",
-                tf === t.id
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tf === t.id && (
-                <motion.span
-                  layoutId="timeframe-pill"
-                  className="absolute inset-0 rounded-full bg-background shadow-sm"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10">{t.label}</span>
-            </button>
-          ))}
-        </div>
+        {/* Timeframe selector — Radix Animate UI Tabs, URL state via nuqs */}
+        <Tabs
+          value={tf}
+          onValueChange={(val) => setTf(val as Timeframe)}
+          className="w-auto"
+        >
+          <TabsList className="p-1 rounded-full bg-muted/70 border border-border/30 h-auto">
+            {TIMEFRAMES.map((t) => (
+              <TabsTrigger
+                key={t.id}
+                value={t.id}
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className="flex-1 w-full aspect-[16/9] max-h-[280px] bg-muted/20 rounded-2xl p-4 border border-border/40 relative">

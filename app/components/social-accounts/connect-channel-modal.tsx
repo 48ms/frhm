@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { requestOAuthUrl } from "@/features/social-accounts/api/service"
 
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -167,17 +168,18 @@ export function ConnectChannelModal({
                   const isLoading = loadingPlatform === p
 
                   return (
-                    <button
+                    <Button
                       key={p}
                       type="button"
+                      variant="outline"
                       disabled={disabled || isLoading}
                       aria-disabled={disabled || isLoading}
                       onClick={() => handleStartOAuth(p)}
                       className={cn(
-                        "relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-300",
+                        "relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-300 h-auto whitespace-normal font-normal",
                         disabled
                           ? "cursor-not-allowed border-dashed border-border opacity-50 bg-muted/20 grayscale"
-                          : "cursor-pointer border-border bg-card hover:border-primary/30 hover:shadow-lg hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          : "cursor-pointer border-border bg-card hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
                       )}
                     >
                       <div className="flex w-full items-center justify-between">
@@ -213,7 +215,7 @@ export function ConnectChannelModal({
                           {m.blurb}
                         </span>
                       </div>
-                    </button>
+                    </Button>
                   )
                 })}
               </div>

@@ -224,18 +224,21 @@ export function CampaignModal({
               </label>
               <div className="flex gap-2">
                 {COLOR_SWATCHES.map((c) => (
-                  <button
+                  <Button
                     key={c}
+                    type="button"
+                    size="icon"
+                    variant="ghost"
                     onClick={() => setColor(c)}
                     className={cn(
-                      "w-7 h-7 rounded-full transition-all cursor-pointer flex items-center justify-center",
+                      "w-7 h-7 rounded-full p-0 transition-all cursor-pointer flex items-center justify-center hover:opacity-90",
                       color === c ? "ring-2 ring-offset-2 ring-brand-accent" : ""
                     )}
                     style={{ backgroundColor: c }}
                     aria-label={`Color ${c}`}
                   >
                     {color === c && <Icons.check className="size-3.5 text-white" />}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
