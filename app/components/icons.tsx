@@ -30,6 +30,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconHeart,
+  IconTarget,
   IconCircle,
   IconCircleCheck,
   IconCircleDashed,
@@ -164,6 +165,7 @@ export const Icons = {
   chartBar: IconChartBar,
   shield: IconShield,
   bell: IconBell,
+  target: IconTarget,
 
   // Navigation / Chevrons
   chevronDown: IconChevronDown,
@@ -322,7 +324,7 @@ export const Icons = {
   bolt: IconBolt,
   business: IconBuildingSkyscraper,
   calendar_month: IconCalendar,
-  campaign: IconRocket,
+  campaign: IconTarget,
   hub: IconLayersLinked,
   ios_share: IconShare,
   monitoring: IconChartBar,

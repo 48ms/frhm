@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NuqsAdapter } from 'nuqs/adapters/react'
@@ -10,6 +10,8 @@ const mockClients = [
   { id: 'client-2', name: 'Wizard Corp' },
   { id: 'client-3', name: 'Aura Luxury' },
 ]
+
+const runAuditMock = vi.fn()
 
 vi.mock('@/components/dashboard-stitch/dashboard-data', () => ({
   useActiveDashboard: () => ({
@@ -53,6 +55,10 @@ vi.mock('@/features/scheduled-posts/api/queries', () => ({
 }))
 
 vi.mock('@/features/analytics/api/queries', () => ({
+  useAuditPerformanceAndIterate: () => ({
+    mutateAsync: (...args: unknown[]) => runAuditMock(...args),
+    isPending: false,
+  }),
   analyticsQueries: {
     listMetricsByClient: (clientId: string) => ({
       queryKey: ['analytics', 'metrics', clientId],
@@ -76,6 +82,13 @@ vi.mock('@/features/analytics/api/queries', () => ({
       ],
       enabled: Boolean(clientId),
     }),
+  },
+}))
+
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
   },
 }))
 
@@ -108,7 +121,7 @@ describe('AnalyticsView', () => {
   it('renders the AI contextual summary panel', async () => {
     renderWithProviders(<AnalyticsView />)
     await waitFor(() => {
-      expect(screen.getByText('AI Contextual Summary')).toBeInTheDocument()
+      expect(screen.getByText(/AI Contextual Summary/i)).toBeInTheDocument()
     })
   })
 
@@ -133,5 +146,44 @@ describe('AnalyticsView', () => {
   it('does not claim an unsourced industry benchmark', () => {
     renderWithProviders(<AnalyticsView />)
     expect(screen.queryByText(/industry benchmark/i)).toBeNull()
+  })
+
+  it('runs METER Performance Audit and renders signal score, winners, and next actions', async () => {
+    runAuditMock.mockResolvedValueOnce({
+      report: {
+        overallHealth: 'STABLE',
+        signalScore: 82,
+        summary: 'Kinerja metrik signal menunjukkan retensi kuat.',
+        signalAnalysis: {
+          reachSignal: 'Reach bagus',
+          engagementSignal: 'ER kuat',
+          conversionSignal: 'Inquiry tinggi',
+        },
+        winners: [{ title: 'Konten Edukasi Resep', reason: 'Saves tertinggi' }],
+        underperformers: [{ title: 'Konten Promo Diskon', rootCause: 'Hook lemah', fixAngle: 'Ganti POV' }],
+        actionableIterations: [
+          {
+            action: 'Buat Carousel 5 Slide',
+            targetPlatform: 'instagram',
+            priority: 'HIGH',
+            recommendedPrompt: '5 Tips Dapur',
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<AnalyticsView />)
+
+    const auditBtn = await screen.findByRole('button', { name: /Audit METER/i })
+    fireEvent.click(auditBtn)
+
+    await waitFor(() => {
+      expect(runAuditMock).toHaveBeenCalledWith({ clientId: 'client-1', period: '30d' })
+    })
+
+    expect(await screen.findByText(/Status: STABLE/i)).toBeInTheDocument()
+    expect(screen.getByText(/Signal Score: 82\/100/i)).toBeInTheDocument()
+    expect(screen.getByText('Konten Edukasi Resep')).toBeInTheDocument()
+    expect(screen.getByText('Buat Carousel 5 Slide')).toBeInTheDocument()
   })
 })

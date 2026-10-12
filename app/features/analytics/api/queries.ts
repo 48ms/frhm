@@ -1,9 +1,11 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getPostMetricsByClient,
   getAnalyticsSummariesByClient,
   getLatestPrediction,
+  auditPerformanceAndIterate,
 } from "./service"
+import type { AuditPerformanceInput } from "./types"
 
 export const analyticsKeys = {
   all: ["analytics"] as const,
@@ -32,4 +34,16 @@ export const analyticsQueries = {
       queryFn: () => getLatestPrediction(clientId),
       enabled: Boolean(clientId),
     }),
+}
+
+export function useAuditPerformanceAndIterate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: AuditPerformanceInput) => auditPerformanceAndIterate(input),
+    onSuccess: (_, input) => {
+      queryClient.invalidateQueries({
+        queryKey: analyticsKeys.summariesByClient(input.clientId),
+      })
+    },
+  })
 }

@@ -11,6 +11,7 @@ const createPostMock = vi.fn()
 const pushMock = vi.fn()
 const activeDashboardMock = vi.fn()
 const generateCaptionMock = vi.fn()
+const repurposeMock = vi.fn()
 
 const CLIENT_ID = 'client-11111111-1111-1111-1111-111111111111'
 
@@ -29,7 +30,12 @@ vi.mock('@/features/scheduled-posts/api/queries', () => ({
 vi.mock('@/features/copilot/api/queries', () => ({
   useGenerateCaption: () => ({ mutate: (...args: unknown[]) => generateCaptionMock(...args), isPending: false }),
   useGenerateVideoScript: () => ({ mutateAsync: vi.fn(), isPending: false }),
-  useRepurposeCrossPlatform: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRepurposeCrossPlatform: () => ({ mutateAsync: (...args: unknown[]) => repurposeMock(...args), isPending: false }),
+  useGenerateHooks: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useGenerateCarousel: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useValidatePlatformPost: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useGenerateVisualPrompt: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useEvaluateTrend: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
 
 vi.mock('@/lib/auth/use-current-user', () => ({
@@ -410,4 +416,70 @@ describe('ComposerClient', () => {
     })
     await waitFor(() => expect(createPostMock).toHaveBeenCalledTimes(2))
   })
+
+  it('triggers Atomize & Adapt repurposing and renders core atom and platform adaptations', async () => {
+    repurposeMock.mockResolvedValueOnce({
+      repurposed: {
+        coreAtom: "Kunci retensi kuliner adalah konsistensi rasa harian.",
+        results: [
+          {
+            platform: "instagram",
+            format: "Carousel Outline",
+            hook: "Kenapa pelanggan setia jarang pindah ke kompetitor?",
+            content: "Naskah adaptasi Instagram...",
+            callToAction: "Simpan postingan ini",
+            registerNote: "Visual & Relatable",
+          },
+          {
+            platform: "twitter",
+            format: "Punchy Post",
+            hook: "Konsistensi SOP > Promo diskon.",
+            content: "Naskah adaptasi Twitter/X...",
+            callToAction: "Retweet jika setuju",
+            registerNote: "High density",
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<ComposerClient />)
+
+    // Isi konten di Step 1
+    const captionArea = screen.getByPlaceholderText('Tulis pesan brilian Anda di sini, atau gunakan AI Copilot...')
+    await act(async () => {
+      fireEvent.change(captionArea, { target: { value: "Artikel panjang tentang konsistensi resep dan retensi pelanggan..." } })
+      fireEvent.click(screen.getByText('Selanjutnya'))
+    })
+
+    // Step 2: pilih minimal 2 platform agar repurpose diaktifkan
+    await waitFor(() => {
+      expect(screen.getByText('@taraju')).toBeInTheDocument()
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('@taraju'))
+      fireEvent.click(screen.getByText('@taraju_id'))
+    })
+
+    // Klik tombol Adaptasi per Platform
+    const adaptBtn = await screen.findByText('Adaptasi per Platform')
+    await act(async () => {
+      fireEvent.click(adaptBtn)
+    })
+
+    await waitFor(() => {
+      expect(repurposeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clientId: CLIENT_ID,
+          baseContent: expect.stringContaining("Artikel panjang"),
+        })
+      )
+    })
+
+    // Periksa tampilan Core Reusable Atom dan format badge
+    expect(await screen.findByText(/Core Reusable Atom/i)).toBeInTheDocument()
+    expect(screen.getByText(/Kunci retensi kuliner/i)).toBeInTheDocument()
+    expect(screen.getByText('Carousel Outline')).toBeInTheDocument()
+    expect(screen.getByText(/Kenapa pelanggan setia jarang pindah/i)).toBeInTheDocument()
+  })
 })
+

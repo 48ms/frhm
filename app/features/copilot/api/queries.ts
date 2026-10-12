@@ -1,6 +1,28 @@
 import { useMutation } from "@tanstack/react-query"
-import { generateCaption, generateContentIdeas, generateVideoScript, repurposeCrossPlatform, generateBatchPlan } from "./service"
-import type { GenerateCaptionInput, GenerateIdeasInput, GenerateVideoScriptInput, RepurposeCrossPlatformInput, GenerateBatchPlanInput } from "./types"
+import {
+  generateCaption,
+  generateContentIdeas,
+  generateVideoScript,
+  repurposeCrossPlatform,
+  generateBatchPlan,
+  generateHooks,
+  generateCarousel,
+  validatePlatformPost,
+  generateVisualPrompt,
+  evaluateTrend,
+} from "./service"
+import type {
+  GenerateCaptionInput,
+  GenerateIdeasInput,
+  GenerateVideoScriptInput,
+  RepurposeCrossPlatformInput,
+  GenerateBatchPlanInput,
+  GenerateHooksInput,
+  GenerateCarouselInput,
+  ValidatePostInput,
+  GenerateVisualPromptInput,
+  EvaluateTrendInput,
+} from "./types"
 
 export function useGenerateCaption() {
   return useMutation({
@@ -31,3 +53,35 @@ export function useGenerateBatchPlan() {
     mutationFn: (input: GenerateBatchPlanInput) => generateBatchPlan(input),
   })
 }
+
+export function useGenerateHooks() {
+  return useMutation({
+    mutationFn: (input: GenerateHooksInput) => generateHooks(input),
+  })
+}
+
+export function useGenerateCarousel() {
+  return useMutation({
+    mutationFn: (input: GenerateCarouselInput) => generateCarousel(input),
+  })
+}
+
+export function useValidatePlatformPost() {
+  return useMutation({
+    mutationFn: (input: ValidatePostInput) => validatePlatformPost(input),
+  })
+}
+
+export function useGenerateVisualPrompt() {
+  return useMutation({
+    mutationFn: (input: GenerateVisualPromptInput) => generateVisualPrompt(input),
+  })
+}
+
+export function useEvaluateTrend() {
+  return useMutation({
+    mutationFn: (input: EvaluateTrendInput) => evaluateTrend(input),
+  })
+}
+
+

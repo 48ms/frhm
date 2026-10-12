@@ -14,13 +14,8 @@ export function DashboardStitchConnectedHub() {
   // Optimasi ECC: Ambil list mentah saja, filter di level komponen agar getter store 
   // tidak loop re-render React (karena getter Zustand mereturn array referensi baru tiap call).
   const rawAccounts = useAppStore(s => s.accounts)
-  const rawClients = useAppStore(s => s.socialClients)
   
   const accounts = rawAccounts.filter((a) => a.clientId === client.id)
-  const clients = rawClients.map(c => ({
-    ...c,
-    accounts: rawAccounts.filter((a) => a.clientId === c.id)
-  }))
   
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
@@ -58,7 +53,7 @@ export function DashboardStitchConnectedHub() {
                 {client.name.charAt(0).toUpperCase()}
               </div>
               <div className="truncate leading-tight text-left">
-                <span className="block text-[10px] font-bold text-muted-foreground">
+                <span className="block text-2xs font-bold text-muted-foreground">
                   Klien aktif
                 </span>
                 <span className="block text-xs font-bold text-foreground truncate">
@@ -73,7 +68,7 @@ export function DashboardStitchConnectedHub() {
             <Icons.check className="size-4 text-brand-accent shrink-0" />
             <span className="truncate">
               Channels belong to{" "}
-              <b className="text-foreground">{client.name.substring(0, 5)}</b>
+              <b className="text-foreground">{client.name}</b>
             </span>
           </div>
         </div>
@@ -95,17 +90,17 @@ export function DashboardStitchConnectedHub() {
                   <h3 className="font-label-lg text-label-lg text-foreground font-bold leading-tight group-hover:text-secondary transition-colors">
                     {ch.platform}
                   </h3>
-                  <p className="font-body-sm text-body-sm text-outline">
+                  <p className="font-body-sm text-body-sm text-muted-foreground">
                     {ch.handle}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <span className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-label-caps font-bold",
+                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-label-caps font-bold",
                   ch.status === "SYNCED" || ch.status === "LIVE_SYNC"
                     ? "bg-brand-accent/20 text-brand-accent"
-                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    : "bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]"
                 )}>
                   {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -120,7 +115,7 @@ export function DashboardStitchConnectedHub() {
               </div>
               <button
                 onClick={() => setDisconnectId(ch.id)}
-                className="ml-2 text-muted-foreground hover:text-red-500 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                className="ml-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                 title="Disconnect channel"
               >
                 <Icons.close className="size-3.5" />
@@ -130,7 +125,7 @@ export function DashboardStitchConnectedHub() {
 
           <button
             onClick={() => setConnectOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-[10px] font-bold text-muted-foreground hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-2xl border border-dashed border-muted-foreground/30 text-2xs font-bold text-muted-foreground hover:bg-card hover:border-muted-foreground/50 transition-all cursor-pointer"
           >
             <Icons.hub className="size-3.5" />
             Connect Channel to Client
@@ -159,16 +154,16 @@ export function DashboardStitchConnectedHub() {
               Campaign Velocity: {profile.velocity}%
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Multi-network algorithmic amplification active for {client.name.substring(0, 5)}.
+              Multi-network algorithmic amplification active for {client.name}.
             </p>
             <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-brand-accent">
+              <span className="text-2xs font-bold text-brand-accent">
                 Status: {profile.velocity >= 90 ? "Accelerating" : "Steady"}
               </span>
               <span
                 aria-disabled="true"
                 title="Campaign velocity breakdown is not built yet."
-                className="px-2.5 py-0.5 rounded-full bg-muted text-foreground/70 text-[10px] font-semibold cursor-not-allowed"
+                className="px-2.5 py-0.5 rounded-full bg-muted text-foreground/70 text-2xs font-semibold cursor-not-allowed"
               >
                 Detail (Coming soon)
               </span>
@@ -187,7 +182,7 @@ export function DashboardStitchConnectedHub() {
         </h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
           Generate caption, klaster hashtag, dan konsep video untuk{" "}
-          {client.name.substring(0, 5)}.
+          {client.name}.
         </p>
         <button
           onClick={() => setAiOpen(true)}
@@ -205,7 +200,7 @@ export function DashboardStitchConnectedHub() {
             onClick={() => setDisconnectId(null)}
           />
           <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-2">
+            <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-2">
               <Icons.warning className="size-6" />
             </div>
             <h3 className="font-syne font-bold text-foreground text-lg">
@@ -226,7 +221,7 @@ export function DashboardStitchConnectedHub() {
                   useAppStore.getState().disconnectAccount(disconnectId)
                   setDisconnectId(null)
                 }}
-                className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all shadow-sm cursor-pointer"
+                className="flex-1 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all shadow-sm cursor-pointer"
               >
                 Disconnect
               </button>
@@ -245,3 +240,6 @@ export function DashboardStitchConnectedHub() {
     </div>
   )
 }
+
+export const RightPanel = DashboardStitchConnectedHub
+

@@ -72,19 +72,44 @@ export async function resolveProvider(
   return (data as Provider | null) ?? null
 }
 
-/** The skill's original SKILL.md, verbatim. */
-export async function loadSkillMd(
+/** Loads the skill's SKILL.md and key reference playbook documents from skill_files. */
+export async function loadSkillBundle(
   supabase: AdminCtx['supabase'],
   skillId: string
 ): Promise<string | null> {
   const admin = createSupabaseServiceClient()
   const { data } = await admin
     .from('skill_files')
-    .select('content')
+    .select('path, content')
     .eq('skill_id', skillId)
-    .eq('path', 'SKILL.md')
-    .maybeSingle()
-  return data?.content ?? null
+
+  if (!data || data.length === 0) return null
+
+  const skillFile = data.find((f: { path: string }) => f.path === 'SKILL.md')
+  const skillMd = skillFile?.content ?? ''
+
+  // Collect reference files up to a rich context budget (references/*.md)
+  const refFiles = data.filter(
+    (f: { path: string; content?: string }) => f.path.startsWith('references/') && f.content?.trim()
+  )
+
+  if (refFiles.length === 0) {
+    return skillMd || null
+  }
+
+  const refSections = refFiles
+    .map((f: { path: string; content: string }) => `### [Reference: ${f.path}]\n${f.content}`)
+    .join('\n\n---\n\n')
+
+  return `${skillMd}\n\n---\n## Authoritative Playbook References & Rules\n\n${refSections}`
+}
+
+/** The skill's original SKILL.md, or loaded bundle. */
+export async function loadSkillMd(
+  supabase: AdminCtx['supabase'],
+  skillId: string
+): Promise<string | null> {
+  return loadSkillBundle(supabase, skillId)
 }
 
 /** The client's brand files, as { path: content }, for prompt context. */
@@ -103,7 +128,26 @@ export async function loadClientFiles(
 }
 
 export function brandContext(name: string, files: Record<string, string>): string {
+  const sections: string[] = []
+
   const bp = files['brand-profile.md']
-  if (bp) return bp
-  return `# Brand Profile — ${name}\n\n(belum ada brand-profile.md; buat dulu sebelum skill lain dijalankan)`
+  if (bp) {
+    sections.push(bp)
+  } else {
+    sections.push(`# Brand Profile — ${name}\n\n(belum ada brand-profile.md; buat dulu sebelum skill lain dijalankan)`)
+  }
+
+  if (files['voice.md']?.trim()) {
+    sections.push(`## Brand Voice & Tone Guide\n${files['voice.md']}`)
+  }
+
+  if (files['content-pillars.md']?.trim()) {
+    sections.push(`## Content Pillars & Focus Areas\n${files['content-pillars.md']}`)
+  }
+
+  if (files['guardrails.md']?.trim()) {
+    sections.push(`## Brand Guardrails & Never-List\n${files['guardrails.md']}`)
+  }
+
+  return sections.join('\n\n---\n\n')
 }

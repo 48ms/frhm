@@ -1,15 +1,21 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { CampaignAnalyticsView, type CampaignItem } from "./campaign-analytics-view"
 import { AudienceTrajectory } from "@/components/analytics/audience-trajectory"
 import { Icons } from "@/components/icons"
 import { useQuery } from "@tanstack/react-query"
 import { campaignQueries } from "@/features/campaigns/api/queries"
-import { analyticsQueries } from "@/features/analytics/api/queries"
+import { analyticsQueries, useAuditPerformanceAndIterate } from "@/features/analytics/api/queries"
+import type { AuditPerformanceReport } from "@/features/analytics/api/types"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 function formatNumber(num: number): string {
   if (!num || isNaN(num)) return "0"
@@ -35,6 +41,9 @@ function getCampaignStatus(c: { start_date: string | null; end_date: string | nu
 export function AnalyticsView() {
   // Klien aktif factual dari DB (useActiveDashboard) — sumber clientId URL.
   const { clientId, client: activeClient, clients } = useActiveDashboard()
+
+  const [auditReport, setAuditReport] = React.useState<AuditPerformanceReport | null>(null)
+  const { mutateAsync: runAudit, isPending: isAuditing } = useAuditPerformanceAndIterate()
 
   // Campaign factual dari Supabase (content_campaigns) milik klien aktif.
   const { data: campaignsData } = useQuery({
@@ -69,8 +78,7 @@ export function AnalyticsView() {
     [clients]
   )
 
-  // Deret trajektori faktual dari post_metrics (recorded_at). Satu titik per
-  // tanggal rekaman, dijumlahkan lintas postingan, terurut lama ke baru.
+  // Deret trajektori faktual dari post_metrics (recorded_at).
   const trajectory = React.useMemo(() => {
     const byDay = new Map<string, { reach: number; engage: number }>()
     for (const m of allMetrics) {
@@ -151,6 +159,24 @@ export function AnalyticsView() {
     })
   }, [campaigns, allMetrics, allPosts, activeClient?.name])
 
+  const handleRunMeterAudit = async () => {
+    try {
+      const res = await runAudit({ clientId, period: "30d" })
+      if (res.error) {
+        toast.error(res.error)
+        return
+      }
+      if (res.report) {
+        setAuditReport(res.report)
+        toast.success("Audit Performa METER Selesai!", {
+          description: `Kesehatan: ${res.report.overallHealth} (Signal Score: ${res.report.signalScore}/100)`
+        })
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengaudit performa konten.")
+    }
+  }
+
   if (metricsLoading) {
     return (
       <div className="space-y-6" data-testid="analytics-loading">
@@ -195,12 +221,12 @@ export function AnalyticsView() {
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardDescription className="text-xs font-semibold text-muted-foreground">Aggregate Reach</CardDescription>
-            <div className="rounded-full bg-blue-500/10 p-2 text-blue-600">
+            <div className="rounded-full bg-[hsl(var(--admin-cobalt))]/10 p-2 text-[hsl(var(--admin-cobalt))]">
               <Icons.activity className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-syne tracking-tight">{formatNumber(totals.reach)}</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight">{formatNumber(totals.reach)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Total jangkauan dari metrik tercatat</span>
             </p>
@@ -210,12 +236,12 @@ export function AnalyticsView() {
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardDescription className="text-xs font-semibold text-muted-foreground">Engagement Rate</CardDescription>
-            <div className="rounded-full bg-violet-500/10 p-2 text-violet-600">
+            <div className="rounded-full bg-[hsl(var(--admin-lavender))]/10 p-2 text-[hsl(var(--admin-lavender))]">
               <Icons.heart className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-syne tracking-tight">{totals.engagementRate}%</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight">{totals.engagementRate}%</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Interaksi dibagi jangkauan (metrik faktual)</span>
             </p>
@@ -225,12 +251,12 @@ export function AnalyticsView() {
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardDescription className="text-xs font-semibold text-muted-foreground">Total Clicks</CardDescription>
-            <div className="rounded-full bg-emerald-500/10 p-2 text-emerald-600">
+            <div className="rounded-full bg-[hsl(var(--success))]/10 p-2 text-[hsl(var(--success))]">
               <Icons.bolt className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-syne tracking-tight">{formatNumber(totals.clicks)}</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight">{formatNumber(totals.clicks)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Volume klik dari metrik tercatat</span>
             </p>
@@ -240,12 +266,12 @@ export function AnalyticsView() {
         <Card className="admin-card-glass">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardDescription className="text-xs font-semibold text-muted-foreground">Inquiry Rate</CardDescription>
-            <div className="rounded-full bg-orange-500/10 p-2 text-orange-600">
+            <div className="rounded-full bg-[hsl(var(--warning))]/10 p-2 text-[hsl(var(--warning))]">
               <Icons.chat className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-extrabold font-syne tracking-tight">{totals.inquiryRate}%</div>
+            <div className="text-2xl font-extrabold font-mono tracking-tight">{totals.inquiryRate}%</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <span>Pertanyaan dibagi klik (metrik faktual)</span>
             </p>
@@ -254,45 +280,155 @@ export function AnalyticsView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-7">
           <AudienceTrajectory data={trajectory} />
         </div>
-        <div className="lg:col-span-4">
-          <Card className="admin-card-glass h-full">
-            <CardHeader>
-              <CardDescription className="text-xs font-semibold text-muted-foreground">Performance Insight</CardDescription>
-              <h3 className="text-lg font-bold font-syne mt-1">AI Contextual Summary</h3>
+        <div className="lg:col-span-5">
+          <Card className="admin-card-glass h-full flex flex-col justify-between">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardDescription className="text-xs font-semibold text-muted-foreground">Performance Insight &bull; AI Contextual Summary</CardDescription>
+                  <h3 className="text-lg font-bold font-syne mt-0.5">METER Performance Audit</h3>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRunMeterAudit}
+                  isLoading={isAuditing}
+                  disabled={isAuditing}
+                  className="gap-1.5 text-xs shadow-sm"
+                >
+                  <Icons.sparkles className="size-3.5 text-primary" />
+                  <span>Audit METER (AI)</span>
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-xl border border-border/40 bg-muted/30 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.bot className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-semibold text-primary">Faktual AI Insight</span>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {latestSummary?.ai_insight || (
-                    allMetrics.length > 0 
-                      ? `Berdasarkan ${allMetrics.length} data metrik tercatat, total jangkauan (reach) mencapai ${formatNumber(totals.reach)} dengan tingkat interaksi ${totals.engagementRate}%.`
-                      : "Belum ada data metrik faktual tercatat untuk klien ini pada periode aktif."
-                  )}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-medium">
-                  <span className="text-muted-foreground">Periode ringkasan</span>
-                  <span className="text-foreground">
-                    {latestSummary
-                      ? `${latestSummary.period_start} s.d. ${latestSummary.period_end}`
-                      : "Belum ada ringkasan"}
-                  </span>
-                </div>
-                {latestSummary && (
-                  <div className="flex items-center justify-between text-xs font-medium">
-                    <span className="text-muted-foreground">Total reach ringkasan</span>
-                    <span className="text-foreground">{formatNumber(Number(latestSummary.total_reach) || 0)}</span>
+
+            <CardContent className="space-y-4 flex-1">
+              {auditReport ? (
+                <div className="space-y-3.5">
+                  {/* Status & Signal Score Banner */}
+                  <div className={cn(
+                    "p-3 rounded-xl border flex items-center justify-between",
+                    auditReport.overallHealth === "EXCELLENT"
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                      : auditReport.overallHealth === "STABLE"
+                      ? "bg-primary/10 border-primary/20 text-primary"
+                      : "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <Icons.target className="size-4 shrink-0" />
+                      <div>
+                        <span className="font-bold text-xs uppercase block">Status: {auditReport.overallHealth}</span>
+                        <span className="text-2xs opacity-90">Signal Score: {auditReport.signalScore}/100</span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setAuditReport(null)} className="h-7 text-2xs">
+                      Reset
+                    </Button>
                   </div>
-                )}
-              </div>
+
+                  {/* Summary */}
+                  <p className="text-xs leading-relaxed text-foreground/90 bg-muted/30 p-2.5 rounded-lg border border-border/30">
+                    {auditReport.summary}
+                  </p>
+
+                  {/* Winners & Underperformers */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-2xs">
+                    <div className="p-2.5 rounded-lg border border-border/40 bg-muted/20 space-y-1">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Icons.circleCheck className="size-3" /> Top Winner
+                      </span>
+                      {auditReport.winners[0] ? (
+                        <>
+                          <p className="font-semibold text-foreground truncate">{auditReport.winners[0].title}</p>
+                          <p className="text-muted-foreground line-clamp-2">{auditReport.winners[0].reason}</p>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground italic">Belum ada winner tercatat</p>
+                      )}
+                    </div>
+                    <div className="p-2.5 rounded-lg border border-border/40 bg-muted/20 space-y-1">
+                      <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <Icons.warning className="size-3" /> Underperformer
+                      </span>
+                      {auditReport.underperformers[0] ? (
+                        <>
+                          <p className="font-semibold text-foreground truncate">{auditReport.underperformers[0].title}</p>
+                          <p className="text-muted-foreground line-clamp-2">{auditReport.underperformers[0].rootCause}</p>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground italic">Performa konten seimbang</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 3 Actionable Iterations (Closed Loop) */}
+                  <div className="space-y-2 pt-1 border-t border-border/40">
+                    <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block">
+                      Rekomendasi Iterasi (Next Actions):
+                    </span>
+                    <div className="space-y-1.5">
+                      {auditReport.actionableIterations.slice(0, 3).map((iter, idx) => (
+                        <div key={idx} className="p-2 rounded-lg bg-card border border-border/40 shadow-xs flex items-center justify-between gap-2 text-xs">
+                          <div className="overflow-hidden">
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="outline" className="text-3xs uppercase font-mono px-1 py-0">
+                                {iter.targetPlatform}
+                              </Badge>
+                              <span className="font-semibold text-xs truncate">{iter.action}</span>
+                            </div>
+                            <p className="text-2xs text-muted-foreground italic truncate mt-0.5">
+                              "{iter.recommendedPrompt}"
+                            </p>
+                          </div>
+                          <Link
+                            href={`/admin/composer`}
+                            className="shrink-0 text-primary hover:underline text-2xs font-semibold flex items-center gap-0.5"
+                            title="Buat di Composer"
+                          >
+                            <span>Composer</span>
+                            <Icons.arrowRight className="size-3" />
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-border/40 bg-muted/30 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icons.bot className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-semibold text-primary">Faktual AI Insight</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {latestSummary?.ai_insight || (
+                        allMetrics.length > 0 
+                          ? `Berdasarkan ${allMetrics.length} data metrik tercatat, total jangkauan (reach) mencapai ${formatNumber(totals.reach)} dengan tingkat interaksi ${totals.engagementRate}%.`
+                          : "Belum ada data metrik faktual tercatat untuk klien ini pada periode aktif."
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Periode ringkasan</span>
+                      <span className="text-foreground">
+                        {latestSummary
+                          ? `${latestSummary.period_start} s.d. ${latestSummary.period_end}`
+                          : "Belum ada ringkasan"}
+                      </span>
+                    </div>
+                    {latestSummary && (
+                      <div className="flex items-center justify-between text-xs font-medium">
+                        <span className="text-muted-foreground">Total reach ringkasan</span>
+                        <span className="text-foreground">{formatNumber(Number(latestSummary.total_reach) || 0)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

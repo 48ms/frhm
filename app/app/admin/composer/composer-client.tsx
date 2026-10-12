@@ -9,16 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { useAppStore } from "@/lib/store/app-store"
+import { Badge } from "@/components/ui/badge"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { useCurrentUser } from "@/lib/auth/use-current-user"
-import { PlatformIcon } from "@/components/calendar/platform-icon"
 import { toast } from "sonner"
 import { AssetPicker } from "@/components/library/asset-picker"
 import type { Asset, AssetFileType } from "@/features/library/api/types"
-import { useGenerateCaption, useGenerateVideoScript, useRepurposeCrossPlatform } from "@/features/copilot/api/queries"
+import { useGenerateCaption, useGenerateVideoScript, useRepurposeCrossPlatform, useGenerateHooks, useGenerateCarousel, useValidatePlatformPost, useGenerateVisualPrompt } from "@/features/copilot/api/queries"
 import { useCreateScheduledPost } from "@/features/scheduled-posts/api/queries"
-import type { GeneratedVideoScript } from "@/features/copilot/api/types"
+import type { GeneratedVideoScript, HookOption, PostValidationResult, VisualPromptResult } from "@/features/copilot/api/types"
 
 import {
   Select,
@@ -30,12 +29,12 @@ import {
 import Link from "next/link"
 
 const PLATFORM_COLORS: Record<string, string> = {
-  instagram: "#E1306C",
-  tiktok: "#00f2fe",
-  youtube: "#FF0000",
-  linkedin: "#0077b5",
-  facebook: "#1877F2",
-  twitter: "#1DA1F2",
+  instagram: "var(--platform-instagram)",
+  tiktok: "var(--platform-tiktok)",
+  youtube: "var(--platform-youtube)",
+  linkedin: "var(--platform-linkedin)",
+  facebook: "var(--platform-facebook)",
+  twitter: "var(--platform-twitter)",
 }
 
 const STEPS = [
@@ -71,10 +70,25 @@ export function ComposerClient() {
   const [videoScriptData, setVideoScriptData] = useState<GeneratedVideoScript | null>(null)
   
   const [repurposedContents, setRepurposedContents] = useState<Record<string, string>>({})
+  const [repurposedMeta, setRepurposedMeta] = useState<Record<string, { format?: string; hook?: string; callToAction?: string; registerNote?: string }>>({})
+  const [coreAtom, setCoreAtom] = useState<string | null>(null)
+
+  // Social Media Skills format selection
+  const [aiFormat, setAiFormat] = useState<"caption" | "carousel" | "hooks" | "video_script">("caption")
+  const [hookOptions, setHookOptions] = useState<HookOption[] | null>(null)
+  const [validationResult, setValidationResult] = useState<PostValidationResult | null>(null)
+
+  const [visualPromptResult, setVisualPromptResult] = useState<VisualPromptResult | null>(null)
 
   const { mutate: generateAI, isPending: isGenerating } = useGenerateCaption()
   const { mutateAsync: generateVideo, isPending: isGeneratingVideo } = useGenerateVideoScript()
   const { mutateAsync: repurposeAI, isPending: isRepurposing } = useRepurposeCrossPlatform()
+  const { mutateAsync: generateCarouselMutate, isPending: isGeneratingCarousel } = useGenerateCarousel()
+  const { mutateAsync: generateHooksMutate, isPending: isGeneratingHooks } = useGenerateHooks()
+  const { mutateAsync: validatePostMutate, isPending: isValidatingPost } = useValidatePlatformPost()
+  const { mutateAsync: generateVisualPromptMutate, isPending: isGeneratingVisualPrompt } = useGenerateVisualPrompt()
+
+  const isAnyAiLoading = isGenerating || isGeneratingCarousel || isGeneratingHooks || isGeneratingVideo || isGeneratingVisualPrompt
 
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const videoLoadingMessages = [
@@ -120,7 +134,7 @@ export function ComposerClient() {
     if (isGenerating) {
       interval = setInterval(() => {
         setCopilotMsgIdx(prev => (prev + 1) % copilotLoadingMessages.length)
-      }, 1500)
+      }, 2000)
     } else {
       setCopilotMsgIdx(0)
     }
@@ -132,7 +146,7 @@ export function ComposerClient() {
     if (isRepurposing) {
       interval = setInterval(() => {
         setRepurposeMsgIdx(prev => (prev + 1) % repurposeLoadingMessages.length)
-      }, 1800)
+      }, 2000)
     } else {
       setRepurposeMsgIdx(0)
     }
@@ -157,15 +171,133 @@ export function ComposerClient() {
         toast.success("Script Video Siap!", {
           description: `Mood: ${result.script.overallMood} | ${result.script.scenes.length} Scene dirancang.`
         })
-        // Format the script and put it in content field as backup
         const textScript = result.script.scenes.map(s => 
           `[${s.timecode}] ${s.toolRoute ? `(${s.toolRoute})` : ''}\nVis: ${s.visual}\nAud: ${s.audio}`
         ).join("\n\n")
         setContent(`VIDEO SCRIPT: ${result.script.title}\nMood: ${result.script.overallMood}\n\n${textScript}`)
       }
-    } catch (err: any) {
+    } catch {
       toast.error("Gagal generate video script")
     }
+  }
+
+  const handleGenerateCarousel = async (targetPlatform: string) => {
+    try {
+      const res = await generateCarouselMutate({
+        clientId,
+        topic: title,
+        slideCount: 5,
+        platform: targetPlatform,
+      })
+      if (res.error) {
+        toast.error(res.error)
+      } else if (res.carousel) {
+        const slidesText = res.carousel.slides.map(s =>
+          `[SLIDE ${s.slideNumber}: ${s.role.toUpperCase()}]\nHeadline: ${s.headline}\nText: ${s.bodyText}\nVisual Direction: ${s.visualDirection}`
+        ).join("\n\n---\n\n")
+        setContent(`CAROUSEL: ${res.carousel.title}\n\n${slidesText}\n\n---\nCAPTION:\n${res.carousel.accompanyingCaption}`)
+        toast.success("Carousel Studio Selesai!", {
+          description: `${res.carousel.slides.length} slide dan visual brief berhasil diracik.`
+        })
+      }
+    } catch {
+      toast.error("Gagal generate carousel")
+    }
+  }
+
+  const handleGenerateHooks = async (targetPlatform: string) => {
+    try {
+      const res = await generateHooksMutate({
+        clientId,
+        topic: title,
+        platform: targetPlatform,
+      })
+      if (res.error) {
+        toast.error(res.error)
+      } else if (res.hooks) {
+        setHookOptions(res.hooks)
+        toast.success("Hook Matrix Siap!", {
+          description: `${res.hooks.length} variasi hook scroll-stopper berhasil diracik.`
+        })
+      }
+    } catch {
+      toast.error("Gagal generate hooks")
+    }
+  }
+
+  const handleApplyHook = (hookText: string) => {
+    if (!content) {
+      setContent(hookText + "\n\n")
+    } else {
+      const lines = content.split("\n")
+      lines[0] = hookText
+      setContent(lines.join("\n"))
+    }
+    toast.success("Hook Terpasang!", {
+      description: "Hook berhasil diterapkan di baris pertama caption."
+    })
+  }
+
+  const handleValidatePost = async () => {
+    if (!content.trim()) {
+      toast.error("Mohon isi caption/konten terlebih dahulu untuk diaudit.")
+      return
+    }
+    const targetPlatform =
+      copilotPlatform ||
+      platforms[0] ||
+      connectedChannels[0]?.platform?.toLowerCase() ||
+      "instagram"
+
+    try {
+      const res = await validatePostMutate({
+        platform: targetPlatform,
+        content,
+        mediaType: mediaUrl ? (mediaType === "video" ? "video" : "image") : "text",
+      })
+      if (res.error) {
+        toast.error(res.error)
+      } else if (res.result) {
+        setValidationResult(res.result)
+        toast.success("Audit Platform Selesai!", {
+          description: `Skor kepatuhan ${targetPlatform}: ${res.result.score}/100`
+        })
+      }
+    } catch {
+      toast.error("Gagal memvalidasi konten")
+    }
+  }
+
+  const handleGenerateVisualPrompt = async () => {
+    if (!title && !content) {
+      toast.error("Mohon isi judul atau caption terlebih dahulu untuk acuan visual.")
+      return
+    }
+    try {
+      const res = await generateVisualPromptMutate({
+        clientId,
+        topic: title || content.slice(0, 50),
+        postCaption: content,
+        mediaType: mediaType === "video" ? "video" : "image",
+      })
+      if (res.error) {
+        toast.error(res.error)
+      } else if (res.result) {
+        setVisualPromptResult(res.result)
+        toast.success("Visual Prompt Siap!", {
+          description: `Rekomendasi tool: ${res.result.recommendedTool.toUpperCase()} (${res.result.aspectRatio})`
+        })
+      }
+    } catch {
+      toast.error("Gagal generate visual prompt")
+    }
+  }
+
+  const handleCopyPrompt = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success("Prompt Disalin!", {
+      description: "Prompt visual siap di-paste ke Ideogram / Flux / Midjourney."
+    })
   }
 
   const handleGenerateCopilot = () => {
@@ -173,14 +305,29 @@ export function ComposerClient() {
       toast.error("Mohon isi judul / topik terlebih dahulu")
       return
     }
+    const targetPlatform =
+      copilotPlatform ||
+      platforms[0] ||
+      connectedChannels[0]?.platform?.toLowerCase() ||
+      "instagram"
+
+    if (aiFormat === "carousel") {
+      handleGenerateCarousel(targetPlatform)
+      return
+    }
+    if (aiFormat === "hooks") {
+      handleGenerateHooks(targetPlatform)
+      return
+    }
+    if (aiFormat === "video_script") {
+      handleGenerateVideoScript()
+      return
+    }
+
     generateAI({
       clientId,
       topic: title,
-      platform:
-        copilotPlatform ||
-        platforms[0] ||
-        connectedChannels[0]?.platform?.toLowerCase() ||
-        "instagram",
+      platform: targetPlatform,
       goal: "awareness",
     }, {
       onSuccess: (data) => {
@@ -193,7 +340,7 @@ export function ComposerClient() {
           })
         }
       },
-      onError: (err) => {
+      onError: () => {
         toast.error("Gagal generate caption")
       }
     })
@@ -218,12 +365,21 @@ export function ComposerClient() {
         toast.error(res.error)
       } else if (res.repurposed) {
         const newMap: Record<string, string> = {}
+        const newMeta: Record<string, { format?: string; hook?: string; callToAction?: string; registerNote?: string }> = {}
         res.repurposed.results.forEach(r => {
           newMap[r.platform.toLowerCase()] = r.content
+          newMeta[r.platform.toLowerCase()] = {
+            format: r.format,
+            hook: r.hook,
+            callToAction: r.callToAction,
+            registerNote: r.registerNote,
+          }
         })
         setRepurposedContents(newMap)
+        setRepurposedMeta(newMeta)
+        setCoreAtom(res.repurposed.coreAtom || null)
         toast.success("Adaptasi Platform Selesai!", {
-          description: `Konten berhasil di-repurpose untuk ${platforms.join(', ')}.`
+          description: `Konten berhasil di-atomize & adaptasi untuk ${platforms.join(', ')}.`
         })
       }
     } catch (err) {
@@ -299,8 +455,8 @@ export function ComposerClient() {
             Anda belum menghubungkan akun media sosial manapun untuk klien ini. Hubungkan setidaknya satu akun untuk mulai membuat dan menjadwalkan konten.
           </p>
         </div>
-        <Link href={`/admin/social-accounts?clientId=${clientId}`}>
-          <Button className="bg-[hsl(var(--admin-cobalt))] hover:bg-[#2333e7] text-white shadow-md font-bold px-8 py-6 rounded-xl">
+        <Link href={`/admin/social-accounts${clientId ? `?clientId=${clientId}` : ""}`}>
+          <Button className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-md font-bold px-8 py-6 rounded-xl">
             <Icons.add className="mr-2 size-5" />
             Hubungkan Akun Sekarang
           </Button>
@@ -338,7 +494,7 @@ export function ComposerClient() {
                   >
                     {s.label}
                   </span>
-                  <span className="text-[10px] text-[hsl(var(--admin-outline))] hidden sm:block">
+                  <span className="text-2xs text-[hsl(var(--admin-outline))] hidden sm:block">
                     {s.desc}
                   </span>
                 </div>
@@ -364,8 +520,9 @@ export function ComposerClient() {
                 className="space-y-5"
               >
                 <div className="space-y-1.5">
-                  <Label>Judul Postingan / Referensi Internal</Label>
+                  <Label htmlFor="composer-title">Judul Postingan / Referensi Internal</Label>
                   <Input
+                    id="composer-title"
                     placeholder="e.g. Campaign Natal 2026"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -393,8 +550,8 @@ export function ComposerClient() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Label>Caption & Copywriting</Label>
-                          <div className="w-[140px]">
+                          <Label htmlFor="composer-caption">Caption & Copywriting</Label>
+                          <div className="w-[130px]">
                             <Select
                               value={
                                 copilotPlatform ||
@@ -420,31 +577,168 @@ export function ComposerClient() {
                               </SelectContent>
                             </Select>
                           </div>
+                          <div className="flex items-center gap-1 bg-muted/40 p-0.5 rounded-lg border border-border/40">
+                            <button
+                              type="button"
+                              onClick={() => setAiFormat("caption")}
+                              className={cn(
+                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
+                                aiFormat === "caption" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              Caption
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAiFormat("carousel")}
+                              className={cn(
+                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
+                                aiFormat === "carousel" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              Carousel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAiFormat("video_script")}
+                              className={cn(
+                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
+                                aiFormat === "video_script" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              Script
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAiFormat("hooks")}
+                              className={cn(
+                                "px-2 py-1 text-2xs font-semibold rounded-md transition-all",
+                                aiFormat === "hooks" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              Hooks
+                            </button>
+                          </div>
                         </div>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={handleGenerateCopilot}
-                          disabled={isGenerating}
+                          disabled={isAnyAiLoading}
                           className="text-xs h-7 bg-[hsl(var(--admin-surface-low))] border-[hsl(var(--admin-outline-variant))] text-[hsl(var(--admin-on-surface))] hover:bg-[hsl(var(--admin-surface-high))] min-w-[180px] flex justify-start"
                         >
                           {/* Icons.sparkles = AI Copilot caption generator (R-04 exception: AI feature with written justification) */}
-                          <Icons.sparkles className={cn("size-3 mr-1.5 shrink-0", isGenerating && "animate-spin")} />
-                          <span className={cn(isGenerating && "animate-pulse")}>
-                            {isGenerating ? copilotLoadingMessages[copilotMsgIdx] : "Generate AI Copilot"}
+                          <Icons.sparkles className={cn("size-3 mr-1.5 shrink-0", isAnyAiLoading && "animate-spin")} />
+                          <span className={cn(isAnyAiLoading && "animate-pulse")}>
+                            {isGenerating ? copilotLoadingMessages[copilotMsgIdx] : 
+                             isGeneratingCarousel ? "Menyusun slide carousel..." :
+                             isGeneratingHooks ? "Meracik 5 variasi hook..." :
+                             "Generate AI Copilot"}
                           </span>
                         </Button>
                       </div>
                       <Textarea
+                        id="composer-caption"
                         placeholder="Tulis pesan brilian Anda di sini, atau gunakan AI Copilot..."
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         className="min-h-[160px] bg-white/50 border-white resize-none"
-                        disabled={isGenerating}
+                        disabled={isAnyAiLoading}
                       />
+
+                      {/* Hook Matrix Display if generated */}
+                      {hookOptions && hookOptions.length > 0 && (
+                        <div className="p-3 rounded-xl border border-[hsl(var(--admin-outline-variant))] bg-muted/30 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                              <Icons.sparkles className="size-3 text-primary" /> Hook Matrix (Pilih Baris Pembuka)
+                            </span>
+                            <Button variant="ghost" size="sm" onClick={() => setHookOptions(null)} className="h-6 text-2xs">
+                              Tutup
+                            </Button>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {hookOptions.map((h, idx) => (
+                              <div
+                                key={idx}
+                                className="p-2.5 rounded-lg border border-border/50 bg-background/80 hover:border-primary/50 transition-all flex flex-col justify-between gap-1.5 text-left"
+                              >
+                                <div>
+                                  <div className="flex items-center justify-between gap-1 mb-1">
+                                    <span className="text-2xs font-bold uppercase tracking-wider text-primary">
+                                      {h.angle}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
+                                    &ldquo;{h.text}&rdquo;
+                                  </p>
+                                  <p className="text-2xs text-muted-foreground mt-0.5">
+                                    {h.explanation}
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => handleApplyHook(h.text)}
+                                  className="h-6 text-2xs self-start mt-1"
+                                >
+                                  Gunakan Hook Ini
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pre-Flight Platform Validator Action & Report */}
+                      <div className="pt-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleValidatePost}
+                            disabled={isValidatingPost || !content.trim()}
+                            className="h-7 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 px-2"
+                          >
+                            <Icons.shield className={cn("size-3.5", isValidatingPost && "animate-spin")} />
+                            {isValidatingPost ? "Mengaudit Aturan Platform..." : "Audit Kepatuhan Platform (Pre-Flight)"}
+                          </Button>
+                          {validationResult && (
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded-full font-semibold",
+                              validationResult.score >= 80 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            )}>
+                              Skor Platform: {validationResult.score}/100
+                            </span>
+                          )}
+                        </div>
+
+                        {validationResult && (
+                          <div className="p-3 rounded-xl border border-border/60 bg-background/90 space-y-2 text-xs">
+                            <div className="flex items-start gap-2 bg-muted/40 p-2 rounded-lg">
+                              <span className="font-semibold shrink-0 text-muted-foreground">Tampilan Feed (Fold Cutoff):</span>
+                              <span className="font-medium text-foreground truncate">&ldquo;{validationResult.firstLinePreview}&rdquo; <span className="text-primary font-normal">...more</span></span>
+                            </div>
+                            {validationResult.issues.length > 0 && (
+                              <div className="space-y-1">
+                                {validationResult.issues.map((iss, i) => (
+                                  <div key={i} className="flex items-center gap-1.5 text-2xs text-muted-foreground">
+                                    {iss.severity === "error" ? (
+                                      <Icons.warning className="size-3 text-destructive shrink-0" />
+                                    ) : (
+                                      <Icons.info className="size-3 text-primary shrink-0" />
+                                    )}
+                                    <span><strong className="text-foreground">{iss.rule}:</strong> {iss.message}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Media Lampiran</Label>
+                      <Label htmlFor="composer-media">Media Lampiran</Label>
                       {mediaUrl ? (
                         <div className="relative rounded-xl overflow-hidden border border-white/80 shadow-sm max-w-sm">
                           {mediaType === "video" ? (
@@ -462,13 +756,80 @@ export function ComposerClient() {
                           </div>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => setPickerOpen(true)}
-                          className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[hsl(var(--admin-outline-variant))] bg-white/30 hover:bg-white/60 transition-colors text-[hsl(var(--admin-outline))]"
-                        >
-                          <Icons.media className="size-6" />
-                          <span className="text-sm font-semibold">Pilih dari Media Library</span>
-                        </button>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setPickerOpen(true)}
+                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[hsl(var(--admin-outline-variant))] bg-white/30 hover:bg-white/60 transition-colors text-[hsl(var(--admin-outline))]"
+                            >
+                              <Icons.media className="size-5" />
+                              <span className="text-xs font-semibold">Pilih dari Media Library</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleGenerateVisualPrompt}
+                              disabled={isGeneratingVisualPrompt}
+                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors text-primary"
+                            >
+                              <Icons.sparkles className={cn("size-5", isGeneratingVisualPrompt && "animate-spin")} />
+                              <span className="text-xs font-semibold">
+                                {isGeneratingVisualPrompt ? "Meracik Prompt Visual..." : "Buat AI Visual Prompt (Flux/Ideogram)"}
+                              </span>
+                            </button>
+                          </div>
+
+                          {/* Visual Prompt Result Card */}
+                          {visualPromptResult && (
+                            <div className="p-3.5 rounded-xl border border-primary/30 bg-background/95 space-y-2.5 text-xs shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xs font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                    Tool: {visualPromptResult.recommendedTool.toUpperCase()}
+                                  </span>
+                                  <span className="text-2xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                    Rasio: {visualPromptResult.aspectRatio}
+                                  </span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setVisualPromptResult(null)}
+                                  className="h-6 text-2xs text-muted-foreground"
+                                >
+                                  Tutup
+                                </Button>
+                              </div>
+                              <p className="text-2xs text-muted-foreground">
+                                <strong>Brief:</strong> {visualPromptResult.brief}
+                              </p>
+                              <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-2xs font-bold text-muted-foreground">PROMPT MODEL</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleCopyPrompt(visualPromptResult.prompt)}
+                                    className="h-6 text-2xs flex items-center gap-1"
+                                  >
+                                    <Icons.copy className="size-3" /> Salin Prompt
+                                  </Button>
+                                </div>
+                                <p className="text-xs font-mono text-foreground select-all bg-background/60 p-2 rounded">
+                                  {visualPromptResult.prompt}
+                                </p>
+                              </div>
+                              {visualPromptResult.textOverlay && (
+                                <div className="text-2xs text-muted-foreground">
+                                  <strong>Teks Gambar (Typography):</strong> &ldquo;{visualPromptResult.textOverlay}&rdquo;
+                                </div>
+                              )}
+                              <div className="text-2xs text-muted-foreground">
+                                <strong>Harmoni Warna Brand:</strong> {visualPromptResult.brandColorNotes}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -483,8 +844,9 @@ export function ComposerClient() {
                       </div>
                       <div className="flex items-end gap-3">
                         <div className="space-y-1.5 flex-1">
-                          <Label>Target Durasi</Label>
-                          <select 
+                          <Label htmlFor="composer-duration">Target Durasi</Label>
+                          <select
+                            id="composer-duration"
                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             value={videoDuration}
                             onChange={(e) => setVideoDuration(e.target.value)}
@@ -497,7 +859,7 @@ export function ComposerClient() {
                         <Button 
                           onClick={handleGenerateVideoScript}
                           disabled={isGeneratingVideo || !title}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[200px]"
+                          className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-[hsl(var(--admin-cobalt-foreground))] min-w-[200px]"
                         >
                           {isGeneratingVideo ? (
                             <>
@@ -530,13 +892,13 @@ export function ComposerClient() {
                             <div className="col-span-4">Audio / Voiceover</div>
                             <div className="col-span-2">Tool Route</div>
                           </div>
-                          {videoScriptData.scenes.map((scene: any, idx: number) => (
+                        {videoScriptData.scenes.map((scene: GeneratedVideoScript['scenes'][number], idx: number) => (
                             <div key={idx} className="grid grid-cols-12 p-3 text-sm gap-3">
                               <div className="col-span-2 font-medium">{scene.timecode}</div>
                               <div className="col-span-4 text-muted-foreground">{scene.visual}</div>
                               <div className="col-span-4 italic">"{scene.audio}"</div>
                               <div className="col-span-2">
-                                <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                <span className="inline-flex items-center rounded-md bg-[hsl(var(--admin-cobalt-fixed))] px-2 py-1 text-2xs font-semibold text-[hsl(var(--admin-cobalt-fixed-foreground))] ring-1 ring-inset ring-[hsl(var(--admin-cobalt-fixed-foreground))/10]">
                                   {scene.toolRoute || "Auto"}
                                 </span>
                               </div>
@@ -578,7 +940,7 @@ export function ComposerClient() {
                         <Icons.media className="size-5" />
                       </div>
                     )}
-                    <span className="text-[10px] font-bold text-[hsl(var(--admin-cobalt))]">Konten Anda</span>
+                    <span className="text-2xs font-bold text-[hsl(var(--admin-cobalt))]">Konten Anda</span>
                     {/* Source dot for lines */}
                     <div id="source-dot" className="absolute right-0 translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(var(--admin-cobalt))]" />
                   </div>
@@ -627,7 +989,7 @@ export function ComposerClient() {
                         >
                           <div className={cn(
                             "absolute -left-4 w-3 h-3 rounded-full -translate-x-full transition-all",
-                            isSelected ? "bg-emerald-500 scale-100 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-transparent scale-0"
+                            isSelected ? "bg-[hsl(var(--success))] scale-100 shadow-[0_0_8px_hsl(var(--success)/0.5)]" : "bg-transparent scale-0"
                           )} />
                           
                           <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-black/5 bg-slate-100 flex items-center justify-center text-slate-400">
@@ -649,7 +1011,7 @@ export function ComposerClient() {
                             )}>
                               {channel.handle || "Akun Terhubung"}
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-semibold">
+                            <span className="text-2xs text-muted-foreground font-semibold">
                               {channel.platform}
                             </span>
                           </div>
@@ -660,20 +1022,20 @@ export function ComposerClient() {
                 </div>
 
                 {platforms.length > 1 && (
-                  <div className="mt-8 p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100">
+                  <div className="mt-8 p-6 rounded-2xl bg-[hsl(var(--admin-cobalt))/5] border border-[hsl(var(--admin-cobalt)/10)]">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h4 className="font-bold text-indigo-900 flex items-center gap-2">
+                        <h4 className="font-bold text-[hsl(var(--admin-cobalt-foreground))] flex items-center gap-2">
                           {/* Icons.sparkles = AI repurposing feature (R-04 exception: AI feature with written justification) */}
-                          <Icons.sparkles className="size-4 text-indigo-600" />
+                          <Icons.sparkles className="size-4 text-[hsl(var(--admin-cobalt))]" />
                           Repurpose Lintas Platform (AI)
                         </h4>
-                        <p className="text-xs text-indigo-700 mt-1">Otomatisasi format dan gaya konten untuk setiap platform.</p>
+                        <p className="text-xs text-[hsl(var(--admin-cobalt)/80)] mt-1">Otomatisasi format dan gaya konten untuk setiap platform.</p>
                       </div>
                       <Button 
                         onClick={handleRepurpose}
                         disabled={isRepurposing || !content}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm min-w-[220px]"
+                        className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-sm min-w-[220px]"
                       >
                         {isRepurposing ? (
                           <>
@@ -690,25 +1052,78 @@ export function ComposerClient() {
                       </Button>
                     </div>
 
+                    {coreAtom && (
+                      <div className="mt-5 p-3.5 rounded-xl bg-card border border-border/40 shadow-sm space-y-1">
+                        <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Icons.target className="size-3 text-primary" />
+                          Core Reusable Atom (Ide Inti yang Diekstrak)
+                        </span>
+                        <p className="text-xs text-foreground/90 font-medium leading-relaxed">
+                          {coreAtom}
+                        </p>
+                      </div>
+                    )}
+
                     {Object.keys(repurposedContents).length > 0 && (
-                      <div className="space-y-4 mt-6">
+                      <div className="space-y-4 mt-4">
                         {platforms.map(p => {
                           const val = repurposedContents[p.toLowerCase()]
                           if (!val) return null
+                          const meta = repurposedMeta[p.toLowerCase()]
                           const channel = connectedChannels.find(c => c.platform.toLowerCase() === p.toLowerCase())
                           const color = PLATFORM_COLORS[p.toLowerCase()] || "#6366f1"
                           const IconComp = Icons[p.toLowerCase() as keyof typeof Icons] || Icons.hub
 
                           return (
-                            <div key={p} className="bg-white p-4 rounded-xl shadow-sm border border-indigo-50 space-y-2">
-                              <div className="flex items-center gap-2 font-bold text-sm" style={{ color }}>
-                                <IconComp className="size-4" /> {channel?.handle || p}
+                            <div key={p} className="bg-card p-4 rounded-xl shadow-sm border border-border/40 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 font-bold text-sm" style={{ color }}>
+                                  <IconComp className="size-4" /> {channel?.handle || p}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {meta?.format && (
+                                    <Badge variant="outline" className="text-2xs font-semibold">
+                                      {meta.format}
+                                    </Badge>
+                                  )}
+                                  {meta?.registerNote && (
+                                    <span className="text-2xs text-muted-foreground hidden sm:inline" title={meta.registerNote}>
+                                      • {meta.registerNote}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
+
+                              {meta?.hook && (
+                                <div className="p-2.5 rounded-lg bg-muted/40 border border-border/30 text-xs">
+                                  <span className="font-bold text-2xs text-muted-foreground uppercase tracking-wider block mb-0.5">
+                                    Native Hook:
+                                  </span>
+                                  <span className="italic text-foreground/90">"{meta.hook}"</span>
+                                </div>
+                              )}
+
                               <Textarea 
                                 value={val}
                                 onChange={(e) => setRepurposedContents(prev => ({...prev, [p.toLowerCase()]: e.target.value}))}
-                                className="min-h-[100px] text-sm bg-slate-50"
+                                className="min-h-[120px] text-sm bg-muted/20 border-border/40"
                               />
+
+                              {meta?.callToAction && (
+                                <div className="text-2xs text-muted-foreground flex items-center justify-between pt-1">
+                                  <span><b className="text-foreground">CTA:</b> {meta.callToAction}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setContent(val)
+                                      toast.success(`Draf utama diisi dengan versi ${p}`)
+                                    }}
+                                    className="text-primary hover:underline font-semibold cursor-pointer"
+                                  >
+                                    Salin ke Draf Utama
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )
                         })}
@@ -772,8 +1187,8 @@ export function ComposerClient() {
                 </p>
                 
                 {platforms.length > 1 && Object.keys(repurposedContents).length === 0 && (
-                  <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm max-w-lg mx-auto text-left flex items-start gap-3">
-                    <Icons.alertCircle className="size-5 shrink-0 text-amber-600" />
+                  <div className="mt-4 p-4 rounded-xl bg-[hsl(var(--warning))/10] border border-[hsl(var(--warning))/20] text-[hsl(var(--warning))] text-sm max-w-lg mx-auto text-left flex items-start gap-3">
+                    <Icons.alertCircle className="size-5 shrink-0 text-[hsl(var(--warning))]" />
                     <div>
                       <span className="font-bold block mb-1">Perhatian: Konten Belum Diadaptasi</span>
                       Anda memilih {platforms.length} platform tapi belum melakukan proses <strong>Repurposing AI</strong> di Langkah 2. Konten standar (caption yang sama persis) akan dipublikasikan secara duplikat ke semua platform.
@@ -794,11 +1209,11 @@ export function ComposerClient() {
               Kembali
             </Button>
             {step < 4 ? (
-              <Button onClick={() => setStep((s) => s + 1)} className="bg-[hsl(var(--admin-cobalt))] hover:bg-[#2333e7] text-white">
+              <Button onClick={() => setStep((s) => s + 1)} className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white">
                 Selanjutnya
               </Button>
             ) : (
-              <Button onClick={handlePublish} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg">
+              <Button onClick={handlePublish} disabled={loading} className="bg-[hsl(var(--success))] hover:bg-[hsl(var(--success)/0.9)] text-[hsl(var(--success-foreground))] shadow-lg">
                 {loading ? "Menjadwalkan..." : "Jadwalkan & Publish Otomatis"}
               </Button>
             )}
@@ -808,7 +1223,7 @@ export function ComposerClient() {
         {/* Benefits Sidebar (from User image reference) */}
         <div className="space-y-4">
           <div className="p-4 rounded-xl bg-[hsl(var(--admin-surface-low))] border border-white/80 shadow-sm flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
+            <div className="p-2 rounded-lg bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]">
               <Icons.clock className="size-5" />
             </div>
             <div>
@@ -825,13 +1240,13 @@ export function ComposerClient() {
               <p className="text-xs text-[hsl(var(--admin-outline))] mt-1">Kelola semua akun dan jadwal media sosial Frahma dalam satu aplikasi.</p>
             </div>
           </div>
-          <div className="p-4 rounded-xl bg-emerald-600 text-white shadow-lg flex items-start gap-3 border border-emerald-500">
+          <div className="p-4 rounded-xl bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg flex items-start gap-3 border border-[hsl(var(--success))]/80">
             <div className="p-2 rounded-lg bg-white/20">
               <Icons.rocket className="size-5" />
             </div>
             <div>
               <h4 className="text-sm font-bold">Auto Posting</h4>
-              <p className="text-xs text-emerald-50 mt-1">Satu konten, banyak tujuan. Sistem akan menangani distribusi otomatis sesuai batas API platform.</p>
+              <p className="text-xs text-white/80 mt-1">Satu konten, banyak tujuan. Sistem akan menangani distribusi otomatis sesuai batas API platform.</p>
             </div>
           </div>
         </div>
