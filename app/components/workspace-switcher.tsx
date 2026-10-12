@@ -8,6 +8,7 @@ import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { dashboardQueries } from "@/features/dashboard/api/queries"
 import { Button } from "@/components/ui/button"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,8 +111,8 @@ export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
                     <span className="block text-xs font-bold text-foreground truncate">
                       {c.name}
                     </span>
-                    <span className="block text-2xs text-muted-foreground">
-                      {c.channels?.length || 0} channels
+                    <span className="block text-2xs text-muted-foreground flex items-center gap-1">
+                      <MetricTicker value={c.channels?.length || 0} /> channels
                     </span>
                   </div>
                   {isSelected && (
