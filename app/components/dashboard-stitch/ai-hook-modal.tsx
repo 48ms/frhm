@@ -11,6 +11,7 @@ import {
   DialogDescription,
 } from "@/components/animate-ui/components/radix/dialog"
 import { Button } from "@/components/ui/button"
+import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 
 export function StitchAiHookModal({
   open,
@@ -125,9 +126,10 @@ export function StitchAiHookModal({
               {loading && (
                 <div className="py-6 flex flex-col items-center gap-2">
                   <Icons.refresh className="size-5 text-brand-accent animate-spin" />
-                  <p className="text-xs text-muted-foreground">
-                    Membuat hook untuk {clientName}…
-                  </p>
+                  <ShimmeringText
+                    text={`Membuat hook untuk ${clientName}…`}
+                    className="text-xs font-semibold"
+                  />
                 </div>
               )}
               {hooks.map((hook, i) => (
