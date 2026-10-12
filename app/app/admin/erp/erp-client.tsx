@@ -138,9 +138,13 @@ export function ErpDashboardClient() {
           <div>
             <h2 className="text-sm font-bold text-[hsl(var(--admin-on-surface))]">Jadwal Tayang Hari Ini</h2>
             <p className="text-xs text-[hsl(var(--admin-outline))]">
-              {todayPosts.length > 0
-                ? `${todayPosts.length} konten terjadwal tayang hari ini`
-                : "Tidak ada jadwal tayang hari ini"}
+              {todayPosts.length > 0 ? (
+                <span className="inline-flex items-center gap-1">
+                  <MetricTicker value={todayPosts.length} /> konten terjadwal tayang hari ini
+                </span>
+              ) : (
+                "Tidak ada jadwal tayang hari ini"
+              )}
             </p>
           </div>
         </div>
@@ -169,7 +173,9 @@ export function ErpDashboardClient() {
              <div className="mt-4">
                <div className="flex items-center justify-between text-xs text-[hsl(var(--admin-on-surface-variant))] mb-1.5">
                  <span>Channel Terhubung</span>
-                 <span className="font-mono text-1xs text-[hsl(var(--admin-outline))]">{client.channels?.length || 0} / 10</span>
+                 <span className="font-mono text-1xs text-[hsl(var(--admin-outline))]">
+                   {client.channels?.length || 0} / 10
+                 </span>
                </div>
                <div className="w-full bg-[hsl(var(--admin-surface-high))] h-1.5 rounded-full overflow-hidden">
                  <div className="bg-[hsl(var(--admin-cobalt))] h-full rounded-full transition-all" style={{ width: `${((client.channels?.length || 0) / 10) * 100}%` }}></div>

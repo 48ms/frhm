@@ -553,27 +553,28 @@ export function CampaignsBoard() {
           >
             {(
               [
-                ["all", `All Campaigns (${tabCounts.all})`],
-                ["active", `Active & Flighting (${tabCounts.active})`],
-                ["review", `Upcoming (${tabCounts.review})`],
-                ["completed", `Completed (${tabCounts.completed})`],
-                ["draft", `Draft (${tabCounts.draft})`],
+                ["all", "All Campaigns", tabCounts.all],
+                ["active", "Active & Flighting", tabCounts.active],
+                ["review", "Upcoming", tabCounts.review],
+                ["completed", "Completed", tabCounts.completed],
+                ["draft", "Draft", tabCounts.draft],
               ] as const
-            ).map(([key, label]) => (
+            ).map(([key, label, count]) => (
               <TabsTrigger
                 key={key}
                 value={key}
                 className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
               >
                 {key === "active" && <span className="w-2 h-2 rounded-full bg-lime-400" />}
-                {label}
+                <span>{label}</span>
+                <span className="opacity-75 font-mono text-2xs">(<MetricTicker value={count} />)</span>
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
         <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-xs">
           <span>
-            {filtered.length} of {campaigns.length} campaigns shown
+            <MetricTicker value={filtered.length} /> of <MetricTicker value={campaigns.length} /> campaigns shown
           </span>
         </div>
       </div>
@@ -663,7 +664,7 @@ export function CampaignsBoard() {
           </div>
           <div className="my-3">
             <div className="text-2xl font-extrabold font-mono tracking-tight text-foreground">
-              {adStats.cpc > 0 ? `$${adStats.cpc.toFixed(2)}` : "—"}
+              {adStats.cpc > 0 ? <MetricTicker value={`$${adStats.cpc.toFixed(2)}`} /> : "—"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {adStats.clicks > 0 ? "Derived from real ad spend logs" : "No ad spend recorded"}

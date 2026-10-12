@@ -19,6 +19,7 @@ import {
   AlertDialogCancel,
 } from "@/components/animate-ui/components/radix/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, profile } = useActiveDashboard()
@@ -45,8 +46,8 @@ export function DashboardStitchConnectedHub() {
               <h2 className="font-sans font-bold text-base sm:text-lg text-foreground tracking-tight">
                 Connected Hub
               </h2>
-              <p className="text-xs text-muted-foreground">
-                {accounts.length} accounts connected
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <MetricTicker value={accounts.length} /> accounts connected
               </p>
             </div>
             <Tooltip>

@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 /**
  * Titik data metrik faktual untuk satu titik waktu.
@@ -138,7 +139,7 @@ export function AudienceTrajectory({
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
               <p className="admin-section-label">Total reach</p>
               <p className="font-mono font-bold text-foreground text-base mt-1">
-                {series.totalReach.toLocaleString("id-ID")}
+                <MetricTicker value={series.totalReach} />
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Periode {tf}
@@ -147,7 +148,7 @@ export function AudienceTrajectory({
             <div className="p-3.5 rounded-xl bg-muted/60 border border-border/50">
               <p className="admin-section-label">Total engagement</p>
               <p className="font-mono font-bold text-foreground text-base mt-1">
-                {series.totalEngage.toLocaleString("id-ID")}
+                <MetricTicker value={series.totalEngage} />
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Likes, komentar, share, simpan
