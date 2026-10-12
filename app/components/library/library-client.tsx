@@ -563,18 +563,11 @@ export function LibraryClient() {
                       size="sm"
                       variant="ghost"
                       className="h-7 gap-1.5 text-xs"
-                      disabled={captionBusy || previewAsset.fileType === "video"}
+                      disabled={previewAsset.fileType === "video"}
+                      isLoading={captionBusy}
                       onClick={() => void handleGenerateCaption()}
                     >
-                      {captionBusy ? (
-                        <>
-                          <Icons.refresh className="size-3.5 animate-spin" /> Menulis...
-                        </>
-                      ) : (
-                        <>
-                          <Icons.bot className="size-3.5" /> Buat
-                        </>
-                      )}
+                      <Icons.bot className="size-3.5" /> Buat
                     </Button>
                   </div>
                   {caption ? (

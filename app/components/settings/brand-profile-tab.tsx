@@ -8,6 +8,7 @@ import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 import type { BrandProfile } from "@/features/social-accounts/api/types"
 
 export function BrandProfileTab() {
@@ -134,14 +135,16 @@ export function BrandProfileTab() {
                   />
                 </div>
                 <div className="flex justify-end">
-                  <button 
+                  <Button 
+                    type="button"
                     onClick={handleGenerateAI}
-                    disabled={isGenerating || !rawMaterial}
-                    className="px-4 py-2 bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground text-sm font-bold rounded-lg flex items-center gap-2 shadow-sm disabled:opacity-50"
+                    disabled={!rawMaterial}
+                    isLoading={isGenerating}
+                    className="bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground text-sm font-bold rounded-lg flex items-center gap-2 shadow-sm"
                   >
-                    {isGenerating ? <Icons.spinner className="size-4 animate-spin" /> : <Icons.sparkles className="size-4" />}
+                    <Icons.sparkles className="size-4" />
                     Mulai Ekstraksi
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -245,16 +248,14 @@ export function BrandProfileTab() {
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}
               children={([canSubmit, isSubmitting]) => (
-                <button
+                <Button
                   type="submit"
-                  disabled={!canSubmit || isSubmitting}
-                  className="px-6 py-2.5 rounded-full bg-brand-accent text-brand-accent-foreground font-semibold text-sm hover:bg-brand-accent/90 transition-all disabled:opacity-50 flex items-center gap-2"
+                  disabled={!canSubmit}
+                  isLoading={isSubmitting}
+                  className="px-6 py-2.5 rounded-full bg-brand-accent text-brand-accent-foreground font-semibold text-sm hover:bg-brand-accent/90 transition-all flex items-center gap-2"
                 >
-                  {isSubmitting && (
-                    <span className="w-4 h-4 border-2 border-brand-accent-foreground/30 border-t-brand-accent-foreground rounded-full animate-spin" />
-                  )}
                   Simpan Profil
-                </button>
+                </Button>
               )}
             />
           </div>
