@@ -20,7 +20,7 @@ jadikan animate-ui, RadixUI sebagai source
 ---
 
 # STANDAR & ATURAN UTAMA PENGEMBANGAN FRHM (MUTLAK)
-Semua pengembangan Frhm ke depan **WAJIB** tunduk pada arsitektur acuan `next-shadcn-dashboard-starter` dan aturan kedaulatan platform berikut:
+Semua pengembangan Frhm ke depan **WAJIB** tunduk pada arsitektur acuan `Radix UI, Animate UI https://animate-ui.com/ ` dan aturan kedaulatan platform berikut:
 
 ### 1. Kedaulatan Auth & Backend (Aturan Khusus Frhm)
 - **100% Supabase Auth & PostgreSQL RLS**: Dilarang menggunakan Clerk di Frhm. Seluruh session, autentikasi, otorisasi, dan multi-tenant isolation dikelola via Supabase Auth + PostgreSQL RLS policies.

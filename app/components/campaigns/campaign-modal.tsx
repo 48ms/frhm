@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { z } from "zod"
+import { useAppForm } from "@/lib/form"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import {
@@ -28,9 +30,21 @@ type Step = "basics" | "schedule" | "review"
 
 /**
  * Campaign color swatches from the logo palette (DESIGN.md §2), plus one
- * neutral slot for overflow. No more random hex values.
+ * neutral slot for overflow.
  */
 const COLOR_SWATCHES = ["#0060E0", "#209060", "#F0B010", "#F03020", "#1D1D1F"]
+
+const campaignFormSchema = z.object({
+  name: z.string().trim().min(1, "Nama campaign wajib diisi").max(100, "Nama campaign maksimal 100 karakter"),
+  clientId: z.string().min(1, "Pilih client terlebih dahulu"),
+  type: z.enum(["campaign", "promo", "event"] as const),
+  color: z.string().min(1),
+  startDate: z.string(),
+  endDate: z.string(),
+  notes: z.string(),
+})
+
+type CampaignFormValues = z.infer<typeof campaignFormSchema>
 
 export function CampaignModal({
   open,
@@ -46,50 +60,59 @@ export function CampaignModal({
   const { clients, clientId: activeDashboardClient } = useActiveDashboard()
   
   const [step, setStep] = useState<Step>("basics")
-  const [name, setName] = useState("")
-  const [clientId, setClientId] = useState(activeDashboardClient)
-  const [type, setType] = useState<CampaignType>("campaign")
-  const [color, setColor] = useState(COLOR_SWATCHES[0])
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
+
+  const form = useAppForm({
+    defaultValues: {
+      name: editing?.name ?? "",
+      clientId: editing?.client_id ?? activeDashboardClient,
+      type: (editing?.type as CampaignType) ?? "campaign",
+      color: editing?.color ?? COLOR_SWATCHES[0],
+      startDate: editing?.start_date ?? "",
+      endDate: editing?.end_date ?? "",
+      notes: editing?.notes ?? "",
+    } as CampaignFormValues,
+    validators: {
+      onSubmit: campaignFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setSaving(true)
+      onSave({
+        id: editing?.id ?? "",
+        client_id: value.clientId,
+        name: value.name.trim(),
+        type: value.type,
+        start_date: value.startDate || null,
+        end_date: value.endDate || null,
+        color: value.color,
+        notes: value.notes.trim() || null,
+        created_at: editing?.created_at ?? "",
+      })
+      setSaving(false)
+      onClose()
+    },
+  })
 
   // Hydrate the form each time the modal opens (create vs edit).
   useEffect(() => {
     if (!open) return
     setStep("basics")
     setSaving(false)
-    setName(editing?.name ?? "")
-    setClientId(editing?.client_id ?? activeDashboardClient)
-    setType((editing?.type as CampaignType) ?? "campaign")
-    setColor(editing?.color ?? COLOR_SWATCHES[0])
-    setStartDate(editing?.start_date ?? "")
-    setEndDate(editing?.end_date ?? "")
-    setNotes(editing?.notes ?? "")
+    form.reset({
+      name: editing?.name ?? "",
+      clientId: editing?.client_id ?? activeDashboardClient,
+      type: (editing?.type as CampaignType) ?? "campaign",
+      color: editing?.color ?? COLOR_SWATCHES[0],
+      startDate: editing?.start_date ?? "",
+      endDate: editing?.end_date ?? "",
+      notes: editing?.notes ?? "",
+    })
   }, [open, editing, activeDashboardClient])
 
   if (!open) return null
 
-  const canContinue = name.trim().length > 0
-
-  function save() {
-    setSaving(true)
-    // Tidak pakai setTimeout, karena handleSave luar asinkron & men-dismiss toast.
-    onSave({
-      id: editing?.id ?? "", // akan digenerate DB
-      client_id: clientId,
-      name: name.trim(),
-      type,
-      start_date: startDate || null,
-      end_date: endDate || null,
-      color,
-      notes: notes.trim() || null,
-      created_at: editing?.created_at ?? "",
-    })
-    setSaving(false)
-    onClose()
-  }
+  const formValues = form.state.values
+  const canContinue = formValues.name.trim().length > 0
 
   const steps: { id: Step; label: string }[] = [
     { id: "basics", label: "Basics" },
@@ -153,95 +176,122 @@ export function CampaignModal({
         {/* STEP 1 , basics */}
         {step === "basics" && (
           <div className="space-y-4">
-            <div>
-              <label htmlFor="campaign-name" className="block text-xs font-semibold text-foreground mb-1">
-                Campaign Name
-              </label>
-              <input
-                id="campaign-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
-                placeholder="e.g. Summer Drop 2026"
-                autoFocus
-              />
-            </div>
+            <form.AppField
+              name="name"
+              children={(field) => (
+                <div>
+                  <label htmlFor="campaign-name" className="block text-xs font-semibold text-foreground mb-1">
+                    Campaign Name
+                  </label>
+                  <input
+                    id="campaign-name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                    placeholder="e.g. Summer Drop 2026"
+                    autoFocus
+                  />
+                  {field.state.meta.errors?.[0] && (
+                    <p className="text-2xs text-destructive mt-1">
+                      {typeof field.state.meta.errors[0] === "string"
+                        ? field.state.meta.errors[0]
+                        : (field.state.meta.errors[0] as { message?: string })?.message ?? String(field.state.meta.errors[0])}
+                    </p>
+                  )}
+                </div>
+              )}
+            />
 
-            <div>
-              <label htmlFor="campaign-client" className="block text-xs font-semibold text-foreground mb-1">
-                Client
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    id="campaign-client"
-                    className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer h-auto"
-                  >
-                    <span>{clients.find((c) => c.id === clientId)?.name ?? "Pilih Client"}</span>
-                    <Icons.chevronDown className="size-3 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[calc(100vw-4rem)] sm:w-80 max-h-60 overflow-y-auto">
-                  {clients.map((c) => (
-                    <DropdownMenuItem key={c.id} onClick={() => setClientId(c.id)}>
-                      {c.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <form.AppField
+              name="clientId"
+              children={(field) => (
+                <div>
+                  <label htmlFor="campaign-client" className="block text-xs font-semibold text-foreground mb-1">
+                    Client
+                  </label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        id="campaign-client"
+                        className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer h-auto"
+                      >
+                        <span>{clients.find((c) => c.id === field.state.value)?.name ?? "Pilih Client"}</span>
+                        <Icons.chevronDown className="size-3 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[calc(100vw-4rem)] sm:w-80 max-h-60 overflow-y-auto">
+                      {clients.map((c) => (
+                        <DropdownMenuItem key={c.id} onClick={() => field.handleChange(c.id)}>
+                          {c.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Campaign Type
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {(Object.keys(CAMPAIGN_TYPE_META) as CampaignType[]).map((t) => (
-                  <Button
-                    key={t}
-                    type="button"
-                    variant={type === t ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setType(t)}
-                    className={cn(
-                      "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer h-auto",
-                      type === t
-                        ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90"
-                        : "border-border/40 text-foreground hover:bg-muted"
-                    )}
-                  >
-                    {CAMPAIGN_TYPE_META[t].label}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            <form.AppField
+              name="type"
+              children={(field) => (
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    Campaign Type
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(Object.keys(CAMPAIGN_TYPE_META) as CampaignType[]).map((t) => (
+                      <Button
+                        key={t}
+                        type="button"
+                        variant={field.state.value === t ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => field.handleChange(t)}
+                        className={cn(
+                          "py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer h-auto",
+                          field.state.value === t
+                            ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90"
+                            : "border-border/40 text-foreground hover:bg-muted"
+                        )}
+                      >
+                        {CAMPAIGN_TYPE_META[t].label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Accent Color
-              </label>
-              <div className="flex gap-2">
-                {COLOR_SWATCHES.map((c) => (
-                  <Button
-                    key={c}
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setColor(c)}
-                    className={cn(
-                      "w-7 h-7 rounded-full p-0 transition-all cursor-pointer flex items-center justify-center hover:opacity-90",
-                      color === c ? "ring-2 ring-offset-2 ring-brand-accent" : ""
-                    )}
-                    style={{ backgroundColor: c }}
-                    aria-label={`Color ${c}`}
-                  >
-                    {color === c && <Icons.check className="size-3.5 text-white" />}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            <form.AppField
+              name="color"
+              children={(field) => (
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    Accent Color
+                  </label>
+                  <div className="flex gap-2">
+                    {COLOR_SWATCHES.map((c) => (
+                      <Button
+                        key={c}
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => field.handleChange(c)}
+                        className={cn(
+                          "w-7 h-7 rounded-full p-0 transition-all cursor-pointer flex items-center justify-center hover:opacity-90",
+                          field.state.value === c ? "ring-2 ring-offset-2 ring-brand-accent" : ""
+                        )}
+                        style={{ backgroundColor: c }}
+                        aria-label={`Color ${c}`}
+                      >
+                        {field.state.value === c && <Icons.check className="size-3.5 text-white" />}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
           </div>
         )}
 
@@ -249,45 +299,60 @@ export function CampaignModal({
         {step === "schedule" && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="campaign-start" className="block text-xs font-semibold text-foreground mb-1">
-                  Start Date
-                </label>
-                <input
-                  id="campaign-start"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
-                />
-              </div>
-              <div>
-                <label htmlFor="campaign-end" className="block text-xs font-semibold text-foreground mb-1">
-                  End Date
-                </label>
-                <input
-                  id="campaign-end"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="campaign-notes" className="block text-xs font-semibold text-foreground mb-1">
-                Notes / Objectives
-              </label>
-              <textarea
-                id="campaign-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
-                placeholder="Campaign objectives, target audience, key messages..."
+              <form.AppField
+                name="startDate"
+                children={(field) => (
+                  <div>
+                    <label htmlFor="campaign-start" className="block text-xs font-semibold text-foreground mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      id="campaign-start"
+                      type="date"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                    />
+                  </div>
+                )}
+              />
+              <form.AppField
+                name="endDate"
+                children={(field) => (
+                  <div>
+                    <label htmlFor="campaign-end" className="block text-xs font-semibold text-foreground mb-1">
+                      End Date
+                    </label>
+                    <input
+                      id="campaign-end"
+                      type="date"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                    />
+                  </div>
+                )}
               />
             </div>
+
+            <form.AppField
+              name="notes"
+              children={(field) => (
+                <div>
+                  <label htmlFor="campaign-notes" className="block text-xs font-semibold text-foreground mb-1">
+                    Notes / Objectives
+                  </label>
+                  <textarea
+                    id="campaign-notes"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
+                    placeholder="Campaign objectives, target audience, key messages..."
+                  />
+                </div>
+              )}
+            />
 
             <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border/40">
               <Icons.info className="size-4 text-brand-accent shrink-0" />
@@ -304,29 +369,29 @@ export function CampaignModal({
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/60 border border-border/40">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: formValues.color }}
               >
                 <Icons.campaign className="size-5 text-white" />
               </div>
               <div className="min-w-0">
                 <span className="block text-sm font-bold text-foreground truncate">
-                  {name || "Untitled Campaign"}
+                  {formValues.name || "Untitled Campaign"}
                 </span>
                 <span className="block text-2xs text-muted-foreground">
-                  {clients.find((c) => c.id === clientId)?.name ?? "Unknown"}
+                  {clients.find((c) => c.id === formValues.clientId)?.name ?? "Unknown"}
                 </span>
               </div>
-              <span className={cn("admin-badge shrink-0 ml-auto", CAMPAIGN_TYPE_META[type].badge)}>
-                {CAMPAIGN_TYPE_META[type].label}
+              <span className={cn("admin-badge shrink-0 ml-auto", CAMPAIGN_TYPE_META[formValues.type].badge)}>
+                {CAMPAIGN_TYPE_META[formValues.type].label}
               </span>
             </div>
 
             <div className="space-y-2">
               {[
-                { label: "Client", value: clients.find((c) => c.id === clientId)?.name ?? "Unknown" },
-                { label: "Type", value: CAMPAIGN_TYPE_META[type].label },
-                { label: "Start", value: startDate || "-" },
-                { label: "End", value: endDate || "Evergreen" },
+                { label: "Client", value: clients.find((c) => c.id === formValues.clientId)?.name ?? "Unknown" },
+                { label: "Type", value: CAMPAIGN_TYPE_META[formValues.type].label },
+                { label: "Start", value: formValues.startDate || "-" },
+                { label: "End", value: formValues.endDate || "Evergreen" },
               ].map((row) => (
                 <div
                   key={row.label}
@@ -340,12 +405,12 @@ export function CampaignModal({
               ))}
             </div>
 
-            {notes.trim() && (
+            {formValues.notes.trim() && (
               <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
                 <span className="block text-2xs font-bold text-muted-foreground mb-1">
                   Notes
                 </span>
-                <p className="text-1xs text-foreground">{notes}</p>
+                <p className="text-1xs text-foreground">{formValues.notes}</p>
               </div>
             )}
           </div>
@@ -419,7 +484,7 @@ export function CampaignModal({
                 disabled={saving}
                 isLoading={saving}
                 className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                onClick={save}
+                onClick={() => void form.handleSubmit()}
               >
                 <Icons.check className="size-4" />
                 {editing ? "Save Changes" : "Create Campaign"}
