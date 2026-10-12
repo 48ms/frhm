@@ -1,8 +1,16 @@
-﻿"use client"
+"use client"
 
 import React, { useEffect, useState } from "react"
 import { Icons } from "@/components/icons"
 import { useGenerateContentIdeas } from "@/features/copilot/api/queries"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/animate-ui/components/radix/dialog"
+import { Button } from "@/components/ui/button"
 
 export function StitchAiHookModal({
   open,
@@ -55,134 +63,118 @@ export function StitchAiHookModal({
     setTimeout(() => setCopied(null), 1500)
   }
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-md"
-        onClick={() => onOpenChange(false)}
-      />
-      <div className="relative w-full max-w-lg bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-border/30 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center">
-              {/* R-04: sparkles menandai fitur AI generatif (hook generator). */}
-              <Icons.sparkles className="size-[18px]" />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-2xl bg-card border border-border shadow-2xl">
+        <DialogHeader className="p-5 border-b border-border/30 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center shrink-0">
+              <Icons.sparkles className="size-4" />
             </div>
             <div>
-              <h3 className="font-syne font-bold text-foreground text-sm">
+              <DialogTitle className="font-syne font-bold text-foreground text-sm">
                 Studio AI Hook Generator
-              </h3>
-              <p className="text-2xs text-muted-foreground">
+              </DialogTitle>
+              <DialogDescription className="text-2xs text-muted-foreground">
                 Hook untuk {clientName}
-              </p>
+              </DialogDescription>
             </div>
           </div>
-          <button
-            type="button"
-            className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-            onClick={() => onOpenChange(false)}
-          >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
+        </DialogHeader>
 
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">
-              Konsep kampanye / topik
-            </label>
-            <div className="flex gap-2">
-              <input
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent text-foreground outline-none"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Contoh: peluncuran produk aplikasi fintech"
-              />
-              <button
-                type="button"
-                className="px-3.5 py-1.5 rounded-xl bg-brand-accent text-brand-accent-foreground text-xs font-bold hover:bg-brand-accent/80 transition-all cursor-pointer shrink-0 disabled:opacity-50 inline-flex items-center gap-1.5"
-                onClick={generate}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Icons.refresh className="size-3.5 animate-spin" />
-                ) : (
-                  /* R-04: sparkles menandai aksi AI-generate. */
+        <div className="p-5 space-y-4">
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                Konsep kampanye / topik
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="w-full rounded-xl border border-border/40 bg-muted px-3.5 py-2 text-xs focus:border-brand-accent text-foreground outline-none transition-colors"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Contoh: peluncuran produk aplikasi fintech"
+                  onKeyDown={(e) => e.key === "Enter" && !loading && generate()}
+                />
+                <Button
+                  onClick={generate}
+                  disabled={loading}
+                  isLoading={loading}
+                  className="rounded-xl bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shrink-0 shadow-sm"
+                >
                   <Icons.sparkles className="size-3.5" />
-                )}
-                Generate
-              </button>
+                  Generate
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {hooks.length === 0 && !loading && !error && (
-              <p className="text-xs text-muted-foreground text-center py-6">
-                Masukkan topik lalu klik Generate untuk membuat hook.
-              </p>
-            )}
-            {error && (
-              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30">
-                <p className="text-xs font-bold text-destructive mb-1">
-                  Gagal membuat hook
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {hooks.length === 0 && !loading && !error && (
+                <p className="text-xs text-muted-foreground text-center py-6">
+                  Masukkan topik lalu klik Generate untuk membuat hook.
                 </p>
-                <p className="text-xs text-destructive/80 leading-relaxed">{error}</p>
-              </div>
-            )}
-            {loading && (
-              <div className="py-6 flex flex-col items-center gap-2">
-                <Icons.refresh className="size-5 text-brand-accent animate-spin" />
-                <p className="text-xs text-muted-foreground">
-                  Membuat hook untuk {clientName}…
-                </p>
-              </div>
-            )}
-            {hooks.map((hook, i) => (
-              <div
-                key={i}
-                className="group p-3 rounded-xl bg-muted/60 border border-border/40 hover:border-brand-accent/40 transition-all"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs text-foreground leading-relaxed">
-                    {hook}
+              )}
+              {error && (
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30">
+                  <p className="text-xs font-bold text-destructive mb-1">
+                    Gagal membuat hook
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => copy(i, hook)}
-                    className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
-                    title="Salin hook"
-                  >
-                    {copied === i ? (
-                      <Icons.check className="size-3.5 text-[hsl(var(--success))]" />
-                    ) : (
-                      <Icons.copy className="size-3.5" />
-                    )}
-                  </button>
+                  <p className="text-xs text-destructive/80 leading-relaxed">{error}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {hooks.length > 0 && (
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-2xs text-muted-foreground">
-                {hooks.length} hook dihasilkan
-              </span>
-              <button
-                type="button"
-                onClick={generate}
-                className="text-1xs font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
-              >
-                <Icons.refresh className="size-3.5" />
-                Buat ulang
-              </button>
+              )}
+              {loading && (
+                <div className="py-6 flex flex-col items-center gap-2">
+                  <Icons.refresh className="size-5 text-brand-accent animate-spin" />
+                  <p className="text-xs text-muted-foreground">
+                    Membuat hook untuk {clientName}…
+                  </p>
+                </div>
+              )}
+              {hooks.map((hook, i) => (
+                <div
+                  key={i}
+                  className="group p-3 rounded-xl bg-muted/60 border border-border/40 hover:border-brand-accent/40 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs text-foreground leading-relaxed">
+                      {hook}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => copy(i, hook)}
+                      className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
+                      title="Salin hook"
+                    >
+                      {copied === i ? (
+                        <Icons.check className="size-3.5 text-[hsl(var(--success))]" />
+                      ) : (
+                        <Icons.copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+
+            {hooks.length > 0 && (
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-2xs text-muted-foreground">
+                  {hooks.length} hook dihasilkan
+                </span>
+                <button
+                  type="button"
+                  onClick={generate}
+                  className="text-1xs font-bold text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1"
+                >
+                  <Icons.refresh className="size-3.5" />
+                  Buat ulang
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

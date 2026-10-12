@@ -10,6 +10,14 @@ import {
 import type { Campaign } from "@/features/campaigns/api/types"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/animate-ui/components/radix/dialog"
+import { Button } from "@/components/ui/button"
+import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -90,36 +98,24 @@ export function CampaignModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
-      <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
-        onClick={saving ? undefined : onClose}
-      />
-      <div 
+    <Dialog open={open} onOpenChange={(val) => !val && !saving && onClose()}>
+      <DialogContent 
+        className="max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6"
         style={{ viewTransitionName: editing ? `campaign-${editing.id}` : 'campaign-new' } as React.CSSProperties}
-        className="relative w-full max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-300"
       >
-        <div className="flex items-center justify-between border-b border-border/40 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center">
-              <Icons.campaign className="size-[18px]" />
-            </div>
-            <div>
-              <h3 className="font-syne font-bold text-foreground text-sm">
-                {editing ? "Edit Campaign" : "Create Campaign"}
-              </h3>
-              <p className="text-2xs text-muted-foreground">
-                {editing ? "Update campaign details" : "Launch a new client campaign"}
-              </p>
-            </div>
+        <DialogHeader className="flex flex-row items-center gap-2 border-b border-border/40 pb-3 space-y-0 text-left">
+          <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center shrink-0">
+            <Icons.campaign className="size-[18px]" />
           </div>
-          <button
-            className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-            onClick={onClose}
-          >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
+          <div>
+            <DialogTitle className="font-syne font-bold text-foreground text-sm">
+              {editing ? "Edit Campaign" : "Create Campaign"}
+            </DialogTitle>
+            <DialogDescription className="text-2xs text-muted-foreground">
+              {editing ? "Update campaign details" : "Launch a new client campaign"}
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
         {/* Step rail */}
         <div className="flex items-center gap-2">
@@ -397,27 +393,21 @@ export function CampaignModal({
                 <Icons.arrowLeft className="size-4" />
                 Back
               </button>
-              <button
+              <Button
+                type="button"
+                size="sm"
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
+                isLoading={saving}
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 onClick={save}
               >
-                {saving ? (
-                  <>
-                    <Icons.refresh className="size-4 animate-spin" />
-                    Saving…
-                  </>
-                ) : (
-                  <>
-                    <Icons.check className="size-4" />
-                    {editing ? "Save Changes" : "Create Campaign"}
-                  </>
-                )}
-              </button>
+                <Icons.check className="size-4" />
+                {editing ? "Save Changes" : "Create Campaign"}
+              </Button>
             </>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

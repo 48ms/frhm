@@ -6,6 +6,14 @@ import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
 import { useCreateScheduledPost } from "@/features/scheduled-posts/api/queries"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/animate-ui/components/radix/dialog"
+import { Button } from "@/components/ui/button"
 
 const CHANNEL_ICON: Record<string, string> = {
   Instagram: "photo_camera",
@@ -101,29 +109,19 @@ export function SchedulePostModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" onClick={onClose} role="button" aria-label="Tutup modal" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClose()} />
-      <div className="relative w-full max-w-lg bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-border/30 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center">
-              <Icons.send className="size-[18px]" />
-            </div>
-            <div>
-              <h3 className="font-syne font-bold text-foreground text-sm">Schedule a Post</h3>
-              <p className="text-2xs text-muted-foreground">
-                Publishing for {client?.name ?? "Client"}
-              </p>
-            </div>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg p-5 rounded-2xl border-border/40 shadow-2xl bg-card space-y-4">
+        <DialogHeader className="flex flex-row items-center gap-2 border-b border-border/30 pb-3 space-y-0 text-left">
+          <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center shrink-0">
+            <Icons.send className="size-[18px]" />
           </div>
-          <button
-            type="button"
-            className="p-1 rounded-full hover:bg-muted/70 text-muted-foreground transition-all cursor-pointer"
-            onClick={onClose}
-          >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
+          <div>
+            <DialogTitle className="font-syne font-bold text-foreground text-sm">Schedule a Post</DialogTitle>
+            <DialogDescription className="text-2xs text-muted-foreground">
+              Publishing for {client?.name ?? "Client"}
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
         <div className="space-y-4">
           <div>
@@ -143,40 +141,37 @@ export function SchedulePostModal({
               onChange={(e) => setCaption(e.target.value)}
               rows={3}
               className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
-              placeholder="Tulis caption yang akan menyertai post ini"
+              placeholder="Tulis caption lengkap..."
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">Channels</label>
-            {channels.length === 0 ? (
-              <p className="text-1xs text-muted-foreground">
-                Belum ada channel terhubung untuk klien ini. Hubungkan akun sosial lebih dulu di
-                halaman Social Accounts.
+            <label className="block text-xs font-semibold text-foreground mb-1">Target channels</label>
+            {safeChannels.length === 0 ? (
+              <p className="text-2xs text-muted-foreground">
+                Klien belum menghubungkan channel sosial. Sambungkan dulu di Channel Status.
               </p>
             ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {channels.map((p) => {
-                  const on = selected.includes(p)
-                  const key = CHANNEL_ICON[p] ?? "hub"
-                  const IconCmp = (
-                    Icons as Record<string, React.ComponentType<{ className?: string }>>
-                  )[key]
+              <div className="flex flex-wrap gap-2">
+                {safeChannels.map((c) => {
+                  const active = selected.includes(c.platform)
                   return (
                     <button
-                      key={p}
+                      key={c.id}
                       type="button"
-                      onClick={() => toggle(p)}
+                      onClick={() => toggle(c.platform)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-1xs font-semibold transition-all cursor-pointer",
-                        on
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
+                        active
                           ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
                           : "border-border/40 text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      {IconCmp ? <IconCmp className="size-3.5" /> : <Icons.hub className="size-3.5" />}
-                      {p}
-                      {on && <Icons.check className="size-3" />}
+                      <Icons.share className="size-3.5" />
+                      <span>{c.platform}</span>
+                      {c.handle && (
+                        <span className="text-2xs opacity-70">({c.handle})</span>
+                      )}
                     </button>
                   )
                 })}
@@ -184,18 +179,18 @@ export function SchedulePostModal({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Tanggal</label>
+              <label className="block text-xs font-semibold text-foreground mb-1">Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus:border-brand-accent outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Jam rilis</label>
+              <label className="block text-xs font-semibold text-foreground mb-1">Time slot</label>
               <div className="flex flex-wrap gap-1.5">
                 {TIME_SLOTS.map((t) => (
                   <button
@@ -217,34 +212,29 @@ export function SchedulePostModal({
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-1">
-            <button
+            <Button
               type="button"
-              className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+              variant="ghost"
+              size="sm"
+              className="rounded-full text-xs font-semibold text-foreground hover:bg-muted/70"
               onClick={onClose}
             >
               Batal
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
               disabled={!canSubmit}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:hover:scale-100"
+              isLoading={isPending}
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all"
               onClick={handleSubmit}
             >
-              {isPending ? (
-                <>
-                  <Icons.refresh className="size-4 animate-spin" />
-                  Menyimpan…
-                </>
-              ) : (
-                <>
-                  <Icons.schedule className="size-4" />
-                  Schedule Post
-                </>
-              )}
-            </button>
+              <Icons.schedule className="size-4" />
+              Schedule Post
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

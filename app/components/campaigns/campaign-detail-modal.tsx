@@ -8,6 +8,15 @@ import { CAMPAIGN_TYPE_META } from "./campaign-data"
 import type { Campaign } from "@/features/campaigns/api/types"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
 import { campaignTransitionName } from "@/lib/view-transition"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/animate-ui/components/radix/dialog"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/animate-ui/components/radix/tabs"
+import { Button } from "@/components/ui/button"
 
 /**
  * Status kampanye dihitung dari tanggal faktual (start/end), bukan angka rekaan.
@@ -71,67 +80,44 @@ export function CampaignDetailModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-50 p-4 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-md animate-in fade-in duration-300"
-        onClick={onClose}
-      />
-      <div
-        className="relative w-full max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent
+        className="max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
         style={
           { viewTransitionName: campaignTransitionName(campaign.id) } as React.CSSProperties
         }
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3">
-          <div className="flex items-start gap-3 min-w-0">
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold"
-              style={{ backgroundColor: campaign.color || "hsl(var(--primary))" }}
-            >
-              {campaign.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-syne font-bold text-foreground text-sm truncate">
-                {campaign.name}
-              </h3>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-2xs text-muted-foreground">
-                  {client.name}
-                </span>
-                <span className={cn("admin-badge ml-1", meta.badge)}>{meta.label}</span>
-              </div>
-            </div>
-          </div>
-          <button
-            aria-label="关闭"
-            className="p-1 rounded-full hover:bg-muted text-muted-foreground transition-all cursor-pointer shrink-0"
-            onClick={onClose}
+        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/40 pb-3 space-y-0 text-left">
+          <div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shrink-0"
+            style={{ backgroundColor: campaign.color || "hsl(var(--primary))" }}
           >
-            <Icons.close className="size-[18px]" />
-          </button>
-        </div>
+            {campaign.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <DialogTitle className="font-syne font-bold text-foreground text-sm truncate">
+              {campaign.name}
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-1.5 mt-0.5 text-2xs text-muted-foreground">
+              <span>{client.name}</span>
+              <span>•</span>
+              <span className="capitalize">{meta.label}</span>
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
         {/* Tabs */}
-        <div className="inline-flex p-1 rounded-full bg-muted/70 border border-border/40">
-          {(["overview", "performance"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                "px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer capitalize",
-                tab === t
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <Tabs value={tab} onValueChange={(t) => setTab(t as "overview" | "performance")} className="w-full space-y-4">
+          <TabsList className="bg-muted/70 p-1 rounded-full border border-border/40" highlightClassName="bg-card text-foreground shadow-sm rounded-full">
+            <TabsTrigger value="overview" className="rounded-full px-3.5 py-1 text-xs font-semibold capitalize">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="rounded-full px-3.5 py-1 text-xs font-semibold capitalize">
+              Performance
+            </TabsTrigger>
+          </TabsList>
 
-        {tab === "overview" ? (
-          <>
+          <TabsContent value="overview" className="space-y-4 mt-0">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {facts.map((s) => (
                 <div
@@ -163,24 +149,28 @@ export function CampaignDetailModal({
                 {campaign.start_date ?? "-"} → {campaign.end_date ?? "-"}
               </span>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-            <Icons.activity className="size-6 text-muted-foreground" />
-            <p className="text-sm font-semibold text-foreground">
-              Belum ada data performa
-            </p>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              Metrik kampanye ini akan tampil setelah postingan terhubung ke
-              kampanye dan metriknya tercatat.
-            </p>
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="performance" className="mt-0">
+            <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+              <Icons.activity className="size-6 text-muted-foreground" />
+              <p className="text-sm font-semibold text-foreground">
+                Belum ada data performa
+              </p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                Metrik kampanye ini akan tampil setelah postingan terhubung ke
+                kampanye dan metriknya tercatat.
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/20">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => {
               const row = (label: string, value: string) => `${label}\t${value}`
               const lines = [
@@ -202,20 +192,25 @@ export function CampaignDetailModal({
               URL.revokeObjectURL(url)
               toast.success("Export campaign selesai.")
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/40 text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-full border-border/40 text-xs font-semibold text-foreground hover:bg-muted"
           >
             <Icons.download className="size-3.5" />
             Export
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
-            <button
-              className="px-4 py-2 rounded-full text-xs font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-full text-xs font-semibold text-foreground hover:bg-muted"
               onClick={onClose}
             >
-              关闭
-            </button>
-            <button
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              Tutup
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all"
               onClick={() => {
                 onClose()
                 onEdit(campaign)
@@ -223,10 +218,10 @@ export function CampaignDetailModal({
             >
               <Icons.edit className="size-3.5" />
               Edit Campaign
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

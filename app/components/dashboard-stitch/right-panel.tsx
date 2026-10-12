@@ -7,6 +7,16 @@ import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
 import { useAppStore } from "@/lib/store/app-store"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/animate-ui/components/radix/alert-dialog"
 
 export function DashboardStitchConnectedHub() {
   const { client, clientId, profile } = useActiveDashboard()
@@ -193,42 +203,40 @@ export function DashboardStitchConnectedHub() {
         </button>
       </div>
 
-      {disconnectId && (
-        <div className="fixed inset-0 z-[60] p-4 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-            onClick={() => setDisconnectId(null)}
-          />
-          <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-2">
+      <AlertDialog open={Boolean(disconnectId)} onOpenChange={(open) => !open && setDisconnectId(null)}>
+        <AlertDialogContent className="max-w-sm rounded-2xl border-border/40 shadow-2xl bg-card/95 backdrop-blur-2xl p-5 text-center space-y-4">
+          <AlertDialogHeader className="items-center text-center space-y-2">
+            <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
               <Icons.warning className="size-6" />
             </div>
-            <h3 className="font-syne font-bold text-foreground text-lg">
+            <AlertDialogTitle className="font-syne font-bold text-foreground text-lg">
               Disconnect Channel?
-            </h3>
-            <p className="text-sm text-muted-foreground">
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
               Are you sure you want to disconnect this channel? Data syncing will stop immediately.
-            </p>
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={() => setDisconnectId(null)}
-                className="flex-1 px-4 py-2 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/70 transition-all shadow-sm cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-3 pt-2 sm:justify-center">
+            <AlertDialogCancel
+              onClick={() => setDisconnectId(null)}
+              className="flex-1 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/70 transition-all shadow-sm"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (disconnectId) {
                   useAppStore.getState().disconnectAccount(disconnectId)
                   setDisconnectId(null)
-                }}
-                className="flex-1 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all shadow-sm cursor-pointer"
-              >
-                Disconnect
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                }
+              }}
+              className="flex-1 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all shadow-sm"
+            >
+              Disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <StitchAiHookModal open={aiOpen} onOpenChange={setAiOpen} clientName={client.name} clientId={clientId} />
       <ConnectChannelModal
