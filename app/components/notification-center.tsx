@@ -100,7 +100,7 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
       </PopoverTrigger>
       <PopoverContent
         align='end'
-        className='w-[calc(100vw-2rem)] p-0 sm:w-[380px] shadow-xl rounded-xl border border-border/70 overflow-hidden'
+        className='w-[calc(100vw-2rem)] p-0 sm:w-[380px] shadow-2xl rounded-2xl border border-border/40 overflow-hidden'
         sideOffset={8}
       >
         <div className='flex items-center justify-between px-4 py-3 bg-muted/20'>

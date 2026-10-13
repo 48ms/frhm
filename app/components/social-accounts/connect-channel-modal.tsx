@@ -138,7 +138,7 @@ export function ConnectChannelModal({
     >
       <DialogContent
         showCloseButton
-        className="max-w-lg gap-0 overflow-hidden p-0"
+        className="max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-0 shadow-2xl gap-0 overflow-hidden"
         aria-label="Connect new channel"
       >
         <DialogHeader className="p-6 border-b shrink-0">

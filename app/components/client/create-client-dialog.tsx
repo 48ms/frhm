@@ -337,7 +337,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
 
       {/* Success Launchpad Dialog */}
       <Dialog open={createdCredentials !== null} onOpenChange={(o: boolean) => { if (!o) handleClose() }}>
-        <DialogContent className="max-w-md p-6 border-success/20 shadow-2xl">
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-success/20 p-6 shadow-2xl space-y-6">
         <div className="text-center space-y-3">
           <div className="size-14 rounded-full bg-success/10 border border-success/20 text-success flex items-center justify-center mx-auto shadow-inner">
               <Icons.check className="size-7 stroke-[3]" />
