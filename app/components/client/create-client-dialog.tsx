@@ -380,7 +380,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
               <Icons.sparkles className="size-4 mr-2" />
               Mulai Interview Brand Profile
             </Button>
-            <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground" onClick={handleClose}>
+            <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground min-h-11" onClick={handleClose}>
               Lanjut ke Dashboard Dulu
             </Button>
           </div>

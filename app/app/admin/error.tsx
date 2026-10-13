@@ -45,13 +45,13 @@ export default function AdminError({
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button
             onClick={reset}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-11"
           >
             <Icons.refresh className="size-4" /> Coba lagi
           </Button>
           <Link
             href="/admin/dashboard"
-            className="inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-muted"
+            className="inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-muted min-h-11"
           >
             <Icons.home className="size-4" /> Dashboard
           </Link>

@@ -498,7 +498,7 @@ export function AdminCalendarClient() {
               <TabsTrigger
                 key={v}
                 value={v}
-                className="px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 data-[state=active]:text-on-secondary data-[state=active]:font-extrabold"
+                className="px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 data-[state=active]:text-on-secondary data-[state=active]:font-extrabold min-h-11"
               >
                 {v === "list" && <Icons.activity className="size-4" />}
                 {v === "month" ? "Month View" : v === "week" ? "Week View" : "List / Gantt Timeline"}
@@ -557,7 +557,7 @@ export function AdminCalendarClient() {
                 <TabsTrigger
                   key={p}
                   value={p}
-                  className="px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 capitalize cursor-pointer data-[state=active]:text-card"
+                  className="px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 capitalize cursor-pointer data-[state=active]:text-card min-h-11"
                 >
                   {p === "all" ? "All (5)" : p}
                 </TabsTrigger>
@@ -990,7 +990,7 @@ export function AdminCalendarClient() {
                     {/* Add Slot Prompt */}
                     <button
                       onClick={() => handleAddPost(d)}
-                      className="w-full mt-2 py-1 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="w-full mt-2 py-1 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11"
                     >
                       <Icons.add className="size-3.5" /> Add Post
                     </button>
@@ -1114,7 +1114,7 @@ export function AdminCalendarClient() {
                     <button
                       type="button"
                       disabled={!release}
-                      className="bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11"
                     >
                       Force Publish
                     </button>

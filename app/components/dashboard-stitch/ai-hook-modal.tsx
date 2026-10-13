@@ -91,7 +91,7 @@ export function StitchAiHookModal({
               </label>
               <div className="flex gap-2">
                 <input
-                  className="w-full rounded-xl border border-border/40 bg-muted px-3.5 py-2 text-xs focus:border-brand-accent text-foreground outline-none transition-colors"
+                  className="w-full rounded-xl border border-border/40 bg-muted px-3.5 py-2 text-xs text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Contoh: peluncuran produk aplikasi fintech"

@@ -309,7 +309,7 @@ export function LibraryClient() {
             <TabsTrigger
               key={f}
               value={f}
-              className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+              className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground min-h-11"
             >
               {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
             </TabsTrigger>
@@ -385,7 +385,7 @@ export function LibraryClient() {
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="tag1, tag2"
-                className="h-8 w-44 rounded-lg border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring"
+                className="h-8 w-44 rounded-lg border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
               <Button
                 size="sm"

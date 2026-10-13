@@ -172,7 +172,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href="/admin/settings"
                   aria-label="Settings"
-                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-11"
                 >
                   <Icons.settings className="size-[18px]" />
                 </a>
@@ -184,7 +184,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href="/admin/support"
                   aria-label="Support"
-                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-11"
                 >
                   <Icons.help className="size-[18px]" />
                 </a>

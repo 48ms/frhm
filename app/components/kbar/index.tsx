@@ -142,7 +142,7 @@ function KBarComponent({ children }: { children: React.ReactNode }) {
               <Icons.search className='size-4 shrink-0 text-muted-foreground' />
               <KBarSearch
                 defaultPlaceholder='Ketik perintah atau cari halaman (misal: d d untuk Dashboard)...'
-                className='w-full border-none bg-transparent py-3.5 text-sm outline-none placeholder:text-muted-foreground/70 focus:ring-0'
+                className='w-full border-none bg-transparent py-3.5 text-sm placeholder:text-muted-foreground/70 focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50'
               />
               <span className='shrink-0 rounded-md border border-border/60 bg-muted/50 px-1.5 py-0.5 text-2xs font-semibold text-muted-foreground'>
                 ESC

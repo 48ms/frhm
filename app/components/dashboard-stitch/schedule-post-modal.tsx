@@ -129,7 +129,7 @@ export function SchedulePostModal({
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+              className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               placeholder="Judul post"
             />
           </div>
@@ -140,7 +140,7 @@ export function SchedulePostModal({
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={3}
-              className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
+              className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs text-foreground resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               placeholder="Tulis caption lengkap..."
             />
           </div>
@@ -188,7 +188,7 @@ export function SchedulePostModal({
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus:border-brand-accent outline-none"
+                className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
             <div>

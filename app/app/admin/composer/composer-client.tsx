@@ -635,7 +635,7 @@ export function ComposerClient() {
                             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                               <Icons.sparkles className="size-3 text-primary" /> Hook Matrix (Pilih Baris Pembuka)
                             </span>
-                            <Button variant="ghost" size="sm" onClick={() => setHookOptions(null)} className="min-h-9 text-2xs">
+                            <Button variant="ghost" size="sm" onClick={() => setHookOptions(null)} className="min-h-9 text-2xs min-h-11">
                               Tutup
                             </Button>
                           </div>
@@ -833,9 +833,9 @@ export function ComposerClient() {
                           <Label htmlFor="composer-duration" className="text-xs font-semibold">Target Durasi</Label>
                           <Tabs value={videoDuration} onValueChange={setVideoDuration}>
                             <TabsList className="w-full grid grid-cols-3 h-10 p-1 bg-muted rounded-xl">
-                              <TabsTrigger value="15 seconds" className="text-xs font-bold rounded-lg py-1">15s (Shorts)</TabsTrigger>
-                              <TabsTrigger value="30 seconds" className="text-xs font-bold rounded-lg py-1">30s (Standard)</TabsTrigger>
-                              <TabsTrigger value="60 seconds" className="text-xs font-bold rounded-lg py-1">60s (Deep Dive)</TabsTrigger>
+                              <TabsTrigger value="15 seconds" className="text-xs font-bold rounded-lg py-1 min-h-11">15s (Shorts)</TabsTrigger>
+                              <TabsTrigger value="30 seconds" className="text-xs font-bold rounded-lg py-1 min-h-11">30s (Standard)</TabsTrigger>
+                              <TabsTrigger value="60 seconds" className="text-xs font-bold rounded-lg py-1 min-h-11">60s (Deep Dive)</TabsTrigger>
                             </TabsList>
                           </Tabs>
                         </div>

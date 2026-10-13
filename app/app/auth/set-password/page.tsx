@@ -215,7 +215,7 @@ export default function SetPasswordPage() {
             type="submit"
             disabled={loading}
             isLoading={loading}
-            className="w-full h-10 rounded-lg font-medium"
+            className="w-full h-10 rounded-lg font-medium min-h-11"
           >
             Simpan Password Baru
           </Button>

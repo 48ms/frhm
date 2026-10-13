@@ -678,7 +678,7 @@ export function PostDialog({
                   </AlertDialogContent>
                 </AlertDialog>
               )}
-              <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-9 ml-auto">
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading} className="h-9 ml-auto min-h-11">
                 Batal
               </Button>
               <Button

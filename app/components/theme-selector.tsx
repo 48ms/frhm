@@ -104,7 +104,7 @@ export function ThemeSelector() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9 opacity-50" disabled>
+      <Button variant="ghost" size="icon" className="h-9 w-9 opacity-50 min-h-11 min-w-11" disabled>
         <Icons.palette className="h-4 w-4" />
       </Button>
     )
@@ -115,7 +115,7 @@ export function ThemeSelector() {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 cursor-pointer" aria-label="Ubah Tema">
+            <Button variant="ghost" size="icon" className="h-9 w-9 cursor-pointer min-h-11 min-w-11" aria-label="Ubah Tema">
               <Icons.palette className="h-4 w-4 text-foreground/80 hover:text-foreground" />
             </Button>
           </DropdownMenuTrigger>

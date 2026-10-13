@@ -134,13 +134,13 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
             >
               <TabsTrigger
                 value='all'
-                className='px-2.5 py-1 text-xs rounded-md font-medium cursor-pointer data-[state=active]:text-foreground data-[state=active]:font-semibold'
+                className='px-2.5 py-1 text-xs rounded-md font-medium cursor-pointer data-[state=active]:text-foreground data-[state=active]:font-semibold min-h-11'
               >
                 Semua
               </TabsTrigger>
               <TabsTrigger
                 value='unread'
-                className='px-2.5 py-1 text-xs rounded-md font-medium cursor-pointer data-[state=active]:text-foreground data-[state=active]:font-semibold'
+                className='px-2.5 py-1 text-xs rounded-md font-medium cursor-pointer data-[state=active]:text-foreground data-[state=active]:font-semibold min-h-11'
               >
                 Belum Dibaca ({unreadCount})
               </TabsTrigger>

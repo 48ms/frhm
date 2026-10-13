@@ -261,7 +261,7 @@ export function BrainstormModal({
                   <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-1">
                     <MetricTicker value={ideas.length} /> Ide Ditemukan
                   </h3>
-                  <Button variant="ghost" size="sm" onClick={() => setIdeas([])} className="h-8">Reset</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setIdeas([])} className="h-8 min-h-11">Reset</Button>
                 </div>
                 
                 <div className="space-y-3">
@@ -324,10 +324,10 @@ export function BrainstormModal({
                 </Label>
                 <Tabs value={platform} onValueChange={setPlatform}>
                   <TabsList className="w-full grid grid-cols-4 h-11 p-0.5 bg-muted rounded-xl">
-                    <TabsTrigger value="Instagram" className="text-xs font-bold rounded-lg py-1">Instagram</TabsTrigger>
-                    <TabsTrigger value="TikTok" className="text-xs font-bold rounded-lg py-1">TikTok</TabsTrigger>
-                    <TabsTrigger value="LinkedIn" className="text-xs font-bold rounded-lg py-1">LinkedIn</TabsTrigger>
-                    <TabsTrigger value="Twitter" className="text-xs font-bold rounded-lg py-1">X / Twitter</TabsTrigger>
+                    <TabsTrigger value="Instagram" className="text-xs font-bold rounded-lg py-1 min-h-11">Instagram</TabsTrigger>
+                    <TabsTrigger value="TikTok" className="text-xs font-bold rounded-lg py-1 min-h-11">TikTok</TabsTrigger>
+                    <TabsTrigger value="LinkedIn" className="text-xs font-bold rounded-lg py-1 min-h-11">LinkedIn</TabsTrigger>
+                    <TabsTrigger value="Twitter" className="text-xs font-bold rounded-lg py-1 min-h-11">X / Twitter</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>

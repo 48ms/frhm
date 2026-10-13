@@ -64,7 +64,7 @@ export function DashboardStitchChart() {
               <TabsTrigger
                 key={t.id}
                 value={t.id}
-                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all min-h-11"
               >
                 {t.label}
               </TabsTrigger>

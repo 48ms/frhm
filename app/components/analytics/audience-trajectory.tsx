@@ -80,7 +80,7 @@ export function AudienceTrajectory({
               <TabsTrigger
                 key={t}
                 value={t}
-                className="px-3 py-1 rounded-full text-xs font-semibold h-6"
+                className="px-3 py-1 rounded-full text-xs font-semibold h-6 min-h-11"
               >
                 {t}
               </TabsTrigger>

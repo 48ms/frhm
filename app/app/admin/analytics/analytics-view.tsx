@@ -338,7 +338,7 @@ export function AnalyticsView() {
                         <span className="text-2xs opacity-90">Signal Score: {auditReport.signalScore}/100</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => setAuditReport(null)} className="min-h-9 text-2xs">
+                    <Button variant="ghost" size="sm" onClick={() => setAuditReport(null)} className="min-h-9 text-2xs min-h-11">
                       Reset
                     </Button>
                   </div>

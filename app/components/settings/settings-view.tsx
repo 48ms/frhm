@@ -118,7 +118,7 @@ function WorkspaceTab() {
               type="text"
               value={agencyName}
               onChange={(e) => setAgencyName(e.target.value)}
-              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus:outline-none transition-all"
+              className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-foreground text-sm focus:bg-card focus:ring-2 focus:ring-secondary focus: transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             />
             <p className="text-xs text-muted-foreground">
               Used on legal statements, automated NDA dispatches, and commercial invoices.
@@ -135,7 +135,7 @@ function WorkspaceTab() {
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                className="flex-1 h-12 pr-5 pl-0 bg-transparent border-0 text-foreground text-sm focus:ring-0 focus:outline-none"
+                className="flex-1 h-12 pr-5 pl-0 bg-transparent border-0 text-foreground text-sm focus:ring-0 focus: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -149,10 +149,10 @@ function WorkspaceTab() {
             </label>
             <Tabs value={timezone} onValueChange={setTimezone}>
               <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl">
-                <TabsTrigger value="UTC+7 Bangkok/Jakarta (WIB)" className="text-xs font-bold rounded-lg py-1.5">WIB (UTC+7)</TabsTrigger>
-                <TabsTrigger value="UTC+0 London / GMT" className="text-xs font-bold rounded-lg py-1.5">GMT (UTC+0)</TabsTrigger>
-                <TabsTrigger value="UTC-5 New York / EST" className="text-xs font-bold rounded-lg py-1.5">EST (UTC-5)</TabsTrigger>
-                <TabsTrigger value="UTC+8 Singapore / SGT" className="text-xs font-bold rounded-lg py-1.5">SGT (UTC+8)</TabsTrigger>
+                <TabsTrigger value="UTC+7 Bangkok/Jakarta (WIB)" className="text-xs font-bold rounded-lg py-1.5 min-h-11">WIB (UTC+7)</TabsTrigger>
+                <TabsTrigger value="UTC+0 London / GMT" className="text-xs font-bold rounded-lg py-1.5 min-h-11">GMT (UTC+0)</TabsTrigger>
+                <TabsTrigger value="UTC-5 New York / EST" className="text-xs font-bold rounded-lg py-1.5 min-h-11">EST (UTC-5)</TabsTrigger>
+                <TabsTrigger value="UTC+8 Singapore / SGT" className="text-xs font-bold rounded-lg py-1.5 min-h-11">SGT (UTC+8)</TabsTrigger>
               </TabsList>
             </Tabs>
             <p className="text-xs text-muted-foreground">
@@ -164,10 +164,10 @@ function WorkspaceTab() {
             <label className="text-sm font-semibold text-foreground block">Primary Currency</label>
             <Tabs value={currency} onValueChange={setCurrency}>
               <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl">
-                <TabsTrigger value="USD ($) - United States Dollar" className="text-xs font-bold rounded-lg py-1.5">USD ($)</TabsTrigger>
-                <TabsTrigger value="EUR (€) - Eurozone" className="text-xs font-bold rounded-lg py-1.5">EUR (€)</TabsTrigger>
-                <TabsTrigger value="GBP (£) - British Pound" className="text-xs font-bold rounded-lg py-1.5">GBP (£)</TabsTrigger>
-                <TabsTrigger value="SGD (S$) - Singapore Dollar" className="text-xs font-bold rounded-lg py-1.5">SGD (S$)</TabsTrigger>
+                <TabsTrigger value="USD ($) - United States Dollar" className="text-xs font-bold rounded-lg py-1.5 min-h-11">USD ($)</TabsTrigger>
+                <TabsTrigger value="EUR (€) - Eurozone" className="text-xs font-bold rounded-lg py-1.5 min-h-11">EUR (€)</TabsTrigger>
+                <TabsTrigger value="GBP (£) - British Pound" className="text-xs font-bold rounded-lg py-1.5 min-h-11">GBP (£)</TabsTrigger>
+                <TabsTrigger value="SGD (S$) - Singapore Dollar" className="text-xs font-bold rounded-lg py-1.5 min-h-11">SGD (S$)</TabsTrigger>
               </TabsList>
             </Tabs>
             <p className="text-xs text-muted-foreground">
@@ -852,16 +852,16 @@ function UserAccessTab() {
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="colleague@agency-or-client.com"
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus:outline-none"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-card border border-border/30 text-sm text-foreground focus:ring-2 focus:ring-secondary focus: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             />
           </div>
           <div className="w-full md:w-auto flex-1">
             <Tabs value={inviteRole} onValueChange={setInviteRole}>
               <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-11 p-1 bg-muted/60 border border-border/30 rounded-xl">
-                <TabsTrigger value="Content Creator" className="text-xs font-bold rounded-lg py-1.5">Creator</TabsTrigger>
-                <TabsTrigger value="Campaign Lead" className="text-xs font-bold rounded-lg py-1.5">Lead</TabsTrigger>
-                <TabsTrigger value="Client Guest Reviewer" className="text-xs font-bold rounded-lg py-1.5">Reviewer</TabsTrigger>
-                <TabsTrigger value="Studio Director" className="text-xs font-bold rounded-lg py-1.5">Director</TabsTrigger>
+                <TabsTrigger value="Content Creator" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Creator</TabsTrigger>
+                <TabsTrigger value="Campaign Lead" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Lead</TabsTrigger>
+                <TabsTrigger value="Client Guest Reviewer" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Reviewer</TabsTrigger>
+                <TabsTrigger value="Studio Director" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Director</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

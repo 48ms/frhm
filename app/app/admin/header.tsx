@@ -100,7 +100,7 @@ export function AdminHeader({
           variant="ghost"
           size="icon"
           onClick={onSignOut}
-          className="admin-avatar flex size-8 shrink-0 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+          className="admin-avatar flex size-8 shrink-0 items-center justify-center rounded-full focus: focus:ring-2 focus:ring-ring cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           aria-label="Sign out"
         >
           <span className="text-xs font-bold">{initials}</span>

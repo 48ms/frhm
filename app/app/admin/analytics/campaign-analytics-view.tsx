@@ -108,14 +108,14 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
             className="h-8 p-1 bg-muted/60 rounded-lg border border-border/40 text-xs"
             highlightClassName="bg-card shadow-xs rounded-md"
           >
-            <TabsTrigger value="all" className="px-3 py-1 text-xs font-medium rounded-md">
+            <TabsTrigger value="all" className="px-3 py-1 text-xs font-medium rounded-md min-h-11">
               Semua ({campaigns.length})
             </TabsTrigger>
-            <TabsTrigger value="active" className="px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1.5">
+            <TabsTrigger value="active" className="px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1.5 min-h-11">
               <span className="size-1.5 rounded-full bg-[hsl(var(--success))]"></span>
               Aktif ({activeCount})
             </TabsTrigger>
-            <TabsTrigger value="completed" className="px-3 py-1 text-xs font-medium rounded-md">
+            <TabsTrigger value="completed" className="px-3 py-1 text-xs font-medium rounded-md min-h-11">
               Selesai ({completedCount})
             </TabsTrigger>
           </TabsList>
@@ -128,7 +128,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative"
+                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative min-h-11"
               >
                 <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <span>

@@ -117,7 +117,7 @@ export function AssetPicker({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari nama atau tag..."
-              className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm focus:ring-2 focus:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             />
           </div>
           <Tabs value={tab} onValueChange={(t) => setTab(t as TypeTab)}>
@@ -132,7 +132,7 @@ export function AssetPicker({
                   <TabsTrigger
                     key={t}
                     value={t}
-                    className="px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground flex items-center gap-1.5 min-h-11"
                   >
                     <span>{label}</span>
                     {assets.length > 0 && (

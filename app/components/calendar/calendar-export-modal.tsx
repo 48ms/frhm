@@ -243,7 +243,7 @@ export function CalendarExportModal({
                       <TabsTrigger
                         key={r.id}
                         value={r.id}
-                        className="text-1xs font-semibold py-1 rounded-full"
+                        className="text-1xs font-semibold py-1 rounded-full min-h-11"
                       >
                         {r.label}
                       </TabsTrigger>

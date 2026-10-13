@@ -127,7 +127,7 @@ export function BrandProfileTab() {
                 <div>
                   <label className="text-xs font-bold text-brand-accent block mb-1">Industri / Kategori (Opsional)</label>
                   <input 
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border/40 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border/40 text-sm focus: focus:ring-2 focus:ring-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                     placeholder="Contoh: B2B SaaS, F&B Artisan, dsb."
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}

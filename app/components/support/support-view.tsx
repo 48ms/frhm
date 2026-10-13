@@ -259,7 +259,7 @@ export function SupportView() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Brief summary of the issue"
-                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus:outline-none transition-all"
+                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus: transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 
@@ -272,10 +272,10 @@ export function SupportView() {
                   className="w-full grid grid-cols-4 h-11 p-1 bg-muted/60 border border-border/40 rounded-xl"
                   highlightClassName="bg-card shadow-sm rounded-lg"
                 >
-                  <TabsTrigger value="Low" className="text-xs font-bold rounded-lg py-1.5">Low</TabsTrigger>
-                  <TabsTrigger value="Normal" className="text-xs font-bold rounded-lg py-1.5">Normal</TabsTrigger>
-                  <TabsTrigger value="High" className="text-xs font-bold rounded-lg py-1.5">High</TabsTrigger>
-                  <TabsTrigger value="Urgent" className="text-xs font-bold rounded-lg py-1.5 text-destructive font-extrabold">Urgent</TabsTrigger>
+                  <TabsTrigger value="Low" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Low</TabsTrigger>
+                  <TabsTrigger value="Normal" className="text-xs font-bold rounded-lg py-1.5 min-h-11">Normal</TabsTrigger>
+                  <TabsTrigger value="High" className="text-xs font-bold rounded-lg py-1.5 min-h-11">High</TabsTrigger>
+                  <TabsTrigger value="Urgent" className="text-xs font-bold rounded-lg py-1.5 text-destructive font-extrabold min-h-11">Urgent</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -290,7 +290,7 @@ export function SupportView() {
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
                 placeholder="Describe what happened, which client workspace is affected, and any steps to reproduce."
-                className="w-full px-5 py-3 rounded-2xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus:outline-none transition-all resize-none"
+                className="w-full px-5 py-3 rounded-2xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus: transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 
