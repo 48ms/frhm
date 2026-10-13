@@ -1,10 +1,44 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { USER_HEADERS } from './identity-headers'
 
+/**
+ * PERF: previously every /admin request paid FOUR sequential Supabase
+ * round-trips before rendering:
+ *   middleware getUser()      ~114ms (warm) / ~600ms (cold)
+ *   middleware SELECT users   ~183ms (warm) / ~600ms (cold)
+ *   layout     getUser()      ~114ms (DUPLICATE)
+ *   layout     SELECT users   ~183ms (DUPLICATE)
+ * Now the layout pays zero: the middleware forwards the resolved identity as
+ * request headers and the layout just reads them.
+ */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  // Headers forwarded to the route render. A single mutable object keeps every
+  // response we build in sync with the latest identity values.
+  const requestHeaders = new Headers(request.headers)
+
+  // SECURITY: strip any client-supplied identity headers BEFORE we set our own.
+  // Without this, an unauthenticated request could send `x-user-id` itself and
+  // the layout would trust it. Middleware is the only trusted writer.
+  for (const key of Object.values(USER_HEADERS)) {
+    requestHeaders.delete(key)
+  }
+
+  // Cookies queued by supabase's setAll() — applied to whichever response we
+  // finally return (next or redirect) so a refreshed session is never dropped.
+  let pendingCookies: { name: string; value: string; options?: Record<string, unknown> }[] = []
+
+  const applyCookies = (res: NextResponse) => {
+    for (const { name, value, options } of pendingCookies) {
+      res.cookies.set(name, value, options as never)
+    }
+    return res
+  }
+
+  const buildNextResponse = () =>
+    applyCookies(NextResponse.next({ request: { headers: requestHeaders } }))
+
+  let supabaseResponse = buildNextResponse()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,12 +50,8 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          pendingCookies = cookiesToSet
+          supabaseResponse = buildNextResponse()
         },
       },
     }
@@ -31,7 +61,7 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // IMPORTANT: DO NOT use getSession, use getUser. 
+  // IMPORTANT: DO NOT use getSession, use getUser.
   // getSession is prone to spoofing.
   const {
     data: { user },
@@ -46,7 +76,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     url.searchParams.set('next', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    return applyCookies(NextResponse.redirect(url))
   }
 
   // Tenant Strict Guard: non-admin users may ONLY ever see their own client's
@@ -56,12 +86,21 @@ export async function updateSession(request: NextRequest) {
   if (user && isProtectedAdmin) {
     const requestedClientId = request.nextUrl.searchParams.get('clientId')
 
-    // Ambil profile user dari public.users untuk cek role & binding
+    // Ambil profile user dari public.users untuk cek role & binding.
+    // `full_name` ikut diambil supaya layout tidak perlu query ulang.
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, client_id')
+      .select('role, client_id, full_name')
       .eq('id', user.id)
       .single()
+
+    // Hand the resolved identity to the admin layout via request headers.
+    requestHeaders.set(USER_HEADERS.id, user.id)
+    requestHeaders.set(USER_HEADERS.email, user.email ?? '')
+    requestHeaders.set(USER_HEADERS.role, userProfile?.role ?? '')
+    requestHeaders.set(USER_HEADERS.name, userProfile?.full_name ?? '')
+    requestHeaders.set(USER_HEADERS.clientId, userProfile?.client_id ?? '')
+    supabaseResponse = buildNextResponse()
 
     if (userProfile && userProfile.role !== 'admin') {
       const ownClientId = userProfile.client_id
@@ -69,7 +108,7 @@ export async function updateSession(request: NextRequest) {
       if (ownClientId && requestedClientId !== ownClientId) {
         const url = request.nextUrl.clone()
         url.searchParams.set('clientId', ownClientId)
-        return NextResponse.redirect(url)
+        return applyCookies(NextResponse.redirect(url))
       }
     }
   }
@@ -78,7 +117,7 @@ export async function updateSession(request: NextRequest) {
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin/dashboard'
-    return NextResponse.redirect(url)
+    return applyCookies(NextResponse.redirect(url))
   }
 
   // Inject security headers
