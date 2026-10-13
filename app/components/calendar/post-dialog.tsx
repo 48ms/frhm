@@ -477,7 +477,7 @@ export function PostDialog({
                       value={dateStr}
                       onChange={(e) => setDateStr(e.target.value)}
                       required
-                      className="h-10 font-medium"
+                      className="h-11 font-medium"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -488,7 +488,7 @@ export function PostDialog({
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
                       required
-                      className="h-10 font-medium"
+                      className="h-11 font-medium"
                     />
                   </div>
                 </div>
@@ -510,7 +510,7 @@ export function PostDialog({
                           <RadioGroupItem value={opt.id} id={`prio-${opt.id}`} className="peer sr-only" />
                           <Label
                             htmlFor={`prio-${opt.id}`}
-                            className="flex items-center justify-center h-10 px-2 rounded-lg border bg-popover hover:bg-accent peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:text-primary cursor-pointer text-xs font-bold transition-all"
+                            className="flex items-center justify-center h-11 px-2 rounded-lg border bg-popover hover:bg-accent peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:text-primary cursor-pointer text-xs font-bold transition-all"
                           >
                             {opt.label}
                           </Label>
@@ -525,7 +525,7 @@ export function PostDialog({
                       value={campaignTag}
                       onValueChange={(v) => setCampaignTag(v ?? '')}
                     >
-                      <SelectTrigger id="post-campaign" className="w-full h-10">
+                      <SelectTrigger id="post-campaign" className="w-full h-11">
                         <SelectValue placeholder="Tidak terkait kampanye" />
                       </SelectTrigger>
                       <SelectContent>

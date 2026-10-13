@@ -237,7 +237,7 @@ export function CalendarExportModal({
                 <Tabs value={range} onValueChange={(val) => setRange(val as Range)}>
                   <TabsList
                     highlightClassName="bg-card text-foreground shadow-xs rounded-full"
-                    className="w-full grid grid-cols-3 h-9 p-0.5 bg-muted/60 rounded-full border border-border/40"
+                    className="w-full grid grid-cols-3 h-11 p-0.5 bg-muted/60 rounded-full border border-border/40"
                   >
                     {RANGES.map((r) => (
                       <TabsTrigger

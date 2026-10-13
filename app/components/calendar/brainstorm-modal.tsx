@@ -157,7 +157,7 @@ export function BrainstormModal({
           <Button
             type="button"
             variant="outline"
-            className="inline-flex items-center justify-center gap-2 h-9 px-4 py-2 cursor-pointer shadow-sm"
+            className="inline-flex items-center justify-center gap-2 h-11 px-4 py-2 cursor-pointer shadow-sm"
           >
             <Icons.sparkles className="h-4 w-4 text-primary" />
             <span>AI Brainstorm</span>
@@ -323,7 +323,7 @@ export function BrainstormModal({
                   Platform Target
                 </Label>
                 <Tabs value={platform} onValueChange={setPlatform}>
-                  <TabsList className="w-full grid grid-cols-4 h-9 p-0.5 bg-muted rounded-xl">
+                  <TabsList className="w-full grid grid-cols-4 h-11 p-0.5 bg-muted rounded-xl">
                     <TabsTrigger value="Instagram" className="text-xs font-bold rounded-lg py-1">Instagram</TabsTrigger>
                     <TabsTrigger value="TikTok" className="text-xs font-bold rounded-lg py-1">TikTok</TabsTrigger>
                     <TabsTrigger value="LinkedIn" className="text-xs font-bold rounded-lg py-1">LinkedIn</TabsTrigger>
