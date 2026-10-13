@@ -207,10 +207,10 @@ export function KbdKey({
       onPointerCancel={release}
       className={cn(
         "inline-flex select-none items-center justify-center rounded-md border font-mono",
-        "border-neutral-200 text-neutral-700 dark:border-neutral-700 dark:text-neutral-200",
+        "border-border text-muted-foreground",
         pressed
-          ? cn("bg-neutral-100 dark:bg-neutral-700", EDGE_SHADOW_PRESSED)
-          : cn("bg-neutral-50 dark:bg-neutral-800", EDGE_SHADOW),
+          ? cn("bg-muted dark:bg-muted", EDGE_SHADOW_PRESSED)
+          : cn("bg-muted/50 dark:bg-muted", EDGE_SHADOW),
         !shouldReduceMotion &&
           "transition-[background-color,box-shadow] duration-100 ease-out",
         SIZES[size],
@@ -238,7 +238,7 @@ export function KbdKey({
       onKeyUp={(event) => {
         if (event.key === "Enter" || event.key === " ") release()
       }}
-      className="inline-flex rounded-md focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950 dark:focus-visible:ring-neutral-300"
+      className="inline-flex rounded-md focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
     >
       {cap}
     </button>
@@ -337,7 +337,7 @@ export function KbdCombo({
           {index > 0 && (
             <span
               aria-hidden="true"
-              className="select-none text-2xs text-neutral-400"
+              className="select-none text-2xs text-muted-foreground"
             >
               +
             </span>

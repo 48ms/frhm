@@ -536,7 +536,7 @@ export function CampaignsBoard() {
             onClick={openCreate}
             className="admin-pill admin-pill-primary flex items-center gap-2 shadow-md cursor-pointer border-0"
           >
-            <Icons.rocket className="size-4 text-lime-300" />
+            <Icons.rocket className="size-4 text-[hsl(var(--admin-lime))]" />
             Launch Campaign
           </Button>
         </div>
@@ -565,7 +565,7 @@ export function CampaignsBoard() {
                 value={key}
                 className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
               >
-                {key === "active" && <span className="w-2 h-2 rounded-full bg-lime-400" />}
+                {key === "active" && <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-lime))]" />}
                 <span>{label}</span>
                 <span className="opacity-75 font-mono text-2xs">(<MetricTicker value={count} />)</span>
               </TabsTrigger>
@@ -620,7 +620,7 @@ export function CampaignsBoard() {
             </div>
             <div className="w-full bg-muted h-2.5 rounded-full mt-3 overflow-hidden p-0.5 border border-border/30">
               <div
-                className="bg-lime-400 h-full rounded-full"
+                className="bg-[hsl(var(--admin-lime))] h-full rounded-full"
                 style={{ width: `${Math.min(100, budgetStats.pct)}%` }}
               />
             </div>
@@ -694,7 +694,7 @@ export function CampaignsBoard() {
               } as React.CSSProperties
             }
           >
-            <div className="absolute -right-20 -top-20 w-80 h-80 bg-lime-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-20 -top-20 w-80 h-80 bg-[hsl(var(--admin-lime)/0.1)] rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               {featured ? (
                 <>
@@ -702,7 +702,7 @@ export function CampaignsBoard() {
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
                       <span className="admin-badge admin-badge-lime">
-                        <span className="w-2 h-2 rounded-full bg-lime-600" />
+                        <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-lime-ink))]" />
                         {featuredFlight
                           ? `FLIGHTING • DAY ${featuredFlight.day} OF ${featuredFlight.totalDays}`
                           : "EVERGREEN • NO FIXED FLIGHT"}
@@ -768,7 +768,7 @@ export function CampaignsBoard() {
                       </div>
                       <div className="w-full bg-muted h-2 rounded-full mt-2.5 overflow-hidden border border-border/30">
                         <div
-                          className="bg-lime-400 h-full rounded-full"
+                          className="bg-[hsl(var(--admin-lime))] h-full rounded-full"
                           style={{ width: `${Math.min(100, budgetStats.pct)}%` }}
                         />
                       </div>
@@ -788,7 +788,7 @@ export function CampaignsBoard() {
                       <div className="text-lg font-bold font-mono text-foreground mt-0.5">
                         {featuredFlight ? `${featuredFlight.pct.toFixed(0)}%` : "Evergreen"}
                       </div>
-                      <span className="text-1xs text-lime-600 font-bold">
+                      <span className="text-1xs text-[hsl(var(--admin-lime-ink))] font-bold">
                         {featuredFlight ? "elapsed" : "no fixed window"}
                       </span>
                     </div>
@@ -825,7 +825,7 @@ export function CampaignsBoard() {
                     deliverables, and talent in one place.
                   </p>
                   <Button onClick={openCreate} className="admin-pill admin-pill-primary mt-1">
-                    <Icons.rocket className="size-4 text-lime-300" />
+                    <Icons.rocket className="size-4 text-[hsl(var(--admin-lime))]" />
                     Launch Campaign
                   </Button>
                 </div>
@@ -1189,11 +1189,11 @@ export function CampaignsBoard() {
 
           {/* 3. AI Campaign Assistant Hook Generator */}
           <div className="admin-card bg-foreground text-background p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-lime-400/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-[hsl(var(--admin-lime)/0.2)] rounded-full blur-2xl pointer-events-none" />
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-3">
                 <span className="admin-badge bg-background text-foreground">FRHM AI V3.4</span>
-                <Icons.bot className="size-5 text-lime-400" />
+                <Icons.bot className="size-5 text-[hsl(var(--admin-lime))]" />
               </div>
               <h4 className="text-lg font-bold font-sans text-background">Need Campaign Angles?</h4>
               <p className="text-xs text-background/80 mt-1 leading-relaxed">
@@ -1209,7 +1209,7 @@ export function CampaignsBoard() {
                   size="icon"
                   aria-label="Buka AI Hook Generator"
                   onClick={() => setAiHookOpen(true)}
-                  className="w-8 h-8 rounded-full bg-lime-400 text-black flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer hover:bg-lime-300"
+                  className="w-9 h-9 rounded-full bg-[hsl(var(--admin-lime))] text-[hsl(var(--admin-lime-ink))] flex items-center justify-center shrink-0 hover:scale-105 transition-transform cursor-pointer hover:opacity-90"
                 >
                   <Icons.arrowRight className="size-4 -rotate-90" />
                 </Button>
@@ -1232,7 +1232,7 @@ export function CampaignsBoard() {
           <span>All rights reserved. Creative Media Operations Platform.</span>
         </div>
         <div className="flex items-center gap-1.5 text-foreground font-medium">
-          <span className="w-2 h-2 rounded-full bg-lime-400" />
+          <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-lime))]" />
           <span>System Status</span>
         </div>
       </footer>
