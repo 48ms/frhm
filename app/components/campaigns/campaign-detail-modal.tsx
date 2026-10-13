@@ -109,10 +109,10 @@ export function CampaignDetailModal({
         {/* Tabs */}
         <Tabs value={tab} onValueChange={(t) => setTab(t as "overview" | "performance")} className="w-full space-y-4">
           <TabsList className="bg-muted/70 p-1 rounded-full border border-border/40" highlightClassName="bg-card text-foreground shadow-sm rounded-full">
-            <TabsTrigger value="overview" className="rounded-full px-3.5 py-1 text-xs font-semibold capitalize">
+            <TabsTrigger value="overview" className="rounded-full px-3.5 py-1 min-h-11 text-xs font-semibold capitalize">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="performance" className="rounded-full px-3.5 py-1 text-xs font-semibold capitalize">
+            <TabsTrigger value="performance" className="rounded-full px-3.5 py-1 min-h-11 text-xs font-semibold capitalize">
               Performance
             </TabsTrigger>
           </TabsList>

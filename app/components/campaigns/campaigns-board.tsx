@@ -563,7 +563,7 @@ export function CampaignsBoard() {
               <TabsTrigger
                 key={key}
                 value={key}
-                className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
               >
                 {key === "active" && <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-lime))]" />}
                 <span>{label}</span>
@@ -880,14 +880,14 @@ export function CampaignsBoard() {
                 >
                   <TabsTrigger
                     value="list"
-                    className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                    className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
                   >
                     <Icons.listChecks className="size-4" />
                     <span>Deliverables List</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="gantt"
-                    className="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                    className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
                   >
                     <Icons.calendar className="size-4" />
                     <span>Gantt Timeline</span>

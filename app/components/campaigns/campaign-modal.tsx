@@ -187,7 +187,7 @@ export function CampaignModal({
                     id="campaign-name"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground"
                     placeholder="e.g. Summer Drop 2026"
                     autoFocus
                   />
@@ -215,7 +215,7 @@ export function CampaignModal({
                         type="button"
                         variant="outline"
                         id="campaign-client"
-                        className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus:border-brand-accent outline-none text-foreground transition-colors cursor-pointer h-auto"
+                        className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs hover:border-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground transition-colors cursor-pointer h-auto"
                       >
                         <span>{clients.find((c) => c.id === field.state.value)?.name ?? "Pilih Client"}</span>
                         <Icons.chevronDown className="size-3 text-muted-foreground" />
@@ -311,7 +311,7 @@ export function CampaignModal({
                       type="date"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground"
                     />
                   </div>
                 )}
@@ -328,7 +328,7 @@ export function CampaignModal({
                       type="date"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground"
+                      className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground"
                     />
                   </div>
                 )}
@@ -347,7 +347,7 @@ export function CampaignModal({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     rows={3}
-                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus:border-brand-accent outline-none text-foreground resize-none"
+                    className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground resize-none"
                     placeholder="Campaign objectives, target audience, key messages..."
                   />
                 </div>
