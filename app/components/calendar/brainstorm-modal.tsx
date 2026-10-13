@@ -165,35 +165,39 @@ export function BrainstormModal({
         </DialogTrigger>
       )}
       
-      <DialogContent className="sm:max-w-[720px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icons.sparkles className="h-5 w-5 text-primary" />
-            AI Content Studio
-          </DialogTitle>
-          <DialogDescription>
-            Rancang ide orisinal selaras Brand Profile atau audit kelayakan tren viral sebelum diadaptasi.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[720px] max-h-[85vh] overflow-y-auto bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
+        <DialogHeader className="flex flex-row items-center gap-2 border-b border-border/40 pb-3 space-y-0 text-left">
+          <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center shrink-0">
+            <Icons.sparkles className="size-[18px]" />
+          </div>
+          <div>
+            <DialogTitle className="font-sans font-bold text-foreground text-sm">
+              AI Content Studio
+            </DialogTitle>
+            <DialogDescription className="text-2xs text-muted-foreground">
+              Rancang ide orisinal selaras Brand Profile atau audit kelayakan tren viral sebelum diadaptasi.
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
         {/* Tab Navigation Segmented via Animate UI Tabs */}
         <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as TabMode)} className="mt-1">
           <TabsList
             highlightClassName="bg-card text-foreground shadow-xs rounded-lg"
-            className="w-full grid grid-cols-2 h-10 p-1 bg-muted/60 rounded-xl border border-border/40"
+            className="w-full grid grid-cols-2 h-auto p-1 bg-muted/60 rounded-xl border border-border/40"
           >
             <TabsTrigger
               value="ideation"
               onClick={() => setActiveTab("ideation")}
-              className="text-xs font-semibold py-1.5 flex items-center justify-center gap-2"
+              className="text-xs font-semibold py-2 min-h-11 flex items-center justify-center gap-2"
             >
-              <Icons.sparkles className="size-3.5 text-primary" />
+              <Icons.sparkles className="size-3.5 text-brand-accent" />
               <span>SPARK Ideation</span>
             </TabsTrigger>
             <TabsTrigger
               value="trend"
               onClick={() => setActiveTab("trend")}
-              className="text-xs font-semibold py-1.5 flex items-center justify-center gap-2"
+              className="text-xs font-semibold py-2 min-h-11 flex items-center justify-center gap-2"
             >
               <Icons.flame className="size-3.5 text-warning" />
               <span>Audit Tren (3-Gate)</span>

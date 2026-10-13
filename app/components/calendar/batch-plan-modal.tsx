@@ -171,18 +171,22 @@ export function BatchPlanModal({
       )}
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-2xl bg-card border border-border">
-          <DialogHeader className="p-6 border-b border-border/40 pb-4">
-            <DialogTitle className="font-bold text-lg flex items-center gap-2">
-              <Icons.sparkles className="size-5 text-[hsl(var(--admin-cobalt))]" />
-              AI Batch Planner
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Otomasi perencanaan konten kalender secara serentak berdasarkan pilar dan tujuan brand.
-            </DialogDescription>
+        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
+          <DialogHeader className="flex flex-row items-center gap-2 border-b border-border/40 pb-3 space-y-0 text-left">
+            <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center shrink-0">
+              <Icons.sparkles className="size-[18px]" />
+            </div>
+            <div>
+              <DialogTitle className="font-sans font-bold text-foreground text-sm">
+                AI Batch Planner
+              </DialogTitle>
+              <DialogDescription className="text-2xs text-muted-foreground">
+                Otomasi perencanaan konten kalender secara serentak berdasarkan pilar dan tujuan brand.
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-6 overflow-y-auto max-h-[60vh] px-1">
             {step === "config" ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -191,17 +195,17 @@ export function BatchPlanModal({
                     <Tabs value={period} onValueChange={setPeriod}>
                       <TabsList
                         highlightClassName="bg-card shadow-sm rounded-lg"
-                        className="w-full grid grid-cols-2 h-9 p-0.5 bg-muted/60 rounded-xl"
+                        className="w-full grid grid-cols-2 h-auto p-0.5 bg-muted/60 rounded-xl"
                       >
                         <TabsTrigger
                           value="this week"
-                          className="text-xs font-bold py-1"
+                          className="text-xs font-bold py-2 min-h-11"
                         >
                           1 Minggu
                         </TabsTrigger>
                         <TabsTrigger
                           value="this month"
-                          className="text-xs font-bold py-1"
+                          className="text-xs font-bold py-2 min-h-11"
                         >
                           1 Bulan
                         </TabsTrigger>
@@ -213,17 +217,17 @@ export function BatchPlanModal({
                     <Tabs value={String(postsPerWeek)} onValueChange={(val) => setPostsPerWeek(Number(val))}>
                       <TabsList
                         highlightClassName="bg-card shadow-sm rounded-lg"
-                        className="w-full grid grid-cols-2 h-9 p-0.5 bg-muted/60 rounded-xl"
+                        className="w-full grid grid-cols-2 h-auto p-0.5 bg-muted/60 rounded-xl"
                       >
                         <TabsTrigger
                           value="3"
-                          className="text-xs font-bold py-1"
+                          className="text-xs font-bold py-2 min-h-11"
                         >
                           3 Post/Mg
                         </TabsTrigger>
                         <TabsTrigger
                           value="5"
-                          className="text-xs font-bold py-1"
+                          className="text-xs font-bold py-2 min-h-11"
                         >
                           5 Post/Mg
                         </TabsTrigger>
@@ -245,9 +249,9 @@ export function BatchPlanModal({
                           size="sm"
                           onClick={() => togglePlatform(p)}
                           className={cn(
-                            "rounded-full text-xs font-bold capitalize border transition-all cursor-pointer h-auto py-1 px-3",
+                            "rounded-full text-xs font-bold capitalize border transition-all cursor-pointer h-auto py-2 px-3 min-h-9",
                             active
-                              ? "bg-[hsl(var(--admin-cobalt))] text-[hsl(var(--admin-cobalt-foreground))] border-[hsl(var(--admin-cobalt))] shadow-xs hover:bg-[hsl(var(--admin-cobalt))]/90"
+                              ? "bg-brand-accent text-brand-accent-foreground border-transparent shadow-xs hover:bg-brand-accent/90"
                               : "bg-muted/50 border-border/40 hover:bg-muted text-muted-foreground"
                           )}
                         >
@@ -261,7 +265,7 @@ export function BatchPlanModal({
                 <div>
                   <label className="text-xs font-bold text-muted-foreground block mb-1.5">Goal & Tema Khusus</label>
                   <textarea
-                    className="w-full min-h-[90px] px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border/40 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(var(--admin-cobalt))]"
+                    className="w-full min-h-[90px] px-3.5 py-2.5 rounded-xl bg-muted/50 border border-border/40 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                     placeholder="Contoh: Fokus awareness peluncuran produk baru dan edukasi problem solving..."
                     value={goals}
                     onChange={(e) => setGoals(e.target.value)}
@@ -281,7 +285,7 @@ export function BatchPlanModal({
                     variant="link"
                     size="sm"
                     onClick={() => setStep("config")}
-                    className="text-xs font-semibold text-[hsl(var(--admin-cobalt))] p-0 h-auto"
+                    className="text-xs font-semibold text-brand-accent p-0 h-auto"
                   >
                     ← Kembali ke Config
                   </Button>
@@ -294,7 +298,7 @@ export function BatchPlanModal({
                       className={cn(
                         "p-3 rounded-2xl border cursor-pointer flex gap-3 transition-all",
                         p.selected
-                          ? "bg-[hsl(var(--admin-cobalt))/10] border-[hsl(var(--admin-cobalt))/30] shadow-xs"
+                          ? "bg-brand-accent/5 border-brand-accent/30 shadow-xs"
                           : "bg-muted/20 border-border/30 opacity-60 hover:opacity-100"
                       )}
                     >
@@ -302,7 +306,7 @@ export function BatchPlanModal({
                         className={cn(
                           "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors",
                           p.selected
-                            ? "bg-[hsl(var(--admin-cobalt))] border-[hsl(var(--admin-cobalt))] text-white"
+                            ? "bg-brand-accent border-brand-accent text-brand-accent-foreground"
                             : "border-muted-foreground/30"
                         )}
                       >
@@ -319,10 +323,11 @@ export function BatchPlanModal({
             )}
           </div>
 
-          <div className="p-4 border-t border-border/40 flex justify-end gap-2.5 bg-muted/10">
+          <div className="flex justify-end gap-2.5 pt-2">
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               onClick={() => setIsOpen(false)}
               className="rounded-full font-bold text-xs"
             >
@@ -333,7 +338,8 @@ export function BatchPlanModal({
                 onClick={handleGenerate}
                 disabled={isPending || goals.trim().length < 10}
                 isLoading={isPending}
-                className="rounded-full font-bold text-xs bg-[hsl(var(--admin-cobalt))] text-white shadow-sm"
+                size="sm"
+                className="rounded-full font-bold text-xs bg-brand-accent text-brand-accent-foreground shadow-sm"
               >
                 {isPending ? (
                   <ShimmeringText text="Merancang Batch Kalender…" className="text-xs font-semibold" />
@@ -346,7 +352,8 @@ export function BatchPlanModal({
                 onClick={handleSaveSelected}
                 disabled={isSaving}
                 isLoading={isSaving}
-                className="rounded-full font-bold text-xs bg-[hsl(var(--admin-cobalt))] text-white shadow-sm flex items-center gap-1"
+                size="sm"
+                className="rounded-full font-bold text-xs bg-brand-accent text-brand-accent-foreground shadow-sm flex items-center gap-1"
               >
                 <span>Simpan </span>
                 <MetricTicker value={generatedPosts.filter((p) => p.selected).length} />
