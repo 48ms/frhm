@@ -82,7 +82,7 @@ export function CampaignDetailModal({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-w-xl bg-card rounded-2xl border border-border/40 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+        className="max-w-xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
         style={
           { viewTransitionName: campaignTransitionName(campaign.id) } as React.CSSProperties
         }

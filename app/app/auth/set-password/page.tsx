@@ -143,7 +143,7 @@ export default function SetPasswordPage() {
           </p>
           <Link
             href="/auth/forgot-password"
-            className={cn(buttonVariants(), "w-full h-10 rounded-lg font-medium")}
+            className={cn(buttonVariants(), "w-full min-h-11 rounded-lg font-medium")}
           >
             Minta Tautan Baru
           </Link>
