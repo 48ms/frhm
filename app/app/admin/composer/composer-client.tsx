@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { useRouter } from "next/navigation"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -457,11 +457,15 @@ export function ComposerClient() {
             Anda belum menghubungkan akun media sosial manapun untuk klien ini. Hubungkan setidaknya satu akun untuk mulai membuat dan menjadwalkan konten.
           </p>
         </div>
-        <Link href={`/admin/social-accounts${clientId ? `?clientId=${clientId}` : ""}`}>
-          <Button className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-md font-bold px-8 py-6 rounded-xl">
-            <Icons.add className="mr-2 size-5" />
-            Hubungkan Akun Sekarang
-          </Button>
+        <Link
+          href={`/admin/social-accounts${clientId ? `?clientId=${clientId}` : ""}`}
+          className={cn(
+            buttonVariants(),
+            "bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-md font-bold px-8 py-6 rounded-xl"
+          )}
+        >
+          <Icons.add className="mr-2 size-5" />
+          Hubungkan Akun Sekarang
         </Link>
       </div>
     )

@@ -196,7 +196,7 @@ export function SupportView() {
               {c.href ? (
                 <a
                   href={c.href}
-                  className="text-xs font-semibold text-brand-accent hover:underline"
+                  className="text-xs font-semibold text-brand-accent hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {c.action}
                 </a>

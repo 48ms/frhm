@@ -24,7 +24,7 @@ import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { PageContainer } from "@/components/layout/page-container"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Checkbox } from "@/components/animate-ui/components/radix/checkbox"
 import { FileUploader } from "@/components/file-uploader"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
@@ -611,10 +611,14 @@ export function LibraryClient() {
                   >
                     <Icons.calendar className="size-4" /> Jadwalkan dengan aset ini
                   </Button>
-                  <a href={previewAsset.url} download target="_blank" rel="noreferrer" className="w-full">
-                    <Button variant="outline" className="gap-2 w-full">
-                      <Icons.download className="size-4" /> Download
-                    </Button>
+                  <a
+                    href={previewAsset.url}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(buttonVariants({ variant: "outline" }), "gap-2 w-full")}
+                  >
+                    <Icons.download className="size-4" /> Download
                   </a>
                   <Button
                     variant="destructive"
@@ -735,11 +739,15 @@ function SortableAsset({
         >
           <Icons.calendar className="size-3" /> Use in Post
         </Button>
-        <a href={asset.url} download target="_blank" rel="noreferrer">
-          <Button size="sm" variant="secondary" className="gap-1 text-xs">
-            <Icons.download className="size-3" /> Download
-          </Button>
-        </a>
+                  <a
+                    href={asset.url}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(buttonVariants({ size: "sm", variant: "secondary" }), "gap-1 text-xs")}
+                  >
+                    <Icons.download className="size-3" /> Download
+                  </a>
         <Button
           size="sm"
           variant="destructive"

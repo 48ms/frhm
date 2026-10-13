@@ -47,7 +47,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
           aria-current={active ? "page" : undefined}
           onClick={() => isMobile && setOpenMobile(false)}
           className={cn(
-            "flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm transition-all",
+            "flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             active
               ? "bg-[hsl(var(--admin-lime))] text-[hsl(var(--admin-lime-ink))] font-semibold shadow-xs"
               : "text-muted-foreground font-semibold hover:text-foreground hover:bg-muted/60"
@@ -94,7 +94,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
               <a
                 href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                 onClick={() => isMobile && setOpenMobile(false)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <Icons.add className="size-4" />
                 New Post
@@ -108,7 +108,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                   aria-label="New Post"
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-white shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-white shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Icons.add className="size-5" />
                 </a>
@@ -126,7 +126,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                       aria-label={item.title}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center justify-center w-10 h-10 rounded-full transition-all",
+                        "flex items-center justify-center w-10 h-10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         active
                           ? "bg-[hsl(var(--admin-lime))] text-[hsl(var(--admin-lime-ink))] shadow-xs font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -150,7 +150,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             <a
               href="/admin/settings"
               onClick={() => isMobile && setOpenMobile(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icons.settings className="size-[18px]" />
               <span>Settings</span>
@@ -158,7 +158,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             <a
               href="/admin/support"
               onClick={() => isMobile && setOpenMobile(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-xs cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icons.help className="size-[18px]" />
               <span>Support</span>
@@ -172,7 +172,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href="/admin/settings"
                   aria-label="Settings"
-                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Icons.settings className="size-[18px]" />
                 </a>
@@ -184,7 +184,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href="/admin/support"
                   aria-label="Support"
-                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Icons.help className="size-[18px]" />
                 </a>

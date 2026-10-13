@@ -61,7 +61,7 @@ export function InfoSidebar({ ...props }: React.ComponentProps<typeof Infobar>) 
                         <li key={link.title}>
                           <Link
                             href={link.url}
-                            className="text-primary flex items-center gap-1.5 text-sm underline"
+                            className="text-primary flex items-center gap-1.5 text-sm underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <span>{link.title}</span>
                             <Icons.chevronRight className="h-3 w-3" />

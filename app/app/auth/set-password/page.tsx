@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { z } from 'zod'
@@ -140,8 +141,11 @@ export default function SetPasswordPage() {
           <p className="text-sm text-muted-foreground">
             {linkError ?? 'Tautan pemulihan tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru.'}
           </p>
-          <Link href="/auth/forgot-password" className="w-full">
-            <Button className="w-full h-10 rounded-lg font-medium">Minta Tautan Baru</Button>
+          <Link
+            href="/auth/forgot-password"
+            className={cn(buttonVariants(), "w-full h-10 rounded-lg font-medium")}
+          >
+            Minta Tautan Baru
           </Link>
         </div>
       </div>
