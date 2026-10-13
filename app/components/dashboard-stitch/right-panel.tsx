@@ -221,7 +221,7 @@ export function DashboardStitchConnectedHub() {
       </div>
 
       <AlertDialog open={Boolean(disconnectId)} onOpenChange={(open) => !open && setDisconnectId(null)}>
-        <AlertDialogContent className="max-w-sm rounded-2xl border-border/40 shadow-2xl bg-card/95 backdrop-blur-2xl p-5 text-center space-y-4">
+        <AlertDialogContent className="max-w-sm bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6 text-center">
           <AlertDialogHeader className="items-center text-center space-y-2">
             <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
               <Icons.warning className="size-6" />

@@ -153,7 +153,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
   return (
     <>
       <Dialog open={open && !createdCredentials} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md overflow-hidden p-0 gap-0 border-primary/20 shadow-2xl">
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
           {/* Header Progress Bar */}
           <div className="bg-muted/40 border-b p-6 pb-4">
             <div className="flex items-center justify-between mb-3">

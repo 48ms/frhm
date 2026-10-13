@@ -24,7 +24,7 @@ export interface DisconnectDialogProps {
 export function DisconnectDialog({ open, handle, onConfirm, onClose }: DisconnectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-sm gap-0 overflow-hidden p-0">
+      <DialogContent className="max-w-sm bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
         <div className="p-6 space-y-3 animate-in fade-in zoom-in-95 duration-300">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-destructive/15 text-destructive flex items-center justify-center shrink-0">

@@ -104,7 +104,7 @@ export function ExportReportModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md p-5 rounded-2xl border-border/40 shadow-2xl bg-card space-y-4">
+      <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
         <DialogHeader className="flex flex-row items-center gap-2 border-b border-border/30 pb-3 space-y-0 text-left">
           <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center shrink-0">
             <Icons.ios_share className="size-[18px]" />

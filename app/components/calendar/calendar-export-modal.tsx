@@ -169,7 +169,7 @@ export function CalendarExportModal({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl bg-card border border-border shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
         <DialogHeader className="p-5 border-b border-border/30 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center shrink-0">

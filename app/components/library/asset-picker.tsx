@@ -102,7 +102,7 @@ export function AssetPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
         <DialogTitle>Pilih Media</DialogTitle>
         <DialogDescription>
           Pilih aset dari Media Library untuk dilampirkan ke postingan ini.

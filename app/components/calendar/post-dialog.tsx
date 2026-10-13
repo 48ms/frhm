@@ -291,7 +291,7 @@ export function PostDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-4xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row h-[78vh] sm:max-h-[640px] max-h-[90vh] animate-in fade-in zoom-in-95 duration-300">
           {/* ========================================================== */}
           {/* MAIN WORKSPACE (left): editor area, Notion-style           */}

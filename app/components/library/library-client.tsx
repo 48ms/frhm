@@ -513,7 +513,7 @@ export function LibraryClient() {
 
       {/* Asset detail lightbox */}
       <Dialog open={!!previewAsset} onOpenChange={(open) => !open && setPreviewAsset(null)}>
-        <DialogContent className="sm:max-w-3xl p-0 overflow-hidden gap-0">
+        <DialogContent className="sm:max-w-3xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
           <DialogTitle className="sr-only">Detail aset</DialogTitle>
           {previewAsset && (
             <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr]">
