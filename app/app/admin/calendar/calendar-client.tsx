@@ -990,7 +990,7 @@ export function AdminCalendarClient() {
                     {/* Add Slot Prompt */}
                     <button
                       onClick={() => handleAddPost(d)}
-                      className="w-full mt-2 py-1 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                      className="w-full mt-2 py-1 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all text-1xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Icons.add className="size-3.5" /> Add Post
                     </button>
@@ -1020,7 +1020,7 @@ export function AdminCalendarClient() {
                         <button
                           key={p.id}
                           onClick={() => handleSelectPost(p)}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/30 hover:border-secondary transition-all text-left cursor-pointer"
+                          className="w-full flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/30 hover:border-secondary transition-all text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <div className="w-10 h-10 rounded-xl bg-card/60 flex items-center justify-center shrink-0">
                             <ListIcon className="size-5 text-primary" />
@@ -1114,7 +1114,7 @@ export function AdminCalendarClient() {
                     <button
                       type="button"
                       disabled={!release}
-                      className="bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-card/60 hover:bg-muted text-foreground py-1.5 rounded-full text-1xs font-semibold text-center transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       Force Publish
                     </button>

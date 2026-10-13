@@ -631,7 +631,7 @@ export function ComposerClient() {
                             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                               <Icons.sparkles className="size-3 text-primary" /> Hook Matrix (Pilih Baris Pembuka)
                             </span>
-                            <Button variant="ghost" size="sm" onClick={() => setHookOptions(null)} className="h-6 text-2xs">
+                            <Button variant="ghost" size="sm" onClick={() => setHookOptions(null)} className="min-h-9 text-2xs">
                               Tutup
                             </Button>
                           </div>

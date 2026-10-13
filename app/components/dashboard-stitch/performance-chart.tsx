@@ -156,7 +156,7 @@ export function DashboardStitchChart() {
             <p className="text-xs font-semibold text-muted-foreground">
               {card.label}
             </p>
-            <p className="font-syne font-bold text-foreground text-base mt-1">
+            <p className="font-mono font-bold text-foreground text-base mt-1">
               {card.value}
             </p>
             <p className="text-xs font-semibold mt-0.5 text-brand-accent">

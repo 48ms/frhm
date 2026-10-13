@@ -58,9 +58,29 @@ vi.mock('motion/react', () => ({
     {},
     {
       get: (_target, prop: string) => {
-        const Comp = ({ children, whileHover, whileTap, whileFocus, transition, ...props }: any) => {
+        const Comp = ({ children, ...props }: any) => {
+          // Strip motion-only props so they are never forwarded to a raw DOM node.
+          const {
+            whileHover,
+            whileTap,
+            whileFocus,
+            whileInView,
+            whileDrag,
+            layout,
+            layoutId,
+            initial,
+            animate,
+            exit,
+            variants,
+            transition,
+            drag,
+            dragConstraints,
+            onAnimationStart,
+            onAnimationComplete,
+            ...rest
+          } = props
           const Tag = prop as keyof JSX.IntrinsicElements
-          return <Tag {...props}>{children}</Tag>
+          return <Tag {...rest}>{children}</Tag>
         }
         Comp.displayName = `motion.${prop}`
         return Comp

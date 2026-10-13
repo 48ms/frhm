@@ -128,7 +128,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative"
+                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative"
               >
                 <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <span>
@@ -168,7 +168,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
               type="button"
               onClick={resetFilters}
               title="Reset Filter"
-              className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 border border-border/60 rounded-lg hover:bg-muted/50 transition-colors shrink-0"
+              className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 border border-border/60 rounded-lg hover:bg-muted/50 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icons.refresh className="size-3" />
               Reset
@@ -192,7 +192,7 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
               <button
                 type="button"
                 onClick={resetFilters}
-                className="mt-4 text-xs font-medium text-brand-accent hover:underline flex items-center gap-1"
+                className="mt-4 text-xs font-medium text-brand-accent hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
               >
                 <Icons.refresh className="size-3" />
                 Kembalikan semua filter

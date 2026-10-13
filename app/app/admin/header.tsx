@@ -1,21 +1,12 @@
 "use client"
 
 import { Icons } from "@/components/icons"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useKBar } from "kbar"
 import { NotificationCenter } from "@/components/notification-center"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/animate-ui/components/radix/dropdown-menu"
 import { AdminCommandSearch } from "@/components/admin-command-search"
 import { ThemeSelector } from "@/components/theme-selector"
 import { InfobarTrigger } from "@/components/ui/infobar"
@@ -34,7 +25,6 @@ export function AdminHeader({
   onSignOut,
   extraActions,
 }: AdminHeaderProps) {
-  const [open, setOpen] = useState(false)
   const router = useRouter()
   const { query } = useKBar()
   const initials = (userName?.charAt(0) || "A").toUpperCase()
@@ -105,30 +95,16 @@ export function AdminHeader({
         >
           <Icons.apps className="size-[22px]" />
         </Button>
-        <DropdownMenu open={open} onOpenChange={setOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="admin-avatar flex size-8 shrink-0 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-              aria-label="User menu"
-            >
-              <span className="text-xs font-bold">{initials}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{userName}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onSignOut}>
-              <Icons.logout className="mr-2 h-4 w-4" /> Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onSignOut}
+          className="admin-avatar flex size-8 shrink-0 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+          aria-label="Sign out"
+        >
+          <span className="text-xs font-bold">{initials}</span>
+        </Button>
       </div>
     </header>
   )
