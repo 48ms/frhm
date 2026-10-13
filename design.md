@@ -4,8 +4,10 @@
 **Tanggal Diperbarui**: September 2026
 
 ## 🚨 HUKUM MUTLAK (THE ABSOLUTE RULE)
-Seluruh fase pengimplementasian UI/UX di proyek ini **WAJIB MUTLAK** menggunakan dan mengikuti standar dari **[Animate UI](https://github.com/imskyleen/animate-ui)**. 
-- **Komponen:** Dilarang membuat komponen animasi dari nol atau menggunakan library eksternal lain jika `animate-ui` sudah menyediakannya. Komponen dari repositori tersebut adalah satu-satunya sumber kebenaran (*Single Source of Truth*).
+Seluruh fase pengimplementasian UI/UX di proyek ini **WAJIB MUTLAK** menggunakan dan mengikuti standar dari **[Animate UI](https://github.com/imskyleen/animate-ui)** **DAN** **[Radix UI](https://www.radix-ui.com/)**.
+- **SSOT Ganda (Mutlak):** `Animate UI` + `Radix UI` adalah **satu-satunya sumber kebenaran** (*Single Source of Truth*). Keduanya berstatus mutlak dan setara. `Animate UI` adalah primitif animasi/visual, `Radix UI` adalah primitif aksesibilitas & perilaku (behavior) headless.
+- **Komponen:** Dilarang membuat komponen animasi dari nol atau menggunakan library eksternal lain (termasuk `@base-ui/react`, `shadcn` mentah, `headlessui`, dsb.) jika `animate-ui` atau `radix-ui` sudah menyediakannya.
+- **Larangan Mengubah SSOT:** Dilarang keras mengubah/menghapus kode sumber di dalam `components/animate-ui/*` dan `components/ui/*` (yang berfungsi sebagai *re-export*). Seluruh penyesuaian **HANYA** boleh dilakukan lewat `className` pada *instance* pemakaian.
 - **Tech Stack:** Wajib selaras total dengan ekosistem `animate-ui` (React, TypeScript, Tailwind CSS, dan Motion).
 - **Versi Tailwind & Konfigurasi:** Wajib patuh dan mengikuti versi Tailwind beserta struktur konfigurasi yang disyaratkan oleh repo `animate-ui`.
 - Segala interaksi mikro (*micro-interactions*), efek hover, menu, dan transisi wajib terasa *fluid*, bernyawa, dan premium layaknya standar library tersebut.
