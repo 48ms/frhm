@@ -109,7 +109,7 @@ export function DashboardStitchKpis() {
               <div className="flex items-baseline gap-2">
                 <MetricTicker
                   value={kpi.value}
-                  className="font-sans font-bold text-2xl text-foreground tracking-tight"
+                  className="font-mono font-bold text-2xl text-foreground tracking-tight"
                 />
                 {kpi.growth && (
                   <span
