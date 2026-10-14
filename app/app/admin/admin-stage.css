@@ -151,6 +151,19 @@
   z-index: 1;
 }
 
+/* Pause the ambient orb float while any overlay (modal, dialog, sheet) is open.
+   The dialog's backdrop-filter must re-blur the whole viewport every frame the
+   orb moves, which was the measured jank source (7-45 frames >33ms per 2.5s
+   sample). Freezing the orbs eliminates the repaint at zero visual cost — the
+   glow is static decoration, and modal overlays cover it anyway.
+
+   Note: Radix portals dialogs to <body>, outside .admin-theme, so the selector
+   is anchored on body and reaches into the admin viewport from there. */
+body:has([role="dialog"]) .admin-theme .admin-orb,
+body:has([role="alertdialog"]) .admin-theme .admin-orb {
+  animation-play-state: paused;
+}
+
 /* --------------------------------------------------------------- shell ---- */
 /* Inset stays transparent so the mesh shows through. */
 .admin-theme [data-slot="sidebar-inset"] {
