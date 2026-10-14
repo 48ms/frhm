@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Provider } from '@/lib/ai/providers'
+import { resolveProvider } from '@/lib/ai/server'
+import { logAiUsage } from '@/lib/ai/usage'
 import { previewUrl } from '@/lib/media/transform'
 
 export interface CaptionResult {
@@ -56,7 +58,10 @@ export async function generateAssetCaption(
     return { caption: '', error: 'Caption AI belum mendukung video. Buat manual dulu, ya.' }
   }
 
-  const provider: Provider = {
+  const supabase = await createClient()
+  const dbProvider = await resolveProvider(supabase).catch(() => null)
+
+  const provider: Provider = dbProvider || {
     kind: 'custom',
     model: process.env.AI_DEFAULT_MODEL || 'gpt-4o-mini',
     base_url: process.env.AI_DEFAULT_BASE_URL || 'http://localhost:11434/v1',
@@ -69,6 +74,7 @@ Pakai bahasa Indonesia santai tapi rapi, masing-masing sertakan 3 hashtag releva
 Balas HANYA teks captionnya, tanpa pembuka atau penutup.`
 
   const base = (provider.base_url || 'https://api.openai.com').replace(/\/$/, '')
+  const start = Date.now()
 
   try {
     const res = await fetch(`${base}/v1/chat/completions`, {
@@ -95,11 +101,36 @@ Balas HANYA teks captionnya, tanpa pembuka atau penutup.`
     })
 
     if (!res.ok) {
+      void logAiUsage({
+        userId: null,
+        clientId,
+        route: 'library/asset-caption',
+        model: provider.model,
+        providerKind: provider.kind,
+        promptTokens: 0,
+        completionTokens: 0,
+        latencyMs: Date.now() - start,
+        errorMessage: `Provider menolak permintaan (${res.status})`,
+      })
       return { caption: '', error: `Provider menolak permintaan (${res.status})` }
     }
 
     const data = await res.json()
     const content: string = data?.choices?.[0]?.message?.content ?? ''
+    const promptTokens = data?.usage?.prompt_tokens ?? data?.usage?.input_tokens ?? 0
+    const completionTokens = data?.usage?.completion_tokens ?? data?.usage?.output_tokens ?? 0
+
+    void logAiUsage({
+      userId: null,
+      clientId,
+      route: 'library/asset-caption',
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens,
+      completionTokens,
+      latencyMs: Date.now() - start,
+    })
+
     if (!content.trim()) {
       return { caption: '', error: 'Model tidak mengembalikan caption.' }
     }
@@ -107,6 +138,17 @@ Balas HANYA teks captionnya, tanpa pembuka atau penutup.`
     return { caption: content.trim() }
   } catch (err) {
     console.error('[AI Caption] request failed:', err)
+    void logAiUsage({
+      userId: null,
+      clientId,
+      route: 'library/asset-caption',
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens: 0,
+      completionTokens: 0,
+      latencyMs: Date.now() - start,
+      errorMessage: err instanceof Error ? err.message : 'Unknown caption error',
+    })
     return { caption: '', error: 'Caption AI gagal. Coba lagi nanti.' }
   }
 }

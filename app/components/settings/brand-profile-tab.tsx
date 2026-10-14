@@ -10,6 +10,7 @@ import { Icons } from "@/components/icons"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import type { BrandProfile } from "@/features/social-accounts/api/types"
+import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 
 export function BrandProfileTab() {
   const { clientId, client } = useActiveDashboard()
@@ -17,6 +18,7 @@ export function BrandProfileTab() {
   const { mutateAsync: generateProfile, isPending: isGenerating } = useGenerateBrandProfile()
 
   const [aiPanelOpen, setAiPanelOpen] = React.useState(false)
+  const [markdownEditorOpen, setMarkdownEditorOpen] = React.useState(false)
   const [rawMaterial, setRawMaterial] = React.useState("")
   const [industry, setIndustry] = React.useState("")
   
@@ -79,16 +81,28 @@ export function BrandProfileTab() {
   return (
     <div className="space-y-8">
       <div className="admin-card border-none bg-card p-8 shadow-sm">
-        <div className="flex items-start justify-between border-b border-border/60 pb-5 mb-6">
+        <div className="flex items-start justify-between border-b border-border/60 pb-5 mb-6 flex-wrap gap-4">
           <div>
             <h2 className="text-xl font-bold text-foreground">Identitas & Brand Profile</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Atur pedoman merek, gaya bahasa (Tone of Voice), dan panduan untuk AI / Tim Kreatif saat membuat konten untuk klien ini.
             </p>
           </div>
-          <span className="px-3 py-1 rounded-full bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] text-xs font-semibold">
-            {client?.name || "Client"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-semibold">
+              {client?.name || "Client"}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setMarkdownEditorOpen(true)}
+              className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            >
+              <Icons.fileText className="size-3.5" />
+              Buka Dokumen .md (Brand Brain)
+            </Button>
+          </div>
         </div>
 
         <div className="mb-8">
@@ -97,16 +111,16 @@ export function BrandProfileTab() {
               type="button"
               variant="outline"
               onClick={() => setAiPanelOpen(true)}
-              className="w-full h-auto py-4 border-2 border-dashed border-brand-accent/30 rounded-xl bg-brand-accent/5 text-brand-accent hover:bg-brand-accent/10 transition-colors flex items-center justify-center gap-2 font-bold text-sm"
+              className="w-full h-auto py-4 border-2 border-dashed border-primary/30 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 font-bold text-sm cursor-pointer"
             >
               <Icons.sparkles className="size-5" />
               Gunakan AI untuk Ekstrak Brand DNA
             </Button>
           ) : (
-            <div className="p-6 rounded-2xl bg-brand-accent/5 border border-brand-accent/20">
+            <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-brand-accent flex items-center gap-2">
-                  <Icons.sparkles className="size-4 text-brand-accent" />
+                <h4 className="font-bold text-primary flex items-center gap-2">
+                  <Icons.sparkles className="size-4 text-primary" />
                   AI Brand DNA Extractor
                 </h4>
                 <Button
@@ -114,7 +128,7 @@ export function BrandProfileTab() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setAiPanelOpen(false)}
-                  className="h-8 text-xs text-muted-foreground hover:text-brand-accent"
+                  className="h-8 text-xs text-muted-foreground hover:text-primary cursor-pointer"
                 >
                   Tutup
                 </Button>
@@ -125,16 +139,16 @@ export function BrandProfileTab() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-brand-accent block mb-1">Industri / Kategori (Opsional)</label>
+                  <label className="text-xs font-bold text-foreground block mb-1">Industri / Kategori (Opsional)</label>
                   <input 
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border/40 text-sm focus: focus:ring-2 focus:ring-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border/40 text-sm focus:ring-2 focus:ring-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                     placeholder="Contoh: B2B SaaS, F&B Artisan, dsb."
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-brand-accent block mb-1">Materi Mentah (Raw Material)</label>
+                  <label className="text-xs font-bold text-foreground block mb-1">Materi Mentah (Raw Material)</label>
                   <Textarea 
                     className="w-full min-h-[120px] bg-background border border-border/40"
                     placeholder="Paste about us, visi misi, atau contoh konten..."
@@ -148,7 +162,7 @@ export function BrandProfileTab() {
                     onClick={handleGenerateAI}
                     disabled={!rawMaterial}
                     isLoading={isGenerating}
-                    className="bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground text-sm font-bold rounded-lg flex items-center gap-2 shadow-sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold rounded-lg flex items-center gap-2 shadow-sm cursor-pointer"
                   >
                     <Icons.sparkles className="size-4" />
                     Mulai Ekstraksi
@@ -260,7 +274,7 @@ export function BrandProfileTab() {
                   type="submit"
                   disabled={!canSubmit}
                   isLoading={isSubmitting}
-                  className="px-6 py-2.5 rounded-full bg-brand-accent text-brand-accent-foreground font-semibold text-sm hover:bg-brand-accent/90 transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   Simpan Profil
                 </Button>
@@ -269,6 +283,13 @@ export function BrandProfileTab() {
           </div>
         </form>
       </div>
+
+      <BrandBrainEditorDialog
+        open={markdownEditorOpen}
+        onOpenChange={setMarkdownEditorOpen}
+        clientId={clientId}
+        clientName={client?.name || "Client"}
+      />
     </div>
   )
 }

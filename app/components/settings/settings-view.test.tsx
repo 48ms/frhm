@@ -26,9 +26,11 @@ describe('SettingsView', () => {
     expect(screen.getByText(/Agency Workspace Profile/i)).toBeInTheDocument()
   })
 
-  it('renders all four tab buttons', () => {
+  it('renders all six tab buttons', () => {
     renderView()
     expect(screen.getByRole('tab', { name: /Workspace/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Brand Profile/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /AI Providers/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Billing/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Integrations/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /User Access/i })).toBeInTheDocument()

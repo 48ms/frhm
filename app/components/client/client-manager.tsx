@@ -6,10 +6,15 @@ import { socialQueries } from "@/features/social-accounts/api/queries"
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
+import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 
 export function ClientManager() {
   const { data: clients, isLoading } = useQuery(socialQueries.listClientsWithChannels())
   const { openCreateClient } = useCreateClient()
+  const [selectedClientForEditor, setSelectedClientForEditor] = React.useState<{
+    id: string
+    name: string
+  } | null>(null)
 
   if (isLoading) {
     return (
@@ -32,7 +37,7 @@ export function ClientManager() {
           <div
             key={client.id}
             data-client-id={client.id}
-            className="p-6 rounded-2xl bg-card border border-border/50 hover:border-brand-accent/60 transition-all"
+            className="p-6 rounded-2xl bg-card border border-border/50 hover:border-brand-accent/60 transition-all flex flex-col justify-between"
           >
             <div className="flex items-center gap-4 mb-4">
               <div
@@ -48,6 +53,24 @@ export function ClientManager() {
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-border/40">
+              <span className="text-2xs font-semibold text-muted-foreground">
+                {client.channels?.length || 0} Kanal Terhubung
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setSelectedClientForEditor({ id: client.id, name: client.name })
+                }
+                className="h-7 text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+              >
+                <Icons.bot className="size-3 text-primary" />
+                Brand Brain (.md)
+              </Button>
+            </div>
           </div>
         ))}
 
@@ -62,6 +85,15 @@ export function ClientManager() {
           <span className="font-bold text-sm">Add New Client</span>
         </Button>
       </div>
+
+      {selectedClientForEditor && (
+        <BrandBrainEditorDialog
+          open={Boolean(selectedClientForEditor)}
+          onOpenChange={(open) => !open && setSelectedClientForEditor(null)}
+          clientId={selectedClientForEditor.id}
+          clientName={selectedClientForEditor.name}
+        />
+      )}
     </div>
   )
 }

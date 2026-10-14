@@ -35,6 +35,12 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
   --color-brand-accent: hsl(var(--brand-accent));
   --color-brand-accent-foreground: hsl(var(--brand-accent-foreground));
+  /* Material container color pair. .admin-theme (admin-stage.css) defines the
+     actual values (lime fill + olive ink); the :root fallbacks below keep the
+     utilities from being unstyled outside the admin shell. */
+  --color-primary-container: hsl(var(--primary-container, var(--brand-accent)));
+  --color-on-primary-container: hsl(var(--on-primary-container, var(--brand-accent-foreground)));
+  --color-primary-fixed: hsl(var(--primary-fixed, var(--brand-accent)));
   /* Luminous Space tokens (login stage) */
   --color-brand-chartreuse: hsl(var(--brand-chartreuse));
   --color-brand-cobalt: hsl(var(--brand-cobalt));

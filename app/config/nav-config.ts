@@ -8,6 +8,7 @@ import { NavItem } from '@/types/nav';
 export const adminNavStitch: NavItem[] = [
   { title: 'Overview', url: '/admin/dashboard', icon: 'dashboard', shortcut: ['g', 'd'] },
   { title: 'Marketing ERP', url: '/admin/erp', icon: 'layers', shortcut: ['g', 'e'] },
+  { title: 'AI Studio', url: '/admin/ai', icon: 'auto_awesome', shortcut: ['g', 'i'] },
   { title: 'Social Accounts', url: '/admin/social-accounts', icon: 'hub', shortcut: ['g', 's'] },
   { title: 'Composer', url: '/admin/composer', icon: 'rocket', shortcut: ['g', 'c'] },
   { title: 'Campaigns', url: '/admin/campaigns', icon: 'campaign', shortcut: ['g', 'm'] },

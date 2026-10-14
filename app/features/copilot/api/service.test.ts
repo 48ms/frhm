@@ -3,12 +3,29 @@ import { generateHooks, generateCarousel, validatePlatformPost, generateVisualPr
 
 const mockChatJson = vi.fn()
 const mockChat = vi.fn()
+const mockChatJsonDetailed = vi.fn().mockImplementation(async (...args: unknown[]) => {
+  const data = await mockChatJson(...args)
+  return {
+    data,
+    usage: { promptTokens: 120, completionTokens: 60, totalTokens: 180 },
+  }
+})
+const mockChatDetailed = vi.fn().mockImplementation(async (...args: unknown[]) => {
+  const text = await mockChat(...args)
+  return {
+    text,
+    usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+  }
+})
 const mockResolveProvider = vi.fn()
 const mockLoadSkillBundle = vi.fn()
 const mockLoadClientFiles = vi.fn()
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "test-user-1" } } }),
+    },
     from: () => ({
       select: () => ({
         eq: () => ({
@@ -34,9 +51,15 @@ vi.mock("@/lib/ai/server", () => ({
   brandContext: vi.fn().mockReturnValue("# Brand Profile Mock"),
 }))
 
+vi.mock("@/lib/ai/usage", () => ({
+  logAiUsage: vi.fn().mockResolvedValue(undefined),
+}))
+
 vi.mock("@/lib/ai/providers", () => ({
   chatJson: (...args: unknown[]) => mockChatJson(...args),
+  chatJsonDetailed: (...args: unknown[]) => mockChatJsonDetailed(...args),
   chat: (...args: unknown[]) => mockChat(...args),
+  chatDetailed: (...args: unknown[]) => mockChatDetailed(...args),
 }))
 
 describe("Copilot Social Media Skills Integration", () => {

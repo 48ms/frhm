@@ -4,7 +4,8 @@ import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from "@/lib/ai/server"
-import { chatJson, chat } from "@/lib/ai/providers"
+import { chatJsonDetailed, chatDetailed } from "@/lib/ai/providers"
+import { logAiUsage } from "@/lib/ai/usage"
 import {
   GenerateCaptionSchema,
   GenerateIdeasSchema,
@@ -49,6 +50,33 @@ import type {
   EvaluateTrendResponse,
 } from "./types"
 
+async function recordCopilotUsage(
+  supabase: any,
+  clientId: string | null,
+  route: string,
+  provider: { model: string; kind: string },
+  usage: { promptTokens: number; completionTokens: number } | null,
+  start: number,
+  errorMessage?: string | null
+) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAiUsage({
+      userId: user?.id ?? null,
+      clientId,
+      route,
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens: usage?.promptTokens ?? 0,
+      completionTokens: usage?.completionTokens ?? 0,
+      latencyMs: Date.now() - start,
+      errorMessage: errorMessage ?? null,
+    })
+  } catch {
+    // Non-blocking observability
+  }
+}
+
 async function buildSystemPrompt(supabase: any, clientId: string, skillId: string, instruction: string): Promise<string | null> {
   const provider = await resolveProvider(supabase)
   if (!provider) return null
@@ -83,10 +111,13 @@ You must output valid JSON only, exactly matching the requested schema. No conve
 }
 
 export async function generateBatchPlan(input: GenerateBatchPlanInput): Promise<BatchPlanResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, period, platforms, goals, postsPerWeek } = GenerateBatchPlanInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
     
     if (!provider) return { error: "AI Provider belum dikonfigurasi. Hubungi Admin." }
 
@@ -104,23 +135,31 @@ RULES:
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "batch-content-plan", instruction)
     if (!systemPrompt) return { error: "Failed to build system prompt" }
 
-    const object = await chatJson<z.infer<typeof BatchPlanSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof BatchPlanSchema>>(provider, systemPrompt, [
       { role: "user", content: "Build the batch content plan now. Make it sustainable and highly tailored to the brand." }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/batch-plan", provider, usage, start, object ? null : "AI response parse failed")
 
     if (!object) return { error: "AI merespons dengan format yang salah atau gagal membuat rencana." }
     return { plan: object }
   } catch (err: any) {
     logger.error("Batch Plan Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/batch-plan", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan saat membuat batch plan" }
   }
 }
 
 export async function generateCaption(input: GenerateCaptionInput): Promise<CopilotResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, topic, platform, goal } = GenerateCaptionSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
     
     if (!provider) return { caption: "", error: "AI Provider belum dikonfigurasi." }
 
@@ -136,22 +175,30 @@ RULES:
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "caption-writer", instruction)
     if (!systemPrompt) return { caption: "", error: "Failed to build system prompt" }
 
-    const raw = await chat(provider, systemPrompt + "\nOutput ONLY the final caption text. Do not output JSON.", [
+    const { text: raw, usage } = await chatDetailed(provider, systemPrompt + "\nOutput ONLY the final caption text. Do not output JSON.", [
       { role: "user", content: `Topic / Asset Description: ${topic}` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/caption", provider, usage, start)
 
     return { caption: raw.trim() }
   } catch (err: any) {
     logger.error("Copilot Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/caption", provider, null, start, err.message)
+    }
     return { caption: "", error: err.message || "Terjadi kesalahan pada AI" }
   }
 }
 
 export async function generateContentIdeas(input: GenerateIdeasInput): Promise<IdeasResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, count, trendOrTopic } = GenerateIdeasSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
     
     if (!provider) return { ideas: [], error: "AI Provider belum dikonfigurasi." }
 
@@ -164,23 +211,31 @@ Topic/Trend constraint: ${trendOrTopic || "General brand pillars"}
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "idea-generation-and-ideation", instruction)
     if (!systemPrompt) return { ideas: [], error: "Failed to build system prompt" }
 
-    const object = await chatJson<{ ideas: z.infer<typeof GeneratedIdeaSchema>[] }>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<{ ideas: z.infer<typeof GeneratedIdeaSchema>[] }>(provider, systemPrompt, [
       { role: "user", content: `Generate ${count} content ideas now.` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/content-ideas", provider, usage, start, object?.ideas ? null : "Gagal meracik ide")
 
     if (!object || !object.ideas) return { ideas: [], error: "Gagal meracik ide konten." }
     return { ideas: object.ideas }
   } catch (err: any) {
     logger.error("Copilot Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/content-ideas", provider, null, start, err.message)
+    }
     return { ideas: [], error: err.message || "Terjadi kesalahan pada AI" }
   }
 }
 
 export async function generateVideoScript(input: GenerateVideoScriptInput): Promise<VideoScriptResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, topic, platform, duration } = GenerateVideoScriptInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
     
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -193,7 +248,6 @@ RULES:
 2. Value (3s-end): Deliver on the hook without fluff.
 3. Formatting: Output an array of 'scenes'. Each scene must have visual instructions, audio/dialogue, and an estimated duration.
 `
-    // Bisa diroute ke "tiktok-script" atau "reels-script" tergantung platform, default ke short-form-video-script
     const skillId = (platform ?? "").toLowerCase().includes("tiktok") ? "tiktok-script" :
                     (platform ?? "").toLowerCase().includes("instagram") ? "reels-script" :
                     "short-form-video-script"
@@ -201,23 +255,31 @@ RULES:
     const systemPrompt = await buildSystemPrompt(supabase, clientId, skillId, instruction)
     if (!systemPrompt) return { error: "Failed to build system prompt" }
 
-    const object = await chatJson<z.infer<typeof GeneratedVideoScriptSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof GeneratedVideoScriptSchema>>(provider, systemPrompt, [
       { role: "user", content: `Generate a video script for the following topic/premise: ${topic}. Duration target: ${duration}.` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/video-script", provider, usage, start, object ? null : "Gagal memproses skrip")
 
     if (!object) return { error: "Gagal memproses skrip video." }
     return { script: object }
   } catch (err: any) {
     logger.error("Video Script Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/video-script", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan" }
   }
 }
 
 export async function repurposeCrossPlatform(input: RepurposeCrossPlatformInput): Promise<RepurposeCrossPlatformResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, baseContent, platforms } = RepurposeCrossPlatformInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
     
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -238,23 +300,31 @@ WORKFLOW:
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "cross-platform-repurposing", instruction)
     if (!systemPrompt) return { error: "Failed to build system prompt" }
 
-    const object = await chatJson<z.infer<typeof RepurposedContentSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof RepurposedContentSchema>>(provider, systemPrompt, [
       { role: "user", content: `Please execute the "Atomize & Adapt" repurposing system for these platforms: ${platforms.join(", ")}.\n\nSOURCE MATERIAL:\n${baseContent}` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/repurpose", provider, usage, start, object ? null : "Gagal merombak konten")
 
     if (!object) return { error: "Gagal merombak konten" }
     return { repurposed: object }
   } catch (err: any) {
     logger.error("Repurpose Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/repurpose", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan" }
   }
 }
 
 export async function generateHooks(input: GenerateHooksInput): Promise<HooksResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, topic, platform, goal } = GenerateHooksInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
 
     if (!provider) return { hooks: [], error: "AI Provider belum dikonfigurasi." }
 
@@ -271,23 +341,31 @@ RULES (from hook-writer playbook):
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "hook-writer", instruction)
     if (!systemPrompt) return { hooks: [], error: "Gagal membangun prompt hook" }
 
-    const object = await chatJson<z.infer<typeof HooksResponseSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof HooksResponseSchema>>(provider, systemPrompt, [
       { role: "user", content: `Generate 3 to 5 high-converting hooks for this premise: "${topic}". Target platform: ${platform}.` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/hooks", provider, usage, start, object?.hooks ? null : "Gagal menghasilkan hook")
 
     if (!object || !object.hooks) return { hooks: [], error: "Gagal menghasilkan hook." }
     return { hooks: object.hooks }
   } catch (err: any) {
     logger.error("Hook Generator Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/hooks", provider, null, start, err.message)
+    }
     return { hooks: [], error: err.message || "Terjadi kesalahan saat membuat hook" }
   }
 }
 
 export async function generateCarousel(input: GenerateCarouselInput): Promise<CarouselResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, topic, slideCount, platform } = GenerateCarouselInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
 
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -306,23 +384,31 @@ RULES (from carousel-writer playbook):
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "carousel-writer", instruction)
     if (!systemPrompt) return { error: "Gagal membangun prompt carousel" }
 
-    const object = await chatJson<z.infer<typeof GeneratedCarouselSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof GeneratedCarouselSchema>>(provider, systemPrompt, [
       { role: "user", content: `Create a ${slideCount}-slide carousel on the topic: "${topic}". Make it high-density, authoritative, and brand-native.` }
     ])
+
+    void recordCopilotUsage(supabase, clientId, "copilot/carousel", provider, usage, start, object ? null : "Gagal menghasilkan carousel")
 
     if (!object) return { error: "Gagal menghasilkan carousel." }
     return { carousel: object }
   } catch (err: any) {
     logger.error("Carousel Writer Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/carousel", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan saat menyusun carousel" }
   }
 }
 
 export async function validatePlatformPost(input: ValidatePostInput): Promise<ValidatePostResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { platform, content, mediaType } = ValidatePostInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
 
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -350,23 +436,31 @@ ${skillMd || "Adhere to platform standards for Instagram, TikTok, LinkedIn, YouT
 You must output valid JSON only matching the schema.
 `
 
-    const object = await chatJson<z.infer<typeof PostValidationResultSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof PostValidationResultSchema>>(provider, systemPrompt, [
       { role: "user", content: `Audit this post for ${platform}:\n\nCONTENT:\n${content}` }
     ])
+
+    void recordCopilotUsage(supabase, null, "copilot/validate-post", provider, usage, start, object ? null : "Gagal memvalidasi konten")
 
     if (!object) return { error: "Gagal memvalidasi konten." }
     return { result: object }
   } catch (err: any) {
     logger.error("Platform Validator Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, null, "copilot/validate-post", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan validasi platform" }
   }
 }
 
 export async function generateVisualPrompt(input: GenerateVisualPromptInput): Promise<VisualPromptResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, topic, postCaption, mediaType, preferredStyle } = GenerateVisualPromptInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
 
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -391,26 +485,34 @@ RULES (from image-prompt playbook):
     const systemPrompt = await buildSystemPrompt(supabase, clientId, skillId, instruction)
     if (!systemPrompt) return { error: "Gagal membangun prompt visual" }
 
-    const object = await chatJson<z.infer<typeof VisualPromptResultSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof VisualPromptResultSchema>>(provider, systemPrompt, [
       {
         role: "user",
         content: `Create an optimized visual prompt for this post topic: "${topic}".\nCaption context: "${postCaption || topic}"`
       }
     ])
 
+    void recordCopilotUsage(supabase, clientId, "copilot/visual-prompt", provider, usage, start, object ? null : "Gagal menghasilkan visual prompt")
+
     if (!object) return { error: "Gagal menghasilkan visual prompt." }
     return { result: object }
   } catch (err: any) {
     logger.error("Visual Prompt Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/visual-prompt", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan saat meracik prompt visual" }
   }
 }
 
 export async function evaluateTrend(input: EvaluateTrendInput): Promise<EvaluateTrendResponse> {
+  const start = Date.now()
+  let supabase: any
+  let provider: any
   try {
     const { clientId, trendDescription, trendSourceOrContext } = EvaluateTrendInputSchema.parse(input)
-    const supabase = await createClient()
-    const provider = await resolveProvider(supabase)
+    supabase = await createClient()
+    provider = await resolveProvider(supabase)
 
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
@@ -429,17 +531,22 @@ RULES (from trend-jacking playbook - Three Gates):
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "trend-jacking", instruction)
     if (!systemPrompt) return { error: "Gagal membangun prompt evaluasi tren" }
 
-    const object = await chatJson<z.infer<typeof TrendEvaluationSchema>>(provider, systemPrompt, [
+    const { data: object, usage } = await chatJsonDetailed<z.infer<typeof TrendEvaluationSchema>>(provider, systemPrompt, [
       {
         role: "user",
         content: `Evaluate this trend for the client brand:\nTrend Description: "${trendDescription}"\nContext: "${trendSourceOrContext || ''}"`
       }
     ])
 
+    void recordCopilotUsage(supabase, clientId, "copilot/trend-evaluation", provider, usage, start, object ? null : "Gagal mengevaluasi tren")
+
     if (!object) return { error: "Gagal mengevaluasi tren." }
     return { evaluation: object }
   } catch (err: any) {
     logger.error("Trend Evaluation Error", { error: err })
+    if (supabase && provider) {
+      void recordCopilotUsage(supabase, input.clientId, "copilot/trend-evaluation", provider, null, start, err.message)
+    }
     return { error: err.message || "Terjadi kesalahan saat mengevaluasi tren" }
   }
 }

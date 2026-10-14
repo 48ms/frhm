@@ -21,6 +21,7 @@ async function login(page: import('@playwright/test').Page) {
 const CORE_ROUTES = [
   { label: 'Overview', url: '/admin/dashboard' },
   { label: 'Social Accounts', url: '/admin/social-accounts' },
+  { label: 'AI Studio', url: '/admin/ai' },
   { label: 'Campaigns', url: '/admin/campaigns' },
   { label: 'Content Calendar', url: '/admin/calendar' },
   { label: 'Analytics', url: '/admin/analytics' },

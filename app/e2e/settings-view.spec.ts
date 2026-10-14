@@ -16,6 +16,8 @@ test.describe('Settings View', () => {
     await expect(tablist.getByRole('tab', { name: 'Billing' })).toBeVisible()
     await expect(tablist.getByRole('tab', { name: 'Integrations' })).toBeVisible()
     await expect(tablist.getByRole('tab', { name: 'User Access' })).toBeVisible()
+    await expect(tablist.getByRole('tab', { name: 'Brand Profile' })).toBeVisible()
+    await expect(tablist.getByRole('tab', { name: 'AI Providers' })).toBeVisible()
   })
 
   test('switches to Billing tab via nuqs URL state', async ({ page }) => {
@@ -41,5 +43,23 @@ test.describe('Settings View', () => {
 
     await expect(page.getByRole('tab', { name: 'User Access' })).toHaveAttribute('aria-selected', 'true')
     await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 })
+  })
+
+  test('switches to Brand Profile tab and shows brand identity form', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/settings?tab=brand-profile')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('tab', { name: 'Brand Profile' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByText('Identitas & Brand Profile')).toBeVisible({ timeout: 10000 })
+  })
+
+  test('switches to AI Providers tab and shows provider management', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/settings?tab=ai-providers')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('tab', { name: 'AI Providers' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByText('AI Model & Provider Endpoints')).toBeVisible({ timeout: 10000 })
   })
 })

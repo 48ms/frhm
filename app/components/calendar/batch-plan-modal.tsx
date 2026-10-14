@@ -4,9 +4,9 @@ import * as React from "react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { generateBatchPlan } from "@/features/copilot/api/service"
+import { useGenerateBatchPlan } from "@/features/copilot/api/queries"
 import { useQueryClient } from "@tanstack/react-query"
-import { createScheduledPost } from "@/features/scheduled-posts/api/service"
+import { useCreateScheduledPost, postKeys } from "@/features/scheduled-posts/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import {
   Dialog,
@@ -50,8 +50,9 @@ export function BatchPlanModal({
     selected: boolean
   }>>([])
   const [isSaving, setIsSaving] = React.useState(false)
-  const [isPending, setIsPending] = React.useState(false)
 
+  const { mutateAsync: generateBatchPlanMutate, isPending } = useGenerateBatchPlan()
+  const { mutateAsync: createScheduledPostMutate } = useCreateScheduledPost()
   const queryClient = useQueryClient()
 
   const handleGenerate = async () => {
@@ -64,9 +65,8 @@ export function BatchPlanModal({
       return
     }
 
-    setIsPending(true)
     try {
-      const res = await generateBatchPlan({
+      const res = await generateBatchPlanMutate({
         clientId,
         period,
         goals,
@@ -89,8 +89,6 @@ export function BatchPlanModal({
       }
     } catch {
       toast.error("Gagal men-generate batch plan.")
-    } finally {
-      setIsPending(false)
     }
   }
 
@@ -108,7 +106,7 @@ export function BatchPlanModal({
     try {
       const results = await Promise.allSettled(
         selected.map((p) =>
-          createScheduledPost({
+          createScheduledPostMutate({
             client_id: clientId,
             title: p.title,
             content: p.content,
@@ -126,7 +124,8 @@ export function BatchPlanModal({
       const saved = results.filter((r) => r.status === "fulfilled").length
       const failed = results.length - saved
 
-      queryClient.invalidateQueries({ queryKey: ["scheduled-posts", clientId] })
+      queryClient.invalidateQueries({ queryKey: postKeys.list(clientId) })
+      queryClient.invalidateQueries({ queryKey: postKeys.all })
 
       if (failed > 0) {
         toast.warning("Batch Plan Selesai Sebagian", {

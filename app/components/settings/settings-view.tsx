@@ -24,9 +24,13 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { BrandProfileTab } from "./brand-profile-tab"
+import { AiProvidersTab } from "./ai-providers-tab"
 
 const TABS = [
   { id: "workspace", label: "Workspace", icon: "domain" },
+  { id: "brand-profile", label: "Brand Profile", icon: "badge" },
+  { id: "ai-providers", label: "AI Providers", icon: "auto_awesome" },
   { id: "billing", label: "Billing", icon: "credit_card" },
   { id: "integrations", label: "Integrations", icon: "cable" },
   { id: "user-access", label: "User Access", icon: "shield_person" },
@@ -72,6 +76,8 @@ export function SettingsView() {
 
       {/* Tab Panels */}
       {activeTab === "workspace" && <WorkspaceTab />}
+      {activeTab === "brand-profile" && <BrandProfileTab key={activeClient?.id} />}
+      {activeTab === "ai-providers" && <AiProvidersTab />}
       {activeTab === "billing" && <BillingTab />}
       {activeTab === "integrations" && <IntegrationsTab />}
       {activeTab === "user-access" && <UserAccessTab />}

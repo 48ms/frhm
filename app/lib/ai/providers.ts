@@ -201,6 +201,40 @@ function parseJsonLoose<T>(raw: string): T | null {
 }
 
 /**
+ * Same as chatJson() but also returns token usage, so callers can log usage via logAiUsage.
+ */
+export async function chatJsonDetailed<T>(
+  p: Provider,
+  system: string,
+  messages: ChatMessage[]
+): Promise<{ data: T | null; usage: AiUsage | null }> {
+  const res = await chatDetailed(p, system, messages)
+  const parsed = parseJsonLoose<T>(res.text)
+  if (parsed) return { data: parsed, usage: res.usage }
+  if (!looksAgentic(res.text)) return { data: null, usage: res.usage }
+
+  const hardened =
+    system +
+    '\n\nCRITICAL: You are a JSON API. Do NOT run commands, read files, or call any tools. ' +
+    'Do NOT explain. Respond with the JSON object only.'
+  const retry = await chatDetailed(p, hardened, [
+    ...messages,
+    { role: 'assistant', content: '{"_ack":true}' },
+    { role: 'user', content: 'Now output the final JSON object only.' },
+  ])
+
+  const combinedUsage: AiUsage | null =
+    res.usage || retry.usage
+      ? {
+          promptTokens: (res.usage?.promptTokens ?? 0) + (retry.usage?.promptTokens ?? 0),
+          completionTokens: (res.usage?.completionTokens ?? 0) + (retry.usage?.completionTokens ?? 0),
+        }
+      : null
+
+  return { data: parseJsonLoose<T>(retry.text), usage: combinedUsage }
+}
+
+/**
  * Ask the model for JSON. Returns null when the model answered in prose instead.
  *
  * Some models (especially agentic/reasoning ones routed through a gateway) try to *call tools*
@@ -212,21 +246,8 @@ export async function chatJson<T>(
   system: string,
   messages: ChatMessage[]
 ): Promise<T | null> {
-  const raw = await chat(p, system, messages)
-  const parsed = parseJsonLoose<T>(raw)
-  if (parsed) return parsed
-  if (!looksAgentic(raw)) return null
-
-  const hardened =
-    system +
-    '\n\nCRITICAL: You are a JSON API. Do NOT run commands, read files, or call any tools. ' +
-    'Do NOT explain. Respond with the JSON object only.'
-  const retry = await chat(p, hardened, [
-    ...messages,
-    { role: 'assistant', content: '{"_ack":true}' },
-    { role: 'user', content: 'Now output the final JSON object only.' },
-  ])
-  return parseJsonLoose<T>(retry)
+  const res = await chatJsonDetailed<T>(p, system, messages)
+  return res.data
 }
 
 /**
