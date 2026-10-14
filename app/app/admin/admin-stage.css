@@ -19,6 +19,14 @@
   --accent: var(--brand-accent);
   --accent-foreground: var(--brand-accent-foreground);
   --ring: var(--brand-accent);
+  /* Material container tokens behind the legacy primary-container utilities.
+     Primary IS the lime accent here, so its container is the lime fill and the
+     on-container pair is the dark olive ink (matches the luminous palette in
+     globals.css: container #d4ff32 / on-container #3a4900). Without these the
+     bg-primary-container / text-on-primary-container utilities were dead. */
+  --primary-container: var(--admin-lime);
+  --on-primary-container: var(--admin-lime-ink);
+  --primary-fixed: 73 100% 52%;
   --sidebar: 0 0% 100%;
   --sidebar-accent: 73 100% 94%;
   --sidebar-accent-foreground: 240 10% 10%;
@@ -46,6 +54,7 @@
   --admin-surface-high: 246 26% 93%;       /* #E8E7F1 */
   --admin-surface-highest: 251 22% 90%;    /* #E3E1EC */
   --admin-on-surface: 233 13% 12%;         /* #1A1B22 */
+  --admin-on-surface-variant: 246 24% 32%; /* #454656 - muted body copy / sub-labels */
   --admin-outline: 70 11% 43%;             /* #757961 */
   --admin-outline-variant: 69 21% 73%;     /* #C5C9AD */
   /* Elevation L1 "glass" straight from DESIGN.md: translucent white plate,
@@ -292,6 +301,20 @@ body:has([role="alertdialog"]) .admin-theme .admin-orb {
   border-color: rgba(212, 255, 50, 0.5);
   box-shadow: 0 14px 40px -14px rgba(212, 255, 50, 0.32);
   transform: translateY(-2px);
+}
+/* Analytics variant: full glass plate with blur (few instances per page, so
+   the backdrop-filter cost is acceptable here unlike repeated list cards). */
+.admin-card-glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(var(--admin-glass-blur, 40px));
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 40px));
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.dark .admin-card-glass {
+  background: rgba(18, 19, 26, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Fluted glass pane â€” the ribbed texture from the login showcase. */
