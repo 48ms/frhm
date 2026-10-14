@@ -372,6 +372,18 @@ body:has([role="alertdialog"]) .admin-theme .admin-orb {
 .admin-pill-lime:active {
   transform: scale(0.98);
 }
+/* Alias for consistency with the original design intent; matches admin-pill-lime. */
+.admin-pill-primary {
+  background: hsl(var(--admin-lime));
+  color: hsl(var(--admin-ink));
+}
+.admin-pill-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -4px rgba(212, 255, 50, 0.6);
+}
+.admin-pill-primary:active {
+  transform: scale(0.98);
+}
 .admin-pill-ghost {
   background: rgba(255, 255, 255, 0.8);
   color: hsl(var(--admin-on-surface));
@@ -799,30 +811,14 @@ body:has([role="alertdialog"]) .admin-theme .admin-orb {
   border-color: hsl(var(--admin-outline-variant) / 0.35);
 }
 
-/* Stitch Dashboard Reference Tokens */
-:root {
-  --surface: #fbf8ff;
-  --secondary: #2333e7;
-  --secondary-container: #4353ff;
-  --primary: #485a00;
-  --primary-container: hsl(var(--admin-lime));
-  --surface-container-lowest: #ffffff;
-}
-
-.bg-mesh-aurora {
-  background-color: #fbf8ff;
-  background-image: 
-    radial-gradient(circle at 8% 12%, rgba(183, 117, 252, 0.22) 0px, transparent 480px),
-    radial-gradient(circle at 88% 8%, rgba(67, 83, 255, 0.18) 0px, transparent 520px),
-    radial-gradient(circle at 50% 50%, rgba(212, 255, 50, 0.16) 0px, transparent 600px),
-    radial-gradient(circle at 85% 85%, rgba(183, 117, 252, 0.15) 0px, transparent 500px);
-}
-.fluted-glass-overlay {
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.25) 0px,
-    rgba(255, 255, 255, 0.25) 6px,
-    rgba(255, 255, 255, 0.05) 6px,
-    rgba(255, 255, 255, 0.05) 12px
-  );
-}
+/* ------------------------------------------------------------- rollout (wave 5) ----- */
+/* The "Stitch Dashboard Reference Tokens" :root block that lived here set
+   --primary to a raw hex (#485a00), which cascaded into Tailwind's
+   --color-primary: hsl(var(--primary)) producing `hsl(#485a00)` — invalid CSS.
+   Inside .admin-theme every bg-primary / text-primary therefore resolved to
+   transparent instead of the lime accent (visible on the "Launch Campaign"
+   button). The admin theme already defines --primary: var(--brand-accent)
+   correctly at line 17, so the override is removed. The other raw tokens in
+   that block (--surface, --secondary-container, --primary-container,
+   --surface-container-lowest, .bg-mesh-aurora, .fluted-glass-overlay) had no
+   consumers anywhere in app/ or components/, so they are dropped too. */
