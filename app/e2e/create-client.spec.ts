@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from './helpers/login';
 
-test.use({ baseURL: 'http://localhost:3000' });
+test.use({ baseURL: 'http://localhost:3004' });
 test.setTimeout(120000);
 
 test.describe('Create Client Quick Onboarding', () => {

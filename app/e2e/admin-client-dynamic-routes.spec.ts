@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
 // `?clientId=` query param on shared /admin/* routes. This spec only covers
 // routes that exist (a page.tsx is present).
 
-test.use({ baseURL: 'http://localhost:3000' })
+test.use({ baseURL: 'http://localhost:3004' })
 
 const ADMIN_EMAIL = process.env.AUDIT_E2E_EMAIL ?? 'test-user@frhm.dev'
 const ADMIN_PASSWORD = process.env.AUDIT_E2E_PASSWORD ?? 'TestPass123!'
