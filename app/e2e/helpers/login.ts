@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 
-const EMAIL = process.env.AUDIT_E2E_EMAIL
-const PASSWORD = process.env.AUDIT_E2E_PASSWORD
+const EMAIL = process.env.AUDIT_E2E_EMAIL ?? 'test-user@frhm.dev'
+const PASSWORD = process.env.AUDIT_E2E_PASSWORD ?? 'TestPass123!'
 
 /**
  * Shared login helper for the E2E suite.

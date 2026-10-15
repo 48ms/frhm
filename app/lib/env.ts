@@ -19,6 +19,10 @@ const serverEnvSchema = clientEnvSchema.extend({
   TELEGRAM_BOT_SECRET_TOKEN: z.string().optional(),
   TELEGRAM_ADMIN_CHAT_ID: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  WHATSAPP_API_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+  WHATSAPP_WEBHOOK_URL: z.string().optional(),
 })
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>
@@ -69,6 +73,10 @@ function getServerEnv(): ServerEnv {
     TELEGRAM_BOT_SECRET_TOKEN: process.env.TELEGRAM_BOT_SECRET_TOKEN,
     TELEGRAM_ADMIN_CHAT_ID: process.env.TELEGRAM_ADMIN_CHAT_ID,
     CRON_SECRET: process.env.CRON_SECRET,
+    WHATSAPP_API_TOKEN: process.env.WHATSAPP_API_TOKEN,
+    WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
+    WHATSAPP_WEBHOOK_URL: process.env.WHATSAPP_WEBHOOK_URL,
   })
 
   if (!result.success) {
@@ -81,6 +89,10 @@ function getServerEnv(): ServerEnv {
         TELEGRAM_BOT_SECRET_TOKEN: process.env.TELEGRAM_BOT_SECRET_TOKEN,
         TELEGRAM_ADMIN_CHAT_ID: process.env.TELEGRAM_ADMIN_CHAT_ID,
         CRON_SECRET: process.env.CRON_SECRET,
+        WHATSAPP_API_TOKEN: process.env.WHATSAPP_API_TOKEN,
+        WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID,
+        WHATSAPP_WEBHOOK_VERIFY_TOKEN: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
+        WHATSAPP_WEBHOOK_URL: process.env.WHATSAPP_WEBHOOK_URL,
       }
     }
     console.error("❌ Invalid server environment variables:", result.error.format())

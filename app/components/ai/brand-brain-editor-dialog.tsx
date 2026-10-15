@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/animate-ui/components/radix/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/animate-ui/components/radix/alert-dialog"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -112,6 +122,56 @@ export function BrandBrainEditorDialog({
   }
   const compiledPromptContext = compileBrandContext(clientName, allCurrentFiles)
 
+  const [confirmExitOpen, setConfirmExitOpen] = React.useState(false)
+  const [auditOpen, setAuditOpen] = React.useState(false)
+
+  const handleSafeClose = () => {
+    if (isModified) {
+      setConfirmExitOpen(true)
+    } else {
+      onOpenChange(false)
+    }
+  }
+
+  // Quick AI Brand DNA Audit Logic
+  const auditDna = React.useMemo(() => {
+    const text = currentContent.toLowerCase()
+    const issues: string[] = []
+    let score = 100
+
+    if (charCount < 80) {
+      issues.push("Konten masih terlalu ringkas (< 80 karakter). AI membutuhkan konteks lebih kaya.")
+      score -= 30
+    }
+    if (!text.includes("#")) {
+      issues.push("Gunakan heading markdown (#, ##) untuk memisahkan bab informasi.")
+      score -= 15
+    }
+    if (activePath === "brand-profile.md") {
+      if (!text.includes("who") && !text.includes("siapa") && !text.includes("brand")) {
+        issues.push("Definisi identitas brand (Who We Are) belum terdeteksi.")
+        score -= 20
+      }
+      if (!text.includes("audiens") && !text.includes("target")) {
+        issues.push("Target audiens belum dijelaskan secara spesifik.")
+        score -= 20
+      }
+    } else if (activePath === "guardrails.md") {
+      if (!text.includes("jangan") && !text.includes("dilarang") && !text.includes("never")) {
+        issues.push("Batasan larangan (Never-List) belum mencantumkan kata kunci proteksi.")
+        score -= 25
+      }
+    } else if (activePath === "voice.md") {
+      if (!text.includes("tone") && !text.includes("nada") && !text.includes("gaya")) {
+        issues.push("Panduan nada bicara (Tone of Voice) belum didefinisikan.")
+        score -= 20
+      }
+    }
+
+    score = Math.max(20, score)
+    return { score, issues }
+  }, [currentContent, charCount, activePath])
+
   const handleContentChange = (val: string) => {
     setContentBuffer((prev) => ({
       ...prev,
@@ -122,6 +182,12 @@ export function BrandBrainEditorDialog({
   const handleUseTemplate = () => {
     handleContentChange(activeMeta.defaultTemplate)
     toast.info(`Template standar untuk ${activeMeta.shortLabel} diterapkan.`)
+  }
+
+  const handleInsertSyntax = (prefix: string, suffix: string = "") => {
+    const addition = `${prefix}teks panduan${suffix}`
+    const updated = currentContent ? `${currentContent}\n${addition}` : addition
+    handleContentChange(updated)
   }
 
   const handleSave = async () => {
@@ -168,8 +234,14 @@ export function BrandBrainEditorDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => !v && handleSafeClose()}>
       <DialogContent
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+            e.preventDefault()
+            void handleSave()
+          }
+        }}
         className="w-[95vw] max-w-6xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden bg-card border border-border/40 rounded-2xl shadow-2xl backdrop-blur-2xl"
         aria-describedby="brand-brain-editor-desc"
       >
@@ -332,6 +404,18 @@ export function BrandBrainEditorDialog({
               </Button>
             )}
 
+            {/* AI Brand DNA Audit Button */}
+            <Button
+              type="button"
+              size="sm"
+              variant={auditOpen ? "secondary" : "outline"}
+              onClick={() => setAuditOpen(!auditOpen)}
+              className="h-7 text-2xs font-bold text-primary border-primary/30 hover:bg-primary/10 rounded-full cursor-pointer gap-1"
+            >
+              <Icons.sparkles className="size-3" />
+              <span>Audit DNA ({auditDna.score}%)</span>
+            </Button>
+
             {isModified && (
               <Badge variant="outline" className="text-2xs font-bold text-warning border-warning/40 bg-warning/5">
                 Ada Perubahan Belum Disimpan
@@ -339,6 +423,48 @@ export function BrandBrainEditorDialog({
             )}
           </div>
         </div>
+
+        {/* Expandable Brand DNA Audit Report */}
+        {auditOpen && (
+          <div className="mx-6 my-2.5 p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-foreground">
+                  Kesiapan Brand DNA untuk AI Copilot:
+                </span>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-2xs font-bold",
+                    auditDna.score >= 80 ? "border-success text-success bg-success/10" : "border-warning text-warning bg-warning/10"
+                  )}
+                >
+                  {auditDna.score}% {auditDna.score >= 80 ? "Sangat Baik" : "Perlu Disempurnakan"}
+                </Badge>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAuditOpen(false)}
+                className="text-2xs text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                ✕ Tutup
+              </button>
+            </div>
+            {auditDna.issues.length > 0 ? (
+              <ul className="text-2xs text-muted-foreground space-y-1 list-disc list-inside">
+                {auditDna.issues.map((iss, idx) => (
+                  <li key={idx} className="text-warning">
+                    {iss}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-2xs text-success font-medium">
+                ✓ Struktur dokumen sangat baik! AI Copilot akan menghasilkan respon yang presisi dan selaras dengan dokumen ini.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Main Workspace Area */}
         <div className="flex-1 overflow-y-auto p-6 min-h-[380px]">
@@ -374,10 +500,60 @@ export function BrandBrainEditorDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full min-h-[420px]">
               {/* Left Pane: Raw Editor */}
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xs font-extrabold uppercase text-muted-foreground tracking-wider">
-                    Markdown Source
-                  </span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1 p-0.5 bg-secondary/40 rounded-lg border border-border/30">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleInsertSyntax("## ")}
+                      className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                      title="Heading 2"
+                    >
+                      H2
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleInsertSyntax("**", "**")}
+                      className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                      title="Bold"
+                    >
+                      B
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleInsertSyntax("- ")}
+                      className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                      title="Bullet List"
+                    >
+                      • List
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleInsertSyntax("> ")}
+                      className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                      title="Quote"
+                    >
+                      Quote
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleInsertSyntax("", " (verify-quarterly)")}
+                      className="h-6 px-2 text-2xs font-bold rounded text-warning cursor-pointer hover:bg-warning/10"
+                      title="Sisipkan Tag Verifikasi Kuartal"
+                    >
+                      + (verify-quarterly)
+                    </Button>
+                  </div>
+
                   {!currentContent.trim() && (
                     <Button
                       type="button"
@@ -477,10 +653,60 @@ export function BrandBrainEditorDialog({
           ) : viewMode === "edit" ? (
             /* FULL RAW EDITOR */
             <div className="space-y-2 h-full">
-              <div className="flex items-center justify-between">
-                <span className="text-2xs font-extrabold uppercase text-muted-foreground tracking-wider">
-                  Raw Markdown Editor
-                </span>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-1 p-0.5 bg-secondary/40 rounded-lg border border-border/30">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleInsertSyntax("## ")}
+                    className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                    title="Heading 2"
+                  >
+                    H2
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleInsertSyntax("**", "**")}
+                    className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                    title="Bold"
+                  >
+                    B
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleInsertSyntax("- ")}
+                    className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                    title="Bullet List"
+                  >
+                    • List
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleInsertSyntax("> ")}
+                    className="h-6 px-1.5 text-2xs font-bold rounded cursor-pointer hover:bg-secondary"
+                    title="Quote"
+                  >
+                    Quote
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleInsertSyntax("", " (verify-quarterly)")}
+                    className="h-6 px-2 text-2xs font-bold rounded text-warning cursor-pointer hover:bg-warning/10"
+                    title="Sisipkan Tag Verifikasi Kuartal"
+                  >
+                    + (verify-quarterly)
+                  </Button>
+                </div>
+
                 {!currentContent.trim() && (
                   <Button
                     type="button"
@@ -599,10 +825,13 @@ export function BrandBrainEditorDialog({
           </div>
 
           <div className="flex items-center gap-2">
+            <span className="text-3xs text-muted-foreground/60 mr-2 hidden sm:inline-block">
+              ⌘+S untuk simpan
+            </span>
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleSafeClose}
               className="text-xs font-semibold rounded-full cursor-pointer h-9 px-4"
             >
               Tutup
@@ -619,6 +848,32 @@ export function BrandBrainEditorDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      {/* Unsaved changes confirmation dialog */}
+      <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tutup Brand Brain Studio?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Perubahan pada dokumen <strong>{activeMeta.shortLabel}</strong> belum disimpan. Perubahan Anda akan hilang jika Anda menutup jendela sekarang.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
+              Lanjut Mengedit
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                setConfirmExitOpen(false)
+                onOpenChange(false)
+              }}
+            >
+              Tinggalkan Perubahan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

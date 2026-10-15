@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { PageContainer } from "@/components/layout/page-container"
+import { serializeComposerParams } from "@/lib/searchparams"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/animate-ui/components/radix/tabs"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
@@ -30,12 +31,14 @@ import type { GeneratedIdea, TrendEvaluation } from "@/features/copilot/api/type
 import type { BrandProfile } from "@/features/social-accounts/api/types"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 import type { BrandFileKey } from "@/features/brand-files/api/types"
+import { SkillCatalogView } from "@/components/skills/skill-catalog-view"
 
 const STUDIO_TABS = [
   { id: "ideas", label: "Idea Engine", icon: "sparkles", description: "SPARK Ideation Matrix" },
   { id: "batch", label: "Batch Planner", icon: "calendar", description: "Multi-Day Campaign Matrix" },
   { id: "trends", label: "Trend Radar", icon: "trendingUp", description: "Three Gates Vetting" },
   { id: "brand-brain", label: "Brand Brain", icon: "bot", description: "Live DNA & Context" },
+  { id: "playbooks", label: "Playbooks (106)", icon: "bookOpen", description: "106 Strategic Skills & Packs" },
 ] as const
 
 type StudioTab = typeof STUDIO_TABS[number]["id"]
@@ -45,6 +48,52 @@ const AVAILABLE_PLATFORMS = [
   { id: "tiktok", label: "TikTok", icon: "tiktok" },
   { id: "twitter", label: "Twitter / X", icon: "twitter" },
   { id: "linkedin", label: "LinkedIn", icon: "post" },
+]
+
+const IDEA_STRATEGY_PRESETS = [
+  { label: "🔥 Bongkar Mitos", topic: "Bongkar mitos keliru seputar industri yang sering dipercaya audiens" },
+  { label: "💡 Tips 3-Langkah", topic: "3 langkah praktis dan terbukti untuk menyelesaikan masalah utama audiens" },
+  { label: "🎬 Behind The Scenes", topic: "Di balik layar proses pembuatan produk dan standar kualitas kami" },
+  { label: "💬 Social Proof", topic: "Kisah transformasi nyata dan bukti kepuasan pelanggan kami" },
+  { label: "⚡ Promo & Urgensi", topic: "Penawaran spesial terbatas waktu dengan nilai tambah eksklusif" },
+]
+
+const BATCH_CAMPAIGN_PRESETS = [
+  {
+    title: "🚀 Peluncuran Produk",
+    desc: "Kampanye peluncuran produk baru: edukasi problem, teaser inovasi, countdown peluncuran, dan promo pre-order dengan penawaran terbatas.",
+  },
+  {
+    title: "👑 Authority & Edukasi",
+    desc: "Membangun kredibilitas dan otoritas industri melalui panduan mendalam, tips actionable, dan pemecahan masalah utama audiens.",
+  },
+  {
+    title: "💰 Payday & Flash Sale",
+    desc: "Penawaran promosi akhir bulan (Payday): penekanan urgensi voucher, bundle produk hemat, dan ulasan kepuasan pelanggan.",
+  },
+  {
+    title: "🎯 Engagement Komunitas",
+    desc: "Meningkatkan interaksi komunitas melalui Q&A interaktif, polling pilihan audiens, kuis berhadiah, dan cerita otentik tim.",
+  },
+]
+
+const TREND_VIRAL_FORMATS = [
+  {
+    title: "POV: Pertama Kali Coba",
+    desc: "POV: Pertama kali coba solusi kami setelah frustrasi bertahun-tahun dengan metode konvensional.",
+  },
+  {
+    title: "A Day in My Life BTS",
+    desc: "A Day in the Life: Aktivitas otentik di balik layar tim kami dalam memastikan standar kualitas terbaik.",
+  },
+  {
+    title: "Sebelum vs Sesudah",
+    desc: "Transformasi sebelum vs sesudah: Perubahan nyata yang dirasakan dalam 30 hari pemakaian konsisten.",
+  },
+  {
+    title: "Mitos vs Fakta",
+    desc: "Mitos vs Fakta: Meluruskan miskonsepsi umum yang sering merugikan konsumen di industri ini.",
+  },
 ]
 
 export function AiStudioClient() {
@@ -120,11 +169,22 @@ export function AiStudioClient() {
   }
 
   const handleSendToComposer = (idea: GeneratedIdea) => {
-    const params = new URLSearchParams()
-    if (clientId) params.set("clientId", clientId)
-    params.set("topic", idea.title || idea.hook)
-    params.set("platform", targetPlatform)
-    router.push(`/admin/composer?${params.toString()}`)
+    router.push(
+      serializeComposerParams("/admin/composer", {
+        clientId: clientId || null,
+        title: idea.title || null,
+        content: idea.hook ? `${idea.hook}\n\n${idea.content || ""}` : (idea.content || null),
+        platform: targetPlatform || null,
+      })
+    )
+  }
+
+  const handleCopyIdea = (idea: GeneratedIdea) => {
+    const text = `${idea.title || idea.hook}\n\nHook: ${idea.hook}\n\nKonsep: ${idea.content || "-"}\n\nFormat: ${idea.format || "Post"} (${idea.pillar || "Umum"})`
+    void navigator.clipboard.writeText(text)
+    toast.success("Ide disalin ke clipboard!", {
+      description: "Siap dibagikan ke WhatsApp klien atau tim produksi.",
+    })
   }
 
   // ==========================================
@@ -231,6 +291,20 @@ export function AiStudioClient() {
     }
   }
 
+  const handleCopyBatchSummary = () => {
+    if (batchPosts.length === 0) return
+    const summary = batchPosts
+      .map(
+        (p, i) =>
+          `${i + 1}. [${p.platform.toUpperCase()}] ${p.scheduled_at ? format(new Date(p.scheduled_at), "dd/MM/yyyy HH:mm") : "-"} — ${p.title}\nCaption: ${p.content}`
+      )
+      .join("\n\n")
+    void navigator.clipboard.writeText(summary)
+    toast.success("Ringkasan Batch Disalin!", {
+      description: `${batchPosts.length} postingan disalin dalam format teks terstruktur.`,
+    })
+  }
+
   // ==========================================
   // TAB 3: TREND RADAR & VETTING
   // ==========================================
@@ -281,6 +355,21 @@ export function AiStudioClient() {
   // ==========================================
   const bp = client?.brand_profile as Partial<BrandProfile> | undefined
 
+  const dnaMetrics = React.useMemo(() => {
+    const checks = [
+      { key: "who", label: "Siapa Kami (Who)", filled: Boolean(bp?.who?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "audience", label: "Target Audiens", filled: Boolean(bp?.audience?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "voice", label: "Gaya Bahasa (Voice)", filled: Boolean(bp?.voice?.trim()), file: "voice.md" as BrandFileKey },
+      { key: "pov", label: "Sudut Pandang (POV)", filled: Boolean(bp?.pov?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "proof", label: "Bukti Kredibilitas", filled: Boolean(bp?.proof?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "guardrails", label: "Pantangan (Guardrails)", filled: Boolean(bp?.guardrails?.trim()), file: "guardrails.md" as BrandFileKey },
+      { key: "pillars", label: "Pilar Konten", filled: Boolean(bp?.pillars && bp.pillars.length > 0), file: "content-pillars.md" as BrandFileKey },
+    ]
+    const filledCount = checks.filter((c) => c.filled).length
+    const score = Math.round((filledCount / checks.length) * 100)
+    return { checks, filledCount, score }
+  }, [bp])
+
   return (
     <PageContainer
       pageTitle="AI Creative Studio & Strategy Hub"
@@ -292,7 +381,7 @@ export function AiStudioClient() {
           </span>
           <Button
             size="sm"
-            onClick={() => router.push(`/admin/composer${clientId ? `?clientId=${clientId}` : ""}`)}
+            onClick={() => router.push(serializeComposerParams("/admin/composer", { clientId: clientId || null }))}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
           >
             <Icons.rocket className="size-3.5" />
@@ -359,6 +448,19 @@ export function AiStudioClient() {
                   onChange={(e) => setIdeaTopic(e.target.value)}
                   className="bg-background border-border/40 text-sm"
                 />
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Preset Strategi:</span>
+                  {IDEA_STRATEGY_PRESETS.map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setIdeaTopic(preset.topic)}
+                      className="text-2xs px-2.5 py-1 rounded-full bg-secondary/60 hover:bg-primary/10 hover:text-primary border border-border/40 transition-colors font-medium cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -452,15 +554,26 @@ export function AiStudioClient() {
                       <span className="text-2xs font-semibold text-muted-foreground capitalize">
                         Platform: {idea.platform || targetPlatform}
                       </span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleSendToComposer(idea)}
-                        className="text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all"
-                      >
-                        <Icons.rocket className="size-3.5" />
-                        <span>Kirim ke Composer</span>
-                      </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleCopyIdea(idea)}
+                          className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground rounded-full cursor-pointer"
+                          title="Salin Ide & Hook"
+                        >
+                          <Icons.copy className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleSendToComposer(idea)}
+                          className="text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all"
+                        >
+                          <Icons.rocket className="size-3.5" />
+                          <span>Kirim ke Composer</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -570,6 +683,19 @@ export function AiStudioClient() {
                 onChange={(e) => setBatchGoals(e.target.value)}
                 className="bg-background border-border/40 text-sm min-h-[90px]"
               />
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Template Brief:</span>
+                {BATCH_CAMPAIGN_PRESETS.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setBatchGoals(preset.desc)}
+                    className="text-2xs px-2.5 py-1 rounded-full bg-secondary/60 hover:bg-primary/10 hover:text-primary border border-border/40 transition-colors font-medium cursor-pointer"
+                  >
+                    {preset.title}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end pt-2">
@@ -599,15 +725,27 @@ export function AiStudioClient() {
                     Periksa draf jadwal di bawah. Centang postingan yang disetujui untuk langsung dijadwalkan ke Kalender.
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  onClick={handleScheduleAllBatch}
-                  isLoading={isSavingBatch}
-                  className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
-                >
-                  <Icons.check className="size-4" />
-                  Jadwalkan ({batchPosts.filter((p) => p.selected).length}) ke Kalender
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyBatchSummary}
+                    className="rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Icons.copy className="size-3.5" />
+                    <span>Salin Ringkasan</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleScheduleAllBatch}
+                    isLoading={isSavingBatch}
+                    className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <Icons.check className="size-4" />
+                    Jadwalkan ({batchPosts.filter((p) => p.selected).length}) ke Kalender
+                  </Button>
+                </div>
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-border/40">
@@ -696,6 +834,19 @@ export function AiStudioClient() {
                   onChange={(e) => setTrendDesc(e.target.value)}
                   className="bg-background border-border/40 text-sm min-h-[90px]"
                 />
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Format Tren:</span>
+                  {TREND_VIRAL_FORMATS.map((fmt, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setTrendDesc(fmt.desc)}
+                      className="text-2xs px-2.5 py-1 rounded-full bg-secondary/60 hover:bg-primary/10 hover:text-primary border border-border/40 transition-colors font-medium cursor-pointer"
+                    >
+                      {fmt.title}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -762,14 +913,28 @@ export function AiStudioClient() {
                 </div>
 
                 {trendResult.remixAngle && (
-                  <Button
-                    size="sm"
-                    onClick={() => handleAdoptTrendToIdeas(trendResult.remixAngle!)}
-                    className="rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Icons.sparkles className="size-3.5" />
-                    Racik Ide dari Tren Ini
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(trendResult.remixAngle || "")
+                        toast.success("Sudut Remix disalin ke clipboard!")
+                      }}
+                      className="rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Icons.copy className="size-3.5" />
+                      <span>Salin Sudut</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAdoptTrendToIdeas(trendResult.remixAngle!)}
+                      className="rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Icons.sparkles className="size-3.5" />
+                      <span>Racik Ide dari Tren Ini</span>
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -886,6 +1051,73 @@ export function AiStudioClient() {
                   Edit Form di Settings
                 </Button>
               </div>
+            </div>
+
+            {/* Brand DNA Completeness Card */}
+            <div className="p-5 rounded-2xl bg-secondary/20 border border-border/40 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                    <Icons.activity className="size-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-foreground">Kelengkapan Brand DNA</span>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-2xs font-bold",
+                          dnaMetrics.score === 100
+                            ? "bg-primary/10 text-primary border-primary/30"
+                            : dnaMetrics.score >= 60
+                            ? "bg-primary/5 text-foreground border-border/40"
+                            : "bg-muted text-muted-foreground border-border/40"
+                        )}
+                      >
+                        {dnaMetrics.score === 100 ? "Optimal untuk AI" : dnaMetrics.score >= 60 ? "Cukup Lengkap" : "Perlu Dilengkapi"}
+                      </Badge>
+                    </div>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      {dnaMetrics.filledCount} dari {dnaMetrics.checks.length} pilar identitas telah terisi.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <span className="text-2xs text-muted-foreground block">Skor DNA</span>
+                    <div className="text-base font-extrabold text-primary flex items-center justify-end">
+                      <MetricTicker value={dnaMetrics.score} />
+                      <span>%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-500 rounded-full"
+                  style={{ width: `${dnaMetrics.score}%` }}
+                />
+              </div>
+
+              {dnaMetrics.score < 100 && (
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-2xs text-muted-foreground">Pilar belum lengkap:</span>
+                  {dnaMetrics.checks
+                    .filter((c) => !c.filled)
+                    .map((c) => (
+                      <button
+                        key={c.key}
+                        type="button"
+                        onClick={() => handleOpenBrandEditor(c.file)}
+                        className="text-2xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors font-medium flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Lengkapi {c.label}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1051,6 +1283,13 @@ export function AiStudioClient() {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        {/* ============================================================ */}
+        {/* TAB 5: 106 PLAYBOOKS & 17 TOPIC PACKS                        */}
+        {/* ============================================================ */}
+        <TabsContent value="playbooks" className="space-y-6">
+          <SkillCatalogView clientId={clientId} clientName={client?.name || "Klien"} />
         </TabsContent>
       </Tabs>
 

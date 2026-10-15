@@ -53,11 +53,20 @@ vi.mock("@/features/deliverables/api/queries", () => ({
     listByClient: () => ({
       queryKey: ["deliverables", "client", "client-shell"],
       queryFn: async () => [
-        { id: "d1", status: "sent", client_id: "client-shell" },
-        { id: "d2", status: "approved", client_id: "client-shell" },
+        { id: "d1", title: "Strategy Q4", type: "brief", status: "sent", client_id: "client-shell", created_at: "2026-10-01" },
+        { id: "d2", title: "Video Script", type: "content", status: "approved", client_id: "client-shell", created_at: "2026-10-02" },
       ],
     }),
   },
+  useUpdateDeliverableStatus: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useScheduleApprovedDeliverable: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({

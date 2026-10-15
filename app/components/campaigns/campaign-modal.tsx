@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react"
 import { z } from "zod"
+import { toast } from "sonner"
+import { useStore } from "@tanstack/react-form"
 import { useAppForm } from "@/lib/form"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
@@ -11,6 +13,7 @@ import {
 } from "./campaign-data"
 import type { Campaign } from "@/features/campaigns/api/types"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
+import { useGenerateContentIdeas } from "@/features/copilot/api/queries"
 import {
   Dialog,
   DialogContent,
@@ -33,6 +36,32 @@ type Step = "basics" | "schedule" | "review"
  * neutral slot for overflow.
  */
 const COLOR_SWATCHES = ["#0060E0", "#209060", "#F0B010", "#F03020", "#1D1D1F"]
+
+const STARTER_PRESETS: {
+  label: string
+  name: string
+  type: CampaignType
+  color: string
+}[] = [
+  { label: "⚡ Payday Promo", name: "Payday Promo", type: "promo", color: "#F03020" },
+  { label: "🚀 Product Launch", name: "Peluncuran Produk Baru", type: "campaign", color: "#0060E0" },
+  { label: "🎉 Weekend Sale", name: "Weekend Flash Sale", type: "promo", color: "#F0B010" },
+  { label: "⭐ Social Proof", name: "Social Proof & Testimonial Series", type: "campaign", color: "#209060" },
+]
+
+const OBJECTIVE_CHIPS = [
+  { label: "🎯 Reach & Awareness", text: "Tingkatkan reach dan brand awareness ke audiens baru." },
+  { label: "🛍️ Konversi & Promo", text: "Dorong konversi dan transaksi selama periode penawaran." },
+  { label: "💬 Interaksi Komunitas", text: "Tingkatkan interaksi, komentar, dan sharing dari followers aktif." },
+  { label: "🌟 Edukasi & Otoritas", text: "Edukasi audiens mengenai keunggulan produk dan positioning brand." },
+]
+
+const DURATION_PRESETS = [
+  { label: "⚡ 1 Minggu (7h)", days: 7 },
+  { label: "🗓️ 2 Minggu (14h)", days: 14 },
+  { label: "📊 1 Bulan (30h)", days: 30 },
+  { label: "♾️ Evergreen", days: null },
+]
 
 const campaignFormSchema = z.object({
   name: z.string().trim().min(1, "Nama campaign wajib diisi").max(100, "Nama campaign maksimal 100 karakter"),
@@ -61,6 +90,72 @@ export function CampaignModal({
   
   const [step, setStep] = useState<Step>("basics")
   const [saving, setSaving] = useState(false)
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([])
+
+  const { mutateAsync: generateIdeasMutate, isPending: isGeneratingIdeas } = useGenerateContentIdeas()
+
+  const handleApplyPreset = (preset: typeof STARTER_PRESETS[number]) => {
+    if (!form.state.values.name || form.state.values.name.trim() === "") {
+      form.setFieldValue("name", preset.name)
+    }
+    form.setFieldValue("type", preset.type)
+    form.setFieldValue("color", preset.color)
+    toast.success(`Template ${preset.label} diterapkan!`)
+  }
+
+  const handleApplyDuration = (days: number | null) => {
+    const today = new Date().toISOString().split("T")[0]
+    form.setFieldValue("startDate", today)
+    if (days === null) {
+      form.setFieldValue("endDate", "")
+      toast.success("Durasi disetel ke Evergreen (tanpa batas akhir)")
+    } else {
+      const end = new Date(Date.now() + days * 86400000).toISOString().split("T")[0]
+      form.setFieldValue("endDate", end)
+      toast.success(`Durasi disetel ke ${days} hari`)
+    }
+  }
+
+  const handleAddObjective = (text: string) => {
+    const current = form.state.values.notes || ""
+    const prefix = current.trim().length > 0 ? `${current.trim()}\n• ` : "• "
+    form.setFieldValue("notes", `${prefix}${text}`)
+  }
+
+  const handleGenerateAiAngles = async () => {
+    const currentValues = form.state.values
+    if (!currentValues.clientId) {
+      toast.error("Pilih client terlebih dahulu")
+      return
+    }
+    const topic = currentValues.name.trim() || "Kampanye Digital Marketing"
+    const toastId = toast.loading("Meracik rekomendasi sudut pandang kampanye...")
+    try {
+      const res = await generateIdeasMutate({
+        clientId: currentValues.clientId,
+        count: 3,
+        trendOrTopic: `${topic} (${CAMPAIGN_TYPE_META[currentValues.type].label})`,
+      })
+      toast.dismiss(toastId)
+      if (res.ideas && res.ideas.length > 0) {
+        const angles = res.ideas.map((i) => `${i.title}: ${i.content}`)
+        setAiSuggestions(angles)
+        toast.success(`${res.ideas.length} sudut pandang kampanye siap dipilih!`)
+      } else {
+        toast.error("Gagal mendapatkan rekomendasi AI.")
+      }
+    } catch {
+      toast.dismiss(toastId)
+      toast.error("Terjadi kendala saat meracik sudut pandang.")
+    }
+  }
+
+  const handleSelectAngle = (angle: string) => {
+    const current = form.state.values.notes || ""
+    const prefix = current.trim().length > 0 ? `${current.trim()}\n• ` : "• "
+    form.setFieldValue("notes", `${prefix}${angle}`)
+    toast.success("Sudut pandang disisipkan ke catatan!")
+  }
 
   const form = useAppForm({
     defaultValues: {
@@ -98,6 +193,7 @@ export function CampaignModal({
     if (!open) return
     setStep("basics")
     setSaving(false)
+    setAiSuggestions([])
     form.reset({
       name: editing?.name ?? "",
       clientId: editing?.client_id ?? activeDashboardClient,
@@ -109,9 +205,7 @@ export function CampaignModal({
     })
   }, [open, editing, activeDashboardClient])
 
-  if (!open) return null
-
-  const formValues = form.state.values
+  const formValues = useStore(form.store, (state) => state.values)
   const canContinue = formValues.name.trim().length > 0
 
   const steps: { id: Step; label: string }[] = [
@@ -180,9 +274,12 @@ export function CampaignModal({
               name="name"
               children={(field) => (
                 <div>
-                  <label htmlFor="campaign-name" className="block text-xs font-semibold text-foreground mb-1">
-                    Campaign Name
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="campaign-name" className="block text-xs font-semibold text-foreground">
+                      Campaign Name
+                    </label>
+                    <span className="text-2xs text-muted-foreground">Template Cepat</span>
+                  </div>
                   <input
                     id="campaign-name"
                     value={field.state.value}
@@ -198,6 +295,20 @@ export function CampaignModal({
                         : (field.state.meta.errors[0] as { message?: string })?.message ?? String(field.state.meta.errors[0])}
                     </p>
                   )}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {STARTER_PRESETS.map((p) => (
+                      <Button
+                        key={p.label}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleApplyPreset(p)}
+                        className="text-2xs px-2.5 py-1 rounded-full bg-muted/80 hover:bg-muted border border-border/40 hover:border-brand-accent/50 text-foreground transition-all cursor-pointer h-auto font-medium"
+                      >
+                        {p.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
             />
@@ -298,6 +409,27 @@ export function CampaignModal({
         {/* STEP 2 , schedule */}
         {step === "schedule" && (
           <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold text-foreground">Jadwal Cepat</span>
+                <span className="text-2xs text-muted-foreground">Pilih durasi siap pakai</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {DURATION_PRESETS.map((dp) => (
+                  <Button
+                    key={dp.label}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleApplyDuration(dp.days)}
+                    className="text-2xs px-2.5 py-1 rounded-full bg-muted/80 hover:bg-muted border border-border/40 hover:border-brand-accent/50 text-foreground transition-all cursor-pointer h-auto font-medium"
+                  >
+                    {dp.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <form.AppField
                 name="startDate"
@@ -339,9 +471,22 @@ export function CampaignModal({
               name="notes"
               children={(field) => (
                 <div>
-                  <label htmlFor="campaign-notes" className="block text-xs font-semibold text-foreground mb-1">
-                    Notes / Objectives
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="campaign-notes" className="block text-xs font-semibold text-foreground">
+                      Notes / Objectives
+                    </label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      isLoading={isGeneratingIdeas}
+                      onClick={handleGenerateAiAngles}
+                      className="h-auto p-0 text-2xs font-bold text-secondary hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <Icons.sparkles className="size-3 text-secondary" />
+                      ✨ AI Campaign Angles
+                    </Button>
+                  </div>
                   <textarea
                     id="campaign-notes"
                     value={field.state.value}
@@ -350,6 +495,42 @@ export function CampaignModal({
                     className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 text-foreground resize-none"
                     placeholder="Campaign objectives, target audience, key messages..."
                   />
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {OBJECTIVE_CHIPS.map((chip) => (
+                      <Button
+                        key={chip.label}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddObjective(chip.text)}
+                        className="text-2xs px-2.5 py-1 rounded-full bg-muted/80 hover:bg-muted border border-border/40 hover:border-brand-accent/50 text-foreground transition-all cursor-pointer h-auto font-medium"
+                      >
+                        {chip.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {aiSuggestions.length > 0 && (
+                    <div className="mt-3 p-2.5 rounded-xl bg-brand-accent/5 border border-brand-accent/20 space-y-2">
+                      <span className="block text-2xs font-bold text-foreground">
+                        💡 Rekomendasi Sudut Pandang AI (klik untuk menyisipkan):
+                      </span>
+                      <div className="space-y-1.5">
+                        {aiSuggestions.map((angle, idx) => (
+                          <Button
+                            key={idx}
+                            type="button"
+                            variant="ghost"
+                            onClick={() => handleSelectAngle(angle)}
+                            className="w-full text-left justify-start p-2 rounded-lg bg-card/80 hover:bg-card border border-border/40 hover:border-brand-accent text-2xs text-foreground transition-all cursor-pointer flex items-start gap-1.5 h-auto whitespace-normal"
+                          >
+                            <Icons.check className="size-3 text-brand-accent shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">{angle}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             />
@@ -365,54 +546,70 @@ export function CampaignModal({
 
         {/* STEP 3 , review */}
         {step === "review" && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/60 border border-border/40">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                style={{ backgroundColor: formValues.color }}
-              >
-                <Icons.campaign className="size-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <span className="block text-sm font-bold text-foreground truncate">
-                  {formValues.name || "Untitled Campaign"}
+          <div className="space-y-4">
+            <div 
+              className="p-4 rounded-2xl border border-border/40 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/40 shadow-sm"
+              style={{
+                borderLeftWidth: "4px",
+                borderLeftColor: formValues.color,
+              }}
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white"
+                    style={{ backgroundColor: formValues.color }}
+                  >
+                    <Icons.campaign className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground leading-tight">
+                      {formValues.name || "Untitled Campaign"}
+                    </h4>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      {clients.find((c) => c.id === formValues.clientId)?.name ?? "Pilih Client"}
+                    </p>
+                  </div>
+                </div>
+                <span className={cn("admin-badge text-2xs font-bold shrink-0", CAMPAIGN_TYPE_META[formValues.type].badge)}>
+                  {CAMPAIGN_TYPE_META[formValues.type].label}
                 </span>
-                <span className="block text-2xs text-muted-foreground">
-                  {clients.find((c) => c.id === formValues.clientId)?.name ?? "Unknown"}
+              </div>
+
+              {/* Timeline pill */}
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/50 border border-border/20 text-2xs text-muted-foreground mb-3">
+                <Icons.calendar className="size-3.5 text-brand-accent shrink-0" />
+                <span className="font-semibold text-foreground">
+                  {formValues.startDate || "Langsung"}
+                </span>
+                <span>➔</span>
+                <span className="font-semibold text-foreground">
+                  {formValues.endDate || "Evergreen (Tanpa Batas)"}
                 </span>
               </div>
-              <span className={cn("admin-badge shrink-0 ml-auto", CAMPAIGN_TYPE_META[formValues.type].badge)}>
-                {CAMPAIGN_TYPE_META[formValues.type].label}
+
+              {formValues.notes.trim() ? (
+                <div className="p-2.5 rounded-xl bg-background/60 border border-border/30">
+                  <span className="block text-2xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                    Catatan & Sudut Pandang
+                  </span>
+                  <p className="text-2xs text-foreground whitespace-pre-line leading-relaxed">
+                    {formValues.notes}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-2xs text-muted-foreground italic">
+                  Tanpa catatan khusus. Anda bisa menambahkan konten langsung ke kampanye ini.
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40 border border-border/40 text-2xs text-muted-foreground">
+              <Icons.sparkles className="size-4 text-brand-accent shrink-0" />
+              <span>
+                Kampanye siap diaktifkan! Setelah disimpan, Anda dapat mengelompokkan konten kalender dan mengukur performanya.
               </span>
             </div>
-
-            <div className="space-y-2">
-              {[
-                { label: "Client", value: clients.find((c) => c.id === formValues.clientId)?.name ?? "Unknown" },
-                { label: "Type", value: CAMPAIGN_TYPE_META[formValues.type].label },
-                { label: "Start", value: formValues.startDate || "-" },
-                { label: "End", value: formValues.endDate || "Evergreen" },
-              ].map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-center justify-between text-1xs py-1.5 border-b border-border/20 last:border-0"
-                >
-                  <span className="text-muted-foreground">{row.label}</span>
-                  <span className="font-semibold text-foreground">
-                    {row.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {formValues.notes.trim() && (
-              <div className="p-3 rounded-xl bg-muted/50 border border-border/40">
-                <span className="block text-2xs font-bold text-muted-foreground mb-1">
-                  Notes
-                </span>
-                <p className="text-1xs text-foreground">{formValues.notes}</p>
-              </div>
-            )}
           </div>
         )}
 

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Icons } from "@/components/icons"
 import { useGenerateContentIdeas } from "@/features/copilot/api/queries"
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/animate-ui/components/radix/dialog"
 import { Button } from "@/components/ui/button"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
+import { serializeComposerParams, serializeCalendarParams } from "@/lib/searchparams"
 
 export function StitchAiHookModal({
   open,
@@ -24,6 +26,7 @@ export function StitchAiHookModal({
   clientName?: string
   clientId: string
 }) {
+  const router = useRouter()
   const [prompt, setPrompt] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<number | null>(null)
@@ -135,24 +138,54 @@ export function StitchAiHookModal({
               {hooks.map((hook, i) => (
                 <div
                   key={i}
-                  className="group p-3 rounded-xl bg-muted/60 border border-border/40 hover:border-brand-accent/40 transition-all"
+                  className="group p-3 rounded-xl bg-muted/60 border border-border/40 hover:border-brand-accent/40 transition-all flex flex-col gap-2"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-xs text-foreground leading-relaxed">
-                      {hook}
-                    </p>
+                  <p className="text-xs text-foreground leading-relaxed">
+                    {hook}
+                  </p>
+                  <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-border/20">
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon"
+                      size="xs"
+                      onClick={() => {
+                        onOpenChange(false)
+                        router.push(serializeComposerParams("/admin/composer", { clientId, content: hook }))
+                      }}
+                      className="h-6 px-2 text-2xs font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-all cursor-pointer inline-flex items-center gap-1 rounded-md"
+                      title="Buka di Composer"
+                    >
+                      <Icons.send className="size-3 text-primary" /> Composer
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => {
+                        onOpenChange(false)
+                        router.push(serializeCalendarParams("/admin/calendar", { clientId, caption: hook, new: "1" }))
+                      }}
+                      className="h-6 px-2 text-2xs font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-all cursor-pointer inline-flex items-center gap-1 rounded-md"
+                      title="Jadwalkan di Kalender"
+                    >
+                      <Icons.calendar className="size-3 text-secondary" /> Kalender
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="xs"
                       onClick={() => copy(i, hook)}
-                      className="shrink-0 h-7 w-7 rounded-full text-muted-foreground hover:text-brand-accent hover:bg-card transition-all cursor-pointer"
+                      className="h-6 px-2 text-2xs font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-all cursor-pointer inline-flex items-center gap-1 rounded-md"
                       title="Salin hook"
                     >
                       {copied === i ? (
-                        <Icons.check className="size-3.5 text-[hsl(var(--success))]" />
+                        <>
+                          <Icons.check className="size-3 text-[hsl(var(--success))]" /> Tersalin
+                        </>
                       ) : (
-                        <Icons.copy className="size-3.5" />
+                        <>
+                          <Icons.copy className="size-3" /> Salin
+                        </>
                       )}
                     </Button>
                   </div>

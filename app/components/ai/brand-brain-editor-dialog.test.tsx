@@ -140,4 +140,14 @@ describe("BrandBrainEditorDialog", () => {
       })
     })
   })
+
+  it("opens Audit DNA report banner when clicking Audit DNA button", async () => {
+    renderDialog()
+
+    const auditBtn = screen.getByRole("button", { name: /Audit DNA/i })
+    expect(auditBtn).toBeInTheDocument()
+    fireEvent.click(auditBtn)
+
+    expect(await screen.findByText(/Kesiapan Brand DNA untuk AI Copilot/i)).toBeInTheDocument()
+  })
 })

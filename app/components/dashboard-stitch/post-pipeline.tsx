@@ -5,8 +5,11 @@ import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { useActiveDashboard } from "./dashboard-data"
 import { SchedulePostModal } from "./schedule-post-modal"
+import { PostDialog } from "@/components/calendar/post-dialog"
 import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
+import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 import { useRouter } from "next/navigation"
+import { serializeCalendarParams } from "@/lib/searchparams"
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-brand-accent/15 text-brand-accent border border-brand-accent/20",
@@ -25,15 +28,13 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 function getPlatformIcon(platform: string) {
-  const key = platform.toLowerCase().includes("instagram")
-    ? "photo_camera"
-    : platform.toLowerCase().includes("tiktok")
-    ? "music_note"
-    : platform.toLowerCase().includes("youtube")
-    ? "smart_display"
-    : "work"
-  const Cmp = Icons[key as keyof typeof Icons]
-  return Cmp ? <Cmp className="size-4" /> : null
+  const norm = (platform || "").toLowerCase()
+  if (norm.includes("instagram")) return <Icons.instagram className="size-4" />
+  if (norm.includes("tiktok")) return <Icons.tiktok className="size-4" />
+  if (norm.includes("youtube")) return <Icons.video className="size-4" />
+  if (norm.includes("twitter") || norm === "x") return <Icons.twitter className="size-4" />
+  if (norm.includes("linkedin")) return <Icons.bookOpen className="size-4" />
+  return <Icons.hub className="size-4" />
 }
 
 function formatSchedule(iso: string): string {
@@ -52,6 +53,8 @@ export function DashboardStitchPostPipeline() {
   // Data NYATA dari tabel scheduled_posts (bukan store lokal).
   const { data: posts = [], isPending } = useScheduledPosts(client.id)
   const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const router = useRouter()
 
   const recent = posts.slice(0, 8)
@@ -84,7 +87,7 @@ export function DashboardStitchPostPipeline() {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/admin/calendar?clientId=${client.id}`)}
+            onClick={() => router.push(serializeCalendarParams("/admin/calendar", { clientId: client.id }))}
             className="text-xs text-brand-accent font-bold hover:text-brand-accent hover:bg-brand-accent/10 flex items-center gap-1 cursor-pointer h-8 px-2.5 rounded-full"
           >
             Lihat kalender
@@ -111,13 +114,27 @@ export function DashboardStitchPostPipeline() {
           recent.map((post) => (
             <div
               key={post.id}
-              className="group flex items-center gap-4 p-3.5 rounded-2xl bg-muted/40 border border-border/40 hover:bg-card hover:border-border hover:shadow-md transition-all cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`Lihat dan edit postingan: ${post.title}`}
+              onClick={() => {
+                setEditingPost(post)
+                setDialogOpen(true)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setEditingPost(post)
+                  setDialogOpen(true)
+                }
+              }}
+              className="group flex items-center gap-4 p-3.5 rounded-2xl bg-muted/40 border border-border/40 hover:bg-card hover:border-border hover:shadow-md transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
             >
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-brand-accent shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-brand-accent shrink-0 group-hover:scale-105 transition-transform">
                 {getPlatformIcon(post.platform ?? "")}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="block text-sm font-bold text-foreground truncate">
+                <span className="block text-sm font-bold text-foreground truncate group-hover:text-brand-accent transition-colors">
                   {post.title}
                 </span>
                 <span className="block text-xs text-muted-foreground truncate">
@@ -145,6 +162,20 @@ export function DashboardStitchPostPipeline() {
         open={scheduleOpen}
         client={client}
         onClose={() => setScheduleOpen(false)}
+      />
+
+      <PostDialog
+        isOpen={dialogOpen}
+        onClose={() => {
+          setDialogOpen(false)
+          setEditingPost(null)
+        }}
+        editingPost={editingPost}
+        clientId={client.id}
+        onSave={() => {
+          setDialogOpen(false)
+          setEditingPost(null)
+        }}
       />
     </div>
   )

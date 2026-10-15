@@ -62,8 +62,8 @@ def escape_string(s):
 
 # Category mapping
 CATEGORY_MAP = {
-    'Foundation & strategy': ['brand-profile', 'voice-builder', 'writing-style-and-tone', 'audience-research', 'social-strategy', 'content-pillars', 'goals-and-kpis', 'profile-optimization'],
-    'Ideas & content angles': ['idea-generation-and-ideation', 'content-research-and-sourcing', 'educational-content-and-how-to', 'storytelling-and-narrative', 'contrarian-and-opinion', 'before-after-and-transformation', 'social-proof-and-testimonials', 'listicle-and-roundup', 'behind-the-scenes-and-founder', 'interactive-content', 'meme-and-culture', 'trend-jacking', 'data-and-original-research'],
+    'Foundation & strategy': ['brand-profile', 'voice-builder', 'writing-style-and-tone', 'audience-research', 'social-strategy', 'content-pillars', 'goals-and-kpis', 'profile-optimization', 'competitor-analysis'],
+    'Ideas & content angles': ['idea-generation-and-ideation', 'content-research-and-sourcing', 'educational-content-and-how-to', 'storytelling-and-narrative', 'contrarian-and-opinion', 'before-after-and-transformation', 'social-proof-and-testimonials', 'listicle-and-roundup', 'behind-the-scenes-and-founder', 'interactive-content', 'meme-and-culture', 'trend-jacking', 'data-and-original-research', 'viral-reverse-engineering'],
     'Copy & captions': ['hook-writer', 'caption-writer', 'thread-writer', 'threads-post', 'text-post-and-microblog', 'carousel-writer', 'story-writer', 'reply-and-comment-writer'],
     'Video scripts': ['short-form-video-script', 'reels-script', 'tiktok-script', 'youtube-shorts', 'youtube-long-form', 'scripting-and-storyboarding', 'talking-head-and-piece-to-camera', 'podcast-and-audiograms', 'livestream-and-realtime'],
     'AI video': ['ai-video', 'veo-3', 'kling', 'luma', 'heygen', 'synthesia', 'runway'],
@@ -71,10 +71,10 @@ CATEGORY_MAP = {
     'Voice & music': ['ai-voiceover', 'suno', 'ai-music-and-sound'],
     'Editing & clipping': ['capcut', 'descript', 'opus-clip', 'captions-and-clipping'],
     'Platform growth': ['instagram-growth', 'tiktok-growth', 'tiktok-photo-mode', 'linkedin-growth', 'linkedin-post-writer', 'linkedin-company-pages', 'x-growth', 'threads-growth', 'facebook-strategy', 'facebook-groups', 'pinterest-growth', 'pinterest-seo', 'youtube-publishing-and-metadata', 'reddit-marketing'],
-    'Distribution & monetization': ['hashtag-strategy', 'social-seo', 'ai-search-optimization', 'cross-platform-repurposing', 'content-recycling', 'link-in-bio-and-traffic', 'lead-magnets-and-funnels', 'social-selling-and-dm', 'collabs-and-cross-promotion', 'ugc-and-influencer', 'creator-monetization'],
+    'Distribution & monetization': ['hashtag-strategy', 'social-seo', 'ai-search-optimization', 'cross-platform-repurposing', 'content-recycling', 'link-in-bio-and-traffic', 'lead-magnets-and-funnels', 'social-selling-and-dm', 'collabs-and-cross-promotion', 'ugc-and-influencer', 'creator-monetization', 'email-and-newsletter', 'instagram-seo'],
     'Community & operations': ['engagement-routine', 'community-management', 'crisis-and-moderation'],
-    'Publishing & measurement': ['scheduling-and-queue', 'platform-specs-and-validation', 'analytics-and-reporting', 'content-audit', 'experimentation-and-ab-testing'],
-    'Planning': ['campaign-and-launch-planning', 'batch-content-plan', 'content-calendar'],
+    'Publishing & measurement': ['scheduling-and-queue', 'platform-specs-and-validation', 'analytics-and-reporting', 'content-audit', 'experimentation-and-ab-testing', 'instagram-reels-publishing', 'tiktok-video-publishing'],
+    'Planning': ['campaign-and-launch-planning', 'batch-content-plan', 'content-calendar', 'seasonal-and-moment-marketing'],
 }
 
 def get_category(skill_name):
@@ -100,7 +100,10 @@ def extract_frontmatter(content):
     version_match = re.search(r'^version:\s*(.+)$', fm, re.MULTILINE)
     version = version_match.group(1).strip() if version_match else '1.0.0'
     
-    return name, description, version
+    tools_match = re.search(r'^allowed-tools:\s*(.+)$', fm, re.MULTILINE)
+    allowed_tools = tools_match.group(1).strip() if tools_match else None
+    
+    return name, description, version, allowed_tools
 
 def load_packs():
     with open(PACKS_JSON_PATH) as f:
@@ -134,27 +137,28 @@ def seed():
         if not skill_file.exists(): continue
         
         content = skill_file.read_text(encoding='utf-8')
-        name, description, version = extract_frontmatter(content)
+        name, description, version, allowed_tools = extract_frontmatter(content)
         category = get_category(skill_name)
         job = description[:100] + '...' if description and len(description) > 100 else description
         
         skills_data.append({
             'id': skill_name, 'name': name or skill_name,
-            'description': description, 'category': category, 'job': job
+            'description': description, 'category': category, 'job': job,
+            'allowed_tools': allowed_tools
         })
     
     # Bulk insert skills
     values = []
     for s in skills_data:
-        v = f"({escape_string(s['id'])}, {escape_string(s['name'])}, {escape_string(s['description'])}, {escape_string(s['category'])}, {escape_string(s['job'])})"
+        v = f"({escape_string(s['id'])}, {escape_string(s['name'])}, {escape_string(s['description'])}, {escape_string(s['category'])}, {escape_string(s['job'])}, {escape_string(s['allowed_tools'])})"
         values.append(v)
     
     print(f"3. Inserting {len(skills_data)} skills...")
     run_query(f"""
-        INSERT INTO public.skills (id, name, description, category, job)
+        INSERT INTO public.skills (id, name, description, category, job, allowed_tools)
         VALUES {','.join(values)}
         ON CONFLICT (id) DO UPDATE SET
-        name=EXCLUDED.name, description=EXCLUDED.description, category=EXCLUDED.category, job=EXCLUDED.job;
+        name=EXCLUDED.name, description=EXCLUDED.description, category=EXCLUDED.category, job=EXCLUDED.job, allowed_tools=EXCLUDED.allowed_tools;
     """)
     
     print("4. Inserting skill files...")

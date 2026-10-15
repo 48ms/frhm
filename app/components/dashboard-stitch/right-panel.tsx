@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
 import { StitchAiHookModal } from "./ai-hook-modal"
 import { ConnectChannelModal } from "@/components/social-accounts/connect-channel-modal"
-import { useAppStore } from "@/lib/store/app-store"
+import { useDisconnectChannel } from "@/features/social-accounts/api/queries"
+import { toast } from "sonner"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui/components/radix/tooltip"
 import {
   AlertDialog,
@@ -21,20 +22,80 @@ import {
 import { Button } from "@/components/ui/button"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
+function getPlatformMeta(platform: string) {
+  const p = (platform || "").toLowerCase()
+  if (p.includes("instagram")) {
+    return {
+      label: "Instagram",
+      icon: Icons.instagram,
+      bg: "bg-[hsl(var(--platform-instagram,340_80%_55%))]",
+    }
+  }
+  if (p.includes("tiktok")) {
+    return {
+      label: "TikTok",
+      icon: Icons.tiktok,
+      bg: "bg-[hsl(var(--platform-tiktok,180_100%_40%))]",
+    }
+  }
+  if (p.includes("youtube")) {
+    return {
+      label: "YouTube",
+      icon: Icons.video,
+      bg: "bg-[hsl(var(--platform-youtube,0_85%_50%))]",
+    }
+  }
+  if (p.includes("twitter") || p === "x") {
+    return {
+      label: "Twitter / X",
+      icon: Icons.twitter,
+      bg: "bg-foreground text-background",
+    }
+  }
+  if (p.includes("linkedin")) {
+    return {
+      label: "LinkedIn",
+      icon: Icons.bookOpen,
+      bg: "bg-[hsl(var(--platform-linkedin,210_80%_45%))]",
+    }
+  }
+  return {
+    label: platform || "Saluran",
+    icon: Icons.hub,
+    bg: "bg-brand-accent",
+  }
+}
+
+const CHANNEL_STATUS_STYLES: Record<string, { label: string; pill: string }> = {
+  terhubung: {
+    label: "Terhubung",
+    pill: "bg-brand-accent/20 text-brand-accent",
+  },
+  menunggu: {
+    label: "Menunggu",
+    pill: "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]",
+  },
+  terputus: {
+    label: "Terputus",
+    pill: "bg-muted text-muted-foreground",
+  },
+  gagal: {
+    label: "Gagal",
+    pill: "bg-destructive/15 text-destructive",
+  },
+}
+
 export function DashboardStitchConnectedHub() {
   const { client, clientId, profile } = useActiveDashboard()
   
-  // Optimasi ECC: Ambil list mentah saja, filter di level komponen agar getter store 
-  // tidak loop re-render React (karena getter Zustand mereturn array referensi baru tiap call).
-  const rawAccounts = useAppStore(s => s.accounts)
-  
-  const accounts = rawAccounts.filter((a) => a.clientId === client.id)
+  // Data FAKTUAL dari tabel client_channels (PostgreSQL Supabase)
+  const channels = client.channels ?? []
   
   const [aiOpen, setAiOpen] = useState(false)
   const [connectOpen, setConnectOpen] = useState(false)
   const [disconnectId, setDisconnectId] = useState<string | null>(null)
 
-  // (Removed local sync effect , useAppStore is always in sync)
+  const { mutateAsync: disconnectChannelMutate, isPending: isDisconnecting } = useDisconnectChannel()
 
   return (
     <div className="space-y-6">
@@ -47,7 +108,7 @@ export function DashboardStitchConnectedHub() {
                 Connected Hub
               </h2>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <MetricTicker value={accounts.length} /> accounts connected
+                <MetricTicker value={channels.length} /> accounts connected
               </p>
             </div>
             <Tooltip>
@@ -94,62 +155,82 @@ export function DashboardStitchConnectedHub() {
         </div>
 
         <div className="mt-4 space-y-3">
-          {accounts.map((ch) => (
-            <div
-              key={ch.id}
-              className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/60 border border-border/40 hover:bg-muted/50 hover:border-[hsl(var(--secondary))]/40 transition-all cursor-pointer group shadow-sm hover:shadow"
-            >
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm font-bold group-hover:scale-105 transition-transform",
-                  ch.bg
-                )}>
-                  <Icons.hub className="size-5" />
-                </div>
-                <div>
-                  <h3 className="font-label-lg text-label-lg text-foreground font-bold leading-tight group-hover:text-secondary transition-colors">
-                    {ch.platform}
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-muted-foreground">
-                    {ch.handle}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-label-caps font-bold",
-                  ch.status === "SYNCED" || ch.status === "LIVE_SYNC"
-                    ? "bg-brand-accent/20 text-brand-accent"
-                    : "bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]"
-                )}>
-                  {(ch.status === "SYNCED" || ch.status === "LIVE_SYNC") && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  )}
-                  {ch.status.replace('_', ' ')}
-                </span>
-                {ch.fans && (
-                  <p className="font-body-sm text-body-sm text-foreground font-semibold mt-1">
-                    {ch.fans}
-                  </p>
-                )}
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDisconnectId(ch.id)}
-                    className="h-7 w-7 ml-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                    aria-label="Disconnect channel"
-                  >
-                    <Icons.close className="size-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Disconnect channel</TooltipContent>
-              </Tooltip>
+          {channels.length === 0 ? (
+            <div className="p-4 rounded-xl border border-dashed border-border/50 text-center">
+              <p className="text-xs text-muted-foreground">
+                Belum ada channel terhubung untuk {client.name}.
+              </p>
             </div>
-          ))}
+          ) : (
+            channels.map((ch) => {
+              const meta = getPlatformMeta(ch.platform)
+              const PlatformIcon = meta.icon
+              const statusInfo = CHANNEL_STATUS_STYLES[ch.status] ?? {
+                label: ch.status,
+                pill: "bg-muted text-muted-foreground",
+              }
+
+              return (
+                <div
+                  key={ch.id}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-muted/60 border border-border/40 hover:bg-muted/50 hover:border-border transition-all cursor-pointer group shadow-sm hover:shadow"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm font-bold group-hover:scale-105 transition-transform shrink-0",
+                      meta.bg
+                    )}>
+                      <PlatformIcon className="size-5" />
+                    </div>
+                    <div className="truncate">
+                      <h3 className="font-label-lg text-label-lg text-foreground font-bold leading-tight group-hover:text-brand-accent transition-colors truncate">
+                        {meta.label}
+                      </h3>
+                      <p className="font-body-sm text-body-sm text-muted-foreground truncate">
+                        {ch.handle || "Belum ada handle"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right">
+                      <span className={cn(
+                        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-label-caps font-bold",
+                        statusInfo.pill
+                      )}>
+                        {ch.status === "terhubung" && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
+                        )}
+                        {statusInfo.label}
+                      </span>
+                      {ch.note && (
+                        <p className="font-body-sm text-body-sm text-muted-foreground font-normal mt-0.5 max-w-[90px] truncate">
+                          {ch.note}
+                        </p>
+                      )}
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDisconnectId(ch.id)
+                          }}
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                          aria-label="Disconnect channel"
+                        >
+                          <Icons.close className="size-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Disconnect channel</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              )
+            })
+          )}
 
           <Button
             type="button"
@@ -235,21 +316,29 @@ export function DashboardStitchConnectedHub() {
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-3 pt-2 sm:justify-center">
             <AlertDialogCancel
+              disabled={isDisconnecting}
               onClick={() => setDisconnectId(null)}
               className="flex-1 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/70 transition-all shadow-sm"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              disabled={isDisconnecting}
+              onClick={async () => {
                 if (disconnectId) {
-                  useAppStore.getState().disconnectAccount(disconnectId)
-                  setDisconnectId(null)
+                  try {
+                    await disconnectChannelMutate(disconnectId)
+                    toast.success("Saluran berhasil diputuskan")
+                  } catch (err: any) {
+                    toast.error(err?.message || "Gagal memutuskan saluran")
+                  } finally {
+                    setDisconnectId(null)
+                  }
                 }
               }}
               className="flex-1 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all shadow-sm"
             >
-              Disconnect
+              {isDisconnecting ? "Disconnecting..." : "Disconnect"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -259,7 +348,7 @@ export function DashboardStitchConnectedHub() {
       <ConnectChannelModal
         open={connectOpen}
         client={client}
-        existingPlatforms={accounts.map((a) => a.platform)}
+        existingPlatforms={channels.map((a) => a.platform)}
         onClose={() => setConnectOpen(false)}
       />
     </div>
@@ -267,4 +356,5 @@ export function DashboardStitchConnectedHub() {
 }
 
 export const RightPanel = DashboardStitchConnectedHub
+
 

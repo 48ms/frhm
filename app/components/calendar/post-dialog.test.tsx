@@ -390,4 +390,66 @@ describe('PostDialog', () => {
     ).toBeInTheDocument()
     expect(createPostMock).not.toHaveBeenCalled()
   })
+
+  it('toggles between Editor and Live Preview tab seamlessly', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+        initialTitle="Test Post Preview"
+        initialContent="Draft copy for live preview"
+      />
+    )
+
+    // Initially in Editor view
+    expect(screen.getByRole('button', { name: /Live Preview/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Isi Caption/i)).toBeInTheDocument()
+
+    // Switch to Live Preview
+    fireEvent.click(screen.getByRole('button', { name: /Live Preview/i }))
+    expect(await screen.findByText(/Simulasi Feed INSTAGRAM/i)).toBeInTheDocument()
+
+    // Switch back to Editor
+    fireEvent.click(screen.getByRole('button', { name: /Editor/i }))
+    expect(await screen.findByLabelText(/Isi Caption/i)).toBeInTheDocument()
+  })
+
+  it('inserts CTA text into caption when a CTA chip is clicked', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+        initialTitle="Post with CTA"
+        initialContent="Halo sobat digital"
+      />
+    )
+
+    const ctaButton = screen.getByRole('button', { name: /📲 Link Bio/i })
+    expect(ctaButton).toBeInTheDocument()
+    fireEvent.click(ctaButton)
+
+    const textarea = screen.getByLabelText(/Isi Caption/i) as HTMLTextAreaElement
+    expect(textarea.value).toContain('Klik link di bio')
+  })
+
+  it('renders AI caption and hook action buttons', () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: /✨ AI Caption/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /🔥 3 Hook/i })).toBeInTheDocument()
+  })
 })

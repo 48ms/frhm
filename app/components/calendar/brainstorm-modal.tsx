@@ -23,6 +23,27 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
 
+const IDEA_STRATEGY_PRESETS = [
+  { label: "🔥 Bongkar Mitos", topic: "Bongkar mitos keliru seputar industri yang sering dipercaya audiens" },
+  { label: "💡 Tips 3-Langkah", topic: "3 langkah praktis dan terbukti untuk menyelesaikan masalah utama audiens" },
+  { label: "🎬 BTS & Standar", topic: "Di balik layar proses pembuatan produk dan standar kualitas kami" },
+  { label: "💬 Social Proof", topic: "Kisah transformasi nyata dan bukti kepuasan pelanggan kami" },
+]
+
+const TREND_VIRAL_FORMATS = [
+  { title: "POV: Coba Solusi", desc: "POV: Pertama kali coba solusi kami setelah frustrasi bertahun-tahun dengan metode konvensional." },
+  { title: "Day in Life BTS", desc: "A Day in the Life: Aktivitas otentik di balik layar tim kami dalam memastikan standar kualitas terbaik." },
+  { title: "Before vs After", desc: "Transformasi sebelum vs sesudah: Perubahan nyata yang dirasakan dalam 30 hari pemakaian konsisten." },
+  { title: "Mitos vs Fakta", desc: "Mitos vs Fakta: Meluruskan miskonsepsi umum yang sering merugikan konsumen di industri ini." },
+]
+
+const TONE_OF_VOICE_PRESETS = [
+  { id: "authority", label: "👑 Otoritatif", prompt: "Gaya otoritatif, mendalam, dan berbasis fakta/data industri" },
+  { id: "story", label: "🤝 Storytelling", prompt: "Gaya cerita emosional, relatable, dan humanis" },
+  { id: "hook", label: "⚡ Punchy Hook", prompt: "Gaya to-the-point, scroll-stopping, dan provokatif sehat" },
+  { id: "direct", label: "🎯 Direct Sales", prompt: "Gaya penawaran bernilai tinggi dengan CTA lugas" },
+]
+
 interface BrainstormModalProps {
   clientId: string
   open?: boolean
@@ -46,6 +67,7 @@ export function BrainstormModal({
 
   // State untuk Ideation
   const [trendOrTopic, setTrendOrTopic] = useState("")
+  const [selectedTone, setSelectedTone] = useState<string | null>(null)
   const [count, setCount] = useState(5)
   const [ideas, setIdeas] = useState<GeneratedIdea[]>([])
 
@@ -60,7 +82,12 @@ export function BrainstormModal({
 
   const handleGenerate = async () => {
     try {
-      const result = await generateIdeas({ clientId, count, trendOrTopic })
+      const chosenTone = TONE_OF_VOICE_PRESETS.find((t) => t.id === selectedTone)
+      const promptWithTone = chosenTone
+        ? `${trendOrTopic ? trendOrTopic + " " : ""}[Tone: ${chosenTone.prompt}]`
+        : trendOrTopic
+
+      const result = await generateIdeas({ clientId, count, trendOrTopic: promptWithTone })
       if (result.error) {
         toast.error(result.error)
         return
@@ -218,6 +245,43 @@ export function BrainstormModal({
                     value={trendOrTopic}
                     onChange={(e) => setTrendOrTopic(e.target.value)}
                   />
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Preset:</span>
+                    {IDEA_STRATEGY_PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setTrendOrTopic(preset.topic)}
+                        className="text-2xs px-2 py-0.5 rounded-full bg-muted hover:bg-brand-accent/10 hover:text-brand-accent border border-border/40 transition-colors font-medium cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tone of Voice Selector */}
+                  <div className="space-y-1.5 pt-2">
+                    <Label className="text-2xs uppercase tracking-wider text-muted-foreground font-semibold">
+                      Tone of Voice / Gaya Penyampaian
+                    </Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {TONE_OF_VOICE_PRESETS.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSelectedTone(selectedTone === t.id ? null : t.id)}
+                          className={cn(
+                            "px-2.5 py-1.5 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer flex flex-col items-center gap-0.5",
+                            selectedTone === t.id
+                              ? "bg-primary/10 border-primary text-primary shadow-xs ring-1 ring-primary/20"
+                              : "bg-muted/40 border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )}
+                        >
+                          <span>{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -272,16 +336,30 @@ export function BrainstormModal({
                           <h4 className="font-semibold text-sm">{idea.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{idea.content}</p>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="secondary" 
-                          onClick={() => handleAddToCalendar(idea, i)}
-                          isLoading={isSaving}
-                          disabled={isSaving}
-                        >
-                          <Icons.add className="h-4 w-4 mr-1" />
-                          Add to Calendar
-                        </Button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(`${idea.title}\n\nHook: ${idea.hook}\n\nKonsep: ${idea.content}`)
+                              toast.success("Ide disalin ke clipboard!")
+                            }}
+                            className="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                            title="Salin Ide"
+                          >
+                            <Icons.copy className="size-3.5" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            onClick={() => handleAddToCalendar(idea, i)}
+                            isLoading={isSaving}
+                            disabled={isSaving}
+                          >
+                            <Icons.add className="h-4 w-4 mr-1" />
+                            Add to Calendar
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="bg-muted p-2 rounded-lg text-xs italic">
@@ -316,6 +394,19 @@ export function BrainstormModal({
                   value={trendDesc}
                   onChange={(e) => setTrendDesc(e.target.value)}
                 />
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Format:</span>
+                  {TREND_VIRAL_FORMATS.map((fmt, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setTrendDesc(fmt.desc)}
+                      className="text-2xs px-2 py-0.5 rounded-full bg-muted hover:bg-warning/10 hover:text-warning border border-border/40 transition-colors font-medium cursor-pointer"
+                    >
+                      {fmt.title}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -5,9 +5,12 @@ import { motion, type Variants } from "motion/react"
 import { Icons } from "@/components/icons"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { useActiveDashboard } from "./dashboard-data"
+import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
 
 export function DashboardStitchKpis() {
   const { client, profile } = useActiveDashboard()
+  const { data: posts = [] } = useScheduledPosts(client.id)
+  const scheduledCount = posts.filter((p) => p.status === "scheduled").length
 
   const container: Variants = {
     hidden: { opacity: 0 },
@@ -49,11 +52,11 @@ export function DashboardStitchKpis() {
       label: "Scheduled queue",
       icon: "schedule" as const,
       iconClass: "bg-brand-accent/10 text-brand-accent",
-      value: `${client.channels?.length ?? 0} Posts`,
+      value: `${scheduledCount} Posts`,
       growth: null,
       growthUp: true,
       isNeutral: false,
-      caption: "Across connected channels",
+      caption: `${posts.length} total in pipeline`,
     },
     {
       label: "Avg. engagement",

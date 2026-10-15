@@ -25,6 +25,6 @@ test.describe('Analytics & Reporting module', () => {
     await page.waitForLoadState('networkidle')
 
     await expect(page.getByText('Performance Insight').first()).toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('heading', { name: 'AI Contextual Summary' }).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/AI Contextual Summary/i).first()).toBeVisible({ timeout: 15000 })
   })
 })

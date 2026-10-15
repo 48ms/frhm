@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { useRouter } from "next/navigation"
+import { useQueryState, parseAsString } from "nuqs"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { useCurrentUser } from "@/lib/auth/use-current-user"
 import { toast } from "sonner"
+import { serializeCalendarParams } from "@/lib/searchparams"
 import { AssetPicker } from "@/components/library/asset-picker"
 import type { Asset, AssetFileType } from "@/features/library/api/types"
 import { useGenerateCaption, useGenerateVideoScript, useRepurposeCrossPlatform, useGenerateHooks, useGenerateCarousel, useValidatePlatformPost, useGenerateVisualPrompt } from "@/features/copilot/api/queries"
@@ -54,12 +56,39 @@ export function ComposerClient() {
   const { mutateAsync: createPost } = useCreateScheduledPost()
 
   const [step, setStep] = useState(1)
+  const [contentParam, setContentParam] = useQueryState("content", parseAsString.withDefault(""))
+  const [mediaUrlParam, setMediaUrlParam] = useQueryState("mediaUrl", parseAsString.withDefault(""))
+  const [titleParam, setTitleParam] = useQueryState("title", parseAsString.withDefault(""))
+
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [copilotPlatform, setCopilotPlatform] = useState<string | null>(null)
   const [mediaUrl, setMediaUrl] = useState("")
   const [mediaType, setMediaType] = useState<AssetFileType>("image")
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  // Sync content / mediaUrl / title from cross-module deep links
+  useEffect(() => {
+    if (contentParam) {
+      setContent(contentParam)
+      void setContentParam("")
+    }
+  }, [contentParam, setContentParam])
+
+  useEffect(() => {
+    if (mediaUrlParam) {
+      setMediaUrl(mediaUrlParam)
+      setMediaType(/\.(mp4|mov|webm|m4v)(\?|$)/i.test(mediaUrlParam) ? "video" : "image")
+      void setMediaUrlParam("")
+    }
+  }, [mediaUrlParam, setMediaUrlParam])
+
+  useEffect(() => {
+    if (titleParam) {
+      setTitle(titleParam)
+      void setTitleParam("")
+    }
+  }, [titleParam, setTitleParam])
   const connectedChannels = activeClient?.channels?.filter(c => c.status === "terhubung") || []
   const [platforms, setPlatforms] = useState<string[]>([])
   const [dateStr, setDateStr] = useState("")
@@ -437,7 +466,7 @@ export function ComposerClient() {
       toast.success("Konten Dijadwalkan!", {
         description: `Berhasil dijadwalkan ke ${platforms.length} platform secara bersamaan.`
       })
-      router.push(`/admin/calendar?clientId=${clientId}`)
+      router.push(serializeCalendarParams("/admin/calendar", { clientId }))
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Gagal menjadwalkan.")
     } finally {

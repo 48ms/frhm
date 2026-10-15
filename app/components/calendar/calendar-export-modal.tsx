@@ -105,8 +105,6 @@ export function CalendarExportModal({
 
   const scoped = useMemo(() => filterByRange(posts, range), [posts, range])
 
-  if (!open) return null
-
   function buildCsv(): string {
     const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)
     const rows = [
@@ -168,9 +166,9 @@ export function CalendarExportModal({
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
-        <DialogHeader className="p-5 border-b border-border/30 pb-3">
+    <Dialog open={open} onOpenChange={(val) => !val && !busy && onClose()}>
+      <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-5">
+        <DialogHeader className="border-b border-border/40 pb-3 text-left">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center shrink-0">
               <Icons.download className="size-4" />
@@ -186,7 +184,7 @@ export function CalendarExportModal({
           </div>
         </DialogHeader>
 
-        <div className="p-5 space-y-4">
+        <div className="space-y-4">
           {scoped.length === 0 ? (
             <div className="py-8 text-center space-y-2">
               <Icons.activity className="size-6 mx-auto text-muted-foreground" />

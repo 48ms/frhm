@@ -142,4 +142,38 @@ describe("BrainstormModal", () => {
       )
     })
   })
+
+  it("selects a Tone of Voice preset and passes it to ideation generator", async () => {
+    generateIdeasMock.mockResolvedValueOnce({
+      ideas: [
+        {
+          title: "Mitos Digital",
+          content: "Penjelasan mitos",
+          pillar: "Edukasi",
+          format: "Carousel",
+          platform: "Instagram",
+          hook: "90% brand pemula salah kaprah soal ini",
+        },
+      ],
+    })
+
+    renderWithProviders(<BrainstormModal clientId="client-test" open={true} />)
+
+    // Select tone
+    const toneBtn = screen.getByRole("button", { name: /👑 Otoritatif/i })
+    fireEvent.click(toneBtn)
+
+    // Click generate
+    const generateBtn = screen.getByRole("button", { name: /Generate Ideas/i })
+    fireEvent.click(generateBtn)
+
+    await waitFor(() => {
+      expect(generateIdeasMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clientId: "client-test",
+          trendOrTopic: expect.stringContaining("Gaya otoritatif"),
+        })
+      )
+    })
+  })
 })

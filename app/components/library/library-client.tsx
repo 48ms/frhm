@@ -604,12 +604,25 @@ export function LibraryClient() {
                   <Button
                     className="gap-2 w-full"
                     onClick={() => {
+                      const captionQuery = caption ? `&caption=${encodeURIComponent(caption)}` : ""
                       router.push(
-                        `/admin/calendar?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}&new=1`
+                        `/admin/calendar?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}${captionQuery}&new=1`
                       )
                     }}
                   >
                     <Icons.calendar className="size-4" /> Jadwalkan dengan aset ini
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="gap-2 w-full"
+                    onClick={() => {
+                      const contentQuery = caption ? `&content=${encodeURIComponent(caption)}` : ""
+                      router.push(
+                        `/admin/composer?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}${contentQuery}`
+                      )
+                    }}
+                  >
+                    <Icons.send className="size-4" /> Buka di Composer
                   </Button>
                   <a
                     href={previewAsset.url}

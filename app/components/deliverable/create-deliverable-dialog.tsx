@@ -20,6 +20,27 @@ const deliverableFormSchema = z.object({
 
 type DeliverableFormValues = z.infer<typeof deliverableFormSchema>
 
+const DELIVERABLE_STARTER_PRESETS = [
+  {
+    type: "brief" as const,
+    label: "📋 Creative Brief",
+    title: "Creative Content Brief",
+    content: "## 🎯 Tujuan Kampanye\nMeningkatkan awareness dan interaksi audiens target.\n\n## 👥 Target Audiens\nSegmen demografi utama dan permasalahan yang ingin diselesaikan.\n\n## 💡 Pesan Kunci\nPesan sentral yang wajib disampaikan secara konsisten.\n\n## 📦 Rincian Output\nDaftar materi, format, dan kanal distribusi.",
+  },
+  {
+    type: "report" as const,
+    label: "📊 Monthly Performance Report",
+    title: "Laporan Performa Konten Bulanan",
+    content: "## 📈 Ringkasan Metrik Utama\n- Total Reach / Tayangan:\n- Engagement Rate:\n- Top Performing Content:\n\n## 🔍 Evaluasi & Insight\nApa yang berhasil dan hal yang perlu ditingkatkan.\n\n## 🚀 Rekomendasi Langkah Bulan Depan\nStrategi dan penyesuaian pilar konten berikutnya.",
+  },
+  {
+    type: "content" as const,
+    label: "🎬 Video Production Sheet",
+    title: "Lembar Produksi Video Pendek",
+    content: "## 🎬 Hook 3-Detik Pertama\nVisual dan kalimat pembuka scroll-stopping.\n\n## 📜 Naskah Narasi / Audio\nTranskrip pembicaraan atau alur voiceover.\n\n## 🎥 Panduan Visual & B-Roll\nAdegan, transisi, dan demonstrasi produk.\n\n## 🎯 Call-to-Action (CTA)\nPenutup dan ajakan interaksi penonton.",
+  },
+]
+
 export function CreateDeliverableDialog({
   open,
   onOpenChange,
@@ -87,6 +108,30 @@ export function CreateDeliverableDialog({
           }}
           className="space-y-5 px-1"
         >
+          {/* Preset Template Chips */}
+          <div className="space-y-1.5 p-3 rounded-xl bg-muted/40 border border-border/40">
+            <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block">
+              Gunakan Starter Template Agensi:
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {DELIVERABLE_STARTER_PRESETS.map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    form.setFieldValue("type", p.type)
+                    form.setFieldValue("title", p.title)
+                    form.setFieldValue("content_md", p.content)
+                    toast.info(`Template ${p.label} diterapkan.`)
+                  }}
+                  className="inline-flex items-center gap-1 text-2xs px-2.5 py-1 rounded-lg bg-card hover:bg-primary/10 hover:text-primary border border-border/40 text-foreground transition-all cursor-pointer font-semibold shadow-2xs"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form.AppField
             name="type"
             children={(field) => (

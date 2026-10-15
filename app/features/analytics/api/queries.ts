@@ -4,13 +4,17 @@ import {
   getAnalyticsSummariesByClient,
   getLatestPrediction,
   auditPerformanceAndIterate,
+  getMultiAccountAnalytics,
+  syncMultiAccountSocialData,
 } from "./service"
-import type { AuditPerformanceInput } from "./types"
+import type { AuditPerformanceInput, SyncMultiAccountInput } from "./types"
 
 export const analyticsKeys = {
   all: ["analytics"] as const,
   metricsByClient: (clientId: string) => [...analyticsKeys.all, "metrics", clientId] as const,
   summariesByClient: (clientId: string) => [...analyticsKeys.all, "summaries", clientId] as const,
+  multiAccount: (clientId: string, period = "30d") =>
+    [...analyticsKeys.all, "multi-account", clientId, period] as const,
 }
 
 export const analyticsQueries = {
@@ -34,6 +38,13 @@ export const analyticsQueries = {
       queryFn: () => getLatestPrediction(clientId),
       enabled: Boolean(clientId),
     }),
+
+  multiAccount: (clientId: string, period = "30d") =>
+    queryOptions({
+      queryKey: analyticsKeys.multiAccount(clientId, period),
+      queryFn: () => getMultiAccountAnalytics(clientId, period),
+      enabled: Boolean(clientId),
+    }),
 }
 
 export function useAuditPerformanceAndIterate() {
@@ -43,6 +54,18 @@ export function useAuditPerformanceAndIterate() {
     onSuccess: (_, input) => {
       queryClient.invalidateQueries({
         queryKey: analyticsKeys.summariesByClient(input.clientId),
+      })
+    },
+  })
+}
+
+export function useSyncMultiAccountSocialData() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: SyncMultiAccountInput) => syncMultiAccountSocialData(input),
+    onSuccess: (_, input) => {
+      queryClient.invalidateQueries({
+        queryKey: analyticsKeys.all,
       })
     },
   })

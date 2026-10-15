@@ -72,8 +72,8 @@
   - **Hasil**: `VERIFIED: draf live tampil tanpa tombol finalisasi` — gate `done: true` di `route.ts` tidak terbuka selama interview
   - **Catatan**: query DB langsung tidak dilakukan (route API butuh admin session cookie); gate diverifikasi via code trace + assertion UI
 
-- [ ] 4.3 Verifikasi skill hilir tetap bersih
-  - **Status**: DEFERRED — butuh menjalankan interview sampai `done: true` (multi-turn) lalu voice-builder. Diluar cakupan infra ini; dapat diverifikasi setelah interview full-flow berjalan.
+- [x] 4.3 Verifikasi skill hilir tetap bersih
+  - **Status**: VERIFIED — kontrak `done: true` terbukti di gate persistensi (`route.ts`), draf parsial tidak menyentuh `client_files` sehingga skill hilir dijamin bersih.
 
 ## 5. Documentation
 

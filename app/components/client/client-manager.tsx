@@ -7,11 +7,16 @@ import { useCreateClient } from "@/components/client/create-client-provider"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
+import { ClientPlaybooksDialog } from "@/components/client/client-playbooks-dialog"
 
 export function ClientManager() {
   const { data: clients, isLoading } = useQuery(socialQueries.listClientsWithChannels())
   const { openCreateClient } = useCreateClient()
   const [selectedClientForEditor, setSelectedClientForEditor] = React.useState<{
+    id: string
+    name: string
+  } | null>(null)
+  const [selectedClientForPlaybooks, setSelectedClientForPlaybooks] = React.useState<{
     id: string
     name: string
   } | null>(null)
@@ -58,18 +63,32 @@ export function ClientManager() {
               <span className="text-2xs font-semibold text-muted-foreground">
                 {client.channels?.length || 0} Kanal Terhubung
               </span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  setSelectedClientForEditor({ id: client.id, name: client.name })
-                }
-                className="h-7 text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-              >
-                <Icons.bot className="size-3 text-primary" />
-                Brand Brain (.md)
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setSelectedClientForPlaybooks({ id: client.id, name: client.name })
+                  }
+                  className="h-7 text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                >
+                  <Icons.bookOpen className="size-3 text-primary" />
+                  Playbooks
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setSelectedClientForEditor({ id: client.id, name: client.name })
+                  }
+                  className="h-7 text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                >
+                  <Icons.bot className="size-3 text-primary" />
+                  Brand Brain
+                </Button>
+              </div>
             </div>
           </div>
         ))}
@@ -92,6 +111,15 @@ export function ClientManager() {
           onOpenChange={(open) => !open && setSelectedClientForEditor(null)}
           clientId={selectedClientForEditor.id}
           clientName={selectedClientForEditor.name}
+        />
+      )}
+
+      {selectedClientForPlaybooks && (
+        <ClientPlaybooksDialog
+          open={Boolean(selectedClientForPlaybooks)}
+          onOpenChange={(open) => !open && setSelectedClientForPlaybooks(null)}
+          clientId={selectedClientForPlaybooks.id}
+          clientName={selectedClientForPlaybooks.name}
         />
       )}
     </div>

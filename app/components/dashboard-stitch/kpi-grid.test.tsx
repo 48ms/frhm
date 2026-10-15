@@ -18,6 +18,18 @@ vi.mock("./dashboard-data", () => ({
   }),
 }))
 
+// Mock useScheduledPosts to verify factual queue counting
+vi.mock("@/features/scheduled-posts/api/queries", () => ({
+  useScheduledPosts: () => ({
+    data: [
+      { id: "post-1", title: "Post Terjadwal", status: "scheduled" },
+      { id: "post-2", title: "Draf Konten", status: "draft" },
+      { id: "post-3", title: "Post Terbit", status: "published" },
+    ],
+    isPending: false,
+  }),
+}))
+
 // Mock motion/react to simple div/span while preserving hooks
 vi.mock("motion/react", async (importOriginal) => {
   const actual = await importOriginal<any>()
@@ -48,6 +60,11 @@ describe("DashboardStitchKpis (Data Integrity & Design)", () => {
     // Metriks ke-4 harus merefleksikan Total engagement (nilai 105), bukan klaim velocity
     expect(screen.getByText("Total engagement")).toBeInTheDocument()
     expect(screen.getByText("105")).toBeInTheDocument()
+
+    // Metriks ke-2 (Scheduled queue) harus merefleksikan 1 post berstatus scheduled (dari 3 post)
+    expect(screen.getByText("Scheduled queue")).toBeInTheDocument()
+    expect(screen.getByText("1 Posts")).toBeInTheDocument()
+    expect(screen.getByText("3 total in pipeline")).toBeInTheDocument()
   })
 
   it("renders N/A badge with neutral muted style, not destructive/error red", () => {

@@ -33,6 +33,10 @@ vi.mock("@/features/copilot/api/queries", () => ({
   useGenerateContentIdeas: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
+vi.mock("@/features/social-accounts/api/queries", () => ({
+  useDisconnectChannel: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
 vi.mock("motion/react", async (importOriginal) => {
   const actual = await importOriginal<any>()
   const filterMotionProps = ({ whileHover, whileTap, variants, transition, initial, animate, exit, ...rest }: any) => rest

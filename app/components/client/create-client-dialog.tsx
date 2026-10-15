@@ -153,7 +153,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
   return (
     <>
       <Dialog open={open && !createdCredentials} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-0 shadow-2xl overflow-hidden gap-0">
           {/* Header Progress Bar */}
           <div className="bg-muted/40 border-b p-6 pb-4">
             <div className="flex items-center justify-between mb-3">
@@ -304,7 +304,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
             )}
           </form>
 
-          <div className="bg-muted/30 border-t p-4 flex justify-between items-center rounded-b-lg">
+          <div className="bg-muted/30 border-t p-4 px-6 flex justify-between items-center">
             {step === 1 ? (
               <>
                 <Button variant="ghost" size="sm" onClick={handleClose} className="text-muted-foreground hover:text-foreground">

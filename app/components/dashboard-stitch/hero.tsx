@@ -8,11 +8,35 @@ import { useActiveDashboard } from "./dashboard-data"
 import { ExportReportModal } from "./export-report-modal"
 import { SchedulePostModal } from "./schedule-post-modal"
 import { formatDistanceToNow } from "date-fns"
+import { useQueryClient } from "@tanstack/react-query"
+import { dashboardKeys } from "@/features/dashboard/api/queries"
+import { postKeys } from "@/features/scheduled-posts/api/queries"
+import { socialKeys } from "@/features/social-accounts/api/queries"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 export function DashboardStitchHero() {
   const { client, profile } = useActiveDashboard()
   const [exportOpen, setExportOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const queryClient = useQueryClient()
+
+  const handleManualSync = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+        queryClient.invalidateQueries({ queryKey: postKeys.all }),
+        queryClient.invalidateQueries({ queryKey: socialKeys.all }),
+      ])
+      toast.success("Data dasbor berhasil diperbarui")
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal menyinkronkan data")
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   return (
     <>
@@ -35,17 +59,26 @@ export function DashboardStitchHero() {
               </span>
             </div>
             {/* Sync Status Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-2xs font-bold text-muted-foreground cursor-help" title={`Data terakhir sinkron: ${profile.updated_at}`}>
-              <Icons.refresh className="size-3" />
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-2xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              title="Klik untuk menyinkronkan ulang data dari database"
+              aria-label="Sinkronkan ulang data dasbor"
+            >
+              <Icons.refresh className={cn("size-3", isSyncing && "animate-spin text-brand-accent")} />
               <span>
-                Synced {profile.updated_at ? formatDistanceToNow(new Date(profile.updated_at), { addSuffix: true }) : 'never'}
+                {isSyncing
+                  ? "Menyinkronkan..."
+                  : `Synced ${profile.updated_at ? formatDistanceToNow(new Date(profile.updated_at), { addSuffix: true }) : 'never'}`}
               </span>
-            </div>
+            </button>
           </div>
 
-          <h1 className="font-sans font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
+          <h2 className="font-sans font-extrabold text-2xl md:text-3xl text-foreground tracking-tight">
             {profile.greeting}
-          </h1>
+          </h2>
           <p className="text-xs md:text-sm text-muted-foreground">
             Ringkasan performa konten untuk {client.name}.
           </p>

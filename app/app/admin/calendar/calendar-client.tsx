@@ -73,14 +73,16 @@ const STATUS_META: Record<string, { label: string; pill: string; dot: string }> 
 
 /** Ticking countdown to the next scheduled post. */
 function useNextRelease(posts: ScheduledPost[]) {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState<number | null>(null)
 
   useEffect(() => {
+    setNow(Date.now())
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
 
   const next = useMemo(() => {
+    if (!now) return posts[0] ?? null
     const upcoming = posts
       .filter((p) => p.status === "scheduled" && new Date(p.scheduled_at).getTime() > now)
       .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
@@ -88,7 +90,7 @@ function useNextRelease(posts: ScheduledPost[]) {
   }, [posts, now])
 
   const remaining = useMemo(() => {
-    if (!next) return null
+    if (!next || !now) return null
     const diff = new Date(next.scheduled_at).getTime() - now
     const clamped = diff <= 0 ? 0 : diff
     const h = Math.floor(clamped / 3_600_000)
@@ -120,26 +122,38 @@ export function AdminCalendarClient() {
     parseAsStringEnum([...VIEW_TABS]).withDefault("month")
   )
   const [mediaUrl, setMediaUrl] = useQueryState("mediaUrl", parseAsString.withDefault(""))
+  const [captionParam, setCaptionParam] = useQueryState("caption", parseAsString.withDefault(""))
+  const [titleParam, setTitleParam] = useQueryState("title", parseAsString.withDefault(""))
   const [composeNew, setComposeNew] = useQueryState("new", parseAsString.withDefault(""))
   const [exportParam, setExportParam] = useQueryState("export", parseAsString.withDefault(""))
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [initialDate, setInitialDate] = useState<Date | undefined>()
+  const [initialTitle, setInitialTitle] = useState("")
+  const [initialCaption, setInitialCaption] = useState("")
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [brainstormOpen, setBrainstormOpen] = useState(false)
   const [batchPlanOpen, setBatchPlanOpen] = useState(false)
 
-  // Arriving from Media Library ("Use in Post"): open the compose dialog with
-  // the chosen asset pre-filled, then clear the transient query params.
+  // Arriving from Media Library ("Use in Post") or AI Hook Modal: open the compose dialog with
+  // the chosen asset and caption pre-filled, then clear the transient query params.
   useEffect(() => {
     if (composeNew === "1") {
       setEditingPost(null)
       setInitialDate(new Date())
+      if (titleParam) {
+        setInitialTitle(titleParam)
+        void setTitleParam("")
+      }
+      if (captionParam) {
+        setInitialCaption(captionParam)
+        void setCaptionParam("")
+      }
       setDialogOpen(true)
       void setComposeNew("")
     }
-  }, [composeNew, setComposeNew])
+  }, [composeNew, setComposeNew, titleParam, setTitleParam, captionParam, setCaptionParam])
 
   // Deep-link `?export=1` (dari tombol "Quick Export" di header global):
   // buka modal ekspor kalender, lalu bersihkan param.
@@ -239,11 +253,19 @@ export function AdminCalendarClient() {
     )
   }, [viewMode])
 
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const todayStr = useMemo(() => {
+    if (!mounted) return ""
+    return new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }, [mounted])
 
   const postsByDay = useMemo(() => {
     const map = new Map<string, ScheduledPost[]>()
@@ -394,7 +416,7 @@ export function AdminCalendarClient() {
   return (
     <PageContainer
       pageTitle="Multi-Channel Dispatch Schedule"
-      pageDescription={`Drag & drop posts for ${activeClient?.name ?? "your workspace"}.`}
+      pageDescription="Drag & drop posts across multi-channel publication schedule."
       pageHeaderAction={
         <div className="flex items-center gap-3">
           <DropdownMenu>
@@ -520,7 +542,7 @@ export function AdminCalendarClient() {
           </Button>
           <div className="flex items-center gap-2">
             <Icons.calendar className="size-5 text-secondary" />
-            <span className="admin-headline-md font-bold text-card-foreground">
+            <span suppressHydrationWarning className="admin-headline-md font-bold text-card-foreground">
               {viewMode === "month" ? monthLabel : `${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
             </span>
           </div>
@@ -634,7 +656,7 @@ export function AdminCalendarClient() {
             <span className="text-2xs text-muted-foreground font-bold">
               Next Up
             </span>
-            <p className="text-base font-bold text-card-foreground truncate max-w-[180px]">
+            <p suppressHydrationWarning className="text-base font-bold text-card-foreground truncate max-w-[180px]">
               {release ? release.label : "No flight scheduled"}
             </p>
             <p className="text-1xs text-muted-foreground flex items-center gap-1 truncate">
@@ -923,7 +945,7 @@ export function AdminCalendarClient() {
                                 <PlatformIcon className="size-3" /> {meta.label}
                               </span>
                               <div className="flex items-center gap-0.5">
-                                <span className="text-1xs text-muted-foreground font-medium">{time}</span>
+                                <span suppressHydrationWarning className="text-1xs text-muted-foreground font-medium">{time}</span>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
                                     aria-label={`Opsi untuk ${p.title || "postingan ini"}`}
@@ -1033,7 +1055,7 @@ export function AdminCalendarClient() {
                               <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-2xs font-bold", meta.badge)}>
                                 {meta.label}
                               </span>
-                              <span className="text-2xs text-muted-foreground">
+                              <span suppressHydrationWarning className="text-2xs text-muted-foreground">
                                 {new Date(p.scheduled_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ·{" "}
                                 {new Date(p.scheduled_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                               </span>
@@ -1083,7 +1105,7 @@ export function AdminCalendarClient() {
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-card-foreground">Today&apos;s Dispatches</h3>
               </div>
-              <span className="text-2xs bg-secondary/15 text-secondary px-2.5 py-1 rounded-full font-bold">
+              <span suppressHydrationWarning className="text-2xs bg-secondary/15 text-secondary px-2.5 py-1 rounded-full font-bold">
                 {todayStr}
               </span>
             </div>
@@ -1095,7 +1117,7 @@ export function AdminCalendarClient() {
                   <span className="text-2xs text-secondary-foreground font-bold">
                     Next Flight Countdown
                   </span>
-                  <p className="text-2xl font-bold tracking-tight text-white mt-0.5 tabular-nums">
+                  <p suppressHydrationWarning className="text-2xl font-bold tracking-tight text-white mt-0.5 tabular-nums">
                     {release ? release.label : "-"}
                   </p>
                   <p className="text-1xs text-on-secondary-container mt-1 flex items-center gap-1.5 truncate">
@@ -1368,11 +1390,17 @@ export function AdminCalendarClient() {
           setEditingPost(null)
           setInitialDate(undefined)
           void setMediaUrl("")
+          void setCaptionParam("")
+          void setTitleParam("")
+          setInitialCaption("")
+          setInitialTitle("")
         }}
         initialDate={initialDate}
         editingPost={editingPost}
         clientId={selectedClientId}
+        initialTitle={initialTitle || undefined}
         initialMediaUrl={mediaUrl || undefined}
+        initialContent={initialCaption || undefined}
         onSave={() => {
           toast.success("Refreshed")
         }}

@@ -12,15 +12,14 @@ test.describe('Sidebar client switcher (nuqs URL state)', () => {
     await expect(clientBtn).toBeVisible()
     await clientBtn.click()
 
-    // The popover opens as a listbox with the "Switch Workspace" heading.
-    const listbox = page.getByRole('listbox')
-    await expect(listbox).toBeVisible()
-    await expect(listbox.getByText('Switch Workspace')).toBeVisible()
+    // The popover opens as a menu with the "Switch Workspace" heading.
+    const menu = page.getByRole('menu')
+    await expect(menu).toBeVisible()
+    await expect(menu.getByText('Switch Workspace')).toBeVisible()
 
-    // The managed client is listed as an option, marked selected (active).
-    const option = listbox.getByRole('option', { name: /Frhm Alpha Tester/ })
+    // The managed client is listed as an option, marked active.
+    const option = menu.getByRole('menuitem', { name: /Frhm Alpha Tester/ })
     await expect(option).toBeVisible()
-    await expect(option).toHaveAttribute('aria-selected', 'true')
 
     // Selecting the active client keeps the URL scoped with ?clientId= (nuqs).
     await option.click()

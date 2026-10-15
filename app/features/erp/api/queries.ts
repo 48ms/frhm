@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions, useMutation } from "@tanstack/react-query"
 import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs } from "./service"
 
 export const erpKeys = {
@@ -42,3 +42,22 @@ export const erpQueries = {
       enabled: Boolean(clientId),
     }),
 }
+
+/** Hook mutasi untuk mengirim pesan uji coba Telegram */
+export function useSendTelegramTest() {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/telegram/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data?.error || "Gagal mengirim notifikasi Telegram.")
+      }
+      return data as { success: boolean; chatId: string; message: string }
+    },
+  })
+}
+

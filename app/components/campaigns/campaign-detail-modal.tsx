@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
@@ -17,6 +18,7 @@ import {
 } from "@/components/animate-ui/components/radix/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/animate-ui/components/radix/tabs"
 import { Button } from "@/components/ui/button"
+import { serializeComposerParams } from "@/lib/searchparams"
 
 /**
  * Status kampanye dihitung dari tanggal faktual (start/end), bukan angka rekaan.
@@ -64,6 +66,7 @@ export function CampaignDetailModal({
   onClose: () => void
   onEdit: (c: Campaign) => void
 }) {
+  const router = useRouter()
   const [tab, setTab] = useState<"overview" | "performance">("overview")
   if (!open || !campaign || !client) return null
 
@@ -200,6 +203,25 @@ export function CampaignDetailModal({
           <div className="flex items-center gap-2">
             <Button
               type="button"
+              variant="outline"
+              size="sm"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/40 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
+              onClick={() => {
+                onClose()
+                const notesSnippet = campaign.notes ? `#${campaign.name.replace(/\s+/g, '')} - ${campaign.notes}` : `#${campaign.name.replace(/\s+/g, '')}`
+                router.push(
+                  serializeComposerParams("/admin/composer", {
+                    title: campaign.name,
+                    content: notesSnippet,
+                  })
+                )
+              }}
+            >
+              <Icons.send className="size-3.5 text-brand-accent" />
+              Buka di Composer
+            </Button>
+            <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="rounded-full text-xs font-semibold text-foreground hover:bg-muted"
@@ -210,7 +232,7 @@ export function CampaignDetailModal({
             <Button
               type="button"
               size="sm"
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all"
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
               onClick={() => {
                 onClose()
                 onEdit(campaign)

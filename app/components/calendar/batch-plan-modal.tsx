@@ -7,6 +7,8 @@ import { toast } from "sonner"
 import { useGenerateBatchPlan } from "@/features/copilot/api/queries"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCreateScheduledPost, postKeys } from "@/features/scheduled-posts/api/queries"
+import { createDeliverable } from "@/features/deliverables/api/service"
+import { deliverableQueries } from "@/features/deliverables/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import {
   Dialog,
@@ -19,6 +21,25 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
+
+const BATCH_CAMPAIGN_PRESETS = [
+  {
+    title: "🚀 Launching",
+    desc: "Kampanye peluncuran produk baru: edukasi problem, teaser inovasi, countdown peluncuran, dan promo pre-order dengan penawaran terbatas.",
+  },
+  {
+    title: "👑 Authority",
+    desc: "Membangun kredibilitas dan otoritas industri melalui panduan mendalam, tips actionable, dan pemecahan masalah utama audiens.",
+  },
+  {
+    title: "💰 Payday Sale",
+    desc: "Penawaran promosi akhir bulan (Payday): penekanan urgensi voucher, bundle produk hemat, dan ulasan kepuasan pelanggan.",
+  },
+  {
+    title: "🎯 Engagement",
+    desc: "Meningkatkan interaksi komunitas melalui Q&A interaktif, polling pilihan audiens, kuis berhadiah, dan cerita otentik tim.",
+  },
+]
 
 export function BatchPlanModal({ 
   open,
@@ -50,6 +71,7 @@ export function BatchPlanModal({
     selected: boolean
   }>>([])
   const [isSaving, setIsSaving] = React.useState(false)
+  const [isExportingDeliverable, setIsExportingDeliverable] = React.useState(false)
 
   const { mutateAsync: generateBatchPlanMutate, isPending } = useGenerateBatchPlan()
   const { mutateAsync: createScheduledPostMutate } = useCreateScheduledPost()
@@ -145,6 +167,45 @@ export function BatchPlanModal({
       toast.error("Terjadi kesalahan saat menyimpan post.")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleExportToDeliverable = async () => {
+    if (!clientId) return
+    const selected = generatedPosts.filter((p) => p.selected)
+    if (selected.length === 0) {
+      toast.error("Pilih setidaknya satu post untuk dijadikan brief.")
+      return
+    }
+
+    setIsExportingDeliverable(true)
+    try {
+      const briefContentMd = `# Brief Batch Plan: ${period.toUpperCase()}\n\n` +
+        `**Goal Kampanye:**\n${goals}\n\n` +
+        `**Daftar Konten Terencana (${selected.length} Post):**\n\n` +
+        selected.map((p, i) => (
+          `### ${i + 1}. [${p.platform.toUpperCase()}] ${p.title}\n` +
+          `- **Jadwal:** ${p.scheduled_at.split("T")[0]}\n` +
+          `- **Draft Copy:**\n> ${p.content.replace(/\n/g, "\n> ")}\n` +
+          (p.notes ? `- **Catatan Teknis:** ${p.notes}\n` : "")
+        )).join("\n\n")
+
+      await createDeliverable({
+        clientId,
+        type: "brief",
+        title: `Batch Campaign Brief - ${period} (${selected.length} Konten)`,
+        content_md: briefContentMd,
+        external_link: "",
+      })
+
+      queryClient.invalidateQueries({ queryKey: deliverableQueries.listByClient(clientId).queryKey })
+      toast.success("Deliverable Brief Berhasil Dibuat!", {
+        description: "Tersimpan di modul ERP Deliverables untuk direview dan disetujui klien.",
+      })
+    } catch {
+      toast.error("Gagal membuat deliverable brief.")
+    } finally {
+      setIsExportingDeliverable(false)
     }
   }
 
@@ -269,6 +330,19 @@ export function BatchPlanModal({
                     value={goals}
                     onChange={(e) => setGoals(e.target.value)}
                   />
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1.5">
+                    <span className="text-2xs font-semibold text-muted-foreground mr-0.5">Template Brief:</span>
+                    {BATCH_CAMPAIGN_PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setGoals(preset.desc)}
+                        className="text-2xs px-2.5 py-1 rounded-full bg-muted hover:bg-brand-accent/10 hover:text-brand-accent border border-border/40 transition-colors font-medium cursor-pointer"
+                      >
+                        {preset.title}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -347,17 +421,41 @@ export function BatchPlanModal({
                 )}
               </Button>
             ) : (
-              <Button
-                onClick={handleSaveSelected}
-                disabled={isSaving}
-                isLoading={isSaving}
-                size="sm"
-                className="rounded-full font-bold text-xs bg-brand-accent text-brand-accent-foreground shadow-sm flex items-center gap-1"
-              >
-                <span>Simpan </span>
-                <MetricTicker value={generatedPosts.filter((p) => p.selected).length} />
-                <span> Post</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStep("config")}
+                  className="rounded-full text-xs font-semibold cursor-pointer"
+                >
+                  ← Edit Konfig
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportToDeliverable}
+                  disabled={isExportingDeliverable}
+                  isLoading={isExportingDeliverable}
+                  className="rounded-full font-semibold text-xs border-primary/30 text-primary hover:bg-primary/10 gap-1.5 cursor-pointer"
+                  title="Ekspor sebagai Brief Deliverable untuk direview klien"
+                >
+                  <Icons.fileText className="size-3.5" />
+                  <span>+ Brief Deliverable</span>
+                </Button>
+                <Button
+                  onClick={handleSaveSelected}
+                  disabled={isSaving}
+                  isLoading={isSaving}
+                  size="sm"
+                  className="rounded-full font-bold text-xs bg-brand-accent text-brand-accent-foreground shadow-sm flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Simpan </span>
+                  <MetricTicker value={generatedPosts.filter((p) => p.selected).length} />
+                  <span> Post</span>
+                </Button>
+              </div>
             )}
           </div>
         </DialogContent>

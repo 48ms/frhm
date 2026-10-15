@@ -288,7 +288,7 @@ export function AiProvidersTab() {
                           {p.masked_key}
                         </span>
                       ) : (
-                        <span className="text-2xs text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="text-2xs text-warning font-medium">
                           Fallback Server Env
                         </span>
                       )}

@@ -14,3 +14,43 @@ export const createDeliverableSchema = z.object({
 })
 
 export type CreateDeliverableInput = z.infer<typeof createDeliverableSchema>
+
+export const promoteSkillOutputSchema = z.object({
+  outputId: z.string().min(1, "Output ID tidak valid"),
+  clientId: z.string().min(1, "Client ID wajib diisi"),
+  type: z.enum(["brief", "content", "report"]).optional(),
+})
+
+export type PromoteSkillOutputInput = z.infer<typeof promoteSkillOutputSchema>
+
+export const updateDeliverableStatusSchema = z.object({
+  deliverableId: z.string().min(1, "Deliverable ID tidak valid"),
+  clientId: z.string().min(1, "Client ID wajib diisi"),
+  status: z.enum(["draft", "sent", "approved", "revision_requested"]),
+  notes: z.string().optional(),
+})
+
+export type UpdateDeliverableStatusInput = z.infer<typeof updateDeliverableStatusSchema>
+
+export const submitDeliverableReviewSchema = z.object({
+  deliverableId: z.string().min(1, "Deliverable ID tidak valid"),
+  status: z.enum(["approved", "revision_requested"]),
+  feedbackNote: z.string().optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  clientAuthorName: z.string().optional(),
+})
+
+export type SubmitDeliverableReviewInput = z.infer<typeof submitDeliverableReviewSchema>
+
+export const scheduleDeliverableSchema = z.object({
+  deliverableId: z.string().min(1, "Deliverable ID tidak valid"),
+  clientId: z.string().min(1, "Client ID wajib diisi"),
+  platform: z.string().min(1, "Platform wajib dipilih"),
+  scheduledAt: z.string().refine((val) => !isNaN(Date.parse(val)), "Format tanggal/waktu tidak valid"),
+  customTitle: z.string().optional(),
+  customContent: z.string().optional(),
+  mediaUrl: z.string().url("URL media tidak valid").or(z.literal("")).optional(),
+  campaignTag: z.string().optional(),
+})
+
+export type ScheduleDeliverableInput = z.infer<typeof scheduleDeliverableSchema>

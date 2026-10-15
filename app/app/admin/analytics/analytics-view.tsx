@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CampaignAnalyticsView, type CampaignItem } from "./campaign-analytics-view"
 import { AudienceTrajectory } from "@/components/analytics/audience-trajectory"
+import { MultiAccountAggregator } from "@/components/analytics/multi-account-aggregator"
 import { Icons } from "@/components/icons"
 import { useQuery } from "@tanstack/react-query"
 import { campaignQueries } from "@/features/campaigns/api/queries"
@@ -447,6 +448,8 @@ export function AnalyticsView() {
           </Card>
         </div>
       </div>
+
+      <MultiAccountAggregator clientId={clientId} />
 
       <CampaignAnalyticsView campaigns={preparedCampaigns} clients={clientsList} />
     </div>
