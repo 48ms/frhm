@@ -18,9 +18,12 @@ import type {
   SkillChatTurn,
   SkillChatResponse,
   SaveSkillOutputInput,
+  ExecuteGenericSkillInput,
+  GenericSkillRunResult,
 } from "./types"
 
-export type { McpExecutionResult }
+export type { McpExecutionResult, GenericSkillRunResult, ExecuteGenericSkillInput }
+
 
 /**
  * Service Layer untuk Skills & Playbooks Library
@@ -433,4 +436,145 @@ export async function executeSkillTool(input: {
     clientId,
   })
 }
+
+/**
+ * Generic Skill Runner: mengeksekusi sembarang dari 106 social media skills secara dinamis.
+ * Menggabungkan authoritative skill playbook bundle, brand context klien, dan AI provider.
+ */
+export async function executeGenericSkill(
+  input: ExecuteGenericSkillInput
+): Promise<GenericSkillRunResult> {
+  const start = Date.now()
+  const { clientId, skillId, prompt, parameters = {}, autoSave = false } = input
+  const supabase = await createClient()
+  const provider = await resolveProvider(supabase)
+
+  if (!provider) {
+    return {
+      success: false,
+      title: "",
+      content: "",
+      error: "AI Provider belum dikonfigurasi. Hubungi Admin.",
+    }
+  }
+
+  const [detail, skillBundle, clientFiles, clientData] = await Promise.all([
+    getSkillDetail(skillId),
+    loadSkillBundle(supabase, skillId),
+    loadClientFiles(supabase, clientId),
+    supabase.from("clients").select("name").eq("id", clientId).maybeSingle(),
+  ])
+
+  if (!detail?.skill) {
+    return {
+      success: false,
+      title: "",
+      content: "",
+      error: `Skill "${skillId}" tidak ditemukan di database.`,
+    }
+  }
+
+  const skill = detail.skill
+  const clientName = clientData?.data?.name || "Klien"
+  const brandCtx = brandContext(clientName, clientFiles)
+
+  // Tandai skill berstatus 'jalan'
+  await updateClientSkillStatus(clientId, skillId, "jalan")
+
+  const systemPrompt = `
+[ROLE & EXPERTISE]
+You are an expert Social Media & Marketing Consultant acting on behalf of ${clientName}.
+You are executing the specialized playbook "${skill.name}" (${skill.id}).
+Your mission is to generate a comprehensive, executive-grade deliverable in Indonesian (Bahasa Indonesia profesional) based on the authoritative playbook guidelines and brand context.
+
+[BRAND CONTEXT]
+Adhere strictly to the brand voice, tone, and guardrails below:
+---
+${brandCtx}
+---
+
+[AUTHORITATIVE SKILL PLAYBOOK & INSTRUCTIONS]
+Follow the guidelines, frameworks, and requirements from this official playbook:
+---
+${skillBundle || "Execute standard industry best practices for " + skill.name}
+---
+
+${parameters && Object.keys(parameters).length > 0 ? `[PARAMETERS]\n${JSON.stringify(parameters, null, 2)}\n` : ""}
+[OUTPUT SPECIFICATION (CRITICAL)]
+You MUST return valid JSON ONLY with this exact schema:
+{
+  "title": "Document Title in Indonesian",
+  "summary": "1-2 sentence executive summary of the document",
+  "content": "Full, complete, production-ready deliverable in structured GitHub-flavored Markdown. Include all required sections, strategic rationale, and copy according to the playbook."
+}
+`
+
+  try {
+    const userPrompt =
+      prompt?.trim() ||
+      `Tolong jalankan playbook ${skill.name} untuk menyusun strategi/konten terlengkap bagi brand ${clientName}.`
+
+    const { data: result, usage } = await chatJsonDetailed<{
+      title?: string
+      summary?: string
+      content?: string
+    }>(provider, systemPrompt, [{ role: "user", content: userPrompt }])
+
+    const title = result?.title || `${skill.name} — ${clientName}`
+    const content = result?.content || ""
+    const summary = result?.summary || ""
+
+    if (!content) {
+      throw new Error("AI tidak menghasilkan konten dokumen.")
+    }
+
+    let outputId: string | null = null
+
+    if (autoSave) {
+      const saveRes = await saveSkillOutput({
+        clientId,
+        skillId,
+        title,
+        content,
+        stage: skill.category,
+        status: "draft",
+      })
+      if (saveRes.success) {
+        outputId = saveRes.id ?? null
+      }
+    }
+
+    const { data: authUser } = await supabase.auth.getUser()
+    await logAiUsage({
+      userId: authUser?.user?.id ?? null,
+      clientId,
+      route: "skill.generic_runner",
+      model: provider.model,
+      providerKind: provider.kind,
+      promptTokens: usage?.promptTokens ?? 0,
+      completionTokens: usage?.completionTokens ?? 0,
+      latencyMs: Date.now() - start,
+    })
+
+    return {
+      success: true,
+      title,
+      content,
+      summary,
+      outputId,
+      tokensUsed: usage
+        ? { promptTokens: usage.promptTokens, completionTokens: usage.completionTokens }
+        : undefined,
+    }
+  } catch (err: any) {
+    logger.error("skills.executeGenericSkill.failed", { skillId, clientId, error: err.message })
+    return {
+      success: false,
+      title: "",
+      content: "",
+      error: err.message || "Gagal mengeksekusi generic skill runner",
+    }
+  }
+}
+
 

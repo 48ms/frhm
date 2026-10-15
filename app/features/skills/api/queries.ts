@@ -13,8 +13,17 @@ import {
   executeSkillChat,
   getClientSkillOutputs,
   executeSkillTool,
+  executeGenericSkill,
 } from "./service"
-import type { SkillFilters, ClientSkillStatus, SaveSkillOutputInput, SkillChatTurn } from "./types"
+import type {
+  SkillFilters,
+  ClientSkillStatus,
+  SaveSkillOutputInput,
+  SkillChatTurn,
+  ExecuteGenericSkillInput,
+  GenericSkillRunResult,
+} from "./types"
+
 
 /**
  * TanStack React Query v5 factories & hooks for Skills & Playbooks
@@ -151,4 +160,28 @@ export function useExecuteSkillTool() {
       executeSkillTool(input),
   })
 }
+
+/** Mutasi Generic Skill Runner (Eksekusi 106 playbooks seketika / one-shot) */
+export function useExecuteGenericSkill() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ExecuteGenericSkillInput) => executeGenericSkill(input),
+    onSuccess: (res, vars) => {
+      if (res.success) {
+        toast.success(`Playbook "${vars.skillId}" berhasil dieksekusi!`)
+        queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
+        if (vars.autoSave) {
+          queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+        }
+      } else {
+        toast.error(res.error || "Gagal mengeksekusi playbook")
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Terjadi kesalahan sistem")
+    },
+  })
+}
+
 

@@ -19,6 +19,7 @@ vi.mock("@/features/skills/api/queries", () => ({
   useSkillChatTurn: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
   useSaveSkillOutput: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
   useExecuteSkillTool: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useExecuteGenericSkill: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }))
 
 vi.mock("nuqs", () => ({

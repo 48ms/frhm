@@ -36,6 +36,7 @@
 | **Full Gap Audit & Server Function Optimization** | ✅ Complete | Complete audit across 14 modules, elimination of 'Server Functions cannot be called during initial render' via DashboardPrefetcher expansion, query guards against undefined UUIDs, 100% semantic tokens, 20/20 core Playwright E2E PASS |
 | **Nomor 2: Dashboard Stitch Modals Refactor & Parity** | ✅ Complete | Refactor `schedule-post-modal.tsx` & `ai-hook-modal.tsx` with Radix UI + Animate UI, zero layout-shift buttons, local timezone fix, YouTube/Facebook/WhatsApp/Telegram genuine icons, viewport overflow protection (`max-h-[88vh] overflow-y-auto`), 100% semantic HSL tokens, 11/11 unit tests PASS, Playwright E2E Flow 4 PASS |
 | **Nomor 1: Client Portfolio Optimization (`/admin/clients`)** | ✅ Complete | Async Server Component prefetching TanStack Query v5 + `<HydrationBoundary>`, client suspense via `useSuspenseQuery` & `<ClientManagerSkeleton>`, `PageContainer` `pageHeaderAction={<AddClientHeaderButton />}`, `<MetricTicker>` dynamic channel counter, 15/15 unit tests PASS, 6/6 Playwright E2E PASS |
+| **Nomor 3: Integrasi Eksekusi 106 Social Media Skills & Generic Runner** | ✅ Complete | Generic Runner engine (`executeGenericSkill`, POST `/api/skills/run`), 3-layer service layer (`features/skills/api/`), `useExecuteGenericSkill` mutation hook, `SkillInterviewModal` "⚡ Eksekusi Seketika" action button with dynamic `<ShimmeringText>` progress, rate limiting & audit log, 100% test coverage (67/67 unit test files PASS, 358/358 tests PASS, 4/4 Playwright E2E PASS) |
 
 ### CIS Technical Implementation
 
@@ -56,7 +57,7 @@
   - `e2e/analytics-aggregator.spec.ts` — **1/1 PASS** (Flow 1: Multi-Account Social Aggregator renders with platform filters, Instagram/TikTok deep insights, and live sync)
   - `e2e/schedule-approved-deliverable.spec.ts` — **1/1 PASS** (Flow 1: Schedule Approved Deliverable directly from ERP Dashboard)
   - `e2e/client-portal-review.spec.ts` — **3/3 PASS** (Flow 1: ERP deliverables table "Link Review", Flow 2: 404 handling on invalid review magic link, Flow 3: Public Review Portal opens for valid deliverable and allows client approval)
-  - `e2e/playbooks-workflow.spec.ts` — **3/3 PASS** (Flow 1: AI Studio Playbooks & Skills, Flow 2: Client Management & Playbooks modal 3 tabs, Flow 3: Marketing ERP Deliverables & Strategy Documents)
+  - `e2e/playbooks-workflow.spec.ts` — **4/4 PASS** (Flow 1: AI Studio Playbooks & Skills, Flow 2: Client Management & Playbooks modal 3 tabs, Flow 3: Marketing ERP Deliverables & Strategy Documents)
   - `e2e/ai-studio.spec.ts` — **5/5 PASS** (Idea Engine, Batch Planner, Trend Radar, Brand Brain & Markdown Studio, Settings Brand Profile AI Extractor)
   - `e2e/settings-view.spec.ts` — **6/6 PASS** (Workspace, Billing, Integrations, User Access, Brand Profile, AI Providers)
   - `e2e/sidebar-nav.spec.ts` — **1/1 PASS** (All core admin routes reachable including `/admin/ai`)

@@ -14,7 +14,12 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Icons } from "@/components/icons"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
-import { useSkillChatTurn, useSaveSkillOutput, useExecuteSkillTool } from "@/features/skills/api/queries"
+import {
+  useSkillChatTurn,
+  useSaveSkillOutput,
+  useExecuteSkillTool,
+  useExecuteGenericSkill,
+} from "@/features/skills/api/queries"
 import type { Skill, SkillChatTurn } from "@/features/skills/api/types"
 import { serializeComposerParams } from "@/lib/searchparams"
 import { cn } from "@/lib/utils"
@@ -38,6 +43,8 @@ export function SkillInterviewModal({
   const chatMutation = useSkillChatTurn()
   const saveMutation = useSaveSkillOutput()
   const mcpMutation = useExecuteSkillTool()
+  const genericMutation = useExecuteGenericSkill()
+
 
   const [messages, setMessages] = React.useState<SkillChatTurn[]>([])
   const [inputVal, setInputVal] = React.useState("")
@@ -138,6 +145,42 @@ export function SkillInterviewModal({
           if (res.done) {
             setIsDone(true)
             if (res.output) setFinalOutput(res.output)
+          }
+        },
+      }
+    )
+  }
+
+  const handleGenericRun = () => {
+    if (!skill || !clientId || genericMutation.isPending || chatMutation.isPending) return
+    const promptToRun = inputVal.trim()
+    if (promptToRun) {
+      setMessages((prev) => [...prev, { role: "user", content: promptToRun }])
+      setInputVal("")
+    }
+
+    genericMutation.mutate(
+      {
+        clientId,
+        skillId: skill.id,
+        prompt: promptToRun,
+        autoSave: false,
+      },
+      {
+        onSuccess: (res) => {
+          if (res.success && res.content) {
+            setLivePreview({ title: res.title, content: res.content })
+            setFinalOutput({ title: res.title, content: res.content })
+            setIsDone(true)
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: res.summary
+                  ? `Playbook berhasil dieksekusi seketika!\n\n${res.summary}`
+                  : "Playbook berhasil dieksekusi seketika. Silakan tinjau draf lengkap di panel kanan lalu simpan atau kirim ke Post Composer.",
+              },
+            ])
           }
         },
       }
@@ -280,6 +323,13 @@ export function SkillInterviewModal({
                   <ShimmeringText text="Menyusun pertanyaan & memperbarui draf..." />
                 </div>
               )}
+
+              {genericMutation.isPending && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground p-3 rounded-xl bg-primary/5 border border-primary/20 w-fit">
+                  <Icons.spinner className="size-3.5 animate-spin text-primary" />
+                  <ShimmeringText text="Mengeksekusi playbook secara lengkap dengan AI..." />
+                </div>
+              )}
             </div>
 
             {/* Chat Input Box */}
@@ -290,23 +340,38 @@ export function SkillInterviewModal({
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ketik jawaban atau informasi tambahan... (Enter untuk kirim)"
+                  placeholder="Ketik jawaban atau brief... (Enter untuk kirim)"
                   rows={2}
-                  disabled={chatMutation.isPending}
+                  disabled={chatMutation.isPending || genericMutation.isPending}
                   className="w-full resize-none border-0 shadow-none focus-visible:ring-0 text-xs p-3 min-h-[56px] max-h-[120px]"
                 />
-                <div className="flex items-center justify-between px-3 py-1.5 border-t border-border/20 bg-muted/10">
-                  <span className="text-[10px] text-muted-foreground/70">
+                <div className="flex items-center justify-between px-3 py-1.5 border-t border-border/20 bg-muted/10 gap-2">
+                  <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
                     Shift+Enter untuk baris baru
                   </span>
-                  <Button
-                    size="sm"
-                    onClick={handleSend}
-                    disabled={!inputVal.trim() || chatMutation.isPending}
-                    className="h-7 px-3 text-xs gap-1.5 rounded-lg"
-                  >
-                    Kirim <Icons.send className="size-3" />
-                  </Button>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleGenericRun}
+                      disabled={chatMutation.isPending || genericMutation.isPending}
+                      isLoading={genericMutation.isPending}
+                      className="h-7 px-2.5 text-xs gap-1.5 rounded-lg border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
+                      title="Jalankan playbook sekaligus tanpa melalui wawancara bertahap"
+                    >
+                      <Icons.sparkles className="size-3" /> Eksekusi Seketika
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleSend}
+                      disabled={!inputVal.trim() || chatMutation.isPending || genericMutation.isPending}
+                      className="h-7 px-3 text-xs gap-1.5 rounded-lg cursor-pointer"
+                    >
+                      Kirim <Icons.send className="size-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

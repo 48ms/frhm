@@ -91,4 +91,42 @@ test.describe('Playbooks, Skills & Deliverables Workflow (End-to-End QA)', () =>
     await expect(totalDeliverableText).toBeVisible()
     await expect(page.getByText(/NaN/)).toHaveCount(0)
   })
+
+  test('Flow 4: Skill Interview Modal renders with One-Shot Generic Runner action', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/ai')
+    await page.waitForLoadState('networkidle')
+
+    // Navigate to Playbooks tab
+    const playbooksTab = page.getByRole('tab', { name: /Playbooks/i })
+    await expect(playbooksTab).toBeVisible({ timeout: 15000 })
+    await playbooksTab.click()
+
+    // Switch to All Skills view
+    const allSkillsBtn = page.getByRole('button', { name: /Semua 106 Playbook/i })
+    await expect(allSkillsBtn).toBeVisible({ timeout: 10000 })
+    await allSkillsBtn.click()
+
+    // Find and click "Jalankan Playbook" on the first visible card
+    const runPlaybookBtn = page.getByRole('button', { name: /Jalankan Playbook/i }).first()
+    await expect(runPlaybookBtn).toBeVisible({ timeout: 10000 })
+    await runPlaybookBtn.click()
+
+    // SkillInterviewModal opens
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible({ timeout: 10000 })
+
+    // Verify "Eksekusi Seketika" generic runner action button is visible
+    const genericRunnerBtn = dialog.getByRole('button', { name: /Eksekusi Seketika/i })
+    await expect(genericRunnerBtn).toBeVisible({ timeout: 10000 })
+
+    // Verify chat input area and send button
+    await expect(dialog.getByPlaceholder(/Ketik jawaban atau brief/i)).toBeVisible()
+    await expect(dialog.getByRole('button', { name: /Kirim/i })).toBeVisible()
+
+    // Close modal via Escape
+    await page.keyboard.press('Escape')
+    await expect(dialog).not.toBeVisible({ timeout: 5000 })
+  })
 })
+

@@ -5,6 +5,7 @@ import { SkillInterviewModal } from "./skill-interview-modal"
 const mockMutateChat = vi.fn()
 const mockMutateSave = vi.fn()
 const mockMutateMcp = vi.fn()
+const mockMutateGeneric = vi.fn()
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -23,7 +24,12 @@ vi.mock("@/features/skills/api/queries", () => ({
     mutate: mockMutateMcp,
     isPending: false,
   }),
+  useExecuteGenericSkill: () => ({
+    mutate: mockMutateGeneric,
+    isPending: false,
+  }),
 }))
+
 
 describe("SkillInterviewModal Component", () => {
   const fakeSkill = {
@@ -177,4 +183,44 @@ describe("SkillInterviewModal Component", () => {
       expect.any(Object)
     )
   })
+
+  it("triggers generic runner when 'Eksekusi Seketika' is clicked", () => {
+    mockMutateGeneric.mockImplementation(({}, { onSuccess }) => {
+      onSuccess({
+        success: true,
+        title: "Hasil Eksekusi Cepat",
+        content: "### Output Langsung Playbook\nKonten terbuat.",
+        summary: "Ringkasan dokumen",
+      })
+    })
+
+    render(
+      <SkillInterviewModal
+        open={true}
+        onOpenChange={vi.fn()}
+        skill={fakeSkill}
+        clientId="c-100"
+        clientName="Taraju Coffee"
+      />
+    )
+
+    const genericBtn = screen.getByRole("button", { name: /Eksekusi Seketika/i })
+    expect(genericBtn).toBeDefined()
+
+    fireEvent.click(genericBtn)
+
+    expect(mockMutateGeneric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: "c-100",
+        skillId: "competitor-analysis",
+        autoSave: false,
+      }),
+      expect.any(Object)
+    )
+
+    expect(screen.getAllByText("Hasil Eksekusi Cepat").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/Output Langsung Playbook/)).toBeDefined()
+    expect(screen.getByText(/Finalisasi & Simpan/i)).toBeDefined()
+  })
 })
+

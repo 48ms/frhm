@@ -9,6 +9,7 @@ import {
   saveSkillOutput,
   executeSkillChat,
   executeSkillTool,
+  executeGenericSkill,
 } from "./service"
 
 const mockChatJsonDetailed = vi.fn()
@@ -332,4 +333,136 @@ describe("Skills Feature Service Layer", () => {
     expect(res.success).toBe(false)
     expect(res.error).toContain("tidak memiliki izin")
   })
+
+  it("executeGenericSkill executes playbook and returns generated document", async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "skills") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "carousel-writer",
+                  name: "Carousel Writer",
+                  category: "Copy & captions",
+                  description: "Menulis draf carousel",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === "skill_files") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({
+                data: [{ path: "SKILL.md", content: "# Carousel Guide" }],
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === "clients") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: { name: "Taraju Coffee" },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    mockServiceFrom.mockReturnValue({
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    })
+
+    mockChatJsonDetailed.mockResolvedValue({
+      data: {
+        title: "Carousel 5 Tips Kopi — Taraju",
+        summary: "5 slide edukatif seputar kopi specialty",
+        content: "# Slide 1: Pembuka\n\nTips memilih biji kopi...",
+      },
+      usage: { promptTokens: 120, completionTokens: 250 },
+    })
+
+    const res = await executeGenericSkill({
+      clientId: "client-1",
+      skillId: "carousel-writer",
+      prompt: "Buat carousel edukasi kopi",
+      autoSave: false,
+    })
+
+    expect(res.success).toBe(true)
+    expect(res.title).toBe("Carousel 5 Tips Kopi — Taraju")
+    expect(res.content).toContain("# Slide 1: Pembuka")
+    expect(res.summary).toBe("5 slide edukatif seputar kopi specialty")
+    expect(res.tokensUsed?.promptTokens).toBe(120)
+  })
+
+  it("executeGenericSkill returns error when AI provider is not configured", async () => {
+    mockResolveProvider.mockResolvedValueOnce(null)
+
+    const res = await executeGenericSkill({
+      clientId: "client-1",
+      skillId: "carousel-writer",
+      prompt: "Test",
+    })
+
+    expect(res.success).toBe(false)
+    expect(res.error).toContain("AI Provider belum dikonfigurasi")
+  })
+
+  it("executeGenericSkill returns error when skill does not exist", async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "skills") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: null,
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === "skill_files") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+          }),
+        }
+      }
+      if (table === "clients") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { name: "Client" }, error: null }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    const res = await executeGenericSkill({
+      clientId: "client-1",
+      skillId: "non-existent-skill",
+      prompt: "Test",
+    })
+
+    expect(res.success).toBe(false)
+    expect(res.error).toContain("tidak ditemukan di database")
+  })
 })
+

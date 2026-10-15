@@ -83,3 +83,27 @@ export const SaveSkillOutputSchema = z.object({
 })
 
 export type SaveSkillOutputInput = z.infer<typeof SaveSkillOutputSchema>
+
+export const ExecuteGenericSkillSchema = z.object({
+  clientId: z.string().min(1, "Client ID required"),
+  skillId: z.string().min(1, "Skill ID required"),
+  prompt: z.string().default(""),
+  parameters: z.record(z.string(), z.any()).optional(),
+  autoSave: z.boolean().optional(),
+})
+
+export type ExecuteGenericSkillInput = z.infer<typeof ExecuteGenericSkillSchema>
+
+export interface GenericSkillRunResult {
+  success: boolean
+  title: string
+  content: string
+  summary?: string
+  outputId?: string | null
+  error?: string
+  tokensUsed?: {
+    promptTokens: number
+    completionTokens: number
+  }
+}
+
