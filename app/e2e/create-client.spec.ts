@@ -126,5 +126,32 @@ test.describe('Create Client Quick Onboarding', () => {
     await expect(page.getByText(/Workspace Client Siap!/i)).not.toBeVisible({ timeout: 5000 });
     await expect(page.locator('.workspace-switcher-container')).toContainText(testBrandName);
   });
+
+  test('should load /admin/clients with server prefetching and trigger wizard from header action', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/clients');
+    await page.waitForLoadState('networkidle');
+
+    // Page title from PageContainer
+    await expect(page.getByRole('heading', { name: /Client Workspaces/i })).toBeVisible({ timeout: 15000 });
+
+    // Verify Header Action button "Tambah Client" is present in PageContainer
+    const headerActionBtn = page.getByRole('button', { name: /Tambah Client/i });
+    await expect(headerActionBtn).toBeVisible({ timeout: 10000 });
+
+    // Verify Client Cards or dashed "Add New Client" card is rendered
+    await expect(page.getByRole('button', { name: /Add New Client/i })).toBeVisible({ timeout: 10000 });
+
+    // Click "Tambah Client" header action button
+    await headerActionBtn.click();
+
+    // Verify wizard dialog opens
+    await expect(page.getByText(/Langkah.*dari.*2/)).toBeVisible({ timeout: 10000 });
+
+    // Dismiss wizard dialog with Escape
+    await page.keyboard.press('Escape');
+    await expect(page.getByText(/Langkah.*dari.*2/)).not.toBeVisible({ timeout: 5000 });
+  });
 });
+
 

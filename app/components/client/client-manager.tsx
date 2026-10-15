@@ -1,16 +1,45 @@
 "use client"
 
 import * as React from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 import { ClientPlaybooksDialog } from "@/components/client/client-playbooks-dialog"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+
+export function ClientManagerSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-label="Memuat daftar client workspace"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse"
+    >
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-40 rounded-2xl bg-card border border-border/50" />
+      ))}
+    </div>
+  )
+}
+
+export function AddClientHeaderButton() {
+  const { openCreateClient } = useCreateClient()
+  return (
+    <Button
+      type="button"
+      onClick={openCreateClient}
+      className="gap-2 cursor-pointer shadow-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+    >
+      <Icons.add className="size-4" />
+      <span>Tambah Client</span>
+    </Button>
+  )
+}
 
 export function ClientManager() {
-  const { data: clients, isLoading } = useQuery(socialQueries.listClientsWithChannels())
+  const { data: clients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
   const { openCreateClient } = useCreateClient()
   const [selectedClientForEditor, setSelectedClientForEditor] = React.useState<{
     id: string
@@ -20,20 +49,6 @@ export function ClientManager() {
     id: string
     name: string
   } | null>(null)
-
-  if (isLoading) {
-    return (
-      <div
-        role="status"
-        aria-label="Memuat daftar client workspace"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse"
-      >
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-32 rounded-2xl bg-card border border-border/50" />
-        ))}
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -60,8 +75,8 @@ export function ClientManager() {
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-border/40">
-              <span className="text-2xs font-semibold text-muted-foreground">
-                {client.channels?.length || 0} Kanal Terhubung
+              <span className="text-2xs font-semibold text-muted-foreground flex items-center gap-1">
+                <MetricTicker value={client.channels?.length || 0} /> Kanal Terhubung
               </span>
               <div className="flex items-center gap-1.5">
                 <Button
