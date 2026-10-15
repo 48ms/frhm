@@ -1848,16 +1848,28 @@ return data
 // DELETE: .eq("id", id) + audit
 ```
 
-### Migrasi Schema (20 file)
+### Migrasi Schema (57 file)
 
-Urutan aplikasi migration di `app/supabase/migrations/`:
-- `001` Initial schema (clients, users, deliverables, comments)
-- `002` RLS policies + SECURITY DEFINER helpers
-- `003` Triggers & functions
-- `004–006` Deliverable views, realtime, brand profile
-- `007–018` Skills, packs, allowed tools, outputs, audit log
-- `009` Client files
-- `019–020` Scheduled posts, reserved slots
+`app/supabase/migrations/` berisi **57 file migration** (001–057, dengan 2 nomor duplikat: `046` dan `053`).
+
+Fase utama:
+- **001–003** Fondasi: initial schema, RLS policies + SECURITY DEFINER helpers, triggers
+- **004–013** Deliverables, comments/realtime, brand profile, pipeline stages, guardrails
+- **014–020** Client channels, bridge config, skill allowed tools, skill outputs, audit log, scheduled posts, reserved slots
+- **021–032** Content planning, content production, analytics, traceability, templates, feedback, canonical naming, deep-dive analytics, competitor/seasonal, predictive ROI
+- **033–045** Telegram routing, sentiment analysis, scheduler engine, consolidation, RLS gaps, forensic audit, ai_usage_logs, feature flags, realtime subs, aggregation views, reminder settings
+- **046–057** KOL platforms, quarterly verify, assets tags/sort, media URL, Ayrshare profile key, channel profile pictures, dashboard profiles, support tickets, perf index, WhatsApp logs
+
+⚠️ **Catatan faktual**: ada **2 nomor migration duplikat** — `046_apply.sql` + `046_kols_platforms_notes.sql`, dan `053_ayrshare_profile_key.sql` + `053_dashboard_profiles.sql`. Ini perlu perhatian saat apply berurutan.
+
+### ⚠️ GAP PERFORMA TERIDENTIFIKASI (Audit 2026-10-16)
+
+| # | Temuan | Bukti | Dampak |
+|---|--------|-------|--------|
+| 1 | **`post_metrics` tanpa index** | `grep "post_metrics" migrations/*.sql \| grep index` → 0 hasil | Seq scan pada tabel time-series yang tumbuh harian; query analytics makin lambat |
+| 2 | **Fetch seluruh baris tanpa `.limit()`** | `service.ts:56-60` — `.select("*").eq("client_id").order("recorded_at")` tanpa limit | Semua histori metrics di-load ke memory + di-filter client-side (`filteredMetrics = allMetrics.filter(...)`) |
+| 3 | **Aggregation views tidak terpakai (dead optimization)** | `metrics_by_client` & `dashboard_summary` (migration 043) — grep di src → **0 referensi** | Optimasi yang dirancang (collapse client-side reduce) belum di-wire; dashboard masih reduce manual |
+| 4 | **2 nomor migration duplikat** | `046_*` ×2, `053_*` ×2 | Risiko urutan apply tidak deterministik |
 
 ---
 
