@@ -375,20 +375,105 @@ Render `<SkillCatalogView clientId={clientId} clientName={client.name} />` — k
 
 ---
 
-### 4.6 Social Accounts (`/admin/social-accounts`)
+### 4.6 Social Accounts (`/admin/social-accounts`) — DEEP DIVE
 
-**Fungsi**: Kelola akun sosial media klien (Instagram, TikTok, X, LinkedIn).
+**Fungsi**: Kelola akun sosial media klien (Instagram, TikTok, X, LinkedIn) via integrasi **Ayrshare** (bridge publishing) + manajemen brand profile. Service: `features/social-accounts/api/service.ts`.
 
-**Fitur**:
-- Channel connectivity dashboard
-- Brand profile management
-- Content production board (Kanban)
+#### Fungsi Service (6 fungsi inti)
 
-**Wiring Tombol**:
-- **Connect Channel** → `requestOAuthUrl({ clientId, platform })` → redirect ke OAuth
-- **Sync Channel** → `syncChannel(channelId)` → fetch latest metrics
-- **Disconnect** → `disconnectChannel(channelId)` → remove connection
-- **Generate Brand Profile** → AI interview → `generateBrandProfile()` → save
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `getClientsWithChannels()` | List semua klien + channels + dashboard profile (parallel + Map lookup) |
+| `disconnectChannel(channelId)` | Hapus koneksi channel + audit |
+| `syncChannel(channelId)` | Refresh data dari Ayrshare → update avatar/handle/status |
+| `updateBrandProfile(clientId, profile)` | Tulis JSONB **DAN** markdown file (dual-write) |
+| `generateBrandProfile(input)` | AI-generate brand profile dari interview |
+| `requestOAuthUrl({ clientId, platform })` | Dapatkan OAuth URL untuk connect channel |
+
+#### A. `getClientsWithChannels` — Optimasi Kinerja (Faktual)
+
+Kode ini punya **2 optimasi eksplisit** yang terdokumentasi di komentar:
+
+```
+SEBELUM (waterfall):  T_total = T_clients + T_channels + T_profiles
+SESUDAH (parallel):   T_total = max(T_clients, T_channels, T_profiles)
+
+SEBELUM (loop find):  O(n × m)  ← .find()/.filter() di dalam loop
+SESUDAH (Map lookup): O(n + m)  ← channelsByClient Map
+```
+
+**Alur**:
+```
+Promise.all([clients, client_channels, dashboard_profiles])  ← 3 query paralel
+   ↓
+Guard: clientsError → return []
+   ↓
+Build Map: profileByClient (client_id → audience_size)
+Build Map: channelsByClient (client_id → channels[])
+   ↓
+clients.map(client => ({ ...client, channels, dashboard_profile }))
+```
+
+**Catatan**: Filter `.not("name", "ilike", "%Test Client%")` untuk mengecualikan klien test.
+
+#### B. Alur `syncChannel` (Ayrshare Bridge)
+
+```
+1. Ambil channel (client_id, platform)
+   ↓ (guard: not found → throw)
+2. Ambil client.ayrshare_profile_key
+   ↓ (guard: tidak ada → throw "Ayrshare profile key not found")
+3. Guard: env.server.AYRSHARE_API_KEY ada?
+   ↓
+4. GET https://app.ayrshare.com/api/profiles
+   Headers: { Authorization: Bearer <key>, Profile-Key: <profile_key> }
+   ↓
+5. profiles[platform.toLowerCase()] ada?
+   ├─ ADA   → update client_channels: { avatar_url, handle, status: "terhubung" }
+   │          logAudit('social.sync_success')
+   └─ TIDAK → update client_channels: { status: "gagal" }
+              logAudit('social.sync_failed') + throw
+```
+
+#### C. `updateBrandProfile` — Dual-Write Pattern (Penting)
+
+Brand profile ditulis ke **DUA tempat** sekaligus agar konsisten:
+
+```
+1. UPDATE clients SET brand_profile = <JSONB>   ← dibaca Settings UI
+   ↓
+2. brandProfileToMarkdown(profile)              ← konversi ke format kanonik
+   ↓
+3. UPSERT client_files (path: "brand-profile.md")  ← dibaca Copilot/AI
+   onConflict: "client_id,path"
+   ↓
+4. logAudit('brand.update')
+```
+
+**Struktur markdown hasil konversi**:
+```markdown
+# Brand Profile
+## Who We Are            ← profile.who
+## Audience Persona      ← profile.audience
+## Voice & Guardrails
+### Tone of Voice        ← profile.voice
+### Point of View        ← profile.pov
+### Proof & Credibility  ← profile.proof
+### Do's and Don'ts      ← profile.guardrails
+## Content Pillars       ← profile.pillars (bulleted)
+```
+
+**Alasan dual-write**: Settings UI baca JSONB (query cepat), sedangkan Copilot/AI baca file markdown sebagai context. Keduanya harus sinkron.
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Connect Channel** | `requestOAuthUrl({ clientId, platform })` | Redirect ke OAuth Ayrshare |
+| **Sync Channel** | `syncChannel(channelId)` | Fetch Ayrshare → update avatar/handle/status |
+| **Disconnect** | `disconnectChannel(channelId)` | Delete `client_channels` + audit |
+| **Generate Brand Profile** | `generateBrandProfile(input)` | AI interview → save (dual-write) |
+| **Edit Brand Profile** | `updateBrandProfile(clientId, profile)` | Tulis JSONB + markdown |
 
 ---
 
@@ -458,19 +543,98 @@ Sistem mengirim **Alert Telegram** otomatis ketika pengeluaran menyentuh batas k
 
 ---
 
-### 4.9 Analytics (`/admin/analytics`)
+### 4.9 Analytics (`/admin/analytics`) — DEEP DIVE
 
-**Fungsi**: Metrik mendalam per klien dan prediksi performa.
+**Fungsi**: Metrik mendalam per klien, prediksi performa, dan audit performa berbasis AI (METER framework). Service: `features/analytics/api/service.ts` (716 baris).
 
-**Fitur**:
-- Post metrics timeline
-- Analytics summaries
-- Multi-account analytics
-- Performance audit & iteration
+#### Fungsi Service
 
-**Wiring Tombol**:
-- **Sync Social Data**: `syncMultiAccountSocialData(clientId)` → trigger cron-like fetch
-- **Generate Prediction**: `getLatestPrediction(clientId)` → ML model inference
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `getPostMetricsByClient(clientId)` | List post metrics (urut `recorded_at` desc) |
+| `getAnalyticsSummariesByClient(clientId)` | List analytics summaries (urut `period_end` desc) |
+| `getLatestPrediction(clientId)` | Prediksi terbaru (limit 1, urut `target_month` desc) |
+| `auditPerformanceAndIterate(input)` | Audit AI (METER) + 3 iterasi actionable |
+| `getMultiAccountAnalytics(...)` | Analitik multi-akun |
+| `syncMultiAccountSocialData(input)` | Sync data sosial multi-akun via bridge |
+
+#### Struktur Data
+
+```typescript
+PostMetric {
+  id, post_id, client_id, platform,
+  views, reach, likes, comments, shares, saves, clicks,
+  wa_inquiries?, dm_inquiries?, recorded_at
+}
+AnalyticsSummary {
+  id, client_id, campaign_tag, period_start, period_end,
+  ai_insight, total_reach, total_engagement, created_at
+}
+AnalyticsPrediction {
+  target_month, forecasted_reach, forecasted_er,
+  forecasted_wa_inquiries, forecasted_dm_inquiries,
+  estimated_roi_multiplier, confidence_score
+}
+```
+
+#### Alur `auditPerformanceAndIterate` (METER Framework)
+
+**Langkah 1 — Ambil data faktual (parallel)**:
+```
+Promise.all([
+  post_metrics WHERE client_id,      ← metrik
+  scheduled_posts (id, title, ...),  ← info post
+  clients.name,                       ← nama klien
+])
+   ↓
+Guard: metrics.length === 0 → return error
+  "Belum ada data metrik faktual... Hubungkan akun sosial media..."
+```
+
+**Langkah 2 — Agregasi faktual (NO NaN, NO fabricated)**:
+```
+totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks
+totalInquiries = Σ(wa_inquiries + dm_inquiries)
+engagement = likes + comments + shares + saves
+er = reach > 0 ? (engagement / reach * 100).toFixed(2) : "0%"
+avgEr = totalReach > 0 ? (totalEngagement / totalReach * 100).toFixed(2) : "0.0"
+```
+
+**Langkah 3 — Muat AI Context**:
+```
+Promise.all([
+  loadSkillBundle(supabase, "analytics-and-reporting"),
+  loadClientFiles(supabase, clientId),
+])
+brand = brandContext(clientName, clientFiles)
+```
+
+**Langkah 4 — System Prompt METER** (dari kode faktual):
+```
+You are an expert Social Media Analytics Director operating under the METER framework.
+1. Measure what maps to goals: SIGNAL metrics (saves, shares, watch time,
+   ER by reach, clicks, inquiries), NEVER vanity numbers alone.
+2. Evaluate honestly: benchmark relative; do not fabricate or sugarcoat.
+3. Report & Re-cycle: explain why top performers worked, diagnose root causes,
+   provide exactly 3 concrete, prioritized actionable iterations for next week.
+```
+
+**Prinsip Anti-Fabrikasi**: Jika `metrics.length === 0`, sistem **menolak** menganalisis (return error jelas) alih-alih mengarang angka — sesuai Product Principle #3 "Faktual & Transparan".
+
+#### Prediction Model
+
+`getLatestPrediction` mengambil 1 row terbaru dari `analytics_predictions` (urut `target_month` desc). Model memprediksi:
+- `forecasted_reach`, `forecasted_er`
+- `forecasted_wa_inquiries`, `forecasted_dm_inquiries`
+- `estimated_roi_multiplier`, `confidence_score`
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Sync Social Data** | `syncMultiAccountSocialData(clientId)` | Trigger fetch multi-akun via bridge |
+| **Audit & Iterate** | `auditPerformanceAndIterate({ clientId, period })` | AI METER audit + 3 iterasi |
+| **View Prediction** | `getLatestPrediction(clientId)` | Tampilkan forecast bulan target |
 
 ---
 
