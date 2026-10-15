@@ -26,7 +26,7 @@ import {
   useGenerateBatchPlan,
   useEvaluateTrend,
 } from "@/features/copilot/api/queries"
-import { useCreateScheduledPost, postKeys } from "@/features/scheduled-posts/api/queries"
+import { useCreateScheduledPostsBatch } from "@/features/scheduled-posts/api/queries"
 import type { GeneratedIdea, TrendEvaluation } from "@/features/copilot/api/types"
 import type { BrandProfile } from "@/features/social-accounts/api/types"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
@@ -100,7 +100,6 @@ const TREND_VIRAL_FORMATS = [
 
 export function AiStudioClient() {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const { clientId, client } = useActiveDashboard()
 
   const [currentTab, setCurrentTab] = useQueryState(
@@ -229,7 +228,7 @@ export function AiStudioClient() {
   const [isSavingBatch, setIsSavingBatch] = React.useState(false)
 
   const { mutateAsync: generateBatchMutate, isPending: isGeneratingBatch } = useGenerateBatchPlan()
-  const { mutateAsync: createScheduledPostMutate } = useCreateScheduledPost()
+  const { mutateAsync: createScheduledPostsBatch, isPending: isCreatingBatch } = useCreateScheduledPostsBatch()
 
   const handleGenerateBatch = async () => {
     if (!clientId) {
@@ -282,9 +281,8 @@ export function AiStudioClient() {
 
     setIsSavingBatch(true)
     try {
-      let successCount = 0
-      for (const post of selected) {
-        await createScheduledPostMutate({
+      const posts = await createScheduledPostsBatch(
+        selected.map((post) => ({
           client_id: clientId,
           title: post.title,
           content: post.content,
@@ -294,12 +292,10 @@ export function AiStudioClient() {
           notes: post.notes,
           is_reserved: false,
           is_placeholder: false,
-        })
-        successCount++
-      }
+        }))
+      )
 
-      await queryClient.invalidateQueries({ queryKey: postKeys.list(clientId) })
-      await queryClient.invalidateQueries({ queryKey: postKeys.all })
+      const successCount = Array.isArray(posts) ? posts.length : 1
 
       toast.success("Batch Post Berhasil Dijadwalkan!", {
         description: `${successCount} postingan telah masuk ke Content Calendar.`,

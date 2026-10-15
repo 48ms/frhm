@@ -75,6 +75,25 @@ export function useCreateScheduledPost() {
   })
 }
 
+/**
+ * Bulk-create many scheduled posts in a single round-trip.
+ * Replaces the N+1 sequential loop used by the AI Batch Planner.
+ */
+export function useCreateScheduledPostsBatch() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (inputs: CreateScheduledPostInput[]) => createScheduledPost(inputs),
+    onSuccess: (data, variables) => {
+      const clientId = variables[0]?.client_id
+      if (clientId) {
+        queryClient.invalidateQueries({ queryKey: postKeys.list(clientId) })
+      }
+      queryClient.invalidateQueries({ queryKey: postKeys.all })
+      return data
+    },
+  })
+}
+
 export function useUpdateScheduledPost() {
   const queryClient = useQueryClient()
   return useMutation({

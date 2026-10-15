@@ -41,30 +41,40 @@ export async function getAllScheduledPosts(): Promise<ScheduledPost[]> {
   return (data || []) as ScheduledPost[]
 }
 
-export async function createScheduledPost(input: CreateScheduledPostInput): Promise<ScheduledPost> {
-  // Server-side validation: reject malformed input before hitting Supabase.
-  const safe = CreateScheduledPostSchema.parse(input)
+export async function createScheduledPost(input: CreateScheduledPostInput): Promise<ScheduledPost>
+export async function createScheduledPost(input: CreateScheduledPostInput[]): Promise<ScheduledPost[]>
+export async function createScheduledPost(
+  input: CreateScheduledPostInput | CreateScheduledPostInput[]
+): Promise<ScheduledPost | ScheduledPost[]> {
+  const isArray = Array.isArray(input)
+  const safe = isArray
+    ? input.map((i) => CreateScheduledPostSchema.parse(i))
+    : CreateScheduledPostSchema.parse(input)
 
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("scheduled_posts")
-    .insert([safe])
-    .select()
-    .single()
+  const rows = Array.isArray(safe) ? safe : [safe]
+  const query = supabase.from("scheduled_posts").insert(rows)
+
+  const { data, error } = isArray ? await query.select() : await query.select().single()
 
   if (error) {
     logger.error("createScheduledPost failed", { error })
     throw new Error("Gagal menjadwalkan postingan")
   }
 
+  const clientId = rows[0]?.client_id ?? null
+
   void logAudit({
-    action: 'scheduled_post.create',
-    entityType: 'scheduled_post',
-    entityId: data?.id ?? null,
-    clientId: safe.client_id ?? null,
-    summary: `Scheduled new post ${data?.id ?? ''}`,
+    action: "scheduled_post.create",
+    entityType: "scheduled_post",
+    entityId: isArray ? null : (data as ScheduledPost)?.id ?? null,
+    clientId,
+    summary: isArray
+      ? `Scheduled batch of ${rows.length} posts`
+      : `Scheduled new post ${(data as ScheduledPost)?.id ?? ""}`,
   })
-  return data as ScheduledPost
+
+  return data as ScheduledPost | ScheduledPost[]
 }
 
 export async function updateScheduledPost(

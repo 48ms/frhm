@@ -56,6 +56,10 @@ vi.mock("@/features/scheduled-posts/api/queries", () => ({
     mutateAsync: mockCreateScheduledPost,
     isPending: false,
   }),
+  useCreateScheduledPostsBatch: () => ({
+    mutateAsync: mockCreateScheduledPost,
+    isPending: false,
+  }),
   postKeys: {
     list: (id?: string | null) => ["posts", "list", id],
     all: ["posts"],
