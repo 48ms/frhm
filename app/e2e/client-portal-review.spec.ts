@@ -9,7 +9,10 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
     await loginAsAdmin(page);
-    await page.goto('/admin/erp');
+    // Navigate scoped to the client that owns the seeded deliverable
+    // ("Frhm Alpha Tester"). The ERP defaults to the newest client, which has
+    // no deliverables, so the Link Review button would never render.
+    await page.goto('/admin/erp?clientId=5044af9e-0af1-4ec6-83ba-dacba4cfebf2');
     await page.waitForLoadState('networkidle');
 
     // Deliverables section exists
