@@ -49,13 +49,13 @@ export function StitchAiHookModal({
       const res = await generateIdeas({
         clientId,
         count: 3,
-        trendOrTopic: prompt.trim(),
+        trendOrTopic: prompt.trim() || undefined,
       })
       if (res.error) {
         setError(res.error)
         return
       }
-      setHooks(res.ideas.map((idea) => idea.hook))
+      setHooks(res.ideas?.map((idea) => idea.hook) || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal terhubung ke AI.")
     }
@@ -69,8 +69,8 @@ export function StitchAiHookModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
-        <DialogHeader className="p-5 border-b border-border/30 pb-3">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-0 shadow-2xl gap-0">
+        <DialogHeader className="p-6 border-b border-border/30 pb-4 text-left">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-brand-accent text-brand-accent-foreground flex items-center justify-center shrink-0">
               <Icons.sparkles className="size-4" />
@@ -86,7 +86,7 @@ export function StitchAiHookModal({
           </div>
         </DialogHeader>
 
-        <div className="p-5 space-y-4">
+        <div className="p-6 space-y-4">
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
@@ -180,7 +180,7 @@ export function StitchAiHookModal({
                     >
                       {copied === i ? (
                         <>
-                          <Icons.check className="size-3 text-[hsl(var(--success))]" /> Tersalin
+                          <Icons.check className="size-3 text-emerald-500" /> Tersalin
                         </>
                       ) : (
                         <>
@@ -203,6 +203,8 @@ export function StitchAiHookModal({
                   variant="ghost"
                   size="sm"
                   onClick={generate}
+                  disabled={loading}
+                  isLoading={loading}
                   className="h-7 px-2 text-1xs font-bold text-brand-accent hover:text-brand-accent hover:bg-brand-accent/10 cursor-pointer inline-flex items-center gap-1"
                 >
                   <Icons.refresh className="size-3.5" />

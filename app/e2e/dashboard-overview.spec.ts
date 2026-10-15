@@ -77,4 +77,41 @@ test.describe('Dashboard Overview & Parallel Routes (End-to-End QA)', () => {
     }
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
   });
+
+  test('Flow 4: Schedule Post modal in Hero section with editor and live preview', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/dashboard');
+    await page.waitForLoadState('networkidle');
+
+    // Click "Schedule Post" button in Hero
+    const scheduleBtn = page.getByRole('button', { name: /Schedule Post/i });
+    await expect(scheduleBtn).toBeVisible({ timeout: 10000 });
+    await scheduleBtn.click();
+
+    // Verify Schedule Post dialog opens
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+    await expect(dialog.getByText(/Jadwalkan Postingan/i)).toBeVisible();
+    await expect(dialog.getByText(/Quick Composer/i)).toBeVisible();
+
+    // Fill Title
+    const titleInput = dialog.getByLabel(/Judul Postingan \/ Konsep/i);
+    await titleInput.fill('E2E Post Test Stitch');
+
+    // Switch to Live Preview
+    const previewTab = dialog.getByRole('tab', { name: /Live Preview/i });
+    await previewTab.click();
+    await expect(dialog.getByText(/Simulasi Feed Publikasi/i)).toBeVisible({ timeout: 5000 });
+    await expect(dialog.getByText('E2E Post Test Stitch')).toBeVisible();
+
+    // Switch back to Editor
+    const editorTab = dialog.getByRole('tab', { name: /Editor/i });
+    await editorTab.click();
+    await expect(titleInput).toBeVisible();
+
+    // Dismiss with Batal button
+    const cancelBtn = dialog.getByRole('button', { name: /Batal/i });
+    await cancelBtn.click();
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+  });
 });

@@ -37,14 +37,14 @@ const TIME_SLOT_OPTIONS = [
   { time: "21:00", label: "21:00", icon: "🌙" },
 ]
 
-/** Gabungkan tanggal (YYYY-MM-DD) + jam (HH:mm) jadi ISO lokal yang aman tanpa RangeError. */
+/** Gabungkan tanggal (YYYY-MM-DD) + jam (HH:mm) jadi ISO lokal yang aman tanpa RangeError & timezone drift. */
 function toIso(dateStr: string, timeStr: string): string {
   if (!dateStr || !timeStr) return new Date().toISOString()
+  const [year, month, day] = dateStr.split("-").map(Number)
   const [h, m] = timeStr.split(":").map(Number)
-  const d = new Date(`${dateStr}T00:00:00`)
-  if (isNaN(d.getTime())) return new Date().toISOString()
-  d.setHours(isNaN(h) ? 0 : h, isNaN(m) ? 0 : m, 0, 0)
-  return d.toISOString()
+  if (!year || !month || !day) return new Date().toISOString()
+  const localDate = new Date(year, month - 1, day, isNaN(h) ? 0 : h, isNaN(m) ? 0 : m, 0, 0)
+  return localDate.toISOString()
 }
 
 function getPlatformIcon(platform: string) {
@@ -58,9 +58,15 @@ function getPlatformIcon(platform: string) {
       return Icons.twitter
     case "youtube":
     case "shorts":
-      return Icons.video
+      return Icons.youtube
     case "linkedin":
       return Icons.linkedin
+    case "facebook":
+      return Icons.facebook
+    case "whatsapp":
+      return Icons.whatsapp
+    case "telegram":
+      return Icons.telegram
     default:
       return Icons.share
   }
@@ -275,7 +281,7 @@ export function SchedulePostModal({
             toast.warning("Ada draf postingan yang belum disimpan. Klik 'Batal' untuk keluar.")
           }
         }}
-        className="max-w-xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-5"
+        className="max-w-xl max-h-[88vh] overflow-y-auto bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-5"
       >
         <DialogHeader className="flex flex-row items-center justify-between border-b border-border/30 pb-3 space-y-0 text-left">
           <div className="flex items-center gap-2.5">
@@ -330,7 +336,7 @@ export function SchedulePostModal({
             <div className="rounded-2xl border border-border/50 bg-card p-4 shadow-sm space-y-3">
               {/* Card Header */}
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-accent to-secondary text-brand-accent-foreground font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                   {client?.name ? client.name.charAt(0).toUpperCase() : "B"}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -358,7 +364,7 @@ export function SchedulePostModal({
 
               {/* Attached Media preview in feed card */}
               {mediaUrl && (
-                <div className="relative w-full rounded-xl overflow-hidden border border-border/40 bg-black aspect-video flex items-center justify-center">
+                <div className="relative w-full rounded-xl overflow-hidden border border-border/40 bg-muted aspect-video flex items-center justify-center">
                   {mediaType === "video" ? (
                     <video src={mediaUrl} controls className="w-full h-full object-cover" />
                   ) : (
@@ -475,13 +481,15 @@ export function SchedulePostModal({
                       <Icons.sparkles className="size-3 text-secondary" />
                       Pilih Hook Scroll-Stopping (Disisipkan di Baris Pertama):
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="xs"
                       onClick={() => setShowHookSuggestions(false)}
-                      className="text-3xs text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="h-5 px-1.5 text-3xs text-muted-foreground hover:text-foreground cursor-pointer"
                     >
                       Tutup
-                    </button>
+                    </Button>
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {hookSuggestions.map((h, idx) => (
@@ -520,14 +528,16 @@ export function SchedulePostModal({
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 <span className="text-3xs font-semibold text-muted-foreground mr-0.5">Sisip CTA:</span>
                 {QUICK_CTA_CHIPS.map((chip) => (
-                  <button
+                  <Button
                     key={chip.label}
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => handleInsertCta(chip.text)}
-                    className="px-2.5 py-1 rounded-full text-2xs font-medium border border-border/40 bg-card hover:bg-muted text-muted-foreground hover:text-foreground hover:border-brand-accent/40 transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
+                    className="h-6 px-2.5 py-0.5 rounded-full text-2xs font-medium border-border/40 bg-card hover:bg-muted text-muted-foreground hover:text-foreground hover:border-brand-accent/40 transition-all cursor-pointer shadow-none active:scale-95"
                   >
                     {chip.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -541,7 +551,7 @@ export function SchedulePostModal({
               {mediaUrl ? (
                 <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-muted/30 group">
                   <div className="flex items-center gap-3 p-2.5">
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-black/10 shrink-0 border border-border/40 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 border border-border/40 flex items-center justify-center">
                       {mediaType === "video" ? (
                         <video src={mediaUrl} className="w-full h-full object-cover" />
                       ) : (
@@ -588,10 +598,11 @@ export function SchedulePostModal({
                   </div>
                 </div>
               ) : (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setPickerOpen(true)}
-                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-dashed border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-brand-accent/50 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50"
+                  className="w-full h-auto flex items-center justify-between px-3.5 py-2.5 rounded-xl border-dashed border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-brand-accent/50 transition-all cursor-pointer group font-normal text-left"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-brand-accent/10 text-brand-accent flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -607,7 +618,7 @@ export function SchedulePostModal({
                     </div>
                   </div>
                   <Icons.arrowRight className="size-3.5 text-muted-foreground group-hover:text-brand-accent group-hover:translate-x-0.5 transition-all" />
-                </button>
+                </Button>
               )}
             </div>
 
@@ -628,14 +639,16 @@ export function SchedulePostModal({
                     const active = selected.includes(c.platform)
                     const ChannelIcon = getPlatformIcon(c.platform)
                     return (
-                      <button
+                      <Button
                         key={c.id}
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => toggle(c.platform)}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50",
+                          "h-8 rounded-full text-xs font-medium border transition-all cursor-pointer px-3 gap-1.5",
                           active
-                            ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-semibold shadow-xs"
+                            ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-semibold shadow-xs hover:bg-brand-accent/15"
                             : "border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
                         )}
                       >
@@ -643,7 +656,7 @@ export function SchedulePostModal({
                         <span className="capitalize">{c.platform}</span>
                         {c.handle && <span className="text-2xs opacity-70">({c.handle})</span>}
                         {active && <Icons.check className="size-3 text-brand-accent ml-0.5" />}
-                      </button>
+                      </Button>
                     )
                   })}
                 </div>
@@ -662,36 +675,42 @@ export function SchedulePostModal({
                 </div>
                 {/* Quick Date Presets */}
                 <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => setDate(todayStr())}
                     className={cn(
-                      "text-3xs px-2 py-0.5 rounded-md border font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50",
-                      date === todayStr() ? "bg-brand-accent text-brand-accent-foreground border-transparent" : "border-border/40 hover:bg-muted"
+                      "h-6 text-3xs px-2 rounded-md font-medium transition-all cursor-pointer shadow-none",
+                      date === todayStr() ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90" : "border-border/40 hover:bg-muted"
                     )}
                   >
                     Hari ini
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => setDate(getRelativeDateStr(1))}
                     className={cn(
-                      "text-3xs px-2 py-0.5 rounded-md border font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50",
-                      date === getRelativeDateStr(1) ? "bg-brand-accent text-brand-accent-foreground border-transparent" : "border-border/40 hover:bg-muted"
+                      "h-6 text-3xs px-2 rounded-md font-medium transition-all cursor-pointer shadow-none",
+                      date === getRelativeDateStr(1) ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90" : "border-border/40 hover:bg-muted"
                     )}
                   >
                     Besok
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => setDate(getNextWeekendStr())}
                     className={cn(
-                      "text-3xs px-2 py-0.5 rounded-md border font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50",
-                      date === getNextWeekendStr() ? "bg-brand-accent text-brand-accent-foreground border-transparent" : "border-border/40 hover:bg-muted"
+                      "h-6 text-3xs px-2 rounded-md font-medium transition-all cursor-pointer shadow-none",
+                      date === getNextWeekendStr() ? "bg-brand-accent text-brand-accent-foreground border-transparent hover:bg-brand-accent/90" : "border-border/40 hover:bg-muted"
                     )}
                   >
                     Weekend
-                  </button>
+                  </Button>
                 </div>
                 <input
                   id="schedule-post-date"
@@ -713,20 +732,22 @@ export function SchedulePostModal({
                 {/* Quick Time Pills */}
                 <div className="grid grid-cols-4 gap-1">
                   {TIME_SLOT_OPTIONS.map((slot) => (
-                    <button
+                    <Button
                       key={slot.time}
                       type="button"
+                      variant="outline"
+                      size="xs"
                       onClick={() => setWhen(slot.time)}
                       className={cn(
-                        "py-1 px-1 rounded-lg text-3xs font-semibold border transition-all cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/50",
+                        "h-auto py-1 px-1 rounded-lg text-3xs font-semibold border transition-all cursor-pointer text-center flex flex-col items-center justify-center shadow-none",
                         when === slot.time
-                          ? "border-brand-accent bg-brand-accent/15 text-brand-accent shadow-xs"
+                          ? "border-brand-accent bg-brand-accent/15 text-brand-accent shadow-xs hover:bg-brand-accent/20"
                           : "border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
                       <span className="block text-2xs leading-none mb-0.5">{slot.icon}</span>
                       <span>{slot.label}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
                 <input
