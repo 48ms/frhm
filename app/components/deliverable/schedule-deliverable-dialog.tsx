@@ -114,11 +114,11 @@ export function ScheduleDeliverableDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[92vw] max-h-[90vh] flex flex-col p-6 rounded-2xl bg-card border-border/50 overflow-hidden">
+      <DialogContent className="max-w-2xl w-[92vw] max-h-[90vh] flex flex-col p-6 rounded-3xl bg-card/95 backdrop-blur-2xl border-border/50 overflow-hidden shadow-2xl">
         <DialogHeader className="border-b border-border/40 pb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="size-8 rounded-lg bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 flex items-center justify-center">
                 <Icons.calendar className="size-4" />
               </div>
               <div>
@@ -130,7 +130,7 @@ export function ScheduleDeliverableDialog({
                 </DialogDescription>
               </div>
             </div>
-            <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+            <Badge variant="outline" className="text-xs border-border/4000/30 text-brand-accent00 bg-brand-accent00/10">
               <Icons.check className="size-3 mr-1" /> Siap Terbit
             </Badge>
           </div>
@@ -224,7 +224,7 @@ export function ScheduleDeliverableDialog({
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               required
             />
           </div>
@@ -240,7 +240,7 @@ export function ScheduleDeliverableDialog({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Judul postingan di kalender..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 required
               />
             </div>
@@ -254,7 +254,7 @@ export function ScheduleDeliverableDialog({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Caption atau narasi postingan..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none font-sans"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all resize-none font-sans focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>
@@ -270,7 +270,7 @@ export function ScheduleDeliverableDialog({
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 placeholder="https://... (link gambar/video)"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
             <div>
@@ -282,7 +282,7 @@ export function ScheduleDeliverableDialog({
                 value={campaignTag}
                 onChange={(e) => setCampaignTag(e.target.value)}
                 placeholder="#growth-campaign"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>
@@ -303,7 +303,7 @@ export function ScheduleDeliverableDialog({
               variant="default"
               size="sm"
               isLoading={scheduleMutation.isPending}
-              className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 font-medium gap-1.5 shadow-xs"
+              className="h-8 text-xs bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 font-medium gap-1.5 shadow-xs"
             >
               <Icons.calendar className="size-3.5" />
               Jadwalkan Sekarang

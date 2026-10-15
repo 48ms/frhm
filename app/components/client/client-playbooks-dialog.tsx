@@ -88,7 +88,7 @@ export function ClientPlaybooksDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[850px] p-0 flex flex-col overflow-hidden bg-card border-border/50 shadow-2xl rounded-2xl">
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[850px] p-0 flex flex-col overflow-hidden bg-card/95 backdrop-blur-2xl border-border/50 shadow-2xl rounded-2xl">
           {/* Header */}
           <DialogHeader className="px-6 py-4 border-b border-border/40 flex flex-row items-center justify-between space-y-0 bg-muted/20">
             <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function ClientPlaybooksDialog({
             <div className="flex items-center gap-2">
               <div className="px-3 py-1 rounded-xl bg-muted/40 border border-border/30 text-xs flex items-center gap-1.5 font-medium">
                 <span className="text-muted-foreground">Selesai:</span>
-                <span className="text-emerald-500 font-bold">
+                <span className="text-brand-accent00 font-bold">
                   <MetricTicker value={completedCount} />
                 </span>
                 <span className="text-muted-foreground/60">/ {totalAssigned}</span>
@@ -203,7 +203,7 @@ export function ClientPlaybooksDialog({
                                   {skill.category}
                                 </Badge>
                                 {cs.status === "selesai" ? (
-                                  <span className="text-[10px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <span className="text-[10px] font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Icons.check className="size-2.5" /> Selesai
                                   </span>
                                 ) : cs.status === "jalan" ? (
@@ -400,7 +400,7 @@ export function ClientPlaybooksDialog({
                                         })
                                       }
                                       disabled={updateStatusMutation.isPending}
-                                      className="h-7 text-xs rounded-lg gap-1 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 border-emerald-500/30"
+                                      className="h-7 text-xs rounded-lg gap-1 text-brand-accent00 hover:text-brand-accent00 hover:bg-brand-accent00/10 border-border/4000/30"
                                     >
                                       <Icons.check className="size-3" /> Setujui
                                     </Button>
@@ -441,7 +441,7 @@ export function ClientPlaybooksDialog({
                                         approved_at: null,
                                       })
                                     }
-                                    className="h-7 text-xs rounded-lg gap-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                                    className="h-7 text-xs rounded-lg gap-1 bg-brand-accent00 hover:bg-brand-accent00 text-white shadow-xs"
                                   >
                                     <Icons.calendar className="size-3" /> Jadwalkan
                                   </Button>
@@ -486,7 +486,7 @@ export function ClientPlaybooksDialog({
       {/* Document Reader Dialog */}
       {viewingOutput && (
         <Dialog open={Boolean(viewingOutput)} onOpenChange={(o) => !o && setViewingOutput(null)}>
-          <DialogContent className="max-w-3xl w-[90vw] max-h-[85vh] flex flex-col p-6 rounded-2xl bg-card border-border/50">
+          <DialogContent className="max-w-3xl w-[90vw] max-h-[85vh] flex flex-col p-6 rounded-3xl bg-card/95 backdrop-blur-2xl border-border/50 shadow-2xl">
             <DialogHeader>
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -538,7 +538,7 @@ export function ClientPlaybooksDialog({
                 >
                   <Icons.fileTypePdf className="size-3.5 text-red-500" /> Ekspor PDF
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setViewingOutput(null)} className="h-8 text-xs">
+                <Button size="sm" variant="outline" onClick={() => setViewingOutput(null)} className="h-8 text-xs min-h-11">
                   Tutup
                 </Button>
                 <Button

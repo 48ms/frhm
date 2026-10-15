@@ -127,7 +127,7 @@ export function DispatchNotificationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl w-full p-6 bg-card border-border/40 text-foreground rounded-2xl shadow-xl space-y-4">
+      <DialogContent className="max-w-xl w-full p-6 bg-card/95 backdrop-blur-2xl border-border/40 text-foreground rounded-3xl shadow-2xl space-y-4">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
@@ -194,7 +194,7 @@ export function DispatchNotificationDialog({
                   className={cn(
                     "p-3 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3",
                     hasWhatsApp
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+                      ? "bg-brand-accent00/10 border-border/4000/30 text-brand-accent50 dark:text-brand-accent00"
                       : "bg-card hover:bg-muted/30 border-border/60 text-muted-foreground"
                   )}
                 >
@@ -205,7 +205,7 @@ export function DispatchNotificationDialog({
                   />
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
-                      <Icons.whatsapp className="size-4 text-emerald-500" />
+                      <Icons.whatsapp className="size-4 text-brand-accent00" />
                       <span>WhatsApp</span>
                     </div>
                     {target.client.contactPhone ? (
@@ -270,7 +270,7 @@ export function DispatchNotificationDialog({
                 onChange={(e) => setCustomNote(e.target.value)}
                 placeholder="Contoh: Mohon tinjau scene ke-2 pada video sebelum jam 17:00..."
                 rows={2}
-                className="w-full text-xs p-2.5 rounded-xl border border-border/60 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none placeholder:text-muted-foreground/60"
+                className="w-full text-xs p-2.5 rounded-xl border border-border/60 bg-background text-foreground focus: focus:ring-1 focus:ring-primary resize-none placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 
@@ -287,7 +287,7 @@ export function DispatchNotificationDialog({
                 >
                   {copied ? (
                     <>
-                      <Icons.check className="size-3 text-emerald-500" /> Tersalin
+                      <Icons.check className="size-3 text-brand-accent00" /> Tersalin
                     </>
                   ) : (
                     <>
@@ -318,7 +318,7 @@ export function DispatchNotificationDialog({
                     >
                       <div className="flex items-center gap-2">
                         {r.channel === "whatsapp" ? (
-                          <Icons.whatsapp className="size-3.5 text-emerald-500" />
+                          <Icons.whatsapp className="size-3.5 text-brand-accent00" />
                         ) : (
                           <Icons.telegram className="size-3.5 text-sky-500" />
                         )}
@@ -326,7 +326,7 @@ export function DispatchNotificationDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         {r.success ? (
-                          <span className="text-emerald-500 text-[11px] font-semibold flex items-center gap-1">
+                          <span className="text-brand-accent00 text-[11px] font-semibold flex items-center gap-1">
                             <Icons.circleCheck className="size-3" />
                             {r.status === "ready" ? "Tautan Siap" : "Terkirim"}
                           </span>
@@ -341,7 +341,7 @@ export function DispatchNotificationDialog({
                             href={r.clickUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 text-[10px] font-semibold transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 text-[10px] font-semibold transition-colors shadow-xs"
                           >
                             <Icons.whatsapp className="size-3" />
                             Buka di WhatsApp

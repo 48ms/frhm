@@ -234,7 +234,7 @@ export function SkillInterviewModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl w-[95vw] h-[88vh] max-h-[900px] p-0 flex flex-col overflow-hidden bg-card border-border/50 shadow-2xl rounded-2xl">
+      <DialogContent className="max-w-6xl w-[95vw] h-[88vh] max-h-[900px] p-0 flex flex-col overflow-hidden bg-card/95 backdrop-blur-2xl border-border/50 shadow-2xl rounded-3xl">
         {/* Header Strip */}
         <DialogHeader className="px-6 py-4 border-b border-border/40 flex flex-row items-center justify-between space-y-0 bg-muted/20">
           <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export function SkillInterviewModal({
               </Badge>
             )}
             {isSaved ? (
-              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-1.5 px-3 py-1">
+              <Badge variant="secondary" className="bg-brand-accent00/10 text-brand-accent00 border-border/4000/20 gap-1.5 px-3 py-1">
                 <Icons.check className="size-3.5" /> Tersimpan ke Klien
               </Badge>
             ) : isDone ? (
@@ -420,7 +420,7 @@ export function SkillInterviewModal({
                     onClick={handleFinalizeAndSave}
                     disabled={saveMutation.isPending}
                     isLoading={saveMutation.isPending}
-                    className="h-7 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 font-medium shadow-xs"
+                    className="h-7 text-xs gap-1 bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 font-medium shadow-xs"
                   >
                     <Icons.check className="size-3" /> Finalisasi & Simpan
                   </Button>
@@ -459,7 +459,7 @@ export function SkillInterviewModal({
                       </p>
                     </div>
                     {isDone ? (
-                      <Badge className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px]">Lengkap</Badge>
+                      <Badge className="bg-brand-accent00/15 border border-border/4000/30 text-brand-accent00 dark:text-brand-accent00 text-[10px]">Lengkap</Badge>
                     ) : (
                       <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-[10px]">
                         Draft In Progress

@@ -407,7 +407,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
               </Button>
               <Button
                 variant="outline"
-                className="w-full h-10 text-xs font-bold border-border/60 hover:bg-muted/50 active:scale-[0.98] transition-all"
+                className="w-full h-10 text-xs font-bold border-border/60 hover:bg-muted/50 active:scale-[0.98] transition-all min-h-11"
                 onClick={handleGoToPlaybooks}
               >
                 <Icons.workflow className="size-4 mr-2 text-primary" />

@@ -37,7 +37,7 @@ type ThemeColor = "cobalt" | "emerald" | "indigo" | "monochrome"
 
 const THEME_OPTIONS: { id: ThemeColor; label: string; bgClass: string; borderClass: string }[] = [
   { id: "cobalt", label: "Cobalt Blue", bgClass: "bg-blue-600", borderClass: "border-blue-500" },
-  { id: "emerald", label: "Emerald Growth", bgClass: "bg-emerald-600", borderClass: "border-emerald-500" },
+  { id: "emerald", label: "Emerald Growth", bgClass: "bg-brand-accent00", borderClass: "border-border/4000" },
   { id: "indigo", label: "Royal Indigo", bgClass: "bg-indigo-600", borderClass: "border-indigo-500" },
   { id: "monochrome", label: "Monochrome", bgClass: "bg-zinc-800", borderClass: "border-zinc-700" },
 ]
@@ -115,7 +115,7 @@ export function ExportPdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-full p-6 bg-card border-border/40 text-foreground rounded-2xl shadow-xl space-y-4">
+      <DialogContent className="max-w-lg w-full p-6 bg-card/95 backdrop-blur-2xl border-border/40 text-foreground rounded-3xl shadow-2xl space-y-4">
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-red-500/10 text-red-500">

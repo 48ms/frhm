@@ -180,7 +180,7 @@ export function StitchAiHookModal({
                     >
                       {copied === i ? (
                         <>
-                          <Icons.check className="size-3 text-emerald-500" /> Tersalin
+                          <Icons.check className="size-3 text-brand-accent00" /> Tersalin
                         </>
                       ) : (
                         <>

@@ -840,7 +840,7 @@ export function BrandBrainEditorDialog({
               type="button"
               onClick={handleSave}
               isLoading={isSaving}
-              className="text-xs font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer h-9 px-5 shadow-sm"
+              className="text-xs font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer h-9 px-5 shadow-sm min-h-11"
             >
               <Icons.check className="size-3.5 mr-1.5" />
               Simpan {activeMeta.shortLabel}

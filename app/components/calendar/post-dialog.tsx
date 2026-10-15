@@ -843,7 +843,7 @@ export function PostDialog({
                       value={campaignTag || '_none_'}
                       onValueChange={(v) => setCampaignTag(v === '_none_' ? '' : v)}
                     >
-                      <SelectTrigger id="post-campaign" className="w-full h-10 bg-background border-border/40">
+                      <SelectTrigger id="post-campaign" className="w-full h-10 bg-background border-border/40 min-h-11">
                         <SelectValue placeholder="Tidak terkait kampanye" />
                       </SelectTrigger>
                       <SelectContent>

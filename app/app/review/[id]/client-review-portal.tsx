@@ -17,7 +17,7 @@ interface ClientReviewPortalProps {
 
 const TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   brief: { label: 'Creative Brief', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
-  copy: { label: 'Copywriting / Post Plan', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+  copy: { label: 'Copywriting / Post Plan', color: 'bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 border-border/4000/20' },
   report: { label: 'Report / Analysis', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' },
   strategy: { label: 'Marketing Strategy', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
   audit: { label: 'Account Audit', color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
@@ -26,7 +26,7 @@ const TYPE_CONFIG: Record<string, { label: string; color: string }> = {
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; badgeClass: string; icon: any }> = {
   draft: { label: 'Draft Internal', variant: 'secondary', badgeClass: 'bg-muted text-muted-foreground border-border', icon: Icons.clock },
   sent: { label: 'Menunggu Review Anda', variant: 'outline', badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30', icon: Icons.clock },
-  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', icon: Icons.circleCheck },
+  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 border-border/4000/30', icon: Icons.circleCheck },
   revision_requested: { label: 'Revisi Diminta', variant: 'destructive', badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Icons.warning },
 };
 
@@ -164,8 +164,8 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
           </div>
 
           {deliverable.status === 'approved' && (
-            <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3 text-emerald-800 dark:text-emerald-200">
-              <Icons.circleCheck className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+            <div className="p-4 rounded-xl border border-border/4000/30 bg-brand-accent00/10 flex items-start gap-3 text-brand-accent00 dark:text-brand-accent00">
+              <Icons.circleCheck className="size-5 shrink-0 text-brand-accent00 dark:text-brand-accent00 mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold">Dokumen Ini Telah Disetujui (Approved)</p>
                 <p className="text-xs opacity-90 mt-0.5">
@@ -268,7 +268,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                   value={reviewerName}
                   onChange={(e) => setReviewerName(e.target.value)}
                   placeholder="Contoh: Pak Adit / Bunda"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 />
               </div>
 
@@ -284,7 +284,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(null)}
-                      className="p-1 rounded-md hover:bg-muted transition-colors focus:outline-none"
+                      className="p-1 rounded-md hover:bg-muted transition-colors focus: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       aria-label={`Beri nilai ${star} bintang`}
                     >
                       <Icons.star
@@ -314,7 +314,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                 value={feedbackNote}
                 onChange={(e) => setFeedbackNote(e.target.value)}
                 placeholder="Tuliskan masukan spesifik Anda di sini (misal: 'Tolong tone bagian caption dibuat lebih santai' atau 'Sudah oke, silakan jadwalkan')..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>
