@@ -170,12 +170,36 @@ $ ls migrations/*.sql | cut -d_ -f1 | sort | uniq -d
 
 ---
 
+## POLA INDEX — ANALISIS LENGKAP (58 tabel, 2026-10-16)
+
+Metodologi: `comm -23 <(semua CREATE TABLE) <(semua CREATE INDEX ON <table>)`.
+Hasil menunjukkan **7 tabel** tanpa index EKSTRA (hanya mengandalkan PRIMARY KEY).
+
+| Tabel | Ukuran | Query Pattern | Status Index | Verdict |
+|-------|--------|---------------|--------------|---------|
+| `post_metrics` | **Besar, time-series** | `client_id + recorded_at DESC` (analytics) | ❌ TIDAK ADA | **P0 — migration 058 dibuat** |
+| `ai_providers` | Kecil (global) | PK only | ✅ UNIQUE INDEX | OK |
+| `ai_usage_logs` | Besar | `client_id + created_at DESC` | ✅ idx di 040 | OK |
+| `deliverable_templates` | Kecil | PK only | ✅ | OK |
+| `feature_flags` | Sangat kecil | PK only | ✅ | OK |
+| `pipeline_stages` | Sangat kecil (7 baris) | PK only | ✅ | OK |
+| `seasonal_periods` | Kecil | PK only | ✅ | OK |
+| `skill_files` | Sedang | PK composite (skill_id, path) | ✅ | OK |
+| `skill_packs` | Kecil | PK only | ✅ | OK |
+| `feedback` | ? | ? | perlu cek | pending |
+| `support_tickets` | Sedang | `client_id + created_at` | ✅ idx di 055 | OK |
+
+**Kesimpulan**: Hanya `post_metrics` yang benar-benar GAP (tabel besar, query sering, tanpa index). Migration `058_perf_post_metrics_index.sql` sudah dibuat untuk menutup gap ini.
+
+---
+
 ## METODOLOGI
 
 - `grep -rn` pada seluruh `features/`, `lib/`, `supabase/migrations/`
 - Read langsung file source (bukan asumsi)
 - Cross-check index: `grep "CREATE INDEX" migrations/*.sql`
 - Verifikasi view usage: `grep -rn "view_name" src`
+- Tabel vs index: `comm -23 <(all tables) <(all indexed tables)` (fixed regex)
 - Semua klaim di atas punya bukti perintah + baris kode
 
 **Catatan**: Laporan ini TIDAK mengubah kode (sesuai scope guardrail). Hanya identifikasi faktual.
