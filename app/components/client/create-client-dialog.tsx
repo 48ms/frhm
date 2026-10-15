@@ -12,6 +12,11 @@ import { toast } from 'sonner'
 import { useAppForm } from '@/lib/form'
 import { createNewClient } from '@/features/dashboard/api/service'
 import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
+import { useQueryState } from 'nuqs'
+import { dashboardSearchParams } from '@/features/dashboard/lib/searchparams'
+import { dashboardKeys } from '@/features/dashboard/api/queries'
+import { socialKeys } from '@/features/social-accounts/api/queries'
 
 export { NICHE_OPTIONS }
 export type { NicheId }
@@ -29,12 +34,6 @@ const createClientSchema = z.object({
   contact_phone: z.string(),
   telegram_chat_id: z.string(),
 })
-
-import { useQueryClient } from '@tanstack/react-query'
-import { useQueryState } from 'nuqs'
-import { dashboardSearchParams } from '@/features/dashboard/lib/searchparams'
-import { dashboardKeys } from '@/features/dashboard/api/queries'
-import { socialKeys } from '@/features/social-accounts/api/queries'
 
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
@@ -155,6 +154,14 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     if (!cid) return
     handleClose()
     router.push(`/admin/ai?tab=brand-brain&clientId=${cid}`)
+  }
+
+  const handleGoToPlaybooks = () => {
+    const cid = createdCredentials?.clientId
+    handleClose()
+    if (cid) {
+      router.push(`/admin/ai?tab=playbooks&clientId=${cid}`)
+    }
   }
 
   const handleGoToDashboard = () => {
@@ -397,6 +404,14 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
               >
                 <Icons.sparkles className="size-4 mr-2" />
                 Mulai Interview Brand Profile
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full h-10 text-xs font-bold border-border/60 hover:bg-muted/50 active:scale-[0.98] transition-all"
+                onClick={handleGoToPlaybooks}
+              >
+                <Icons.workflow className="size-4 mr-2 text-primary" />
+                Buka Playbook Studio (106 Skills)
               </Button>
               <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground min-h-11" onClick={handleGoToDashboard}>
                 Lanjut ke Dashboard Dulu

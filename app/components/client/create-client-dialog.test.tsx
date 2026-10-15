@@ -164,4 +164,30 @@ describe("CreateClientWizard", () => {
     fireEvent.click(dashboardBtn)
     expect(mockPush).toHaveBeenCalledWith("/admin/dashboard?clientId=new-client-uuid")
   })
+
+  it("navigates to playbooks tab when Buka Playbook Studio is clicked on success screen", async () => {
+    renderDialog(true)
+
+    // Step 1
+    fireEvent.change(screen.getByLabelText(/Nama Brand/i), { target: { value: "Warung Kopi Nusantara" } })
+    fireEvent.click(screen.getByRole("combobox"))
+    fireEvent.click(screen.getByRole("option", { name: /F&B \/ Kuliner/i }))
+    fireEvent.click(screen.getByRole("button", { name: /Lanjut ke Kontak/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Langkah 2 dari 2/i)).toBeInTheDocument()
+    })
+
+    // Submit
+    fireEvent.click(screen.getByRole("button", { name: /Siapkan Workspace/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Workspace Client Siap!/i)).toBeInTheDocument()
+    })
+
+    const playbooksBtn = screen.getByRole("button", { name: /Buka Playbook Studio/i })
+    fireEvent.click(playbooksBtn)
+    expect(mockPush).toHaveBeenCalledWith("/admin/ai?tab=playbooks&clientId=new-client-uuid")
+  })
 })
+
