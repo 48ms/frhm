@@ -357,21 +357,72 @@ Render `<SkillCatalogView clientId={clientId} clientName={client.name} />` — k
 
 ---
 
-### 4.5 Clients (`/admin/clients`)
+### 4.5 Clients (`/admin/clients`) — DEEP DIVE
 
-**Fungsi**: Manajemen multi-klien (tambah, edit, hapus, switch workspace).
+**Fungsi**: Manajemen multi-klien (tambah, edit, hapus, switch workspace). Service: `features/dashboard/api/service.ts`.
 
-**Komponen**:
-- `ClientManager`: Grid card semua klien + Quick Onboarding wizard
-- `AddClientHeaderButton`: Tombol tambah di header
-- `BrandBrainEditorDialog`: Edit brand profile per klien
-- `ClientPlaybooksDialog`: Assign playbooks to client
+#### Service Fungsi
 
-**Wiring Tombol**:
-- **Tambah Client** → `useCreateClient().openCreateClient()` → wizard modal
-- **Playbooks** → `setSelectedClientForPlaybooks(client)` → dialog opens
-- **Brand Brain** → `setSelectedClientForEditor(client)` → editor opens
-- **Switch Workspace**: Click client card → `useQueryState("clientId", ...)` → refresh dashboard
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `getClients()` | List klien (urut `name`) |
+| `createNewClient(input)` | Buat klien + setup profil analitik + seed brand profile + assign starter pack |
+
+#### Alur `createNewClient` — Quick Onboarding Wizard (4 Langkah)
+
+```
+Input: CreateClientInput { name, contact_email?, contact_phone?, niche?, telegram_chat_id? }
+   ↓
+LANGKAH 1: INSERT clients
+   { name, contact_email, contact_phone, telegram_chat_id,
+     brand_profile: { who: input.name, voice: default, guardrails: default, ... } }
+   ↓
+   Guard: error → throw "Gagal membuat klien baru"
+   ↓
+   logAudit('client.create')
+   ↓
+LANGKAH 2: INSERT dashboard_profiles (default)
+   { client_id, greeting: `Halo, ${name}!`, velocity: 0, peak_label: "Waktu Aktif", insights: [] }
+   ↓
+   (warning only jika error — tidak break flow)
+   ↓
+LANGKAH 3: SEED brand-profile.md
+   content:
+   # Brand Profile: <name>
+   ## Who We Are
+   <name> adalah brand terpercaya di industri <niche>.
+   (template default profesional)
+   ↓
+   UPSERT client_files WHERE client_id, path = "brand-profile.md"
+   (warning only jika error — tidak break flow)
+   ↓
+LANGKAH 4: ASSIGN starter skill pack
+   await assignPackToClient(clientData.id, "starter")
+   ↓
+   (warning only jika error — tidak break flow)
+   ↓
+Return: CreateClientResult { client: { id, name }, seededSkills }
+```
+
+**Penting**: Langkah 2-4 menggunakan `warn only` strategy — jika gagal, klien tetap dibuat. Ini mencegah onboarding blocker karena masalah minor.
+
+#### Komponen UI
+
+| Komponen | Fungsi |
+|----------|--------|
+| `ClientManager` | Grid card semua klien + Quick Onboarding wizard |
+| `AddClientHeaderButton` | Tombol tambah di header (panggil `openCreateClient()`) |
+| `BrandBrainEditorDialog` | Edit brand profile per klien via Markdown Studio |
+| `ClientPlaybooksDialog` | Assign playbooks/skill packs ke klien |
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Tambah Client** | `useCreateClient().openCreateClient()` | Buka wizard modal |
+| **Playbooks** | `setSelectedClientForPlaybooks(client)` | Buka dialog assign pack |
+| **Brand Brain** | `setSelectedClientForEditor(client)` | Buka editor markdown |
+| **Switch Workspace** | `useQueryState("clientId", ...)` | Update URL state → refresh dashboard |
 
 ---
 
@@ -527,19 +578,92 @@ Sistem mengirim **Alert Telegram** otomatis ketika pengeluaran menyentuh batas k
 
 ---
 
-### 4.8 Settings (`/admin/settings`)
+### 4.8 Settings (`/admin/settings`) — DEEP DIVE
 
-**Fungsi**: Pengaturan sentral (AI providers, Bridge, User, Audit).
+**Fungsi**: Pengaturan sentral — AI Provider management, Bridge config, User & Role, Audit logs.
 
-**Tab**:
-- AI Providers: CRUD provider (OpenAI, ollama, dll)
-- Bridge: Integrasi external tools
-- User: Manage users & roles
-- Audit: Activity logs
+#### Tab AI Providers — CRUD Full
 
-**Wiring Tombol**:
-- **Test Connection**: `testAiProviderConnection(providerId)` → show result toast
-- **Set Default**: `setDefaultAiProvider(providerId)` → update primary AI
+Service: `features/ai-providers/api/service.ts` (226 baris).
+
+**Security**: Semua operasi dilindungi `assertAdmin()` — cek session + role === 'admin'. Non-admin → throw "Forbidden: only administrators can manage AI providers".
+
+**Key Functions**:
+
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `getAiProviders()` | List semua provider + mask API key (`••••••••abcd`) |
+| `createAiProvider(input)` | Buat baru; jika `is_default=true` → un-set provider lain |
+| `updateAiProvider(id, input)` | Partial update (Zod validate); `is_default=true` → un-set lain |
+| `deleteAiProvider(id)` | Hapus; guard: tidak bisa hapus provider default terakhir |
+| `setDefaultAiProvider(id)` | Set default (un-set yang lain dulu) |
+| `testAiProviderConnection(id)` | Kirim ping ke model, ukur latency |
+
+**Masking Pattern** (keamanan API key):
+```typescript
+function maskKey(key: string | null | undefined): { has_key: boolean; masked_key: string } {
+  if (!key || key.trim() === "") return { has_key: false, masked_key: "" }
+  if (key.trim().length <= 8) return { has_key: true, masked_key: "••••••••" }
+  return { has_key: true, masked_key: `••••••••${clean.slice(-4)}` } // last 4 chars visible
+}
+```
+
+**Alur `testAiProviderConnection`**:
+```
+1. assertAdmin()
+   ↓
+2. Ambil provider (kind, model, base_url, api_key)
+   ↓
+3. chat(provider, "Ping connection test. Reply with word: READY", [{ role: "user", content: "TEST_CONNECTION" }])
+   ↓ (import dynamic "@/lib/ai/providers")
+4. latencyMs = Date.now() - start
+   ↓
+5. Return:
+   ├─ success: true,  latencyMs, message: "Koneksi berhasil (Xms): \"...\""
+   └─ success: false, latencyMs, message: "Tes koneksi gagal: <err>"
+```
+
+**Alur Create / Update (shared)**:
+```
+1. assertAdmin()
+   ↓
+2. Zod parse (CreateAiProviderSchema / UpdateAiProviderSchema)
+   ↓
+3. Jika is_default=true → UNSET semua provider lain
+      UPDATE ai_providers SET is_default=false WHERE id != <this_id>
+   ↓
+4. INSERT / UPDATE provider
+   ↓
+5. maskKey(data.api_key)
+   ↓
+6. Return AiProviderMasked { has_key, masked_key }
+```
+
+**Guard Delete**:
+```
+1. assertAdmin()
+   ↓
+2. Ambil target (is_default)
+   ↓
+3. Jika is_default && count(ai_providers) > 1 → throw "Tidak dapat menghapus provider default..."
+   ↓
+4. DELETE FROM ai_providers WHERE id = <id>
+```
+
+**Data Structure** (`AiProviderMasked`):
+```typescript
+{ id, label, kind, model, base_url, is_default, created_at, has_key, masked_key }
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Test Connection** | `testAiProviderConnection(providerId)` | Ping model → toast success/fail + latency |
+| **Set Default** | `setDefaultAiProvider(providerId)` | Un-set lain → set this as default |
+| **Tambah Provider** | Form → `createAiProvider(input)` | Validate → insert → re-render list |
+| **Edit Provider** | Form → `updateAiProvider(id, input)` | Validate → update → re-render list |
+| **Hapus Provider** | ConfirmDialog → `deleteAiProvider(id)` | Guard default → delete |
 
 ---
 
