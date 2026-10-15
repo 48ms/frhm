@@ -134,14 +134,14 @@ export function ExportPdfDialog({
             <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Klien: {clientName}
                   </span>
                   <h4 className="text-sm font-bold text-foreground truncate">
                     {deliverable.title}
                   </h4>
                 </div>
-                <Badge variant="outline" className="text-[10px] uppercase shrink-0">
+                <Badge variant="outline" className="text-2xs uppercase shrink-0">
                   {deliverable.type || "STRATEGY"}
                 </Badge>
               </div>
@@ -149,19 +149,19 @@ export function ExportPdfDialog({
               {/* STATS STRIP */}
               <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40 text-center">
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">Karakter</span>
+                  <span className="text-2xs text-muted-foreground block">Karakter</span>
                   <span className="text-xs font-bold text-foreground font-mono">
                     <MetricTicker value={charCount} />
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">Kata</span>
+                  <span className="text-2xs text-muted-foreground block">Kata</span>
                   <span className="text-xs font-bold text-foreground font-mono">
                     <MetricTicker value={wordCount} />
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">Estimasi Hal.</span>
+                  <span className="text-2xs text-muted-foreground block">Estimasi Hal.</span>
                   <span className="text-xs font-bold text-foreground font-mono">
                     <MetricTicker value={estimatedPages} /> Hal
                   </span>
@@ -186,7 +186,7 @@ export function ExportPdfDialog({
                     )}
                   >
                     <span className={cn("size-3 rounded-full", opt.bgClass)} />
-                    <span className="text-[11px] leading-tight">{opt.label}</span>
+                    <span className="text-1xs leading-tight">{opt.label}</span>
                   </button>
                 ))}
               </div>
@@ -223,7 +223,7 @@ export function ExportPdfDialog({
                 <span className="text-xs font-semibold text-foreground block">
                   Lembar Tanda Tangan & Persetujuan
                 </span>
-                <span className="text-[10px] text-muted-foreground block">
+                <span className="text-2xs text-muted-foreground block">
                   Sertakan kotak tanda tangan resmi perwakilan klien dan tim strategi Frhm di akhir dokumen.
                 </span>
               </div>

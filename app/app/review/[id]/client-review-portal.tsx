@@ -198,7 +198,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
           </div>
 
           {deliverable.content_md ? (
-            <div className="space-y-4 text-foreground/90 leading-relaxed text-[15px]">
+            <div className="space-y-4 text-foreground/90 leading-relaxed text-sm-plus">
               <ReactMarkdown
                 components={{
                   h1: ({ children }) => (

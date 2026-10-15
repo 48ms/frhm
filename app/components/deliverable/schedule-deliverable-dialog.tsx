@@ -143,7 +143,7 @@ export function ScheduleDeliverableDialog({
               <span className="text-muted-foreground font-mono mr-1">Sumber:</span>
               <strong className="text-foreground">{deliverable.title}</strong>
             </div>
-            <span className="capitalize px-2 py-0.5 rounded-md bg-background border border-border/50 text-[11px] font-medium text-muted-foreground">
+            <span className="capitalize px-2 py-0.5 rounded-md bg-background border border-border/50 text-1xs font-medium text-muted-foreground">
               {deliverable.type}
             </span>
           </div>
@@ -182,7 +182,7 @@ export function ScheduleDeliverableDialog({
               <label className="block text-xs font-semibold text-foreground">
                 Jadwal Tanggal & Jam Tayang
               </label>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <span className="text-1xs text-muted-foreground flex items-center gap-1">
                 <Icons.sparkles className="size-3 text-amber-500" />
                 Rekomendasi Waktu Terbaik (Golden Hours)
               </span>

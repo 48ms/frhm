@@ -164,7 +164,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-primary px-2.5 py-0.5 rounded-full bg-primary/10">
+                      <span className="text-1xs font-medium text-primary px-2.5 py-0.5 rounded-full bg-primary/10">
                         {pack.category || "Social Media"}
                       </span>
                       <span className="text-xs text-muted-foreground font-mono">
@@ -268,7 +268,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
             <div className="p-12 text-center text-xs text-muted-foreground rounded-2xl bg-card border border-border/40">
               <Icons.search className="size-8 mx-auto text-muted-foreground/40 mb-2" />
               <p className="font-medium text-foreground">Tidak ada playbook yang cocok</p>
-              <p className="text-[11px] mt-1">Coba sesuaikan kata kunci pencarian atau filter kategori Anda.</p>
+              <p className="text-1xs mt-1">Coba sesuaikan kata kunci pencarian atau filter kategori Anda.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -281,15 +281,15 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <Badge variant="outline" className="text-[10px] font-mono bg-muted/30">
+                        <Badge variant="outline" className="text-2xs font-mono bg-muted/30">
                           {skill.category}
                         </Badge>
                         {clientStatus === "selesai" ? (
-                          <span className="text-[10px] font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-2xs font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Icons.check className="size-2.5" /> Selesai
                           </span>
                         ) : clientStatus === "jalan" ? (
-                          <span className="text-[10px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-2xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Icons.edit className="size-2.5" /> Dikerjakan
                           </span>
                         ) : null}
@@ -299,13 +299,13 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                         {skill.name}
                       </h4>
 
-                      <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                      <p className="text-1xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {skill.job || skill.description || "Playbook spesialis pemasaran media sosial."}
                       </p>
 
                       {skill.allowed_tools && (
                         <div className="pt-1">
-                          <span className="text-[10px] text-primary/80 font-mono bg-primary/5 px-2 py-0.5 rounded-md border border-primary/20 inline-block">
+                          <span className="text-2xs text-primary/80 font-mono bg-primary/5 px-2 py-0.5 rounded-md border border-primary/20 inline-block">
                             🔧 {skill.allowed_tools}
                           </span>
                         </div>
@@ -313,7 +313,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                     </div>
 
                     <div className="pt-3 mt-3 border-t border-border/30 flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground/60 font-mono">
+                      <span className="text-2xs text-muted-foreground/60 font-mono">
                         #{skill.id}
                       </span>
                       <Button

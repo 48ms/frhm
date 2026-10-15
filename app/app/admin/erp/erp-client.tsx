@@ -213,7 +213,7 @@ export function ErpDashboardClient() {
                 </div>
 
                 <div className="pt-3 border-t border-[hsl(var(--admin-outline-variant))]/20 flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-[11px] font-mono text-[hsl(var(--admin-outline))]">
+                  <span className="text-1xs font-mono text-[hsl(var(--admin-outline))]">
                     {d.created_at ? new Date(d.created_at).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "-"}
                   </span>
 

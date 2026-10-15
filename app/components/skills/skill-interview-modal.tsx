@@ -286,7 +286,7 @@ export function SkillInterviewModal({
               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                 <Icons.message className="size-3.5 text-primary" /> Wawancara Terpandu
               </span>
-              <span className="text-[11px] text-muted-foreground/70">
+              <span className="text-1xs text-muted-foreground/70">
                 Langkah {messages.filter((m) => m.role === "user").length + 1}
               </span>
             </div>
@@ -311,7 +311,7 @@ export function SkillInterviewModal({
                   >
                     <p className="whitespace-pre-wrap">{m.content}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground/60 mt-1 px-1">
+                  <span className="text-2xs text-muted-foreground/60 mt-1 px-1">
                     {m.role === "user" ? "Anda" : "AI Consultant"}
                   </span>
                 </div>
@@ -346,7 +346,7 @@ export function SkillInterviewModal({
                   className="w-full resize-none border-0 shadow-none focus-visible:ring-0 text-xs p-3 min-h-[56px] max-h-[120px]"
                 />
                 <div className="flex items-center justify-between px-3 py-1.5 border-t border-border/20 bg-muted/10 gap-2">
-                  <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
+                  <span className="text-2xs text-muted-foreground/70 hidden sm:inline">
                     Shift+Enter untuk baris baru
                   </span>
                   <div className="flex items-center gap-2 ml-auto">
@@ -438,7 +438,7 @@ export function SkillInterviewModal({
                 <button
                   type="button"
                   onClick={() => setMcpFeedback(null)}
-                  className="text-muted-foreground hover:text-foreground text-[10px]"
+                  className="text-muted-foreground hover:text-foreground text-2xs"
                 >
                   <Icons.close className="size-3" />
                 </button>
@@ -454,14 +454,14 @@ export function SkillInterviewModal({
                       <p className="font-semibold text-foreground text-sm">
                         {activeDoc.title || skill.name}
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-1xs text-muted-foreground mt-0.5">
                         Disusun otomatis untuk {clientName} berdasarkan aturan {skill.name}
                       </p>
                     </div>
                     {isDone ? (
-                      <Badge className="bg-brand-accent00/15 border border-border/4000/30 text-brand-accent00 dark:text-brand-accent00 text-[10px]">Lengkap</Badge>
+                      <Badge className="bg-brand-accent00/15 border border-border/4000/30 text-brand-accent00 dark:text-brand-accent00 text-2xs">Lengkap</Badge>
                     ) : (
-                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-[10px]">
+                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-2xs">
                         Draft In Progress
                       </Badge>
                     )}
@@ -478,7 +478,7 @@ export function SkillInterviewModal({
                   </div>
                   <div>
                     <p className="text-xs font-medium text-foreground">Menunggu Dokumen</p>
-                    <p className="text-[11px] max-w-xs mt-1 text-muted-foreground">
+                    <p className="text-1xs max-w-xs mt-1 text-muted-foreground">
                       Draf strategi akan mulai muncul otomatis di panel ini begitu AI mengumpulkan informasi awal dari wawancara Anda.
                     </p>
                   </div>

@@ -167,7 +167,7 @@ export function ClientPlaybooksDialog({
                     </div>
                     <div>
                       <p className="font-semibold text-foreground text-sm">Belum Ada Playbook Ditugaskan</p>
-                      <p className="text-[11px] max-w-sm mx-auto mt-1 text-muted-foreground">
+                      <p className="text-1xs max-w-sm mx-auto mt-1 text-muted-foreground">
                         Klien {clientName} belum memiliki paket strategi aktif. Pilih dari 17 paket solusi teruji kami untuk memulai.
                       </p>
                     </div>
@@ -199,19 +199,19 @@ export function ClientPlaybooksDialog({
                           >
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <Badge variant="outline" className="text-[10px] font-mono">
+                                <Badge variant="outline" className="text-2xs font-mono">
                                   {skill.category}
                                 </Badge>
                                 {cs.status === "selesai" ? (
-                                  <span className="text-[10px] font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <span className="text-2xs font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Icons.check className="size-2.5" /> Selesai
                                   </span>
                                 ) : cs.status === "jalan" ? (
-                                  <span className="text-[10px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <span className="text-2xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Icons.edit className="size-2.5" /> Sedang Jalan
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-medium text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">
+                                  <span className="text-2xs font-medium text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">
                                     Belum Dimulai
                                   </span>
                                 )}
@@ -220,13 +220,13 @@ export function ClientPlaybooksDialog({
                               <h4 className="text-xs font-semibold text-foreground">
                                 {skill.name}
                               </h4>
-                              <p className="text-[11px] text-muted-foreground line-clamp-2">
+                              <p className="text-1xs text-muted-foreground line-clamp-2">
                                 {skill.job || skill.description}
                               </p>
                             </div>
 
                             <div className="pt-3 mt-3 border-t border-border/30 flex items-center justify-between">
-                              <span className="text-[10px] text-muted-foreground/60 font-mono">
+                              <span className="text-2xs text-muted-foreground/60 font-mono">
                                 #{skill.id}
                               </span>
                               <Button
@@ -253,7 +253,7 @@ export function ClientPlaybooksDialog({
                     <h3 className="text-xs font-semibold text-foreground">
                       Katalog 17 Paket Solusi Teruji
                     </h3>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-1xs text-muted-foreground">
                       Tugaskan paket untuk menambahkan kumpulan playbook terpadu ke workspace {clientName}.
                     </p>
                   </div>
@@ -273,15 +273,15 @@ export function ClientPlaybooksDialog({
                       >
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                            <span className="text-2xs font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
                               {pack.category || "Social Media"}
                             </span>
-                            <span className="text-[11px] text-muted-foreground font-mono">
+                            <span className="text-1xs text-muted-foreground font-mono">
                               {pack.skill_count} Playbook
                             </span>
                           </div>
                           <h4 className="text-xs font-semibold text-foreground">{pack.name}</h4>
-                          <p className="text-[11px] text-muted-foreground line-clamp-2">
+                          <p className="text-1xs text-muted-foreground line-clamp-2">
                             {pack.description}
                           </p>
                         </div>
@@ -313,7 +313,7 @@ export function ClientPlaybooksDialog({
                   <div className="p-12 text-center text-xs text-muted-foreground rounded-2xl bg-card border border-border/40">
                     <Icons.fileText className="size-8 mx-auto text-muted-foreground/40 mb-2" />
                     <p className="font-medium text-foreground">Belum Ada Dokumen Strategi</p>
-                    <p className="text-[11px] mt-1">
+                    <p className="text-1xs mt-1">
                       Hasil dari wawancara playbook yang telah difinalisasi akan otomatis tersimpan di sini.
                     </p>
                   </div>
@@ -333,18 +333,18 @@ export function ClientPlaybooksDialog({
                               <span className="font-semibold text-xs text-foreground">
                                 {doc.title}
                               </span>
-                              <Badge variant="outline" className="text-[10px] font-mono">
+                              <Badge variant="outline" className="text-2xs font-mono">
                                 {doc.skill_id}
                               </Badge>
                               {isPromoted ? (
                                 <StatusBadge status={deliverableStatus} />
                               ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground border border-border/30">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium bg-muted text-muted-foreground border border-border/30">
                                   Draf Internal
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-1xs text-muted-foreground">
                               Disimpan pada: {new Date(doc.created_at).toLocaleDateString("id-ID", { dateStyle: "medium" })}
                               {isPromoted && " • Terhubung ke Deliverable Klien"}
                             </p>

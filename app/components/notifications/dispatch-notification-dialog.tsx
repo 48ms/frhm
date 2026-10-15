@@ -160,13 +160,13 @@ export function DispatchNotificationDialog({
             {/* DELIVERABLE & CLIENT CARD */}
             <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 flex items-start justify-between gap-3">
               <div className="min-w-0 space-y-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Target Klien: {target.client.name}
                 </span>
                 <h4 className="text-sm font-bold text-foreground truncate">
                   {target.title}
                 </h4>
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-2 text-1xs text-muted-foreground">
                   <span>Portal Magic Link:</span>
                   <a
                     href={target.reviewUrl}
@@ -179,7 +179,7 @@ export function DispatchNotificationDialog({
                   </a>
                 </div>
               </div>
-              <Badge variant="outline" className="text-[10px] uppercase shrink-0">
+              <Badge variant="outline" className="text-2xs uppercase shrink-0">
                 {target.status}
               </Badge>
             </div>
@@ -209,11 +209,11 @@ export function DispatchNotificationDialog({
                       <span>WhatsApp</span>
                     </div>
                     {target.client.contactPhone ? (
-                      <p className="text-[11px] text-muted-foreground font-mono truncate">
+                      <p className="text-1xs text-muted-foreground font-mono truncate">
                         {target.client.contactPhone}
                       </p>
                     ) : (
-                      <p className="text-[10px] text-amber-500 flex items-center gap-1">
+                      <p className="text-2xs text-amber-500 flex items-center gap-1">
                         <Icons.alertCircle className="size-3 shrink-0" />
                         Nomor belum diisi
                       </p>
@@ -242,11 +242,11 @@ export function DispatchNotificationDialog({
                       <span>Telegram Bot</span>
                     </div>
                     {target.client.telegramChatId ? (
-                      <p className="text-[11px] text-muted-foreground font-mono truncate">
+                      <p className="text-1xs text-muted-foreground font-mono truncate">
                         Chat ID: {target.client.telegramChatId}
                       </p>
                     ) : (
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <p className="text-2xs text-muted-foreground flex items-center gap-1">
                         <Icons.info className="size-3 shrink-0" />
                         Belum terhubung
                       </p>
@@ -262,7 +262,7 @@ export function DispatchNotificationDialog({
                 <label htmlFor="custom-note" className="text-xs font-semibold text-foreground">
                   Catatan Tambahan (Opsional)
                 </label>
-                <span className="text-[10px] text-muted-foreground">Ditambahkan ke pesan</span>
+                <span className="text-2xs text-muted-foreground">Ditambahkan ke pesan</span>
               </div>
               <textarea
                 id="custom-note"
@@ -283,7 +283,7 @@ export function DispatchNotificationDialog({
                   variant="ghost"
                   size="sm"
                   onClick={handleCopyMessage}
-                  className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground gap-1"
+                  className="h-6 text-2xs px-2 text-muted-foreground hover:text-foreground gap-1"
                 >
                   {copied ? (
                     <>
@@ -296,7 +296,7 @@ export function DispatchNotificationDialog({
                   )}
                 </Button>
               </div>
-              <div className="p-3 rounded-xl bg-muted/60 border border-border/50 text-[11px] font-mono leading-relaxed whitespace-pre-wrap max-h-36 overflow-y-auto text-foreground/90">
+              <div className="p-3 rounded-xl bg-muted/60 border border-border/50 text-1xs font-mono leading-relaxed whitespace-pre-wrap max-h-36 overflow-y-auto text-foreground/90">
                 {previewText}
               </div>
             </div>
@@ -306,7 +306,7 @@ export function DispatchNotificationDialog({
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-foreground">Hasil Pengiriman Notifikasi</span>
-                  <Badge variant="outline" className="text-[10px] bg-primary/10 border-primary/30 text-primary">
+                  <Badge variant="outline" className="text-2xs bg-primary/10 border-primary/30 text-primary">
                     Selesai
                   </Badge>
                 </div>
@@ -326,12 +326,12 @@ export function DispatchNotificationDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         {r.success ? (
-                          <span className="text-brand-accent00 text-[11px] font-semibold flex items-center gap-1">
+                          <span className="text-brand-accent00 text-1xs font-semibold flex items-center gap-1">
                             <Icons.circleCheck className="size-3" />
                             {r.status === "ready" ? "Tautan Siap" : "Terkirim"}
                           </span>
                         ) : (
-                          <span className="text-amber-500 text-[11px] font-medium flex items-center gap-1">
+                          <span className="text-amber-500 text-1xs font-medium flex items-center gap-1">
                             <Icons.alertCircle className="size-3" />
                             {r.error || "Gagal"}
                           </span>
@@ -341,7 +341,7 @@ export function DispatchNotificationDialog({
                             href={r.clickUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 text-[10px] font-semibold transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 text-2xs font-semibold transition-colors shadow-xs"
                           >
                             <Icons.whatsapp className="size-3" />
                             Buka di WhatsApp
