@@ -1020,34 +1020,219 @@ Halaman mandiri (tanpa login admin) untuk klien mereview deliverable:
 
 ---
 
-### 4.13 Scheduled Posts (`/admin/calendar`)
+### 4.13 Scheduled Posts (`/admin/calendar`) — DEEP DIVE
 
-**Fungsi**: Manajemen post yang sudah dijadwalkan.
+**Fungsi**: Manajemen post yang dijadwalkan (CRUD). Service: `features/scheduled-posts/api/service.ts` (127 baris).
 
-**CRUD**:
-- `getScheduledPostsByClient(clientId)`
-- `createScheduledPost(input)` / `createScheduledPostsBatch(inputs[])`
-- `updateScheduledPost(id, updates)`
-- `deleteScheduledPost(id, clientId?)`
+**Catatan Penting**: Modul ini memiliki **function overloading** — menerima single input ATAU array input.
+
+#### Fungsi Service (5 fungsi)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getScheduledPostsByClient` | `(clientId) => Promise<ScheduledPost[]>` | List post per klien |
+| `createScheduledPost` | `(input) => Promise<ScheduledPost>` | Buat 1 post |
+| `createScheduledPost` | `(inputs[]) => Promise<ScheduledPost[]>` | Batch buat N posts (overload) |
+| `updateScheduledPost` | `({ id, clientId }, patch) => Promise<ScheduledPost>` | Update dengan tenant guard |
+| `deleteScheduledPost` | `(id, clientId?) => Promise<void>` | Hapus (opsional client_id guard) |
+
+#### Alur `createScheduledPost` (Function Overload)
+
+```
+Input: CreateScheduledPostInput | CreateScheduledPostInput[]
+   ↓
+isArray = Array.isArray(input)
+   ↓
+safe = isArray ? input.map(i => Schema.parse(i)) : Schema.parse(input)
+   ↓
+rows = safe (single → wrap in [])
+   ↓
+query = supabase.from("scheduled_posts").insert(rows)
+   ↓
+data = await query.select().single() / select()  ← .single() jika 1 post
+   ↓
+Guard: error → throw "Gagal menjadwalkan postingan"
+   ↓
+logAudit:
+  ├─ entity: scheduled_post.create
+  ├─ summary: "Scheduled batch of N posts" / "Scheduled new post <id>"
+  └─ clientId: rows[0].client_id
+   ↓
+return data
+```
+
+#### Alur `updateScheduledPost` — Tenant Guard
+
+```
+1. .update(patch).eq("id", id).eq("client_id", clientId)
+   ↓  ↑ WAJIB kedua predicate untuk mencegah cross-tenant update
+2. logAudit('scheduled_post.update')
+```
+
+#### Alur `deleteScheduledPost` — Flexible Guard
+
+```
+1. delete().eq("id", id)
+   ↓
+2. if (clientId) query.eq("client_id", clientId)  ← opsional
+   ↓  ↑ jika client_id diberikan: tenant-safe
+   ↓     jika tidak: hapus by ID saja (admin mode)
+3. logAudit('scheduled_post.delete')
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Buat Post** | `createScheduledPost(input)` | Insert 1 post + audit |
+| **Buat Batch** | `createScheduledPost(inputs[])` | Insert N posts + audit batch |
+| **Edit Post** | `updateScheduledPost({id, clientId}, patch)` | Update dengan tenant guard |
+| **Hapus Post** | `deleteScheduledPost(id, clientId?)` | Hapus (opsional tenant guard) |
 
 ---
 
-### 4.14 Skills (`/admin/ai` - Playbooks tab)
+### 4.14 Skills (`/admin/ai` - Playbooks tab) — DEEP DIVE
 
-**Fungsi**: 106 strategic skills & topic packs.
+**Fungsi**: Katalog 106 strategic skills + 17 topic packs, interview AI, output management. Service: `features/skills/api/service.ts` (580 baris).
 
-**CRUD**:
-- `getSkills(filters)`
-- `getSkillPacks()`
-- `getSkillDetail(skillId)`
-- `assignPackToClient(packId, clientId)`
-- `updateClientSkillStatus(clientId, skillId, status)`
-- `saveSkillOutput(clientId, skillId, output)`
+#### Arsitektur Relasional
 
-**Wiring Tombol**:
-- **Interview Skill**: `handleStartBrandInterview(skillId)` → SkillInterviewModal
-- **Assign to Client**: `assignPackToClient(packId, clientId)`
-- **Save Output**: `saveSkillOutput(clientId, skillId, output)` → persist to DB
+```
+skill_packs  ──── pack_skills ──── skills
+     │                                     │
+     │                                     │
+     └────── client_skills ────────────────┘
+              (assignment + status)
+                    │
+                    │
+              skill_outputs (final documents)
+```
+
+| Tabel | Fungsi |
+|-------|--------|
+| `skills` | 106 skill registry (name, description, category, job, allowed_tools) |
+| `skill_packs` | 17 topic pack (sort_order) |
+| `pack_skills` | many-to-many pack ↔ skill |
+| `client_skills` | Assignment per klien (status: belum/dipilih/selesai) |
+| `skill_files` | Markdown playbooks per skill |
+| `skill_outputs` | Final dokumen hasil eksekusi |
+
+#### Fungsi Service (9 fungsi inti)
+
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `getSkills(filters)` | List skills + optional filter (category, search ILIKE, packId) |
+| `getSkillPacks()` | 17 packs + skill_count via parallel query + Map |
+| `getSkillDetail(skillId)` | Skill + its markdown files (parallel) |
+| `getClientSkills(clientId)` | Assigned skills for client (JOIN with skills) |
+| `assignPackToClient(clientId, packId)` | Upsert all skills from pack to client |
+| `updateClientSkillStatus(clientId, skillId, status)` | Update assignment status |
+| `saveSkillOutput(input)` | Save final document + auto-update status to 'selesai' |
+| `getClientSkillOutputs(clientId)` | History of all outputs for client |
+| `executeSkillChat(input)` | AI-guided interview session |
+
+#### Alur `getSkillPacks` — Parallel + Map Lookup
+
+```
+Promise.all([
+  skill_packs ORDER BY sort_order,
+  pack_skills (pack_id, skill_id),
+])
+   ↓
+Build Map: packSkillMap (pack_id → skill_ids[])
+   ↓
+packs.map(pack => ({ ...pack, skill_count: map.get(pack.id)?.length ?? 0 }))
+```
+
+#### Alur `assignPackToClient` (Quick Onboarding & Manual Assign)
+
+```
+1. Guard: !clientId || !packId → error
+   ↓
+2. GET pack_skills WHERE pack_id
+   ↓ (guard: empty → "Tidak ada skill dalam pack ini")
+   ↓
+3. Build rows: [{ client_id, skill_id, status: "belum", updated_at }]
+   ↓
+4. UPSERT client_skills ON CONFLICT (client_id, skill_id)
+   ↓
+5. Return { success: true, count: rows.length }
+```
+
+**Digunakan di**:
+- Quick Onboarding wizard (Clients §4.5) — assign "starter" pack
+- ClientManager → Playbooks dialog — manual assign
+
+#### Alur `saveSkillOutput` — Auto-Status Update
+
+```
+1. INSERT skill_outputs { client_id, skill_id, title, content, status, stage }
+   ↓
+2. await updateClientSkillStatus(clientId, skillId, "selesai")
+   ↓  ↑ otomatis ubah status dari "belum"/"dipilih" → "selesai"
+3. Return { success: true, id }
+```
+
+#### Alur `executeSkillChat` — AI Interview Session
+
+```
+1. resolveProvider(supabase) → fail jika tidak ada
+   ↓
+2. Promise.all([
+     loadSkillBundle(supabase, skillId),  ← playbook markdown
+     loadClientFiles(supabase, clientId),  ← brand context
+     clients.name,                          ← client name
+   ])
+   ↓
+3. System prompt (faktual dari kode):
+   [ROLE & EXPERTISE]
+   You are an expert Social Media & Marketing Consultant acting on behalf of {clientName}.
+   You are executing the specialized playbook "{skillId}".
+   You conduct an interactive interview step-by-step in INDONESIAN.
+
+   [BRAND CONTEXT]
+   Adhere strictly to the brand voice, tone, and guardrails.
+
+   [INTERVIEW SPEC]
+   - Ask 1-2 questions per turn
+   - Provide cumulative draft in "preview"
+   - Set done=true when complete, emit final in "output"
+   - Return valid JSON: { reply, done, preview?, output? }
+   ↓
+4. chatJsonDetailed(provider, systemPrompt, messages)
+   ↓
+5. Auto-update: updateClientSkillStatus(clientId, skillId, "jalan")
+   ↓
+6. logAiUsage({ route: "skill.chat", model, tokens, latency })
+   ↓
+7. Return { reply, done, error? }
+```
+
+**System prompt** memaksa AI untuk:
+- Interaksi dalam Bahasa Indonesia profesional
+- Tidak bertanya 10 pertanyaan sekaligus (1-2 per giliran)
+- Selalu emit draft real-time di `preview`
+- Output valid JSON only (tanpa markdown codeblocks)
+
+#### Struktur Data
+
+```typescript
+Skill          { id, name, description, category, job, allowed_tools }
+SkillPack      { id, name, sort_order, skill_count }
+ClientSkill    { id, client_id, skill_id, status, notes, created_at, updated_at, skill }
+SkillOutput    { id, client_id, skill_id, title, content, status, stage, created_at }
+SkillFile      { skill_id, path, content }
+ClientSkillStatus = "belum" | "dipilih" | "selesai"
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Interview Skill** | `handleStartBrandInterview(skillId)` | Buka SkillInterviewModal → executeSkillChat |
+| **Assign to Client** | `assignPackToClient(packId, clientId)` | Upsert all skills → status "belum" |
+| **Save Output** | `saveSkillOutput(input)` | Insert output → auto status "selesai" |
+| **Update Status** | `updateClientSkillStatus(clientId, skillId, status)` | Toggle status |
 
 ---
 
