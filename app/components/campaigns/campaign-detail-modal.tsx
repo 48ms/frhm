@@ -92,7 +92,7 @@ export function CampaignDetailModal({
       >
         <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/40 pb-3 space-y-0 text-left">
           <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shrink-0"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-primary-foreground font-bold shrink-0"
             style={{ backgroundColor: campaign.color || "hsl(var(--primary))" }}
           >
             {campaign.name.charAt(0).toUpperCase()}

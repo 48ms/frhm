@@ -6,6 +6,11 @@ import { Icons } from '@/components/icons'
 // Always render per-request , never cache RSC payload (avoids stale session/role state)
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: "Menunggu Akses | Frahma",
+  description: "Status persetujuan akun dan konfigurasi hak akses platform Frahma.",
+}
+
 export default async function WaitlistPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

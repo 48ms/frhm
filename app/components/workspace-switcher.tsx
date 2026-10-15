@@ -55,7 +55,7 @@ export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
             )}
           >
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-black/5">
+              <div className="w-8 h-8 rounded-xl bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-border/20">
                 {activeClient.name.charAt(0).toUpperCase()}
               </div>
               <div className="truncate leading-tight text-left">
@@ -104,7 +104,7 @@ export function WorkspaceSwitcher({ className }: { className?: string } = {}) {
                       : "hover:bg-muted border border-transparent"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-lg bg-brand-accent text-white flex items-center justify-center font-bold text-2xs shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-2xs shrink-0">
                     {c.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="truncate leading-tight flex-1 min-w-0">

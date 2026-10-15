@@ -396,7 +396,7 @@ export function CampaignModal({
                         style={{ backgroundColor: c }}
                         aria-label={`Color ${c}`}
                       >
-                        {field.state.value === c && <Icons.check className="size-3.5 text-white" />}
+                        {field.state.value === c && <Icons.check className="size-3.5 text-primary-foreground" />}
                       </Button>
                     ))}
                   </div>
@@ -557,7 +557,7 @@ export function CampaignModal({
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm text-primary-foreground"
                     style={{ backgroundColor: formValues.color }}
                   >
                     <Icons.campaign className="size-5" />

@@ -26,7 +26,7 @@ const TYPE_CONFIG: Record<string, { label: string; color: string }> = {
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; badgeClass: string; icon: any }> = {
   draft: { label: 'Draft Internal', variant: 'secondary', badgeClass: 'bg-muted text-muted-foreground border-border', icon: Icons.clock },
   sent: { label: 'Menunggu Review Anda', variant: 'outline', badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30', icon: Icons.clock },
-  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-emerald-600 text-white border-emerald-500', icon: Icons.circleCheck },
+  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', icon: Icons.circleCheck },
   revision_requested: { label: 'Revisi Diminta', variant: 'destructive', badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Icons.warning },
 };
 
@@ -337,7 +337,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
               variant="default"
               isLoading={submitReviewMutation.isPending}
               onClick={() => handleSubmitReview('approved')}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium h-10 px-5 shadow-sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-10 px-5 shadow-sm"
             >
               <Icons.check className="size-4 mr-2" />
               Setujui Dokumen (Approve)

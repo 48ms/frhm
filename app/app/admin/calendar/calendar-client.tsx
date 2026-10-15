@@ -47,10 +47,14 @@ const PLATFORM_META: Record<
   string,
   { label: string; icon: keyof typeof Icons; badge: string }
 > = {
-  instagram: { label: "REELS", icon: "video", badge: "bg-[hsl(var(--platform-instagram)/.1)] text-[hsl(var(--platform-instagram))]" },
-  tiktok: { label: "TIKTOK", icon: "play", badge: "bg-[hsl(var(--platform-tiktok)/.1)] text-[hsl(var(--platform-tiktok))]" },
-  shorts: { label: "SHORTS", icon: "video", badge: "bg-[hsl(var(--platform-youtube)/.1)] text-[hsl(var(--platform-youtube))]" },
-  linkedin: { label: "LINKEDIN", icon: "bookOpen", badge: "bg-[hsl(var(--platform-linkedin)/.1)] text-[hsl(var(--platform-linkedin))]" },
+  instagram: { label: "INSTAGRAM", icon: "instagram", badge: "bg-[hsl(var(--platform-instagram)/.1)] text-[hsl(var(--platform-instagram))]" },
+  tiktok: { label: "TIKTOK", icon: "tiktok", badge: "bg-[hsl(var(--platform-tiktok)/.1)] text-[hsl(var(--platform-tiktok))]" },
+  youtube: { label: "YOUTUBE", icon: "youtube", badge: "bg-[hsl(var(--platform-youtube)/.1)] text-[hsl(var(--platform-youtube))]" },
+  shorts: { label: "SHORTS", icon: "youtube", badge: "bg-[hsl(var(--platform-youtube)/.1)] text-[hsl(var(--platform-youtube))]" },
+  linkedin: { label: "LINKEDIN", icon: "linkedin", badge: "bg-[hsl(var(--platform-linkedin)/.1)] text-[hsl(var(--platform-linkedin))]" },
+  facebook: { label: "FACEBOOK", icon: "facebook", badge: "bg-[hsl(var(--platform-facebook)/.1)] text-[hsl(var(--platform-facebook))]" },
+  twitter: { label: "TWITTER", icon: "twitter", badge: "bg-[hsl(var(--platform-twitter)/.1)] text-[hsl(var(--platform-twitter))]" },
+  x: { label: "X", icon: "twitter", badge: "bg-[hsl(var(--platform-twitter)/.1)] text-[hsl(var(--platform-twitter))]" },
 }
 
 const STATUS_META: Record<string, { label: string; pill: string; dot: string }> = {
@@ -1401,12 +1405,8 @@ export function AdminCalendarClient() {
         initialTitle={initialTitle || undefined}
         initialMediaUrl={mediaUrl || undefined}
         initialContent={initialCaption || undefined}
-        onSave={() => {
-          toast.success("Refreshed")
-        }}
-        onDelete={() => {
-          toast.success("Refreshed")
-        }}
+        onSave={() => {}}
+        onDelete={() => {}}
       />
       </>
       )}

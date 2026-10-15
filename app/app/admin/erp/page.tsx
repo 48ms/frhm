@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { getQueryClient } from "@/lib/query-client"
 import { socialQueries } from "@/features/social-accounts/api/queries"
@@ -9,6 +10,11 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import { ErpDashboardClient } from "./erp-client"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Marketing ERP & Deliverables | Frhm Studio",
+  description: "Manajemen alur kerja konten, peninjauan deliverable klien, persetujuan aset, dan pipeline publikasi pemasaran.",
+}
 
 export default async function AdminErpPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>

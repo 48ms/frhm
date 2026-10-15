@@ -47,7 +47,7 @@ const AVAILABLE_PLATFORMS = [
   { id: "instagram", label: "Instagram", icon: "instagram" },
   { id: "tiktok", label: "TikTok", icon: "tiktok" },
   { id: "twitter", label: "Twitter / X", icon: "twitter" },
-  { id: "linkedin", label: "LinkedIn", icon: "post" },
+  { id: "linkedin", label: "LinkedIn", icon: "linkedin" },
 ]
 
 const IDEA_STRATEGY_PRESETS = [

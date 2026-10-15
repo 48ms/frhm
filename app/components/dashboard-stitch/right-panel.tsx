@@ -55,7 +55,7 @@ function getPlatformMeta(platform: string) {
   if (p.includes("linkedin")) {
     return {
       label: "LinkedIn",
-      icon: Icons.bookOpen,
+      icon: Icons.linkedin,
       bg: "bg-[hsl(var(--platform-linkedin,210_80%_45%))]",
     }
   }

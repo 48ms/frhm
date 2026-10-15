@@ -33,6 +33,7 @@
 | **Opsi 1: Multi-Account Analytics Aggregator (Instagram/TikTok Insights & WoopSocial Sync)** | ✅ Complete | Multi-account aggregator widget (`multi-account-aggregator.tsx`), platform filtering pills (Semua, Instagram, TikTok, X), Instagram Deep Insights (Reels vs Carousel vs Static, saves, DMs), TikTok Viral Insights (Viral Potential Score meter 0-100, video views, shares, WA leads), live multi-platform synchronization action, 100% test coverage (8/8 Playwright PASS) |
 | **Opsi 3: Automated WhatsApp/Telegram Webhook Notification Engine** | ✅ Complete | Multi-channel review notification engine (`lib/whatsapp/service.ts`, `lib/telegram/service.ts`), Meta Cloud API & Webhook inbound route (`/api/whatsapp/webhook`), 3-layer service layer (`features/notifications/api/`), Radix UI dialog (`dispatch-notification-dialog.tsx`) dengan live preview magic link & 1-click WhatsApp Web launch, integrasi tombol "Notifikasi Review" di Marketing ERP, database migration `057_whatsapp_notification_logs.sql`, 100% test coverage (60/60 unit test files PASS, 316/316 tests PASS, Playwright E2E 2/2 PASS) |
 | **Opsi 4: Branded Executive PDF Export Studio** | ✅ Complete | Executive-grade PDF document engine (`lib/pdf/deliverable-pdf.tsx`) with 4 branded themes (Cobalt Blue, Emerald Growth, Royal Indigo, Monochrome), markdown parsing & formatting, metadata grid, watermark selector, executive signature approval sheet, interactive `<ExportPdfDialog>` modal with `<MetricTicker>` counters & `<ShimmeringText>` progress, dynamic import of `@react-pdf/renderer`, multi-surface integration (Client Review Portal, Marketing ERP Dashboard, Playbooks Dialog Tab 3 & document preview), 100% test coverage (62/62 unit test files PASS, 322/322 tests PASS, Playwright E2E 2/2 PASS) |
+| **Full Gap Audit & Server Function Optimization** | ✅ Complete | Complete audit across 14 modules, elimination of 'Server Functions cannot be called during initial render' via DashboardPrefetcher expansion, query guards against undefined UUIDs, 100% semantic tokens, 20/20 core Playwright E2E PASS |
 
 ### CIS Technical Implementation
 
@@ -58,6 +59,17 @@
   - `e2e/settings-view.spec.ts` — **6/6 PASS** (Workspace, Billing, Integrations, User Access, Brand Profile, AI Providers)
   - `e2e/sidebar-nav.spec.ts` — **1/1 PASS** (All core admin routes reachable including `/admin/ai`)
   - `e2e/erp.spec.ts` — **1/1 PASS** (Marketing ERP dashboard summary strip, schedule banner, client info)
+  - `e2e/social-accounts.spec.ts` — **3/3 PASS** (Flow 1: Social Accounts board renders connected accounts, Flow 2: Connect account modal opens with platform cards, Flow 3: Disconnect channel dialog renders safely)
+  - `e2e/connect-channel.spec.ts` — **1/1 PASS** (Connect Channel modal: platform cards and gating)
+  - `e2e/social-oauth-csrf.spec.ts` — **2/2 PASS** (Social OAuth callback CSRF guard: rejects callback with no state or forged state token)
+  - `e2e/campaigns.spec.ts` — **4/4 PASS** (Flow 1: Campaigns Board renders, Flow 2: Filter campaigns by client, Flow 3: Campaign creation modal, Flow 4: Campaign detail modal)
+  - `e2e/library.spec.ts` — **3/3 PASS** (Flow 1: Media Library renders with upload zone and stats, Flow 2: Asset stats sections, Flow 3: Empty state or asset grid)
+  - `e2e/support-view.spec.ts` — **2/2 PASS** (Support Center sections and FAQ expansion, contact form submission)
+  - `e2e/create-client.spec.ts` — **3/3 PASS** (Quick Onboarding dialog, validation, 2-step completion)
+  - `e2e/admin-clients.spec.ts` — **1/1 PASS** (Admin clients auth guard)
+  - `e2e/sidebar-client.spec.ts` — **1/1 PASS** (Workspace switcher opens and lists managed clients with nuqs URL state)
+  - `e2e/admin-journey.spec.ts` — **2/2 PASS** (Composer module accessibility and full workflow)
+  - `e2e/admin-remaining.spec.ts` — **4/4 PASS** (Admin route auth guards and legacy routes resolving to 404)
 - **TypeScript**: `npx tsc --noEmit` — **exit 0 (0 error)**
 - **Unit Tests**: `npm test` — **62/62 files, 322/322 tests PASS (100%)**
 - **ESLint**: 0 errors, 0 warnings
@@ -365,21 +377,20 @@ Begitu pula `app/scripts/` (50 file, **0 tracked git**), `app/anti-slop/` (6 aud
 - Runtime dev 3004: `/admin/calendar` compile OK, 307 (auth redirect — benar); `/admin/library` 307; `/auth/login` 200. Tidak ada `module not found`.
 
 
-## 2026-10-04 � Enterprise Standards & Client Wizard Refactor (ECC)
+## 2026-10-04 — Enterprise Standards & Client Wizard Refactor (ECC)
 
 ### AGENTS.md Expansion (Enterprise Standards)
 - Diperbarui aturan 14-17 di AGENTS.md (Sentry Error Boundaries, t3-env Zod validation, Optimistic UI Updates, Tailwind HSL design consistency).
 
-### UI/UX Refactor � Create Client Wizard (\create-client-dialog.tsx\)
-- **Penghapusan Duplikat**: Menghapus komponen duplikat dd-client-dialog.tsx yang sebelumnya dibuat mengabaikan arsitektur Frahma, dan menyambungkan kembali tombol \+ Create New Client\ di \AppSidebar\ ke \useCreateClient()\ bawaan.
-- **TanStack Form & Zod (Rule #7)**: Formulir \CreateClientWizard\ 2-langkah direfactor total menggunakan \useAppForm\ dari \@/lib/form\ dan di-validasi ketat dengan skema \createClientSchema\ (Zod).
-- **Primitif Komponen**: Mengganti tag \<input>\ dan \<select>\ raw HTML dengan ekosistem Frahma (\orm.AppField\, \ield.TextField\, \ield.SelectField\).
-- **Zero Layout-Shift (Rule #8)**: Disambungkan form submit state ke tombol "Siapkan Workspace" (\isLoading={form.state.isSubmitting}\) agar UX tidak melompat.
-- **Kepatuhan Desain HSL & Animasi**: Membersihkan warna hardcoded, menggunakan token HSL (\g-primary\, \	ext-muted-foreground\), dan menambahkan \	ailwindcss-animate\ untuk transisi antar langkah yang mulus.
+### UI/UX Refactor — Create Client Wizard (`create-client-dialog.tsx`)
+- **Penghapusan Duplikat**: Menghapus komponen duplikat `add-client-dialog.tsx` yang sebelumnya dibuat mengabaikan arsitektur Frahma, dan menyambungkan kembali tombol "+ Create New Client" di `AppSidebar` ke `useCreateClient()` bawaan.
+- **TanStack Form & Zod (Rule #7)**: Formulir `CreateClientWizard` 2-langkah direfactor total menggunakan `useAppForm` dari `@/lib/form` dan di-validasi ketat dengan skema `createClientSchema` (Zod).
+- **Primitif Komponen**: Mengganti tag `<input>` dan `<select>` raw HTML dengan ekosistem Frahma (`form.AppField`, `field.TextField`, `field.SelectField`).
+- **Zero Layout-Shift (Rule #8)**: Disambungkan form submit state ke tombol "Siapkan Workspace" (`isLoading={form.state.isSubmitting}`) agar UX tidak melompat.
+- **Kepatuhan Desain HSL & Animasi**: Membersihkan warna hardcoded, menggunakan token HSL (`bg-primary`, `text-muted-foreground`), dan menambahkan `tailwindcss-animate` untuk transisi antar langkah yang mulus.
 
 ### ECC Gate
-- \
-px tsc --noEmit\: **0 error** (Compiled successfully).
+- `npx tsc --noEmit`: **0 error** (Compiled successfully).
 - Wiring sidebar dropdown telah berfungsi sempurna tanpa _gap_ fakta fungsional.
 
 
@@ -495,4 +506,50 @@ px tsc --noEmit\: **0 error** (Compiled successfully).
 - `components/client/client-manager.test.tsx`: **3/3 passed**.
 - Full Test Suite `npx vitest run`: **53 test files passed, 260/260 tests passed (100% Green)**.
 - Next.js Production Daemon (`task-9394`): Berjalan normal di `http://localhost:3000` (HTTP 200).
+
+---
+
+## 2026-10-15 — Content Calendar "Add Post" Modal Refactor & 100% Field Mapping (Zero Gap)
+
+### 1. Masalah / Gap yang Ditemukan
+1. **Layout & Visual Overflow pada Modal Dialog**:
+   - `DialogContent` memiliki `p-6 space-y-6` bawaan sementara `<form>` di dalamnya memakai split-pane (`flex-col sm:flex-row h-[78vh] sm:max-h-[640px]`), menyebabkan sidebar kanan melebar melebihi lebar dialog (969px vs 896px) dan meluap ke luar kartu modal.
+   - Panel kanan menjadi transparan (`bg-muted/30`) di atas latar kalender, tombol [X] penutup tumpang tindih dengan platform grid dan memiliki focus ring biru jelek.
+   - Konten panel kanan (Media Terlampir & Status) terpotong di bagian bawah karena pembatas tinggi 640px tanpa integrasi scroll & sticky footer yang pas.
+2. **Missing Field Mapping pada Mutasi Supabase (Data Gap)**:
+   - `createPost` hardcode `status: 'draft'`, mengabaikan opsi status (`scheduled`, `published`, `draft`) yang dipilih pengguna di formulir.
+   - Field `priority` (`low`, `normal`, `high`, `urgent`) tidak dikirimkan ke `createPost` maupun `updatePost`.
+   - Field `campaign_tag` tidak dikirimkan ke `createPost` maupun `updatePost`.
+   - Field `is_reserved`, `is_placeholder`, dan `reserved_for` (slot reserve kampanye) tidak dipetakan ke mutasi.
+   - Dropdown Kampanye / Promo memakai `SelectItem value=""`, yang memicu runtime warning/error pada Radix UI Select.
+3. **Timezone Slip pada Tanggal/Waktu**:
+   - Penggunaan `d.toISOString().split('T')[0]` mengonversi tanggal ke UTC sehingga pada zona waktu WIB (UTC+7) jam 00:00-06:59 tanggal postingan bergeser mundur 1 hari.
+4. **Toast Redundansi**:
+   - Callback `onSave` dan `onDelete` di `calendar-client.tsx` memunculkan toast "Refreshed" ganda setelah modal sudah menampilkan toast sukses.
+
+### 2. Solusi & Perbaikan Komprehensif
+1. **Penyempurnaan Layout Modal (`components/calendar/post-dialog.tsx`)**:
+   - `DialogContent`: Diset `sm:max-w-5xl bg-card rounded-3xl border border-border/40 p-0 overflow-hidden shadow-2xl gap-0` sehingga kedua panel (editor & sidebar) menyatu rapi di dalam satu kartu modal terpadu tanpa overflow.
+   - Ditambahkan `onOpenAutoFocus` untuk mencegah fokus otomatis yang merusak tampilan tombol close [X].
+   - Penyesuaian proporsi: Panel kiri `flex-1 bg-card`, panel kanan `w-full sm:w-[350px] bg-muted/20 border-l border-border/40 shrink-0` dengan padding header khusus (`pr-8`) untuk tombol tutup modal.
+   - Sticky footer berlatar belakang `bg-card/90 backdrop-blur-sm` dengan tombol `[Batal]` dan `[Jadwalkan Postingan]` yang dilengkapi `isLoading={loading}` (Zero Layout-Shift).
+2. **Wiring Penuh ke Backend (`features/scheduled-posts/api/`)**:
+   - Memetakan 100% field: `is_reserved`, `is_placeholder`, `reserved_for`, `priority`, `campaign_tag`, dan `status`.
+   - Menjaga konsistensi slot reserve: jika reservasi diaktifkan, status otomatis diset ke `'draft'` dan judul default ke `'Slot Reserved'` / nama kampanye jika judul dikosongkan.
+   - Menggunakan sentinel value `"_none_"` untuk opsi "Tidak terkait kampanye" pada Radix UI Select agar 100% kompatibel tanpa error.
+3. **Timezone Helpers Mutlak**:
+   - Menambahkan helper `toLocalDateString(d)` dan `toLocalTimeString(d)` untuk ekstraksi tanggal dan waktu lokal yang presisi tanpa pergeseran zona waktu.
+4. **Pembersihan Toast Ganda**:
+   - Menghilangkan toast redundan "Refreshed" di `calendar-client.tsx`.
+
+### 3. Verifikasi & Integritas (Zero Overclaim)
+- **TypeScript**: `npx tsc --noEmit` -> **0 error**.
+- **Unit Tests**:
+  - `components/calendar/post-dialog.test.tsx`: **20/20 passed** (termasuk 2 tes baru untuk validasi mapping field priority, reserved slot, dan campaign tag).
+  - `app/admin/calendar/calendar-client.test.tsx`: **2/2 passed**.
+  - Full test suite: **62/62 test files passed, 324/324 tests passed (100% Green)**.
+- **Playwright E2E**:
+  - `e2e/calendar.spec.ts`: **4/4 passed** (Flow 1 factual grid & no NaN, Flow 2 view switcher, Flow 3 post dialog creation/preview/safe-dismiss, Flow 4 AI Copilot brainstorm modal).
+- **Visual Verification**:
+  - Tangkapan layar Playwright resolusi nyata (`post_dialog_fixed.png` dan `post_dialog_preview_fixed.png`): Modal terpadu bersih, teks/konten feed simulator fidelitas tinggi, zero overflow, zero clipping.
 

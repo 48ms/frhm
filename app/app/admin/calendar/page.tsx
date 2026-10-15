@@ -6,6 +6,11 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Content Calendar | Frahma',
+  description: 'Manage, schedule, and automate your multi-channel social media publication calendar.',
+}
+
 export default async function AdminCalendarPage(
   props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
 ) {

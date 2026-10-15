@@ -13,6 +13,7 @@ export const dashboardQueries = {
     queryOptions({
       queryKey: dashboardKeys.profile(clientId),
       queryFn: () => getDashboardProfileWithMetrics(clientId),
+      enabled: Boolean(clientId && clientId !== "undefined"),
       // Hindari refetch agresif untuk dasbor yang mungkin data statis hariannya di-cache
       staleTime: 5 * 60 * 1000,
     }),

@@ -60,7 +60,7 @@ function getPlatformIcon(platform: string) {
     case "shorts":
       return Icons.video
     case "linkedin":
-      return Icons.bookOpen
+      return Icons.linkedin
     default:
       return Icons.share
   }

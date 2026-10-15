@@ -76,39 +76,45 @@ const PLATFORM_META: Record<
 > = {
   instagram: {
     label: "Instagram",
-    icon: Icons.playCircle,
+    icon: Icons.instagram,
     badge: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
     iconBg: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
   },
   "ig reels": {
     label: "IG Reels",
-    icon: Icons.playCircle,
+    icon: Icons.instagram,
     badge: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
     iconBg: "bg-[hsl(var(--platform-instagram)/0.1)] text-[hsl(var(--platform-instagram))]",
   },
   tiktok: {
     label: "TikTok",
-    icon: Icons.bolt,
+    icon: Icons.tiktok,
     badge: "bg-muted text-foreground",
     iconBg: "bg-brand-accent/10 text-brand-accent",
   },
   youtube: {
     label: "YouTube",
-    icon: Icons.video,
+    icon: Icons.youtube,
     badge: "bg-[hsl(var(--platform-youtube))]/10 text-[hsl(var(--platform-youtube))]",
     iconBg: "bg-[hsl(var(--platform-youtube))]/10 text-[hsl(var(--platform-youtube))]",
   },
   linkedin: {
     label: "LinkedIn",
-    icon: Icons.bookOpen,
+    icon: Icons.linkedin,
     badge: "bg-[hsl(var(--platform-linkedin))]/10 text-[hsl(var(--platform-linkedin))]",
     iconBg: "bg-[hsl(var(--platform-linkedin))]/10 text-[hsl(var(--platform-linkedin))]",
   },
   facebook: {
     label: "Facebook",
-    icon: Icons.video,
+    icon: Icons.facebook,
     badge: "bg-[hsl(var(--platform-facebook))]/10 text-[hsl(var(--platform-facebook))]",
     iconBg: "bg-[hsl(var(--platform-facebook))]/10 text-[hsl(var(--platform-facebook))]",
+  },
+  twitter: {
+    label: "Twitter / X",
+    icon: Icons.twitter,
+    badge: "bg-[hsl(var(--platform-twitter))]/10 text-[hsl(var(--platform-twitter))]",
+    iconBg: "bg-[hsl(var(--platform-twitter))]/10 text-[hsl(var(--platform-twitter))]",
   },
 }
 

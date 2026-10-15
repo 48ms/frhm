@@ -490,7 +490,7 @@ export function ComposerClient() {
           href={`/admin/social-accounts${clientId ? `?clientId=${clientId}` : ""}`}
           className={cn(
             buttonVariants(),
-            "bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-md font-bold px-8 py-6 rounded-xl"
+            "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md font-bold px-8 py-6 rounded-xl"
           )}
         >
           <Icons.add className="mr-2 size-5" />
@@ -503,7 +503,7 @@ export function ComposerClient() {
   return (
     <div className="max-w-[1200px] mx-auto space-y-6">
       {/* Visual Stepper based on Frahma Premium Core */}
-      <div className="p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm">
+      <div className="p-6 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-xs">
         <div className="flex items-center justify-between relative z-10">
           {STEPS.map((s) => {
             const Icon = Icons[s.icon as keyof typeof Icons]
@@ -514,8 +514,8 @@ export function ComposerClient() {
                   className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm",
                     active
-                      ? "bg-[hsl(var(--admin-cobalt))] text-white scale-100"
-                      : "bg-[hsl(var(--admin-surface-low))] border border-[hsl(var(--admin-outline-variant))]/50 text-[hsl(var(--admin-outline))] scale-95"
+                      ? "bg-primary text-primary-foreground scale-100"
+                      : "bg-muted border border-border/50 text-muted-foreground scale-95"
                   )}
                 >
                   <Icon className="size-6" />
@@ -537,14 +537,14 @@ export function ComposerClient() {
             )
           })}
           {/* Connecting dashed line behind steps */}
-          <div className="absolute top-6 left-0 w-full h-[2px] bg-[hsl(var(--admin-cobalt))]/10 -z-10 px-[10%]" />
+          <div className="absolute top-6 left-0 w-full h-[2px] bg-primary/10 -z-10 px-[10%]" />
         </div>
       </div>
 
       {/* Dynamic Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Editor */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-[hsl(var(--admin-glass-bg-strong))] backdrop-blur-xl border border-white/80 shadow-sm min-h-[500px]">
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/40 shadow-xs min-h-[500px]">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
@@ -561,7 +561,7 @@ export function ComposerClient() {
                     placeholder="e.g. Campaign Natal 2026"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-12 bg-white/50 border-white"
+                    className="h-12 bg-background border-border/60"
                   />
                 </div>
                 <Tabs value={contentMode} onValueChange={(val) => setContentMode(val as "standard" | "video_script")} className="w-full mb-4">
@@ -653,7 +653,7 @@ export function ComposerClient() {
                         placeholder="Tulis pesan brilian Anda di sini, atau gunakan AI Copilot..."
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        className="min-h-[160px] bg-white/50 border-white resize-none"
+                        className="min-h-[160px] bg-background border-border/60 resize-none"
                         disabled={isAnyAiLoading}
                       />
 
@@ -751,9 +751,9 @@ export function ComposerClient() {
                     <div className="space-y-1.5">
                       <Label htmlFor="composer-media">Media Lampiran</Label>
                       {mediaUrl ? (
-                        <div className="relative rounded-xl overflow-hidden border border-white/80 shadow-sm max-w-sm">
+                        <div className="relative rounded-xl overflow-hidden border border-border/40 shadow-xs max-w-sm">
                           {mediaType === "video" ? (
-                            <video src={mediaUrl} controls className="w-full h-48 object-cover bg-black" />
+                            <video src={mediaUrl} controls className="w-full h-48 object-cover bg-muted" />
                           ) : (
                             <img src={mediaUrl} alt="Preview" className="w-full h-48 object-cover" />
                           )}
@@ -773,7 +773,7 @@ export function ComposerClient() {
                               type="button"
                               variant="outline"
                               onClick={() => setPickerOpen(true)}
-                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[hsl(var(--admin-outline-variant))] bg-white/30 hover:bg-white/60 transition-colors text-[hsl(var(--admin-outline))] cursor-pointer"
+                              className="h-28 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/60 bg-muted/30 hover:bg-muted/60 transition-colors text-muted-foreground cursor-pointer"
                             >
                               <Icons.media className="size-5" />
                               <span className="text-xs font-semibold">Pilih dari Media Library</span>
@@ -850,7 +850,7 @@ export function ComposerClient() {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                    <div className="p-4 rounded-xl border bg-white/50 space-y-4">
+                    <div className="p-4 rounded-xl border border-border/40 bg-card/60 space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold text-sm">AI Video Director (BRIEF Framework)</h4>
@@ -871,20 +871,11 @@ export function ComposerClient() {
                         <Button 
                           onClick={handleGenerateVideoScript}
                           disabled={isGeneratingVideo || !title}
-                          className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-[hsl(var(--admin-cobalt-foreground))] min-w-[200px]"
+                          isLoading={isGeneratingVideo}
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
                         >
-                          {isGeneratingVideo ? (
-                            <>
-                              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                              <span className="animate-pulse">{videoLoadingMessages[loadingMsgIdx]}</span>
-                            </>
-                          ) : (
-                            <>
-                              {/* Icons.sparkles = AI script generation action (R-04 exception: AI feature with written justification) */}
-                              <Icons.sparkles className="mr-2 h-4 w-4" />
-                              Generate Script
-                            </>
-                          )}
+                          <Icons.sparkles className="mr-2 h-4 w-4" />
+                          {isGeneratingVideo ? videoLoadingMessages[loadingMsgIdx] : "Generate Script"}
                         </Button>
                       </div>
                     </div>
@@ -897,7 +888,7 @@ export function ComposerClient() {
                             <span className="text-sm text-muted-foreground">{videoScriptData.overallMood}</span>
                           </div>
                         </div>
-                        <div className="overflow-hidden rounded-xl border bg-white/80 shadow-sm divide-y">
+                        <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-xs divide-y divide-border/30">
                           <div className="grid grid-cols-12 bg-muted/50 p-3 font-semibold text-xs text-muted-foreground">
                             <div className="col-span-2">Time</div>
                             <div className="col-span-4">Visual / Scene</div>
@@ -942,9 +933,9 @@ export function ComposerClient() {
                 </div>
                 
                 {/* Visual Branching Diagram Implementation */}
-                <div className="relative py-12 flex justify-between items-center bg-white/30 rounded-2xl p-6 border border-white/60">
+                <div className="relative py-12 flex justify-between items-center bg-card/40 rounded-2xl p-6 border border-border/40">
                   {/* Left: Content Origin */}
-                  <div className="z-10 w-24 h-24 rounded-2xl bg-white shadow-lg border border-[hsl(var(--admin-cobalt))]/30 flex flex-col items-center justify-center p-2 relative">
+                  <div className="z-10 w-24 h-24 rounded-2xl bg-card shadow-lg border border-primary/30 flex flex-col items-center justify-center p-2 relative">
                     {mediaUrl ? (
                       <img src={mediaUrl} className="w-full h-12 object-cover rounded-lg mb-2" alt="thumb" />
                     ) : (
@@ -952,9 +943,9 @@ export function ComposerClient() {
                         <Icons.media className="size-5" />
                       </div>
                     )}
-                    <span className="text-2xs font-bold text-[hsl(var(--admin-cobalt))]">Konten Anda</span>
+                    <span className="text-2xs font-bold text-primary">Konten Anda</span>
                     {/* Source dot for lines */}
-                    <div id="source-dot" className="absolute right-0 translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(var(--admin-cobalt))]" />
+                    <div id="source-dot" className="absolute right-0 translate-x-1/2 w-3 h-3 rounded-full bg-primary" />
                   </div>
 
                   {/* SVG Lines */}
@@ -995,7 +986,7 @@ export function ComposerClient() {
                           key={channel.id}
                           className={cn(
                             "flex items-center gap-4 relative cursor-pointer p-3 rounded-2xl border transition-all duration-300",
-                            isSelected ? "bg-white border-[hsl(var(--admin-cobalt))]/40 shadow-md" : "bg-white/30 border-white/50 grayscale opacity-70 hover:grayscale-0 hover:opacity-100"
+                            isSelected ? "bg-card border-primary/50 shadow-md" : "bg-card/40 border-border/40 grayscale opacity-70 hover:grayscale-0 hover:opacity-100"
                           )}
                           onClick={() => togglePlatform(optPlatform)}
                         >
@@ -1034,33 +1025,24 @@ export function ComposerClient() {
                 </div>
 
                 {platforms.length > 1 && (
-                  <div className="mt-8 p-6 rounded-2xl bg-[hsl(var(--admin-cobalt))/5] border border-[hsl(var(--admin-cobalt)/10)]">
+                  <div className="mt-8 p-6 rounded-2xl bg-primary/5 border border-primary/10">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h4 className="font-bold text-[hsl(var(--admin-cobalt-foreground))] flex items-center gap-2">
+                        <h4 className="font-bold text-foreground flex items-center gap-2">
                           {/* Icons.sparkles = AI repurposing feature (R-04 exception: AI feature with written justification) */}
-                          <Icons.sparkles className="size-4 text-[hsl(var(--admin-cobalt))]" />
+                          <Icons.sparkles className="size-4 text-primary" />
                           Repurpose Lintas Platform (AI)
                         </h4>
-                        <p className="text-xs text-[hsl(var(--admin-cobalt)/80)] mt-1">Otomatisasi format dan gaya konten untuk setiap platform.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Otomatisasi format dan gaya konten untuk setiap platform.</p>
                       </div>
                       <Button 
                         onClick={handleRepurpose}
                         disabled={isRepurposing || !content}
-                        className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white shadow-sm min-w-[220px]"
+                        isLoading={isRepurposing}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-w-[220px]"
                       >
-                        {isRepurposing ? (
-                          <>
-                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                            <span className="animate-pulse">{repurposeLoadingMessages[repurposeMsgIdx]}</span>
-                          </>
-                        ) : (
-                          <>
-                            {/* Icons.sparkles = AI cross-platform adaptation action (R-04 exception: AI feature with written justification) */}
-                            <Icons.sparkles className="mr-2 h-4 w-4" />
-                            Adaptasi per Platform
-                          </>
-                        )}
+                        <Icons.sparkles className="mr-2 h-4 w-4" />
+                        {isRepurposing ? repurposeLoadingMessages[repurposeMsgIdx] : "Adaptasi per Platform"}
                       </Button>
                     </div>
 
@@ -1165,7 +1147,7 @@ export function ComposerClient() {
                       value={dateStr}
                       min={todayStr}
                       onChange={(e) => setDateStr(e.target.value)}
-                      className="h-12 bg-white/50 border-white"
+                      className="h-12 bg-background border-border/60"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1175,7 +1157,7 @@ export function ComposerClient() {
                       type="time"
                       value={timeStr}
                       onChange={(e) => setTimeStr(e.target.value)}
-                      className="h-12 bg-white/50 border-white"
+                      className="h-12 bg-background border-border/60"
                     />
                   </div>
                 </div>
@@ -1190,7 +1172,7 @@ export function ComposerClient() {
                 exit={{ opacity: 0, x: 10 }}
                 className="space-y-6 text-center"
               >
-                <div className="w-20 h-20 mx-auto rounded-full bg-[hsl(var(--admin-cobalt))]/10 flex items-center justify-center text-[hsl(var(--admin-cobalt))] mb-4">
+                <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
                   <Icons.rocket className="size-10" />
                 </div>
                 <h3 className="font-syne font-bold text-2xl text-[hsl(var(--admin-on-surface))]">
@@ -1214,7 +1196,7 @@ export function ComposerClient() {
           </AnimatePresence>
 
           {/* Stepper Controls */}
-          <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/60">
+          <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/40">
             <Button
               variant="outline"
               disabled={step === 1}
@@ -1223,7 +1205,7 @@ export function ComposerClient() {
               Kembali
             </Button>
             {step < 4 ? (
-              <Button onClick={() => setStep((s) => s + 1)} className="bg-[hsl(var(--admin-cobalt))] hover:bg-[hsl(var(--admin-cobalt)/0.85)] text-white">
+              <Button onClick={() => setStep((s) => s + 1)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 Selanjutnya
               </Button>
             ) : (
@@ -1236,7 +1218,7 @@ export function ComposerClient() {
 
         {/* Benefits Sidebar (from User image reference) */}
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-[hsl(var(--admin-surface-low))] border border-white/80 shadow-sm flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-card border border-border/40 shadow-xs flex items-start gap-3">
             <div className="p-2 rounded-lg bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]">
               <Icons.clock className="size-5" />
             </div>
@@ -1245,8 +1227,8 @@ export function ComposerClient() {
               <p className="text-xs text-[hsl(var(--admin-outline))] mt-1">Buat sekali, publikasi ke banyak platform sekaligus dalam hitungan detik.</p>
             </div>
           </div>
-          <div className="p-4 rounded-xl bg-[hsl(var(--admin-surface-low))] border border-white/80 shadow-sm flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-[hsl(var(--admin-cobalt))]/10 text-[hsl(var(--admin-cobalt))]">
+          <div className="p-4 rounded-xl bg-card border border-border/40 shadow-xs flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <Icons.dashboard className="size-5" />
             </div>
             <div>
@@ -1255,12 +1237,12 @@ export function ComposerClient() {
             </div>
           </div>
           <div className="p-4 rounded-xl bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg flex items-start gap-3 border border-[hsl(var(--success))]/80">
-            <div className="p-2 rounded-lg bg-white/20">
+            <div className="p-2 rounded-lg bg-current/15">
               <Icons.rocket className="size-5" />
             </div>
             <div>
               <h4 className="text-sm font-bold">Auto Posting</h4>
-              <p className="text-xs text-white/80 mt-1">Satu konten, banyak tujuan. Sistem akan menangani distribusi otomatis sesuai batas API platform.</p>
+              <p className="text-xs text-inherit opacity-85 mt-1">Satu konten, banyak tujuan. Sistem akan menangani distribusi otomatis sesuai batas API platform.</p>
             </div>
           </div>
         </div>

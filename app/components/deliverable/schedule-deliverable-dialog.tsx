@@ -26,9 +26,9 @@ const PLATFORMS = [
   { id: 'instagram', label: 'Instagram', icon: Icons.instagram, color: 'text-pink-500 border-pink-500/30' },
   { id: 'tiktok', label: 'TikTok', icon: Icons.tiktok, color: 'text-cyan-500 border-cyan-500/30' },
   { id: 'twitter', label: 'Twitter / X', icon: Icons.twitter, color: 'text-sky-500 border-sky-500/30' },
-  { id: 'facebook', label: 'Facebook', icon: Icons.share, color: 'text-blue-600 border-blue-600/30' },
-  { id: 'linkedin', label: 'LinkedIn', icon: Icons.building, color: 'text-blue-500 border-blue-500/30' },
-  { id: 'youtube', label: 'YouTube Shorts', icon: Icons.video, color: 'text-red-500 border-red-500/30' },
+  { id: 'facebook', label: 'Facebook', icon: Icons.facebook, color: 'text-blue-600 border-blue-600/30' },
+  { id: 'linkedin', label: 'LinkedIn', icon: Icons.linkedin, color: 'text-blue-500 border-blue-500/30' },
+  { id: 'youtube', label: 'YouTube Shorts', icon: Icons.youtube, color: 'text-red-500 border-red-500/30' },
 ];
 
 function getTomorrowAt(hours: number, minutes: number = 0): string {
@@ -303,7 +303,7 @@ export function ScheduleDeliverableDialog({
               variant="default"
               size="sm"
               isLoading={scheduleMutation.isPending}
-              className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium gap-1.5 shadow-xs"
+              className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 font-medium gap-1.5 shadow-xs"
             >
               <Icons.calendar className="size-3.5" />
               Jadwalkan Sekarang

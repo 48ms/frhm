@@ -1,10 +1,16 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import { CampaignsBoard } from "@/components/campaigns/campaigns-board"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Campaigns Management | Frhm Studio",
+  description: "Kelola kampanye pemasaran, monitor progres target konten, dan sinkronisasi kampanye media sosial.",
+}
 
 export default async function CampaignsPage(
   props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }

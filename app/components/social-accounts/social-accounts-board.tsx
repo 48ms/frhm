@@ -26,13 +26,13 @@ import type { ClientChannel } from "@/features/social-accounts/api/types"
 
 export function getPlatformUI(platform: string) {
   const p = (platform || "").toLowerCase()
-  if (p === 'instagram') return { icon: 'instagram', bg: 'bg-[hsl(var(--platform-instagram))]', fg: 'text-white' }
-  if (p === 'tiktok') return { icon: 'tiktok', bg: 'bg-[hsl(var(--admin-on-surface))]', fg: 'text-white' }
-  if (p === 'youtube') return { icon: 'youtube', bg: 'bg-[hsl(var(--platform-youtube))]', fg: 'text-white' }
-  if (p === 'linkedin') return { icon: 'linkedin', bg: 'bg-[hsl(var(--platform-linkedin))]', fg: 'text-white' }
-  if (p === 'twitter' || p === 'x') return { icon: 'twitter', bg: 'bg-[hsl(var(--platform-twitter))]', fg: 'text-white' }
-  if (p === 'facebook') return { icon: 'facebook', bg: 'bg-[hsl(var(--platform-facebook))]', fg: 'text-white' }
-  return { icon: 'hub', bg: 'bg-muted-foreground', fg: 'text-white' }
+  if (p === 'instagram') return { icon: 'instagram', bg: 'bg-[hsl(var(--platform-instagram))]', fg: 'text-primary-foreground' }
+  if (p === 'tiktok') return { icon: 'tiktok', bg: 'bg-[hsl(var(--admin-on-surface))]', fg: 'text-primary-foreground' }
+  if (p === 'youtube') return { icon: 'youtube', bg: 'bg-[hsl(var(--platform-youtube))]', fg: 'text-primary-foreground' }
+  if (p === 'linkedin') return { icon: 'linkedin', bg: 'bg-[hsl(var(--platform-linkedin))]', fg: 'text-primary-foreground' }
+  if (p === 'twitter' || p === 'x') return { icon: 'twitter', bg: 'bg-[hsl(var(--platform-twitter))]', fg: 'text-primary-foreground' }
+  if (p === 'facebook') return { icon: 'facebook', bg: 'bg-[hsl(var(--platform-facebook))]', fg: 'text-primary-foreground' }
+  return { icon: 'hub', bg: 'bg-muted-foreground', fg: 'text-primary-foreground' }
 }
 
 function statusBadge(status: ClientChannel["status"]) {

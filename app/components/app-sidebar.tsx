@@ -73,7 +73,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-brand-accent text-white font-bold text-xs shrink-0 mx-auto shadow-sm cursor-pointer">
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-brand-accent text-primary-foreground font-bold text-xs shrink-0 mx-auto shadow-sm cursor-pointer">
                 {activeClient?.name?.charAt(0).toUpperCase() || "W"}
               </div>
             </TooltipTrigger>
@@ -94,7 +94,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
               <a
                 href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                 onClick={() => isMobile && setOpenMobile(false)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-white font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-primary-foreground font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <Icons.add className="size-4" />
                 New Post
@@ -108,7 +108,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                 <a
                   href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                   aria-label="New Post"
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-white shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-primary-foreground shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Icons.add className="size-5" />
                 </a>

@@ -92,7 +92,7 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
         >
           <Icons.notification className='size-4' />
           {count > 0 && (
-            <span className="bg-[hsl(var(--admin-cobalt))] text-white absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-2xs font-bold shadow-xs">
+            <span className="bg-[hsl(var(--admin-cobalt))] text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-2xs font-bold shadow-xs">
               {count > 9 ? '9+' : count}
             </span>
           )}

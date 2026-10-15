@@ -518,7 +518,7 @@ export function LibraryClient() {
           {previewAsset && (
             <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr]">
               {/* Media */}
-              <div className="relative bg-black/90 flex items-center justify-center min-h-[260px] max-h-[70vh]">
+              <div className="relative bg-muted/90 flex items-center justify-center min-h-[260px] max-h-[70vh]">
                 {previewAsset.fileType === "video" ? (
                   <video
                     src={previewUrl(previewAsset.url)}
@@ -709,8 +709,8 @@ function SortableAsset({
     >
       {/* Drag affordance, only when reordering is available */}
       {canReorder && (
-        <div className="absolute top-2 right-10 z-10 rounded-md bg-black/50 p-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <Icons.gripVertical className="size-3 text-white" />
+        <div className="absolute top-2 right-10 z-10 rounded-md bg-background/80 backdrop-blur-xs border border-border/40 p-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <Icons.gripVertical className="size-3 text-foreground" />
         </div>
       )}
 
@@ -737,7 +737,7 @@ function SortableAsset({
 
       {/* Hover Overlay */}
       <div
-        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
+        className="absolute inset-0 bg-background/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <Button
@@ -775,25 +775,25 @@ function SortableAsset({
 
       {/* File Type Badge */}
       <div className="absolute top-2 right-2 pointer-events-none">
-        <span className="px-2 py-0.5 rounded-full bg-black/60 text-white text-2xs font-bold">
+        <span className="px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-xs text-foreground border border-border/40 text-2xs font-bold">
           {asset.fileType}
         </span>
       </div>
 
       {/* Tags display */}
       {asset.tags.length > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-background/90 to-transparent pointer-events-none">
           <div className="flex flex-wrap gap-1">
             {asset.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-1.5 py-0.5 rounded-md bg-primary/70 text-white text-2xs font-bold"
+                className="px-1.5 py-0.5 rounded-md bg-primary/90 text-primary-foreground text-2xs font-bold"
               >
                 #{tag}
               </span>
             ))}
             {asset.tags.length > 3 && (
-              <span className="px-1.5 py-0.5 text-white text-2xs font-bold">
+              <span className="px-1.5 py-0.5 text-foreground text-2xs font-bold">
                 +{asset.tags.length - 3}
               </span>
             )}

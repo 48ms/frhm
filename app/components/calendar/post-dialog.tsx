@@ -94,6 +94,19 @@ const CTA_PRESETS = [
   { label: '⚡ Promo Terbatas', text: '\n\n⚡ Promo terbatas khusus minggu ini. Amankan sekarang sebelum kehabisan!' },
 ]
 
+function toLocalDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function toLocalTimeString(d: Date): string {
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
 export function PostDialog({
   isOpen,
   onClose,
@@ -173,10 +186,10 @@ export function PostDialog({
 
   useEffect(() => {
     if (editingPost) {
-      setTitle(editingPost.title)
-      setContent(editingPost.content)
+      setTitle(editingPost.title || '')
+      setContent(editingPost.content || '')
       setPlatform(editingPost.platform)
-      setStatus(editingPost.status as 'draft' | 'scheduled' | 'published')
+      setStatus((editingPost.status as 'draft' | 'scheduled' | 'published') || 'scheduled')
       setIsReserved(editingPost.is_reserved ?? false)
       setReservedFor(editingPost.reserved_for ?? '')
       setPriority((editingPost.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal')
@@ -185,8 +198,8 @@ export function PostDialog({
       setMediaUrl(existingMedia)
       setMediaType(/\.(mp4|mov|webm|m4v)(\?|$)/i.test(existingMedia) ? 'video' : 'image')
       const d = new Date(editingPost.scheduled_at)
-      setDateStr(d.toISOString().split('T')[0])
-      setTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+      setDateStr(toLocalDateString(d))
+      setTime(toLocalTimeString(d))
     } else if (initialDate) {
       setTitle(initialTitle ?? '')
       setContent(initialContent ?? '')
@@ -198,9 +211,7 @@ export function PostDialog({
       setCampaignTag('')
       setMediaUrl(initialMediaUrl ?? '')
       setMediaType('image')
-      const offset = initialDate.getTimezoneOffset()
-      const d = new Date(initialDate.getTime() - offset * 60 * 1000)
-      setDateStr(d.toISOString().split('T')[0])
+      setDateStr(toLocalDateString(initialDate))
       setTime('09:00')
     }
     setWorkspaceView('editor')
@@ -327,29 +338,39 @@ export function PostDialog({
           id: editingPost.id,
           clientId,
           title: isPlaceholder
-            ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
-            : title,
+            ? title.trim() || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
+            : title.trim(),
           content: isPlaceholder ? '' : content || '',
           platform,
           scheduled_at: scheduledAt,
           status,
           media_url: mediaUrl || undefined,
+          is_reserved: isReserved,
+          is_placeholder: isReserved,
+          reserved_for: isReserved ? (reservedFor.trim() || title.trim() || 'Slot Reserved') : null,
+          priority,
+          campaign_tag: campaignTag && campaignTag !== '_none_' ? campaignTag : null,
         })
-        toast.success('Post diperbarui.')
+        toast.success(isReserved ? 'Slot reserve diperbarui.' : 'Post diperbarui.')
       } else {
         await createPost({
           client_id: clientId,
           title: isPlaceholder
-            ? title || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
-            : title,
+            ? title.trim() || (reservedFor ? `Slot: ${reservedFor}` : 'Slot Reserved')
+            : title.trim(),
           content: isPlaceholder ? '' : content || '',
           platform,
           scheduled_at: scheduledAt,
-          status: 'draft',
+          status: isReserved ? 'draft' : status,
           author: authorName,
           media_url: mediaUrl || undefined,
+          is_reserved: isReserved,
+          is_placeholder: isReserved,
+          reserved_for: isReserved ? (reservedFor.trim() || title.trim() || 'Slot Reserved') : null,
+          priority,
+          campaign_tag: campaignTag && campaignTag !== '_none_' ? campaignTag : null,
         })
-        toast.success('Post dijadwalkan.')
+        toast.success(isReserved ? 'Slot berhasil direservasi.' : 'Post dijadwalkan.')
       }
 
       onSave()
@@ -388,7 +409,13 @@ export function PostDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleSafeClose()}>
-      <DialogContent className="sm:max-w-4xl bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
+      <DialogContent
+        onOpenAutoFocus={(e) => {
+          e.preventDefault()
+          document.getElementById('post-title')?.focus()
+        }}
+        className="sm:max-w-5xl bg-card rounded-3xl border border-border/40 p-0 overflow-hidden shadow-2xl gap-0"
+      >
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
@@ -397,12 +424,12 @@ export function PostDialog({
               void handleSubmit(e)
             }
           }}
-          className="flex flex-col sm:flex-row h-[78vh] sm:max-h-[640px] max-h-[90vh] animate-in fade-in zoom-in-95 duration-300"
+          className="flex flex-col sm:flex-row h-[84vh] sm:h-[660px] max-h-[88vh] animate-in fade-in zoom-in-95 duration-300"
         >
           {/* ========================================================== */}
           {/* MAIN WORKSPACE (left): editor area & live feed preview     */}
           {/* ========================================================== */}
-          <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-popover">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-card">
             <DialogHeader className="px-6 pt-6 pb-4 space-y-1">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -704,15 +731,17 @@ export function PostDialog({
           {/* ========================================================== */}
           <aside
             aria-label="Pengaturan postingan"
-            className="w-full sm:w-[320px] flex-1 sm:flex-none flex flex-col min-h-0 border-l border-border/60 bg-muted/30"
+            className="w-full sm:w-[350px] flex-1 sm:flex-none flex flex-col min-h-0 border-l border-border/40 bg-muted/20 shrink-0"
           >
             <ScrollArea className="flex-1 min-h-0">
-              <div className="px-5 py-5 space-y-5">
+              <div className="px-5 py-4 space-y-4">
                 {/* Platform Radio Group (accessible) */}
-                <div className="space-y-2">
-                  <Label id="platform-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    Platform Tujuan
-                  </Label>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between pr-8">
+                    <Label id="platform-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Platform Tujuan
+                    </Label>
+                  </div>
                   <RadioGroup
                     value={platform}
                     onValueChange={setPlatform}
@@ -731,7 +760,7 @@ export function PostDialog({
                           className={cn(
                             'flex w-full cursor-pointer items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-medium transition-all',
                             platform === opt.id
-                              ? 'bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20'
+                              ? 'bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20 font-bold'
                               : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                           )}
                         >
@@ -744,27 +773,31 @@ export function PostDialog({
                 </div>
 
                 {/* Date & Time Row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="post-date" className="text-xs">Tanggal Tayang</Label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <Label htmlFor="post-date" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Tanggal Tayang
+                    </Label>
                     <Input
                       id="post-date"
                       type="date"
                       value={dateStr}
                       onChange={(e) => setDateStr(e.target.value)}
                       required
-                      className="h-11 font-medium"
+                      className="h-10 text-xs font-medium bg-background border-border/40"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="post-time" className="text-xs">Waktu (Jam)</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="post-time" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Waktu (Jam)
+                    </Label>
                     <Input
                       id="post-time"
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
                       required
-                      className="h-11 font-medium"
+                      className="h-10 text-xs font-medium bg-background border-border/40"
                     />
                   </div>
                 </div>
@@ -774,19 +807,26 @@ export function PostDialog({
                 {/* Planning Layer: Priority & Campaign via shadcn Select */}
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label id="priority-label" className="text-xs">Prioritas</Label>
+                    <Label id="priority-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Prioritas
+                    </Label>
                     <RadioGroup
                       aria-labelledby="priority-label"
                       value={priority}
                       onValueChange={(v) => setPriority(v as 'low' | 'normal' | 'high' | 'urgent')}
-                      className="grid grid-cols-4 gap-2"
+                      className="grid grid-cols-4 gap-1.5"
                     >
                       {PRIORITY_OPTIONS.map((opt) => (
-                        <div key={opt.id}>
-                          <RadioGroupItem value={opt.id} id={`prio-${opt.id}`} className="peer sr-only" />
+                        <div key={opt.id} className="relative flex items-center justify-center">
+                          <RadioGroupItem value={opt.id} id={`prio-${opt.id}`} className="sr-only" />
                           <Label
                             htmlFor={`prio-${opt.id}`}
-                            className="flex items-center justify-center h-11 px-2 rounded-lg border bg-popover hover:bg-accent peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:text-primary cursor-pointer text-xs font-bold transition-all"
+                            className={cn(
+                              'flex w-full cursor-pointer items-center justify-center py-2 px-1 rounded-xl border text-xs font-semibold transition-all',
+                              priority === opt.id
+                                ? 'border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20 font-bold'
+                                : 'border-border/40 bg-card hover:bg-muted/60 text-muted-foreground hover:text-foreground'
+                            )}
                           >
                             {opt.label}
                           </Label>
@@ -796,17 +836,19 @@ export function PostDialog({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="post-campaign" className="text-xs">Kampanye / Promo</Label>
+                    <Label htmlFor="post-campaign" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                      Kampanye / Promo
+                    </Label>
                     <Select
-                      value={campaignTag}
-                      onValueChange={(v) => setCampaignTag(v ?? '')}
+                      value={campaignTag || '_none_'}
+                      onValueChange={(v) => setCampaignTag(v === '_none_' ? '' : v)}
                     >
-                      <SelectTrigger id="post-campaign" className="w-full h-11">
+                      <SelectTrigger id="post-campaign" className="w-full h-10 bg-background border-border/40">
                         <SelectValue placeholder="Tidak terkait kampanye" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectItem value="">(Tidak terkait kampanye)</SelectItem>
+                          <SelectItem value="_none_">Tidak terkait kampanye</SelectItem>
                           {campaigns.map((c) => (
                             <SelectItem key={c.id} value={c.name}>
                               {c.name}
@@ -822,7 +864,7 @@ export function PostDialog({
 
                 {/* Media attachment preview (from Media Library) */}
                 {!isCampaignMode && (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
                       Media Terlampir
                     </Label>
@@ -832,13 +874,13 @@ export function PostDialog({
                           <video
                             src={mediaUrl}
                             controls
-                            className="h-36 w-full object-cover bg-black"
+                            className="h-32 w-full object-cover bg-muted"
                           />
                         ) : (
                           <img
                             src={mediaUrl}
                             alt="Media terlampir"
-                            className="h-36 w-full object-cover"
+                            className="h-32 w-full object-cover"
                           />
                         )}
                         <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -867,10 +909,10 @@ export function PostDialog({
                         type="button"
                         variant="outline"
                         onClick={() => setPickerOpen(true)}
-                        className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/40 hover:bg-muted/60 hover:border-primary/40 transition-all py-6 h-auto group cursor-pointer"
+                        className="w-full flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/60 bg-background/50 hover:bg-muted/60 hover:border-primary/40 transition-all py-3.5 h-auto group cursor-pointer"
                       >
-                        <div className="size-9 rounded-full bg-muted/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                          <Icons.photo_camera className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <div className="size-7 rounded-full bg-muted/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Icons.photo_camera className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
                         <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium">
                           Pilih dari Media Library
@@ -882,7 +924,7 @@ export function PostDialog({
 
                 {/* Status Radio Group (accessible) */}
                 {!isCampaignMode && (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label id="status-label" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
                       Status
                     </Label>
@@ -904,7 +946,7 @@ export function PostDialog({
                             className={cn(
                               'flex w-full cursor-pointer items-center justify-center py-2 text-xs font-medium rounded-lg transition-all',
                               status === opt.id
-                                ? 'bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20'
+                                ? 'bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20 font-bold'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                             )}
                           >
@@ -919,7 +961,7 @@ export function PostDialog({
             </ScrollArea>
 
             {/* Footer: sticky action bar */}
-            <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm p-4 flex items-center gap-2">
+            <div className="border-t border-border/40 bg-card/90 backdrop-blur-sm px-4 py-3 flex items-center justify-between gap-2 mt-auto shrink-0">
               {editingPost && onDelete && (
                 <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                   <AlertDialogTrigger asChild>
@@ -927,7 +969,7 @@ export function PostDialog({
                       type="button"
                       variant="outline"
                       isLoading={loading}
-                      className="h-9 text-destructive border-destructive/30 hover:bg-destructive/10 cursor-pointer"
+                      className="h-9 px-3 text-destructive border-destructive/30 hover:bg-destructive/10 cursor-pointer text-xs"
                     >
                       Hapus
                     </Button>
@@ -955,27 +997,29 @@ export function PostDialog({
                 </AlertDialog>
               )}
 
-              <span className="text-3xs text-muted-foreground/60 mr-auto hidden sm:inline-block">
+              <span className="text-3xs text-muted-foreground/60 hidden sm:inline-block">
                 ⌘+Enter untuk simpan
               </span>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSafeClose}
-                disabled={loading}
-                className="h-9 min-h-11 cursor-pointer"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                isLoading={loading}
-                loadingLabel="Menyimpan..."
-                className="h-9 shadow-md min-w-[140px] cursor-pointer"
-              >
-                {submitLabel}
-              </Button>
+              <div className="flex items-center gap-2 ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSafeClose}
+                  disabled={loading}
+                  className="h-9 px-3.5 text-xs font-medium cursor-pointer"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  isLoading={loading}
+                  loadingLabel="Menyimpan..."
+                  className="h-9 px-4 shadow-sm text-xs font-bold cursor-pointer"
+                >
+                  {submitLabel}
+                </Button>
+              </div>
             </div>
           </aside>
         </form>

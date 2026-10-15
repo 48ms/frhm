@@ -6,6 +6,9 @@ import { dashboardQueries } from "@/features/dashboard/api/queries"
 import { campaignQueries } from "@/features/campaigns/api/queries"
 import { contentProductionQueries } from "@/features/content-production/api/queries"
 import { erpQueries } from "@/features/erp/api/queries"
+import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
+import { deliverableQueries } from "@/features/deliverables/api/queries"
+import { analyticsQueries } from "@/features/analytics/api/queries"
 
 interface DashboardPrefetcherProps {
   clientId: string
@@ -35,6 +38,9 @@ const prefetchDashboardState = cache(async (clientId: string) => {
     queryClient.prefetchQuery(erpQueries.listKOLsByClient(clientId)),
     queryClient.prefetchQuery(erpQueries.listExpensesByClient(clientId)),
     queryClient.prefetchQuery(erpQueries.listAdSpendByClient(clientId)),
+    queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(deliverableQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(analyticsQueries.listLatestPrediction(clientId)),
   ])
 
   return dehydrate(queryClient)

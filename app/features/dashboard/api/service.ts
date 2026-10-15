@@ -79,6 +79,8 @@ export async function createNewClient(input: {
 }
 
 export async function getDashboardProfile(clientId: string): Promise<DashboardProfile | null> {
+  if (!clientId || clientId === "undefined" || clientId === "null") return null
+
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -95,7 +97,7 @@ export async function getDashboardProfile(clientId: string): Promise<DashboardPr
   if (error) {
     if (error.code === 'PGRST116') return null // Not found (belum ada row)
     // Error lain (mis. JWT/network) juga tidak boleh melempar dari render.
-    logger.error("getDashboardProfile failed", { error, clientId })
+    logger.error("getDashboardProfile failed", { error: error.message || String(error), clientId })
     return null
   }
 

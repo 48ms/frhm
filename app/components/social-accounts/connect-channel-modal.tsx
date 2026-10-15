@@ -44,13 +44,13 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   },
   YouTube: {
     available: true,
-    icon: "play",
+    icon: "youtube",
     iconClass: "text-[hsl(var(--platform-youtube))]",
     blurb: "Long-form, Shorts and Studio analytics",
   },
   LinkedIn: {
     available: true,
-    icon: "building",
+    icon: "linkedin",
     iconClass: "text-[hsl(var(--platform-linkedin))]",
     blurb: "Company pages and sponsored content",
   },

@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { getQueryClient } from "@/lib/query-client"
 import { socialQueries } from "@/features/social-accounts/api/queries"
@@ -6,6 +7,11 @@ import { ClientChannelsBoard } from "@/components/social-accounts/social-account
 import { PageContainer } from "@/components/layout/page-container"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Social Accounts & Multi-Channel Sync | Frhm Studio",
+  description: "Kelola akun media sosial terhubung, monitor sinkronisasi token OAuth, dan integrasi multi-kanal pemasaran.",
+}
 
 export default async function SocialAccountsPage() {
   const queryClient = getQueryClient()

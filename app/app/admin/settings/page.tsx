@@ -6,6 +6,11 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
 
+export const metadata = {
+  title: "Settings & Configuration | Frahma",
+  description: "Kelola konfigurasi agensi, integrasi AI provider, brand profile, dan akun workspace Frahma.",
+}
+
 export default async function SettingsPage(
   props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
 ) {

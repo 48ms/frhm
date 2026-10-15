@@ -452,4 +452,76 @@ describe('PostDialog', () => {
     expect(screen.getByRole('button', { name: /✨ AI Caption/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /🔥 3 Hook/i })).toBeInTheDocument()
   })
+
+  it('submits with mapped priority, status, and content to createPost', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Judul Postingan/i), {
+      target: { value: 'Post Lengkap' },
+    })
+    fireEvent.change(screen.getByLabelText(/Isi Caption/i), {
+      target: { value: 'Isi caption lengkap' },
+    })
+
+    // Click Urgent priority
+    fireEvent.click(screen.getByText('Urgent'))
+
+    fireEvent.click(screen.getByRole('button', { name: /Jadwalkan Postingan/i }))
+
+    await waitFor(() => {
+      expect(createPostMock).toHaveBeenCalledTimes(1)
+      expect(createPostMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: 'client-shell',
+          title: 'Post Lengkap',
+          content: 'Isi caption lengkap',
+          priority: 'urgent',
+          status: 'scheduled',
+          is_reserved: false,
+        })
+      )
+    })
+  })
+
+  it('submits reserved slot correctly with is_reserved true and draft status', async () => {
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        clientId="client-shell"
+        onSave={vi.fn()}
+        initialDate={new Date('2026-10-01T09:00:00.000Z')}
+      />
+    )
+
+    // Toggle reserved slot
+    const reserveCheckbox = screen.getByLabelText(/Ini adalah slot reserve untuk kampanye/i)
+    fireEvent.click(reserveCheckbox)
+
+    // Fill Nama Kampanye
+    const campaignInput = await screen.findByLabelText(/Nama Kampanye/i)
+    fireEvent.change(campaignInput, { target: { value: 'Promo Q4' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Reservasi Slot/i }))
+
+    await waitFor(() => {
+      expect(createPostMock).toHaveBeenCalledTimes(1)
+      expect(createPostMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: 'client-shell',
+          is_reserved: true,
+          reserved_for: 'Promo Q4',
+          status: 'draft',
+        })
+      )
+    })
+  })
 })

@@ -355,7 +355,7 @@ export function SkillInterviewModal({
                     onClick={handleFinalizeAndSave}
                     disabled={saveMutation.isPending}
                     isLoading={saveMutation.isPending}
-                    className="h-7 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    className="h-7 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 font-medium shadow-xs"
                   >
                     <Icons.check className="size-3" /> Finalisasi & Simpan
                   </Button>
@@ -394,7 +394,7 @@ export function SkillInterviewModal({
                       </p>
                     </div>
                     {isDone ? (
-                      <Badge className="bg-emerald-500 text-white text-[10px]">Lengkap</Badge>
+                      <Badge className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px]">Lengkap</Badge>
                     ) : (
                       <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-[10px]">
                         Draft In Progress

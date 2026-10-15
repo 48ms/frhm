@@ -132,7 +132,7 @@ export async function updateSession(request: NextRequest) {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://app.ayrshare.com https://api.woopsocial.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://app.ayrshare.com https://api.woopsocial.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
       "frame-ancestors 'none'",
     ].join('; ')
   )

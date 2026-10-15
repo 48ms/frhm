@@ -229,7 +229,7 @@ export function ErpDashboardClient() {
                           description: "Tautan siap dibagikan ke WhatsApp Pak Adit / Bunda.",
                         })
                       }}
-                      className="h-7 text-xs px-2.5 rounded-lg border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 gap-1"
+                      className="h-7 text-xs px-2.5 rounded-lg border-primary/30 text-primary hover:bg-primary/10 gap-1"
                     >
                       <Icons.link className="size-3" /> Link Review
                     </Button>
@@ -261,7 +261,7 @@ export function ErpDashboardClient() {
                       className="h-7 text-xs px-2 rounded-lg border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/40 gap-1"
                       title="Ekspor Dokumen ke Format PDF Eksekutif"
                     >
-                      <Icons.fileTypePdf className="size-3 text-red-500" /> PDF
+                      <Icons.fileTypePdf className="size-3 text-destructive" /> PDF
                     </Button>
 
                     {d.status === "sent" && (
@@ -276,8 +276,9 @@ export function ErpDashboardClient() {
                               status: "approved",
                             })
                           }
+                          isLoading={updateStatusMutation.isPending}
                           disabled={updateStatusMutation.isPending}
-                          className="h-7 text-xs px-2.5 rounded-lg text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 border-emerald-500/30 gap-1"
+                          className="h-7 text-xs px-2.5 rounded-lg text-success hover:bg-success/10 border-success/30 gap-1"
                         >
                           <Icons.check className="size-3" /> Setujui
                         </Button>
@@ -291,8 +292,9 @@ export function ErpDashboardClient() {
                               status: "revision_requested",
                             })
                           }
+                          isLoading={updateStatusMutation.isPending}
                           disabled={updateStatusMutation.isPending}
-                          className="h-7 text-xs px-2.5 rounded-lg text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 border-amber-500/30 gap-1"
+                          className="h-7 text-xs px-2.5 rounded-lg text-warning hover:bg-warning/10 border-warning/30 gap-1"
                         >
                           <Icons.refresh className="size-3" /> Revisi
                         </Button>
@@ -304,7 +306,7 @@ export function ErpDashboardClient() {
                         <Button
                           size="sm"
                           onClick={() => setSchedulingDeliverable(d)}
-                          className="h-7 text-xs px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white gap-1 shadow-xs"
+                          className="h-7 text-xs px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 font-medium gap-1 shadow-xs"
                         >
                           <Icons.calendar className="size-3" /> Jadwalkan
                         </Button>
@@ -349,7 +351,7 @@ export function ErpDashboardClient() {
                <div className="flex items-center justify-between text-xs text-[hsl(var(--admin-on-surface-variant))] mb-1.5">
                  <span>Channel Terhubung</span>
                  <span className="font-mono text-1xs text-[hsl(var(--admin-outline))]">
-                   {client.channels?.length || 0} / 10
+                   <MetricTicker value={`${client.channels?.length || 0} / 10`} />
                  </span>
                </div>
                <div className="w-full bg-[hsl(var(--admin-surface-high))] h-1.5 rounded-full overflow-hidden">
@@ -359,7 +361,7 @@ export function ErpDashboardClient() {
            </div>
            <div className="pt-4 mt-5 border-t border-[hsl(var(--admin-outline-variant))]/30 flex items-center justify-between">
              <span className="text-xs text-[hsl(var(--admin-outline))]">
-               {client.channels?.length || 0} connected channels
+               <MetricTicker value={`${client.channels?.length || 0} connected channels`} />
              </span>
            </div>
         </div>

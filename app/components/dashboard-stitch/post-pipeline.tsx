@@ -33,7 +33,7 @@ function getPlatformIcon(platform: string) {
   if (norm.includes("tiktok")) return <Icons.tiktok className="size-4" />
   if (norm.includes("youtube")) return <Icons.video className="size-4" />
   if (norm.includes("twitter") || norm === "x") return <Icons.twitter className="size-4" />
-  if (norm.includes("linkedin")) return <Icons.bookOpen className="size-4" />
+  if (norm.includes("linkedin")) return <Icons.linkedin className="size-4" />
   return <Icons.hub className="size-4" />
 }
 

@@ -196,11 +196,11 @@ export function AssetPicker({
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-2xs font-bold">
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-xs text-foreground border border-border/40 text-2xs font-bold">
                     {asset.fileType}
                   </span>
                   <span className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Icons.check className="size-6 text-white" />
+                    <Icons.check className="size-6 text-primary-foreground" />
                   </span>
                 </Button>
               ))}

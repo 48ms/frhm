@@ -341,7 +341,7 @@ export function DispatchNotificationDialog({
                             href={r.clickUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-emerald-50 dark:text-emerald-950 text-[10px] font-semibold transition-colors shadow-xs"
                           >
                             <Icons.whatsapp className="size-3" />
                             Buka di WhatsApp
