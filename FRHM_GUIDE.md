@@ -392,22 +392,53 @@ Render `<SkillCatalogView clientId={clientId} clientName={client.name} />` — k
 
 ---
 
-### 4.7 ERP Dashboard (`/admin/erp`)
+### 4.7 ERP Dashboard (`/admin/erp`) — DEEP DIVE
 
-**Fungsi**: Dashboard eksekutif untuk tracking ROI, budget, dan KOL.
+**Fungsi**: Dashboard eksekutif untuk tracking ROI, budget, dan KOL. Service: `features/erp/api/service.ts`.
 
-**4 Sub-modul**:
-| Sub-modul | Fungsi |
-|-----------|--------|
-| Budget Ledger | Buku dompet bulanan per klien, alert 90% threshold |
-| Expense Tracker | Pencatatan KOL/Ads/Event expenses |
-| Ads Tracker | Smart Manual Logging untuk spending & klik |
-| KOL CRM | Rate card, spesialisasi, riwayat kerja sama |
+**Prinsip Desain (faktual dari kode)**: Semua helper READ **degrade gracefully** — mengembalikan `[]` alih-alih throw, agar TanStack Query tidak reject saat render (mencegah warning "Cannot update Router while rendering").
 
-**Wiring Tombol**:
-- **Tambah Expense**: Form → `createExpense()` → refresh ledger
-- **Log Ad Spend**: Form → `createAdSpendLog()` → update trendline
-- **Assign KOL**: Form → `createKOL()` → link ke campaign
+#### 4 Sub-modul & Tabel DB
+
+| Sub-modul | Tabel | Service | Deskripsi |
+|-----------|-------|---------|-----------|
+| Budget Ledger | `client_budgets` | `getClientBudgets(clientId)` | Buku dompet bulanan; urut `month` desc |
+| Expense Tracker | `expenses` | `getExpenses(clientId)` | Pengeluaran KOL/Ads/Event; urut `expense_date` desc |
+| Ads Tracker | `ad_spend_logs` | `getAdSpendLogs(clientId)` | Smart manual logging spending & klik; urut `log_date` desc |
+| KOL CRM | `kols` | `getKOLs(clientId)` | Rate card, niche, contact, platforms; urut `created_at` desc |
+
+#### Struktur Data (dari `features/erp/api/types.ts`)
+
+```typescript
+ClientBudget  { id, client_id, month, total_budget, remaining_balance, created_at, updated_at }
+Expense       { id, client_id, budget_id, amount, category, description, expense_date, created_at }
+AdSpendLog    { id, client_id, campaign_name, spend, clicks, log_date, created_at }
+KOL           { id, client_id, name, niche, contact_info, rate_card, platforms, notes, created_at }
+```
+
+#### Pola Query (TanStack)
+
+```
+useQuery(erpQueries.budgets(clientId))   → ClientBudget[]
+useQuery(erpQueries.expenses(clientId))  → Expense[]
+useQuery(erpQueries.adSpend(clientId))   → AdSpendLog[]
+useQuery(erpQueries.kols(clientId))      → KOL[]
+```
+
+Semua read helper punya guard `if (!clientId) return []` + `logger.error` pada error, lalu return `[]`.
+
+#### Wiring Tombol
+
+| Tombol | Aksi | Efek |
+|--------|------|------|
+| **Tambah Expense** | Form → `createExpense()` | Insert `expenses` → invalidate budget ledger |
+| **Log Ad Spend** | Form → `createAdSpendLog()` | Insert `ad_spend_logs` → update trendline |
+| **Assign KOL** | Form → `createKOL()` | Insert `kols` → link ke campaign |
+| **Export PDF** | `exportDeliverablePdf()` | Generate laporan eksekutif branded |
+
+#### Alert Budget (90% Threshold)
+
+Sistem mengirim **Alert Telegram** otomatis ketika pengeluaran menyentuh batas kritis (misal 90% dari `total_budget`). Dihitung dari `remaining_balance` vs `total_budget`.
 
 ---
 
@@ -578,21 +609,126 @@ return { caption } | { caption: '', error }
 
 ---
 
-### 4.12 Deliverables (`/admin/erp` - same module)
+### 4.12 Deliverables & Client Review Portal (`/admin/erp` + `/review/[id]`) — DEEP DIVE
 
-**Fungsi**: Manajemen deliverable dengan state machine (Ide → Script → Shoot → Edit → Done).
+**Fungsi**: Manajemen deliverable dengan **state machine** + portal review klien mandiri. Service: `features/deliverables/api/service.ts` (482 baris).
 
-**Fitur**:
-- Kanban production board
-- PDF export studio
-- Schedule & auto-publish engine
-- Client review portal integration
+#### State Machine (Deliverable Status)
 
-**Wiring Tombol**:
-- **Move Card**: Drag → `updateDeliverableStatus(id, newStatus)`
-- **Export PDF**: `exportDeliverablePdf(id)` → branded executive PDF
-- **Schedule**: `scheduleApprovedDeliverable(id)` → insert scheduled post
-- **Submit Review**: `submitDeliverableReview(id, feedback)` → notify client
+```
+┌─────────┐   send    ┌───────┐   approve   ┌──────────┐
+│  draft  │ ────────► │ sent  │ ──────────► │ approved │
+└─────────┘           └───┬───┘             └────┬─────┘
+                          │                      │
+                    request revision         schedule
+                          ▼                      ▼
+                  ┌────────────────────┐   ┌──────────────────┐
+                  │ revision_requested │   │ scheduled_posts  │
+                  └────────────────────┘   │ (auto-publish)   │
+                                           └──────────────────┘
+```
+
+**Type**: `DeliverableStatus = "draft" | "sent" | "approved" | "revision_requested"`
+**Type**: `DeliverableType = "brief" | "content" | "report"`
+
+#### Fungsi Service (7 fungsi inti)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getDeliverablesByClient` | `(clientId) => Promise<Deliverable[]>` | List semua deliverable klien |
+| `createDeliverable` | `(input) => Promise<Deliverable>` | Buat deliverable baru |
+| `promoteSkillOutputToDeliverable` | `(input) => Promise<...>` | Naikkan output skill → deliverable |
+| `updateDeliverableStatus` | `(input) => Promise<{success, error?}>` | Update status + sync skill_outputs |
+| `getDeliverableById` | `(id) => Promise<DeliverableDetailResponse \| null>` | Detail + client + comments + feedback |
+| `submitDeliverableReview` | `(input) => Promise<{success, deliverable?, error?}>` | Review klien (approve/revisi + rating) |
+| `scheduleApprovedDeliverable` | `(input) => Promise<{success, scheduledPost?, error?}>` | Jadwalkan ke `scheduled_posts` |
+
+#### Alur `updateDeliverableStatus` (Admin)
+
+```
+1. Zod parse: updateDeliverableStatusSchema.parse(input)
+   ↓
+2. Update `deliverables`: { status, updated_at, [approved_at jika approved] }
+   ↓
+3. SINKRONISASI: update `skill_outputs` SET status WHERE deliverable_id = ...
+   ↓  ↑ penting: status deliverable & skill_output selalu konsisten
+4. logAudit({ action: `deliverable.${status}` })
+   ↓
+5. Return { success: true }
+```
+
+#### Alur `submitDeliverableReview` (Klien — 7 Langkah)
+
+```
+1. Ambil deliverable saat ini (id, client_id, title, type, status)
+   ↓ (guard: tidak ada → "Deliverable tidak ditemukan")
+2. Ambil data client (id, name)
+   ↓
+3. Update status deliverable: { status, updated_at, [approved_at] }
+   ↓
+4. Sinkronkan status ke `skill_outputs` (jika ada)
+   ↓
+5. Jika ada feedbackNote → INSERT ke `deliverable_comments`
+      { author_role: "client", content }
+   ↓
+6. Jika ada rating (bintang) → INSERT ke `feedback`
+      { rating, title: "Review: <title>", status: "acknowledged" }
+   ↓
+7. logAudit({ action: `deliverable.client_${status}` })
+   ↓
+8. NOTIFIKASI TELEGRAM ADMIN (non-blocking, try/catch):
+      🔔 [Frhm Client Portal Review]
+      Klien: <name> | Dokumen: <title>
+      Status: DISETUJUI ✅ / MINTA REVISI ⚠️
+      Rating: ⭐⭐⭐⭐⭐ | Catatan: <feedbackNote>
+```
+
+**Penting**: Langkah 8 dibungkus `try/catch` — jika Telegram gagal, review tetap tersimpan (fail-safe).
+
+#### Alur `scheduleApprovedDeliverable`
+
+```
+1. Zod parse: scheduleDeliverableSchema.parse(input)
+   ↓
+2. Insert ke `scheduled_posts` (status: draft/scheduled)
+   ↓
+3. Siap dipublish otomatis oleh:
+   - POST /api/cron/publish  (cron tiap menit)
+   - WoopSocial MCP Bridge
+```
+
+#### Struktur Data (dari `features/deliverables/api/types.ts`)
+
+```typescript
+Deliverable {
+  id, client_id, type, title, content_md, external_link,
+  status, created_by, updated_by,
+  created_at, updated_at, sent_at, approved_at
+}
+DeliverableComment  { id, deliverable_id, author_name, author_role, content, created_at }
+DeliverableFeedback { id, deliverable_id, client_id, rating, title, comment, status, created_at }
+DeliverableDetailResponse {
+  deliverable, client: { id, name, brand_profile? }, comments[], feedback[]
+}
+```
+
+#### Client Review Portal (`/review/[id]`)
+
+Halaman mandiri (tanpa login admin) untuk klien mereview deliverable:
+- `app/review/[id]/page.tsx` → `getDeliverableById(id)` (server component)
+- `client-review-portal.tsx` → interaksi review (approve / minta revisi + rating bintang)
+- Prefetch detail via `queryClient.prefetchQuery(deliverableQueries.detail(id))`
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Move Card (Kanban)** | Drag | `updateDeliverableStatus(id, status)` → sync skill_outputs |
+| **Export PDF** | `exportDeliverablePdf(id)` | Branded executive PDF |
+| **Schedule** | `scheduleApprovedDeliverable(id)` | Insert `scheduled_posts` → cron publish |
+| **Setujui Revisi** (klien) | `submitDeliverableReview` | status=approved + rating + notif Telegram |
+| **Minta Revisi** (klien) | `submitDeliverableReview` | status=revision_requested + comment + notif |
+| **Promote Skill Output** | `promoteSkillOutputToDeliverable` | Output skill → deliverable baru |
 
 ---
 
