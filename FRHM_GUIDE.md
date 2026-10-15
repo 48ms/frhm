@@ -181,26 +181,146 @@ app/
 
 ---
 
-### 4.2 AI Studio (`/admin/ai`)
+### 4.2 AI Studio (`/admin/ai`) — DEEP DIVE
 
-**Fungsi**: Pusat kreativitas AI untuk generate ide, batch plan, trend vetting, dan brand brain.
+**Fungsi**: Pusat komando kecerdasan buatan terpadu untuk meracik ide, menyusun rencana kampanye, memvalidasi tren, dan mengelola identitas brand — semuanya terikat pada Brand DNA klien aktif.
 
-**5 Tab**:
+**Komponen utama**: `components/ai/ai-studio-client.tsx` (~1364 baris).
 
-| Tab | Fungsi | API |
-|-----|--------|-----|
-| Idea Engine | Generate SPARK ideas dari topik | `POST /api/copilot/ideas` |
-| Batch Planner | Buat 7/14/30 hari content calendar | `POST /api/copilot/batch-plan` |
-| Trend Radar | Audit tren viral (3-gate: Brand Fit, Safety, Timing) | `POST /api/trends/radar` |
-| Brand Brain | Edit brand profile markdown | `PUT /api/brand-files/:path` |
-| Playbooks | 106 strategic skills catalog | `GET /api/skills` |
+**Tab aktif disimpan di URL** via `nuqs` (`?tab=ideas|batch|trends|brand-brain|playbooks`), sehingga bisa di-bookmark & dibagikan.
 
-**Wiring Tombol**:
-- **Racik Ide Konten** → `generateIdeasMutate()` → set state → render grid ideas
-- **Generate Batch Plan** → `generateBatchMutate()` → map posts → render table
-- **Audit Kelayakan Tren** → `evaluateTrendMutate()` → render 3-gate result
-- **Jadwalkan ke Kalender** → `createScheduledPostsBatch()` → toast success
-- **Buka Markdown Studio** → `setBrandEditorOpen(true)` → BrandBrainEditorDialog
+#### 5 Tab Utama
+
+| Tab | id | Fungsi | Backend |
+|-----|----|--------|---------|
+| Idea Engine | `ideas` | Generate ide konten viral (SPARK) | `useGenerateContentIdeas()` |
+| Batch Planner | `batch` | Roadmap postingan 7/14/30 hari | `useGenerateBatchPlan()` + `useCreateScheduledPostsBatch()` |
+| Trend Radar | `trends` | Audit tren 3-gate (Fit/Safety/Timing) | `useEvaluateTrend()` |
+| Brand Brain | `brand-brain` | Kelengkapan DNA + editor Markdown | `useSkillDetail()` + `BrandBrainEditorDialog` |
+| Playbooks | `playbooks` | Katalog 106 skills & packs | `SkillCatalogView` |
+
+#### A. Idea Engine (SPARK Ideation Matrix)
+
+**Input**:
+- Topik/Fokus (opsional) — atau pilih dari `IDEA_STRATEGY_PRESETS` (5 preset: Bongkar Mitos, Tips 3-Langkah, BTS, Social Proof, Promo & Urgensi)
+- Platform target (Instagram / TikTok / Twitter-X / LinkedIn) — default `instagram`
+- Jumlah ide (`Slider` 3–10) — default 5
+
+**Alur `handleGenerateIdeas`**:
+```
+1. Guard: clientId kosong → toast.error("Pilih klien aktif")
+   ↓
+2. generateIdeasMutate({ clientId, count, trendOrTopic })
+   ↓
+3. res.error?  → toast.error(res.error)
+   res.ideas?  → setGeneratedIdeas(res.ideas) + toast.success
+   ↓
+4. Render grid: Badge(pillar) + format + judul + konten + Hook box
+```
+
+**Per-idea action**:
+- **Copy** (`handleCopyIdea`): salin title+hook+content+format ke clipboard → toast
+- **Kirim ke Composer** (`handleSendToComposer`): `router.push(serializeComposerParams("/admin/composer", { clientId, title, content, platform }))`
+
+#### B. Batch Campaign Planner
+
+**Input**:
+- Rentang waktu (`this week`/`14 days`/`1 month`)
+- Frekuensi per minggu (`Slider` 1–7) — default 3
+- Kanal platform (multi-select, min 1) — default `[instagram, tiktok]`
+- Campaign Goals (Textarea, **min 10 karakter**) + `BATCH_CAMPAIGN_PRESETS` (4 template)
+
+**Alur `handleGenerateBatch`**:
+```
+1. Guard: !clientId → error; goals.length < 10 → error
+   ↓
+2. generateBatchMutate({ clientId, period, goals, postsPerWeek, platforms })
+   ↓
+3. Map res.plan.posts → batchPosts[] (semua `selected: true`)
+   ↓
+4. Render tabel matrix: checkbox | waktu | platform | judul | caption
+```
+
+**Alur `handleScheduleAllBatch`** (jadwalkan ke kalender):
+```
+1. Filter batchPosts.filter(p => p.selected) → guard min 1
+   ↓
+2. createScheduledPostsBatch(selected.map(post => ({
+       client_id, title, content, platform, scheduled_at,
+       status: "draft", notes, is_reserved: false, is_placeholder: false
+     })))
+   ↓
+3. toast.success(`${successCount} postingan masuk ke Content Calendar`)
+   ↓
+4. setBatchPosts([])  ← reset
+```
+
+**Alur `handleCopyBatchSummary`**: format ringkasan terstruktur (nomor, platform, tanggal, caption) → clipboard.
+
+#### C. Trend Radar & 3-Gate Vetting Engine
+
+**Input**: Deskripsi tren (Textarea) + `TREND_VIRAL_FORMATS` (4 format) + Platform target.
+
+**Alur `handleAuditTrend`**:
+```
+1. Guard: !trendDesc.trim() → error
+   ↓
+2. evaluateTrendMutate({ clientId: clientId || "client-default",
+                         trendDescription, trendSourceOrContext: `Platform: ${platform}` })
+   ↓
+3. Render hasil: status GO/NO-GO + 3 gate card:
+   - Gate 1 Brand Fit  → pass/fail + reason
+   - Gate 2 Brand Safety → safe/risky + reason
+   - Gate 3 Timing Status → status + verdict
+   + remixAngle (sudut pandang unik) + draftPremise
+```
+
+**Action**: `handleAdoptTrendToIdeas(remixAngle)` → set `ideaTopic` + switch tab ke `ideas` + toast.
+
+#### D. Brand Brain Matrix
+
+**DNA Scoring** (`dnaMetrics` via `useMemo`): 7 pilar dicek terisi/tidak:
+`who, audience, voice, pov, proof, guardrails, pillars`
+→ `score = round(filledCount / 7 * 100)`
+
+**Badge status**: 100 → "Optimal untuk AI", ≥60 → "Cukup Lengkap", <60 → "Perlu Dilengkapi".
+
+**Markdown Studio**: setiap pilar punya tombol "Edit .md" yang memetakan ke file:
+- `who`/`audience`/`pov`/`proof` → `brand-profile.md`
+- `voice` → `voice.md`
+- `guardrails` → `guardrails.md`
+- `pillars` → `content-pillars.md`
+
+**Wawancara AI**: tombol "Wawancara AI Brand Profile" → `handleStartBrandInterview("brand-profile")` → `SkillInterviewModal`. Auto-launch via URL: `?tab=brand-brain&interview=true` atau `?skill=<id>`.
+
+#### E. Playbooks (106 Skills)
+
+Render `<SkillCatalogView clientId={clientId} clientName={client.name} />` — katalog 106 strategic skills + 17 topic packs, assign ke klien.
+
+#### Wiring State & URL
+
+| State | Mekanisme |
+|-------|-----------|
+| Tab aktif | `useQueryState("tab")` + `localTab` (optimistic switch) |
+| Skill interview | `useQueryState("skill")` |
+| Interview trigger | `useQueryState("interview")` → auto-open modal |
+| Klien aktif | `useActiveDashboard()` → `clientId` dari `?clientId=` |
+
+#### Wiring Tombol (Ringkasan)
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Racik Ide Konten Sekarang** | `handleGenerateIdeas` | Mutasi → render grid ide |
+| **Kirim ke Composer** (per-ide) | `handleSendToComposer` | Redirect `/admin/composer` + params |
+| **Copy** (per-ide) | `handleCopyIdea` | Clipboard + toast |
+| **Generate Batch Plan Sekarang** | `handleGenerateBatch` | Mutasi → render tabel matrix |
+| **Jadwalkan (N) ke Kalender** | `handleScheduleAllBatch` | Batch insert scheduled_posts |
+| **Salin Ringkasan** | `handleCopyBatchSummary` | Clipboard ringkasan |
+| **Audit Kelayakan Tren Sekarang** | `handleAuditTrend` | Mutasi → render 3 gate |
+| **Racik Ide dari Tren Ini** | `handleAdoptTrendToIdeas` | Prefill topik + switch tab |
+| **Buka Markdown Studio (.md)** | `handleOpenBrandEditor` | Buka `BrandBrainEditorDialog` |
+| **Wawancara AI Brand Profile** | `handleStartBrandInterview` | Buka `SkillInterviewModal` |
+| **Buka Composer** (header) | `router.push(...)` | Redirect composer |
 
 ---
 
@@ -323,21 +443,127 @@ app/
 
 ---
 
-### 4.10 Media Library (`/admin/library`)
+### 4.10 Media Library (`/admin/library`) — DEEP DIVE
 
-**Fungsi**: Pusat penyimpanan aset per klien (Cloudinary).
+**Fungsi**: Pusat penyimpanan aset per klien, terintegrasi dengan Cloudinary (via `mediaAdapter`). Setiap aset di-scope ketat ke `client_id` (tenant isolation).
 
-**Fitur**:
-- Upload zones
-- Batch delete
-- Tag management
-- Asset reorder
+#### Batasan & Guardrails (dari `features/library/api/service.ts`)
 
-**Wiring Tombol**:
-- **Upload**: Drag-drop → `uploadAsset(clientId, file)` → Cloudinary → insert DB
-- **Delete Single**: `deleteAsset(assetId, clientId)`
-- **Delete Multiple**: `deleteAssets(assetIds, clientId)`
-- **Tag Assets**: `tagAssets(assetIds, tags)`
+| Konstanta | Nilai | Fungsi |
+|-----------|-------|--------|
+| `MAX_BYTES` | 25 MB | Batas ukuran file per upload |
+| `MAX_BATCH` | 100 | Batas jumlah aset per operasi batch |
+| `MAX_TAGS` | 20 | Batas tag per aset |
+| `MAX_TAG_LENGTH` | 40 char | Batas panjang tiap tag |
+| `ALLOWED_TYPES` | jpeg, png, webp, mp4, quicktime | Whitelist MIME type |
+
+#### Fungsi Service (Layer Data Access)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `listAssets` | `(filters: AssetListFilters) => Promise<Asset[]>` | List aset, filter by `fileType` & `tag`, urut `sort_order` lalu `created_at` |
+| `uploadAsset` | `(clientId, file) => Promise<AssetUploadResponse>` | Validasi → upload ke Cloudinary → insert DB → log audit |
+| `deleteAsset` | `(assetId, clientId) => Promise<{success, error?}>` | Hapus 1 aset (predikat `client_id` ganda) |
+| `deleteAssets` | `(assetIds[], clientId) => Promise<BatchResult>` | Hapus massal (maks 100), satu statement tenant-scoped |
+| `tagAssets` | `(assetIds[], clientId, tags[]) => Promise<BatchResult>` | **Merge additive** tag (union, tidak overwrite) |
+| `reorderAssets` | `(orderedIds[], clientId) => Promise<BatchResult>` | Simpan urutan grid manual; tolak duplikat id |
+
+#### Alur Upload Aset (Detail)
+
+```
+1. User drag-drop file
+   ↓
+2. uploadAsset(clientId, file) dipanggil
+   ↓
+3. authorizeFor(clientId)          ← Cek session + role admin/owner
+   ↓ (throw jika unauthorized)
+4. Validasi berlapis:
+   - file.size > 25MB?         → fail("File exceeds the 25MB limit")
+   - MIME tidak di whitelist?  → fail("Unsupported file type")
+   - mediaAdapter configured?  → fail("Media storage is not configured")
+   ↓
+5. mediaAdapter.uploadFile(file, `frhm/${clientId}`)
+   ↓ (Cloudinary upload)
+6. Insert row ke tabel `assets` via service client
+   ↓
+7. logAudit({ action: 'asset.upload', ... })   ← Activity trail
+   ↓
+8. Return { asset, success: true }
+```
+
+#### Alur Batch Delete (Tenant-Safe)
+
+```
+deleteAssets(assetIds, clientId)
+   ↓
+1. Guard: length 0 → error; length > 100 → error
+   ↓
+2. authorizeFor(clientId)
+   ↓
+3. Single SQL: DELETE ... WHERE id IN (...) AND client_id = <clientId>
+   ↓  ↑ predikat client_id WAJIB → tidak bisa lintas tenant
+4. logAudit({ action: 'asset.batch_delete', count })
+```
+
+#### Alur Tag Merge (Additive)
+
+```
+tagAssets(assetIds, clientId, newTags)
+   ↓
+1. normalizeTags(newTags)  ← trim, lowercase, dedupe, cap 20×40char
+   ↓
+2. READ current tags (tenant-scoped)   ← agar merge tidak destruktif
+   ↓
+3. For each asset: tags = Set([...existing, ...new]).sort()
+   ↓
+4. UPDATE per-row (dengan predikat client_id)
+   ↓
+5. logAudit({ action: 'asset.batch_tag' })
+```
+
+#### AI Caption (Library AI — `features/library/api/ai.ts`)
+
+**Fungsi**: `generateAssetCaption(clientId, assetUrl, assetType)` — minta 2 draft caption dari model vision-capable.
+
+**Prinsip Fail-Closed**:
+- Provider hilang / respons non-2xx → return error string, **bukan** caption buatan
+- Video tidak didukung → error jelas: "Caption AI belum mendukung video"
+- Setiap panggilan di-log via `logAiUsage()` (tokens, latency, model, error)
+
+**Alur**:
+```
+assertCanUseClient(clientId)     ← auth mirror
+   ↓
+resolveProvider(supabase)        ← ambil provider dari DB (fallback env)
+   ↓
+POST {base_url}/v1/chat/completions
+   - system prompt: "copywriter media sosial, 2 opsi caption + 3 hashtag"
+   - user content: [{ text }, { image_url: previewUrl(assetUrl) }]
+   - timeout 30s (AbortSignal.timeout)
+   ↓
+logAiUsage({ route: 'library/asset-caption', tokens, latency })
+   ↓
+return { caption } | { caption: '', error }
+```
+
+#### Wiring Tombol (UI)
+
+| Tombol | Handler | Service Call |
+|--------|---------|--------------|
+| **Upload (drag-drop)** | Dropzone handler | `uploadAsset(clientId, file)` |
+| **Delete Single** | Row action menu | `deleteAsset(assetId, clientId)` |
+| **Delete Selected** | Bulk toolbar | `deleteAssets(assetIds, clientId)` |
+| **Tag Selected** | Tag input + apply | `tagAssets(assetIds, clientId, tags)` |
+| **Reorder (drag)** | Grid reorder handler | `reorderAssets(orderedIds, clientId)` |
+| **Generate Caption** | Per-asset AI button | `generateAssetCaption(clientId, url, type)` |
+
+#### Keamanan Berlapis
+
+1. **Layer Auth**: `authorizeFor()` — session + role check
+2. **Layer Tenant**: Setiap query punya predikat `.eq('client_id', clientId)`
+3. **Layer Audit**: Semua mutasi (upload/delete/tag) → `logAudit()`
+4. **Layer Validasi**: Size, MIME whitelist, batch limit, tag normalization
+5. **Layer Storage**: Path Cloudinary selalu `frhm/${clientId}/` (prefix tenant)
 
 ---
 
