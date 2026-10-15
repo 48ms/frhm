@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
 import { useSendTelegramTest } from "@/features/erp/api/queries"
@@ -25,8 +25,19 @@ export function ErpDashboardClient() {
   const router = useRouter()
   const { clientId, client } = useActiveDashboard()
   // Data khusus client aktif dari DB (bukan listAll() lalu filter).
-  const { data: posts } = useSuspenseQuery(scheduledPostQueries.listByClient(clientId))
-  const { data: deliverables } = useSuspenseQuery(deliverableQueries.listByClient(clientId))
+  // PENTING (fakta): useQuery + placeholderData, BUKAN useSuspenseQuery.
+  // Alasan sama dengan dashboard-data.ts: saat cache kosong (mis. route preview
+  // tanpa prefetch, atau clientId belum ter-resolve) useSuspenseQuery memicu
+  // fetch SAAT RENDER -> memanggil Server Action ('use server') saat SSR ->
+  // "Server Functions cannot be called during initial render".
+  const { data: posts } = useQuery({
+    ...scheduledPostQueries.listByClient(clientId),
+    placeholderData: [],
+  })
+  const { data: deliverables } = useQuery({
+    ...deliverableQueries.listByClient(clientId),
+    placeholderData: [],
+  })
 
   const [createOpen, setCreateOpen] = React.useState(false)
   const [schedulingDeliverable, setSchedulingDeliverable] = React.useState<Deliverable | null>(null)

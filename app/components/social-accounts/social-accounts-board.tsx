@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import { useQueryState, parseAsString, parseAsStringEnum } from "nuqs"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { ConnectChannelModal } from "./connect-channel-modal"
@@ -79,7 +79,12 @@ export function ClientChannelsBoard() {
   const [syncing, setSyncing] = React.useState(false)
   const [pendingDisconnect, setPendingDisconnect] = React.useState<{ id: string; handle: string } | null>(null)
 
-  const { data: rawClients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
+  // PENTING (fakta): useQuery + placeholderData, BUKAN useSuspenseQuery — agar
+  // route preview tanpa prefetch tidak memanggil Server Action saat SSR.
+  const { data: rawClients } = useQuery({
+    ...socialQueries.listClientsWithChannels(),
+    placeholderData: [],
+  })
   
   const disconnectMutation = useDisconnectChannel()
   const syncMutation = useSyncChannel()
