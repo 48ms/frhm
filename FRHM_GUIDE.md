@@ -1,8 +1,10 @@
 # 📘 FRHM SaaS — Buku Petunjuk Lengkap
 ## Marketing ERP untuk Agensi Digital
 
-> Versi: 1.0.0 | Terakhir diperbarui: 2026-10-15
+> Versi: 1.1.0 | Terakhir diperbarui: 2026-10-16
 > Tech Stack: Next.js 14+ (App Router), TypeScript, Tailwind v4, shadcn/Nova, Supabase (PostgreSQL + RLS)
+>
+> **Cakupan**: 16 modul admin, semuanya deep-dive (fungsi service, alur, struktur data, wiring tombol) — diverifikasi langsung dari kode sumber.
 
 ---
 
@@ -156,11 +158,12 @@ app/
 
 ## 4. Panduan Per Halaman / Modul
 
-### 4.1 Dashboard (`/admin/dashboard`)
+### 4.1 Dashboard (`/admin/dashboard`) — DEEP DIVE
 
-**Fungsi**: Pusat kendali utama admin. Menampilkan ringkasan semua klien secara real-time.
+**Fungsi**: Pusat kendali utama admin. Menampilkan ringkasan semua klien secara real-time. Service: `features/dashboard/api/service.ts` (228 baris).
 
-**Komponen (Parallel Routes)**:
+#### Komponen (Parallel Routes)
+
 | Slot | Komponen | Data |
 |------|----------|------|
 | `@hero` | Hero card dengan greeting + ringkasan | Dashboard profile |
@@ -169,15 +172,92 @@ app/
 | `@hub` | Action hub (quick actions) | - |
 | `@pipeline` | Content pipeline overview | Scheduled posts |
 
-**Cara Kerja**:
-1. Server Component `app/admin/dashboard/page.tsx` render
-2. `DashboardPrefetcher` menjalankan parallel prefetch queries
-3. Setiap `@slot` dirender secara independen dengan `<Suspense>`
-4. `useActiveDashboard()` hook mengambil clientId dari URL + query profile + client list
+#### Cara Kerja (4 Langkah)
 
-**Wiring Tombol**:
-- Pilih Klien: `useQueryState("clientId", ...)` → refresh semua widget
-- Toggle Timeframe: `useQueryState("tf", ...)` → update chart data
+```
+1. Server Component app/admin/dashboard/page.tsx render
+   ↓
+2. DashboardPrefetcher menjalankan parallel prefetch queries
+   ↓
+3. Setiap @slot dirender independen dengan <Suspense>
+   ↓
+4. useActiveDashboard() hook ambil clientId dari URL + query profile + client list
+```
+
+#### Fungsi Service (4 fungsi)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getClients` | `() => Promise<{id, name, contact_email}[]>` | List klien urut `name` |
+| `createNewClient` | `(input) => Promise<CreateClientResult>` | Onboarding 4-langkah (lihat §4.5) |
+| `getDashboardProfile` | `(clientId) => Promise<DashboardProfile \| null>` | Profil klien, **degrade → null** |
+| `getDashboardProfileWithMetrics` | `(clientId) => Promise<DashboardProfile \| null>` | Profil + serialisasi metrics |
+
+#### Alur `getDashboardProfile` — Graceful Degrade (KRITIS)
+
+```
+1. Guard: !clientId || clientId === "undefined" || clientId === "null" → return null
+   ↓  ↑ melindungi dari URL param kosong
+2. supabase.from("dashboard_profiles").select("*").eq("client_id", clientId).single()
+   ↓
+3. IF error:
+   ├─ code === 'PGRST116' → return null  ← "Not found" (belum ada row)
+   └─ error lain (JWT/network) → logger.error + return null
+   ↓  ↑ TIDAK PERNAH throw
+```
+
+**Alasan faktual** (komentar di kode): service ini dipanggil dari render path. Jika `throw`, React Query me-reject promise saat render → warning **"Cannot update a component (Router) while rendering"**. Karena itu **degrade gracefully → null** agar konsumen memakai fallback profile.
+
+#### Serializer `serializeMetrics` — Fix Bug KPI "0"
+
+```
+FAKTA DB: dashboard_profiles.metrics = OBJECT mentah (bukan array):
+  { total_reach: 10261, total_views: 19201, audience_size: 10261,
+    engagement_rate: 3.7, total_engagement: 379 }
+
+MASALAH LAMA: UI membaca metrics[0].value → undefined (object bukan array)
+  → KPI card SELALU fallback ke "0"
+
+SOLUSI (serializeMetrics): mapping read-only, struktur DB TIDAK diubah
+  1. Guard: !raw || typeof !== "object" || Array.isArray → return []
+  2. num(v, suffix) → number ? toLocaleString + suffix : "0"
+  3. genSpark(val) → sparkline 7-elemen deterministik:
+       base = n % 10
+       [n*0.6+base, n*0.7-base, n*0.8+base, n*0.75-base, n*0.85+base, n*0.95-base, n]
+  4. Return 3 metric:
+     - "Total Reach"       ← m.total_reach ?? m.audience_size
+     - "Engagement Rate"   ← m.engagement_rate (suffix "%")
+     - "Total engagement"  ← m.total_engagement
+```
+
+#### `getDashboardProfileWithMetrics` — Dual Format Handling
+
+```
+profile = await getDashboardProfile(clientId)
+   Guard: !profile → return null
+   ↓
+metrics = Array.isArray(profile.metrics)
+   ? profile.metrics          ← sudah di-cache oleh sinkronisasi
+   : serializeMetrics(...)     ← raw Ayrshare object
+   ↓  ↑ DB metrics bisa OBJECT (raw) ATAU ARRAY (cached)
+return { ...profile, metrics }
+```
+
+#### Struktur Data
+
+```typescript
+DashboardProfile { client_id, greeting, velocity, peak_label, peak_value, insights, metrics }
+DashboardMetric  { label, value, delta, trend: "up"|"down"|"neutral", spark: number[] }
+CreateClientInput  { name, contact_email?, contact_phone?, niche?, telegram_chat_id? }
+CreateClientResult { id, name, seededSkills }
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Pilih Klien** | `useQueryState("clientId", ...)` | Refresh semua widget |
+| **Toggle Timeframe** | `useQueryState("tf", ...)` | Update chart data |
 
 ---
 
@@ -324,36 +404,165 @@ Render `<SkillCatalogView clientId={clientId} clientName={client.name} />` — k
 
 ---
 
-### 4.3 Content Calendar (`/admin/calendar`)
+### 4.3 Content Calendar (`/admin/calendar`) — DEEP DIVE
 
-**Fungsi**: Kalender berlapis untuk melihat semua jadwal posting per channel.
+**Fungsi**: Kalender berlapis untuk melihat & menjadwalkan semua postingan per channel. Komponen: `app/admin/calendar/calendar-client.tsx` (1415 baris). Service: `features/scheduled-posts/api/service.ts` (via re-export `features/calendar/api/service.ts`).
 
-**Fitur**:
-- Multi-layer: filter by Campaign, Instagram, TikTok
-- Drag-and-drop reschedule
-- Color-coded per platform
-- Today's Action Center widget
+#### Fitur Utama
 
-**Wiring**:
-- Filter: `useQueryStates({ dateRange, platform })` (nuqs)
-- Add Post: Opens dialog → `createScheduledPost()` → invalidate calendar cache
+| Fitur | Deskripsi |
+|-------|-----------|
+| Multi-layer | Filter by Campaign, Instagram, TikTok |
+| Drag-and-drop reschedule | Geser post ke hari lain (preserve time-of-day) |
+| Keyboard-accessible move | Menu "Geser 1 hari" / "Geser 7 hari" (a11y) |
+| Color-coded | Per platform + status dot |
+| Today's Action Center | Widget aksi hari ini |
+| Export | Modal export → PDF (`calendar-export-pdf.tsx`) |
+
+#### State & URL Params (nuqs)
+
+| Param | Type | Fungsi |
+|-------|------|--------|
+| `platform` | `parseAsStringEnum` | Filter platform |
+| `view` | `parseAsStringEnum` | Mode tampilan (month/week) |
+| `mediaUrl` | `parseAsString` | Prefill media dari URL |
+| `caption` | `parseAsString` | Prefill caption |
+| `title` | `parseAsString` | Prefill judul |
+| `new` | `parseAsString` | Trigger dialog post baru |
+| `export` | `parseAsString` | Trigger export modal |
+
+#### Alur Drag-and-Drop Reschedule (`applyPostMove`)
+
+```
+USER: drag post card → drop ke cell tanggal
+   ↓
+handlePostDragStart(post, e):
+   setDraggingPostId(post.id)
+   e.dataTransfer.effectAllowed = "move"
+   e.dataTransfer.setData("text/plain", post.id)
+   ↓
+handleCellDragOver(date, e):
+   Guard: !draggingPostId → return   ← abaikan drag eksternal
+   e.preventDefault(); dropEffect = "move"; setDragOverDate(date)
+   ↓
+handleCellDrop(date, e):
+   postId = e.dataTransfer.getData("text/plain") || draggingPostId
+   post = posts.find(p => p.id === postId)
+   applyPostMove(post, date)
+   ↓
+applyPostMove(post, targetDate):
+   1. original = new Date(post.scheduled_at)
+   2. moved = new Date(targetDate); moved.setHours(original.hours, original.minutes, 0, 0)
+      ↑ PRESERVE time-of-day (hanya tanggal yang berubah)
+   3. Guard: moved.getTime() === original.getTime() → return  (no-op)
+   4. toast.loading("Sinkronisasi jadwal...")
+   5. updatePost({ id, clientId, scheduled_at: moved.toISOString() },
+        onSuccess → toast.success("Jadwal dipindahkan.", { description: `${title} → ${date}` })
+        onError   → toast.error("Gagal memindahkan jadwal. Coba lagi."))
+```
+
+#### Alur Keyboard-Accessible Move (`movePostByDays`)
+
+```
+Karena keyboard/screen-reader user tidak bisa drag:
+   movePostByDays(post, days):
+      target = new Date(post.scheduled_at); target.setDate(target.getDate() + days)
+      applyPostMove(post, target)  ← funnel ke routine yang SAMA
+```
+
+**Poin desain**: Kedua jalur (drag & keyboard) **funnel ke `applyPostMove`** — satu sumber logika, konsisten.
+
+#### Detail Teknis `handleCellDragLeave`
+
+```
+Masalah: `dragleave` juga menyala saat pointer masuk child element
+         → highlight drop-target berkedip (flicker)
+Solusi:  isChild = e.currentTarget.contains(e.relatedTarget)
+         if (isChild) return   ← hanya clear saat benar-benar keluar cell
+```
+
+#### Alur `handleEditMedia` — Pick Soonest Scheduled
+
+```
+post = posts
+  .filter(p => p.status === "scheduled")
+  .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))[0]
+  ?? posts[0]
+   ↑ ambil post scheduled terdekat; fallback ke post pertama
+Guard: !post → toast.error("Tidak ada post untuk diedit medianya")
+   ↓
+setEditingPost(post); setDialogOpen(true)
+```
+
+#### Alur `handleRescheduleRelease` — Shift +1 Hari
+
+```
+post = posts.find(p => p.id === release.id)
+target = new Date(post.scheduled_at); target.setDate(target.getDate() + 1)
+applyPostMove(post, target)
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Tambah Post** | `handleAddPost(date)` | Buka `PostDialog` dengan initialDate |
+| **Pilih Post** | `handleSelectPost(post)` | Buka dialog edit |
+| **Drag post** | `handlePostDragStart/Drop` | `applyPostMove` → update `scheduled_at` |
+| **Geser N hari** | `movePostByDays(post, n)` | Alternatif keyboard drag |
+| **Edit Media** | `handleEditMedia()` | Post scheduled terdekat → dialog |
+| **Reschedule Release** | `handleRescheduleRelease()` | Shift +1 hari |
+| **Export** | `?export=` param | `CalendarExportModal` → PDF |
+
+#### Service CRUD
+
+Calendar memakai service **Scheduled Posts (§4.13)**: `getScheduledPostsByClient`, `createScheduledPost`, `updateScheduledPost`, `deleteScheduledPost`.
 
 ---
 
-### 4.4 Campaigns (`/admin/campaigns`)
+### 4.4 Campaigns (`/admin/campaigns`) — DEEP DIVE
 
-**Fungsi**: Kelola kampanye marketing per klien.
+**Fungsi**: Kelola kampanye marketing per klien. Service: `features/campaigns/api/service.ts` (86 baris). Tabel: `content_campaigns`.
 
-**CRUD Operations**:
-- List: `getCampaigns(clientId)`
-- Create: `createCampaign(input)`
-- Update: `updateCampaign(id, input)`
-- Delete: `deleteCampaign(id)`
+#### Fungsi Service (4 fungsi CRUD)
 
-**Wiring Tombol**:
-- Tambah Campaign: Form dialog → validate Zod → `createCampaign()` → toast
-- Edit: Pre-fill form → `updateCampaign()`
-- Delete: ConfirmDialog → `deleteCampaign()` → invalidate
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getCampaigns` | `(clientId) => Promise<Campaign[]>` | List per klien, urut `created_at DESC`, **degrade → []** |
+| `createCampaign` | `(input) => Promise<Campaign>` | Insert + audit `campaign.create` |
+| `updateCampaign` | `(id, patch) => Promise<Campaign>` | Update `.eq("id")` + audit `campaign.update` |
+| `deleteCampaign` | `(id) => Promise<void>` | Delete `.eq("id")` + audit `campaign.delete` |
+
+#### Alur `createCampaign`
+
+```
+1. supabase.from("content_campaigns").insert(input)
+   ↓
+2. .select("id, client_id, name, type, start_date, end_date, color, notes, created_at").single()
+   ↓
+3. Guard: error → throw new Error(error.message)  ← pesan asli, bukan generik
+   ↓
+4. void logAudit({ action: 'campaign.create', summary: `Created campaign "${input.name}"` })
+```
+
+#### Struktur Data
+
+```typescript
+Campaign { id, client_id, name, type, start_date, end_date, color, notes, created_at }
+```
+
+- `color` → dipakai untuk color-coding di Content Calendar (§4.3)
+- `start_date` / `end_date` → rentang kampanye untuk overlay kalender
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Tambah Campaign** | Form dialog → Zod → `createCampaign()` | Insert + toast + invalidate |
+| **Edit** | Pre-fill form → `updateCampaign(id, patch)` | Update + invalidate |
+| **Hapus** | ConfirmDialog → `deleteCampaign(id)` | Delete + invalidate |
+
+**Integrasi**: Campaign muncul sebagai layer overlay di **Content Calendar** — filter `?campaign=` menyaring post dalam rentang `start_date`–`end_date`.
 
 ---
 
@@ -886,14 +1095,63 @@ return { caption } | { caption: '', error }
 
 ---
 
-### 4.11 Support (`/admin/support`)
+### 4.11 Support (`/admin/support`) — DEEP DIVE
 
-**Fungsi**: Ticket management untuk komunikasi dengan klien.
+**Fungsi**: Ticket management untuk komunikasi dengan klien. Service: `features/support/api/service.ts` (67 baris). Tabel: `support_tickets`.
 
-**Wiring Tombol**:
-- **Create Ticket**: Form → `createSupportTicket()` → assign to client
-- **Reply Ticket**: Internal note / client-facing reply
-- **Close Ticket**: Status transition to resolved
+#### Fungsi Service (2 fungsi)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getSupportTicketsByClient` | `(clientId) => Promise<SupportTicket[]>` | List tiket per klien, urut `created_at DESC`, **degrade → []** |
+| `createSupportTicket` | `(input) => Promise<SupportTicket>` | Buat tiket + **auth guard** + audit |
+
+#### Alur `createSupportTicket`
+
+```
+1. supabase.auth.getUser()
+   ↓
+   Guard: !user → throw "Unauthorized"  ← WAJIB, tiket harus punya created_by
+   ↓
+2. INSERT support_tickets {
+     client_id: input.clientId || null,   ← nullable (tiket bisa global, bukan per-klien)
+     created_by: user.id,                  ← dari session, BUKAN input
+     subject: input.subject.trim(),
+     message: input.message.trim(),
+     priority: input.priority,
+     status: "open",                       ← status awal selalu "open"
+   }
+   ↓
+3. .select().single()
+   Guard: error → throw "Gagal menyimpan tiket dukungan"
+   ↓
+4. void logAudit({ action: "support_ticket.create", summary: `Created support ticket: ${subject}` })
+```
+
+**Poin keamanan**: `created_by` diambil dari `auth.getUser()`, **tidak pernah dari input klien** — mencegah spoofing identitas pembuat tiket.
+
+#### Struktur Data
+
+```typescript
+SupportTicket {
+  id, client_id, created_by,
+  subject, message,
+  priority,        // prioritas tiket
+  status,          // "open" | (resolved via admin_reply)
+  admin_reply,     // balasan admin
+  resolved_at,     // timestamp penyelesaian
+  created_at, updated_at
+}
+CreateSupportTicketInput { clientId?, subject, message, priority }
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Create Ticket** | Form → `createSupportTicket()` | Insert + auth guard + audit |
+| **Reply Ticket** | Update `admin_reply` | Balasan admin (internal/client-facing) |
+| **Close Ticket** | Set `status` + `resolved_at` | Status transition ke resolved |
 
 ---
 
@@ -1236,31 +1494,160 @@ ClientSkillStatus = "belum" | "dipilih" | "selesai"
 
 ---
 
-### 4.15 Notifications (`/admin/settings` - notification tab)
+### 4.15 Notifications (`/admin/settings` - notification tab) — DEEP DIVE
 
-**Fungsi**: Konfigurasi notifikasi WhatsApp & Telegram.
+**Fungsi**: Pengiriman notifikasi review multi-channel (WhatsApp + Telegram) + test dispatch. Service: `features/notifications/api/service.ts` (277 baris).
 
-**Endpoints**:
-- `POST /api/telegram/webhook` — Incoming webhook handler
-- `POST /api/telegram/test` — Test notification
-- `POST /api/telegram/preferences` — Set user preferences
-- `POST /api/telegram/disconnect` — Disconnect Telegram
+#### Fungsi Service (3 fungsi)
 
-**Wiring Tombol**:
-- **Test Notification**: `testNotificationDispatch(target)` → send test message
-- **Dispatch Review**: `dispatchReviewNotification(deliverableId)` → notify client
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getNotificationTargetForDeliverable` | `(deliverableId) => Promise<NotificationTargetInfo \| null>` | Resolve deliverable + klien → build pesan siap kirim |
+| `dispatchReviewNotification` | `(input) => Promise<DispatchReviewNotificationResponse>` | Kirim ke kanal terpilih (WA + Telegram) |
+| `testNotificationDispatch` | `(input) => Promise<TestNotificationResult>` | Ping test ke satu kanal |
+
+#### Alur `getNotificationTargetForDeliverable` — Resolve Context
+
+```
+1. GET deliverables WHERE id (maybeSingle)
+   Guard: !deliverable → warn + return null
+   ↓
+2. GET clients WHERE id = deliverable.client_id
+   (select: id, name, contact_phone, telegram_chat_id, telegram_notif_enabled)
+   Guard: !client → warn + return null
+   ↓
+3. appUrl = env.server.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+   reviewUrl = `${appUrl}/review/${deliverable.id}`
+   ↓
+4. Build suggested messages:
+   ├─ WhatsApp: formatReviewNotificationMessage({ clientName, title, reviewUrl, previewUrl })
+   └─ Telegram: HTML template (bold title, portal link)
+   ↓
+5. return { deliverableId, title, type, status, previewUrl, client, reviewUrl,
+            suggestedWhatsAppMessage, suggestedTelegramMessage }
+```
+
+#### Alur `dispatchReviewNotification` — Multi-Channel Fan-out
+
+```
+1. Zod parse: dispatchReviewNotificationSchema.parse(rawInput)
+   ↓
+2. target = await getNotificationTargetForDeliverable(deliverableId)
+   Guard: !target → throw "Deliverable atau klien tidak ditemukan."
+   ↓
+3. results: DispatchChannelResult[] = []
+   ↓
+4. IF channels.includes("whatsapp"):
+   ├─ Guard: !target.client.contactPhone
+   │     → push { channel: "whatsapp", success: false, status: "failed",
+   │              error: "Nomor WhatsApp klien belum dikonfigurasi." }
+   └─ ELSE:
+       messageText = customNote ? `${suggested}\n\n💬 *Catatan:* ${customNote}` : suggested
+       waRes = await sendWhatsAppNotification({ phone, text, recipientType: "client",
+                                                deliverableId, eventType: "deliverable.review_requested" })
+       push { channel, success: waRes.success, status, clickUrl, messageId, error }
+   ↓
+5. IF channels.includes("telegram"):
+   ├─ Guard: !target.client.telegramChatId
+   │     → push { channel: "telegram", success: false, status: "skipped",
+   │              error: "Akun Telegram klien belum terhubung." }
+   └─ ELSE:
+       tgText = customNote ? `${suggested}\n\n<b>Catatan:</b> ${customNote}` : suggested
+       buttons = [[{ text: "Buka Portal Review", url: reviewUrl }]]
+       IF previewUrl → buttons[0].push({ text: "File Media", url: previewUrl })
+       tgRes = await sendTelegramMessage({ chatId, text: tgText, parseMode: "HTML",
+                                           buttons, eventType: "deliverable.review_requested" })
+       push { channel, success, status: success ? "sent" : "failed", messageId, error }
+   ↓
+6. logAudit({ action: "notification.review_dispatched", metadata: { channels, results } })
+   ↓
+7. return { deliverableId, clientName, reviewUrl, results }
+```
+
+**Poin penting**:
+- WhatsApp gagal → `status: "failed"`; Telegram tanpa chatId → `status: "skipped"` (perbedaan semantik)
+- Setiap kanal dieksekusi **independen** — kegagalan satu kanal tidak menghentikan kanal lain
+- `customNote` opsional di-append dengan format berbeda (WhatsApp `*bold*`, Telegram `<b>`)
+
+#### Alur `testNotificationDispatch` — Ping Test
+
+```
+IF channel === "telegram":
+   text = "🧪 Uji Coba Notifikasi Frhm\n\nKoneksi Telegram berhasil...\nWaktu uji: {locale id-ID}"
+   res = await sendTelegramMessage({ chatId: destination, text, parseMode: "HTML",
+                                     eventType: "test_ping" })
+   return { ...res }
+```
+
+#### Struktur Data
+
+```typescript
+NotificationTargetInfo {
+  deliverableId, title, type, status, previewUrl,
+  client: { id, name, contactPhone, telegramChatId, telegramEnabled },
+  reviewUrl, suggestedWhatsAppMessage, suggestedTelegramMessage
+}
+DispatchChannelResult { channel, success, status, clickUrl?, messageId?, error? }
+DispatchReviewNotificationInput { deliverableId, channels: ("whatsapp"|"telegram")[], customNote? }
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Test Notification** | `testNotificationDispatch({ channel, destination })` | Ping test ke kanal |
+| **Dispatch Review** | `dispatchReviewNotification({ deliverableId, channels, customNote? })` | Fan-out ke WA + Telegram |
+
+#### API Routes Terkait
+
+| Endpoint | Fungsi |
+|----------|--------|
+| `POST /api/telegram/webhook` | Incoming webhook handler |
+| `POST /api/telegram/test` | Test notification |
+| `POST /api/telegram/preferences` | Set user preferences |
+| `POST /api/telegram/disconnect` | Disconnect Telegram |
 
 ---
 
-### 4.16 Content Production (`/admin/erp`)
+### 4.16 Content Production (`/admin/erp`) — DEEP DIVE
 
-**Fungsi**: State-machine kanban untuk produksi konten.
+**Fungsi**: Papan produksi konten (kanban) dengan tenggat. Service: `features/content-production/api/service.ts` (81 baris). Tabel: `content_productions`.
 
-**CRUD**:
-- `getContentProductions(clientId)`
-- `createContentProduction(input)`
-- `updateContentProduction(id, updates)`
-- `deleteContentProduction(id)`
+#### Fungsi Service (4 fungsi CRUD)
+
+| Fungsi | Signature | Deskripsi |
+|--------|-----------|-----------|
+| `getContentProductions` | `(clientId) => Promise<ContentProduction[]>` | List per klien, urut `due_date ASC`, **degrade → []** |
+| `createContentProduction` | `(input) => Promise<ContentProduction>` | Insert + audit |
+| `updateContentProduction` | `(id, patch) => Promise<ContentProduction>` | Update `.eq("id")` + audit |
+| `deleteContentProduction` | `(id) => Promise<void>` | Delete `.eq("id")` + audit |
+
+#### Pola Konsisten dengan Modul Lain
+
+```
+getX       → .eq("client_id", clientId).order(...) → error → return []
+createX    → .insert(input).select().single() → error → throw → logAudit('x.create')
+updateX    → .update(patch).eq("id", id).select().single() → error → throw → logAudit('x.update')
+deleteX    → .delete().eq("id", id) → error → throw → logAudit('x.delete')
+```
+
+**Catatan arsitektural**: `getContentProductions` mengurutkan berdasarkan **`due_date ASC`** (bukan `created_at`) — karena ini papan produksi yang diorganisir berdasarkan tenggat, bukan kronologi pembuatan.
+
+#### Struktur Data
+
+```typescript
+ContentProduction { id, client_id, ..., due_date, created_at }
+```
+
+#### Wiring Tombol
+
+| Tombol | Handler | Efek |
+|--------|---------|------|
+| **Tambah Produksi** | `createContentProduction(input)` | Insert + audit |
+| **Update Status/Kanban** | `updateContentProduction(id, patch)` | Update + audit |
+| **Hapus** | `deleteContentProduction(id)` | Delete + audit |
+
+**Integrasi**: Modul ini adalah sub-bagian dari **ERP Dashboard (§4.7)** — muncul di papan `/admin/erp` bersama Deliverables (§4.12).
 
 ---
 
