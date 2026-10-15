@@ -134,10 +134,10 @@ describe("CreateClientWizard", () => {
       expect(screen.getByText(/5 Skill Siap/i)).toBeInTheDocument()
     })
 
-    // Mulai interview button should navigate to AI Studio brand-brain
+    // Mulai interview button should navigate to AI Studio brand-brain with auto-interview flag
     const interviewBtn = screen.getByRole("button", { name: /Mulai Interview Brand Profile/i })
     fireEvent.click(interviewBtn)
-    expect(mockPush).toHaveBeenCalledWith("/admin/ai?tab=brand-brain&clientId=new-client-uuid")
+    expect(mockPush).toHaveBeenCalledWith("/admin/ai?tab=brand-brain&clientId=new-client-uuid&interview=true")
   })
 
   it("navigates to dashboard when Lanjut ke Dashboard Dulu is clicked on success screen", async () => {

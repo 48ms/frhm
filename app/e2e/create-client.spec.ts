@@ -152,6 +152,53 @@ test.describe('Create Client Quick Onboarding', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByText(/Langkah.*dari.*2/)).not.toBeVisible({ timeout: 5000 });
   });
+
+  test('should click Mulai Interview Brand Profile on success launchpad and auto-launch SkillInterviewModal in AI Studio', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    const testBrandName = `InterviewBrand ${Date.now().toString().slice(-4)}`;
+
+    // Open from sidebar
+    const workspaceSwitcher = page.locator('.workspace-switcher-container button[data-slot="dropdown-menu-trigger"]');
+    await expect(workspaceSwitcher).toBeVisible({ timeout: 15000 });
+    await workspaceSwitcher.click();
+
+    const addClientItem = page.getByRole('menuitem', { name: /Tambah Client Baru/i });
+    await expect(addClientItem).toBeVisible({ timeout: 5000 });
+    await addClientItem.click();
+
+    // Step 1: Fill name and select niche
+    await page.getByLabel('Nama Brand').fill(testBrandName);
+    await page.getByRole('combobox').click();
+    await page.waitForTimeout(300);
+    const firstOption = page.getByRole('option').first();
+    await expect(firstOption).toBeVisible({ timeout: 5000 });
+    await firstOption.click();
+
+    await page.getByRole('button', { name: /Lanjut ke Kontak/i }).click();
+    await expect(page.getByText(/Langkah 2 dari 2/i)).toBeVisible({ timeout: 10000 });
+
+    // Step 2: Submit
+    await page.getByRole('button', { name: /Siapkan Workspace/i }).click();
+
+    // Success dialog launchpad
+    await expect(page.getByText(/Workspace Client Siap!/i)).toBeVisible({ timeout: 15000 });
+
+    // Click "Mulai Interview Brand Profile"
+    await page.getByRole('button', { name: /Mulai Interview Brand Profile/i }).click();
+
+    // Should navigate to /admin/ai?tab=brand-brain and auto-launch SkillInterviewModal
+    await page.waitForURL('**/admin/ai**', { timeout: 15000 });
+
+    const interviewDialog = page.getByRole('dialog');
+    await expect(interviewDialog).toBeVisible({ timeout: 15000 });
+    await expect(interviewDialog.getByText(/brand-profile/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(interviewDialog.getByRole('button', { name: /Eksekusi Seketika/i })).toBeVisible({ timeout: 10000 });
+
+    // Dismiss dialog
+    await page.keyboard.press('Escape');
+    await expect(interviewDialog).not.toBeVisible({ timeout: 5000 });
+  });
 });
 
 

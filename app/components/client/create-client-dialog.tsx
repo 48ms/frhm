@@ -153,7 +153,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     const cid = createdCredentials?.clientId
     if (!cid) return
     handleClose()
-    router.push(`/admin/ai?tab=brand-brain&clientId=${cid}`)
+    router.push(`/admin/ai?tab=brand-brain&clientId=${cid}&interview=true`)
   }
 
   const handleGoToPlaybooks = () => {

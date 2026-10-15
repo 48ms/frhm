@@ -32,6 +32,8 @@ import type { BrandProfile } from "@/features/social-accounts/api/types"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 import type { BrandFileKey } from "@/features/brand-files/api/types"
 import { SkillCatalogView } from "@/components/skills/skill-catalog-view"
+import { SkillInterviewModal } from "@/components/skills/skill-interview-modal"
+import { useSkillDetail } from "@/features/skills/api/queries"
 
 const STUDIO_TABS = [
   { id: "ideas", label: "Idea Engine", icon: "sparkles", description: "SPARK Ideation Matrix" },
@@ -130,6 +132,26 @@ export function AiStudioClient() {
   const handleOpenBrandEditor = (path: BrandFileKey = "brand-profile.md") => {
     setBrandEditorPath(path)
     setBrandEditorOpen(true)
+  }
+
+  // Skill Interview Dialog State & Auto-Launch Handler (?tab=brand-brain&interview=true / ?skill=...)
+  const [activeInterviewSkillId, setActiveInterviewSkillId] = useQueryState("skill", parseAsString)
+  const [interviewParam, setInterviewParam] = useQueryState("interview", parseAsString)
+  const [isInterviewOpen, setIsInterviewOpen] = React.useState(false)
+  const { data: interviewSkillDetail } = useSkillDetail(activeInterviewSkillId || "")
+
+  React.useEffect(() => {
+    if (interviewParam === "true") {
+      void setActiveInterviewSkillId("brand-profile")
+      setIsInterviewOpen(true)
+    } else if (activeInterviewSkillId) {
+      setIsInterviewOpen(true)
+    }
+  }, [interviewParam, activeInterviewSkillId, setActiveInterviewSkillId])
+
+  const handleStartBrandInterview = (skillId: string = "brand-profile") => {
+    void setActiveInterviewSkillId(skillId)
+    setIsInterviewOpen(true)
   }
 
   // ==========================================
@@ -1036,15 +1058,24 @@ export function AiStudioClient() {
                 </span>
                 <Button
                   size="sm"
-                  onClick={() => handleOpenBrandEditor("brand-profile.md")}
+                  onClick={() => handleStartBrandInterview("brand-profile")}
                   className="rounded-full text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Icons.sparkles className="size-3.5" />
+                  Wawancara AI Brand Profile
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenBrandEditor("brand-profile.md")}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Icons.bot className="size-3.5" />
                   Buka Markdown Studio (.md)
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => router.push("/admin/settings?tab=brand-profile")}
                   className="rounded-full text-xs font-bold cursor-pointer"
                 >
@@ -1102,20 +1133,31 @@ export function AiStudioClient() {
               </div>
 
               {dnaMetrics.score < 100 && (
-                <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                  <span className="text-2xs text-muted-foreground">Pilar belum lengkap:</span>
-                  {dnaMetrics.checks
-                    .filter((c) => !c.filled)
-                    .map((c) => (
-                      <button
-                        key={c.key}
-                        type="button"
-                        onClick={() => handleOpenBrandEditor(c.file)}
-                        className="text-2xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors font-medium flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>+ Lengkapi {c.label}</span>
-                      </button>
-                    ))}
+                <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-border/20">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-2xs text-muted-foreground">Pilar belum lengkap:</span>
+                    {dnaMetrics.checks
+                      .filter((c) => !c.filled)
+                      .map((c) => (
+                        <button
+                          key={c.key}
+                          type="button"
+                          onClick={() => handleOpenBrandEditor(c.file)}
+                          className="text-2xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors font-medium flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>+ Lengkapi {c.label}</span>
+                        </button>
+                      ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleStartBrandInterview("brand-profile")}
+                    className="h-7 text-xs font-bold text-primary hover:bg-primary/10 gap-1.5 cursor-pointer"
+                  >
+                    <Icons.sparkles className="size-3 text-primary" />
+                    Interview AI Cepat
+                  </Button>
                 </div>
               )}
             </div>
@@ -1299,6 +1341,27 @@ export function AiStudioClient() {
         clientId={clientId}
         clientName={client?.name || "Client"}
         initialPath={brandEditorPath}
+      />
+
+      <SkillInterviewModal
+        open={isInterviewOpen}
+        onOpenChange={(open) => {
+          setIsInterviewOpen(open)
+          if (!open) {
+            void setInterviewParam(null)
+            void setActiveInterviewSkillId(null)
+          }
+        }}
+        skill={interviewSkillDetail?.skill || (activeInterviewSkillId === "brand-profile" ? {
+          id: "brand-profile",
+          name: "brand-profile",
+          description: "Rancang profil brand komprehensif, target audiens, dan pilar komunikasi bersama AI.",
+          category: "Foundation & strategy",
+          job: "Rancang profil brand komprehensif bersama AI",
+          allowed_tools: null,
+        } : null)}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
       />
     </PageContainer>
   )

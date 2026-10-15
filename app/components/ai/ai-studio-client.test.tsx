@@ -62,6 +62,24 @@ vi.mock("@/features/scheduled-posts/api/queries", () => ({
   },
 }))
 
+vi.mock("@/features/skills/api/queries", () => ({
+  useSkillChatTurn: () => ({ mutate: vi.fn(), isPending: false }),
+  useSaveSkillOutput: () => ({ mutate: vi.fn(), isPending: false }),
+  useExecuteSkillTool: () => ({ mutate: vi.fn(), isPending: false }),
+  useExecuteGenericSkill: () => ({ mutate: vi.fn(), isPending: false }),
+  useSkillDetail: () => ({ data: null, isLoading: false }),
+  useSkills: () => ({ data: [], isLoading: false }),
+  useSkillPacks: () => ({ data: [], isLoading: false }),
+  skillKeys: {
+    all: ["skills"],
+    list: vi.fn(),
+    packs: vi.fn(),
+    detail: vi.fn(),
+    clientSkills: vi.fn(),
+    outputs: vi.fn(),
+  },
+}))
+
 describe("AiStudioClient", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -134,4 +152,19 @@ describe("AiStudioClient", () => {
     expect(screen.getByText("Edukasi Teh")).toBeInTheDocument()
     expect(screen.getByText("Resep Minuman")).toBeInTheDocument()
   })
+
+  it("opens SkillInterviewModal when Wawancara AI Brand Profile is clicked in Brand Brain tab", () => {
+    renderWithProviders(<AiStudioClient />)
+
+    const brandBrainTab = screen.getByRole("tab", { name: /Brand Brain/i })
+    fireEvent.click(brandBrainTab)
+
+    const interviewBtn = screen.getByRole("button", { name: /Wawancara AI Brand Profile/i })
+    expect(interviewBtn).toBeInTheDocument()
+    fireEvent.click(interviewBtn)
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+    expect(screen.getByText("brand-profile")).toBeInTheDocument()
+  })
 })
+
