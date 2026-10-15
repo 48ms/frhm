@@ -6,7 +6,7 @@ test.describe('Branded Executive PDF Export Studio (End-to-End QA)', () => {
 
   test('Flow 1: Export PDF Studio in Admin ERP Dashboard', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/erp');
+    await page.goto('/admin/erp?clientId=5044af9e-0af1-4ec6-83ba-dacba4cfebf2');
     await page.waitForLoadState('networkidle');
 
     // Deliverables section exists
@@ -51,7 +51,7 @@ test.describe('Branded Executive PDF Export Studio (End-to-End QA)', () => {
 
   test('Flow 2: Export PDF Studio in Client Review Portal', async ({ page, context }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/erp');
+    await page.goto('/admin/erp?clientId=5044af9e-0af1-4ec6-83ba-dacba4cfebf2');
     await page.waitForLoadState('networkidle');
 
     // Get live link to client review portal
