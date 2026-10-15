@@ -553,3 +553,53 @@ Begitu pula `app/scripts/` (50 file, **0 tracked git**), `app/anti-slop/` (6 aud
 - **Visual Verification**:
   - Tangkapan layar Playwright resolusi nyata (`post_dialog_fixed.png` dan `post_dialog_preview_fixed.png`): Modal terpadu bersih, teks/konten feed simulator fidelitas tinggi, zero overflow, zero clipping.
 
+---
+
+## 2026-10-15 — Sidebar "Tambah Client" Wiring & Onboarding Lifecycle Parity (100% Complete)
+
+### 1. Masalah & Gap yang Ditemukan
+1. **Provider Scope Misplacement (`app/admin/layout.tsx`)**:
+   - Komponen `<AppSidebar>` diletakkan di luar pembungkus `<CreateClientProvider>`. Karena fallback context adalah no-op (`() => {}`), mengklik "New Workspace" pada switcher sidebar tidak menghasilkan aksi apapun (silent failure).
+2. **State Sidebar Collapsed Terabaikan (`components/app-sidebar.tsx`)**:
+   - Saat sidebar di-minimize (`open === false`), workspace switcher hanya menampilkan avatar statis tanpa pemicu dropdown menu maupun opsi penambahan client.
+3. **UX & Konten Dropdown Kurang Jelas (`components/workspace-switcher.tsx`)**:
+   - Menu aksi bertuliskan bahasa Inggris "New Workspace" tanpa subtitle deskriptif, dan tidak ada tautan cepat ke manajemen portofolio semua klien.
+4. **Data Seeding & Backend Gap (`features/dashboard/api/service.ts`)**:
+   - `createNewClient` belum men-seed file markdown profil brand awal (`brand-profile.md` di `client_files`), belum otomatis mengalokasikan starter skill pack (`starter`) ke `client_skills`, dan query `dashboard_profiles` gagal karena kolom wajib `greeting` dan `peak_label` belum disertakan.
+5. **Dual Dialog Anti-Pattern & Dead-end Routing (`components/client/create-client-dialog.tsx`)**:
+   - Merender dua komponen `<Dialog>` terpisah yang memicu Radix Portal DOM collision.
+   - Tombol "Mulai Wawancara Brand Profile" mengarah ke URL 404 (`/admin/clients/${cid}?interview=brand-profile`).
+   - Active client ID pada state URL tidak otomatis beralih saat workspace baru berhasil dibuat.
+
+### 2. Solusi & Perbaikan Komprehensif
+1. **Hoisting Context Provider (`app/app/admin/layout.tsx`)**:
+   - Memindahkan `<CreateClientProvider>` ke level teratas membungkus `<AppSidebar>` dan `<SidebarInset>`, sehingga aksi `openCreateClientDialog()` dapat diakses secara global di seluruh hierarki.
+2. **Penyempurnaan Switcher Sidebar (`components/workspace-switcher.tsx`)**:
+   - Menambahkan prop `collapsed?: boolean` dengan fallback trigger avatar mini yang tetap membuka dropdown ke kanan (`side="right"`).
+   - Memperbarui label menjadi "Tambah Client Baru" dengan subtitle "Setup workspace & brand".
+   - Menambahkan opsi "Semua Client" dengan navigasi langsung ke `/admin/clients`.
+3. **Unifikasi Lifecycle Radix Dialog (`components/client/create-client-dialog.tsx`)**:
+   - Mengonsolidasikan seluruh flow (Langkah 1 -> Langkah 2 -> Launchpad Sukses) ke dalam satu elemen `<Dialog open={open} onOpenChange={handleClose}>` bersih tanpa portal collision.
+   - Mengaktifkan automatic active workspace synchronization via `setClientId(client.id)`.
+   - Mengarahkan tombol "Mulai Interview Brand Profile" ke AI Studio Brand Brain (`/admin/ai?tab=brand-brain&clientId=${cid}`).
+   - Menghubungkan "Lanjut ke Dashboard Dulu" ke `/admin/dashboard?clientId=${cid}` dengan reset state komprehensif.
+4. **Backend Seeding Lengkap (`features/dashboard/api/service.ts`)**:
+   - Men-seed `client_files` dengan template profil brand awal (`brand-profile.md`).
+   - Mengalokasikan skill pack `starter` secara otomatis via `assignPackToClient`.
+   - Memasukkan default record `dashboard_profiles` dengan `greeting` dan `peak_label` yang sesuai batasan skema NOT NULL.
+
+### 3. Verifikasi & Integritas (Zero Overclaim)
+- **TypeScript**: `npx tsc --noEmit` -> **0 error**.
+- **Unit Tests**:
+  - `components/workspace-switcher.test.tsx`: **6/6 passed** (expanded/collapsed triggers, open dialog, navigate to clients).
+  - `components/client/create-client-dialog.test.tsx`: **5/5 passed** (validation, multi-step navigation, API submission, URL sync, launchpad actions).
+  - Vitest full suite: **64 test files passed, 335/335 tests passed (100% Green)**.
+- **Playwright E2E**:
+  - `e2e/create-client.spec.ts`: **5/5 passed** (Command palette flow, required fields validation, step 1 progression, sidebar dropdown trigger, full creation & auto-switch workspace flow).
+- **Visual Verification**:
+  - `workspace_switcher_dropdown.png`: Pemicu dropdown workspace sidebar menampilkan "Tambah Client Baru" dan "Semua Client" dengan estetika token HSL.
+  - `create_client_modal_step1.png`: Modal terpadu bersih dengan indikator langkah 1 dari 2, validasi nama & niche.
+  - `create_client_modal_step2.png`: Langkah 2 detail kontak & opsi Telegram chat ID.
+  - `create_client_modal_success.png`: Kartu launchpad sukses menampilkan status skill (8 Skill Siap), email portal, tombol wawancara brand profile, serta background sidebar yang telah otomatis berganti ke klien baru.
+
+

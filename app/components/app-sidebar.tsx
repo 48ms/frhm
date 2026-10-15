@@ -68,18 +68,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
     >
       {/* Header — sejajar horizontal presisi dengan AdminHeader (md:h-14 / h-16) */}
       <SidebarHeader className="h-16 md:h-14 border-b border-border/40 px-3 flex flex-row items-center justify-between gap-2 overflow-hidden shrink-0">
-        {open ? (
-          <WorkspaceSwitcher className="mb-0" />
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-brand-accent text-primary-foreground font-bold text-xs shrink-0 mx-auto shadow-sm cursor-pointer">
-                {activeClient?.name?.charAt(0).toUpperCase() || "W"}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right">Workspace: {activeClient?.name || "Frhm"}</TooltipContent>
-          </Tooltip>
-        )}
+        <WorkspaceSwitcher className="mb-0" collapsed={!open} />
       </SidebarHeader>
 
       {/* Content Navigation */}

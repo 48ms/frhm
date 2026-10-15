@@ -76,32 +76,32 @@ export default async function AdminLayout({
       <div aria-hidden className="admin-orb admin-orb-cobalt" />
 
       <SidebarProvider>
-        <AppSidebar
-          user={{
-            name: displayName,
-            email: identity.email,
-            avatar: "",
-          }}
-        />
-        <SidebarInset id="main-content" className="min-h-svh flex-1">
-          <SkipLink />
-          <InfobarProvider defaultOpen={false}>
-            <CreateClientProvider>
-            <div className="flex flex-1 flex-col min-w-0">
-              <AdminHeader
-                userName={displayName}
-                unreadCount={1}
-              />
-              {/* Mobile: 16px top padding for header; Desktop: no extra padding */}
-              <div data-slot="admin-main" className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-4 pb-6 lg:p-8 md:pt-0">
-                {children}
-                <AdminFooter />
+        <CreateClientProvider>
+          <AppSidebar
+            user={{
+              name: displayName,
+              email: identity.email,
+              avatar: "",
+            }}
+          />
+          <SidebarInset id="main-content" className="min-h-svh flex-1">
+            <SkipLink />
+            <InfobarProvider defaultOpen={false}>
+              <div className="flex flex-1 flex-col min-w-0">
+                <AdminHeader
+                  userName={displayName}
+                  unreadCount={1}
+                />
+                {/* Mobile: 16px top padding for header; Desktop: no extra padding */}
+                <div data-slot="admin-main" className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-4 pb-6 lg:p-8 md:pt-0">
+                  {children}
+                  <AdminFooter />
+                </div>
               </div>
-            </div>
-            </CreateClientProvider>
-            <InfoSidebar />
-          </InfobarProvider>
-        </SidebarInset>
+              <InfoSidebar />
+            </InfobarProvider>
+          </SidebarInset>
+        </CreateClientProvider>
       </SidebarProvider>
     </div>
   )

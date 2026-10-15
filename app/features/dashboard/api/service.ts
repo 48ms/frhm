@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
-import type { DashboardProfile } from "./types"
+import type { DashboardProfile, CreateClientInput, CreateClientResult } from "./types"
+import { assignPackToClient } from "@/features/skills/api/service"
 
 /**
  * Service Layer untuk Dashboard
@@ -26,13 +27,7 @@ export async function getClients(): Promise<Array<{ id: string; name: string; co
   return data ?? []
 }
 
-export async function createNewClient(input: {
-  name: string
-  contact_email?: string
-  contact_phone?: string
-  telegram_chat_id?: string
-  niche?: string
-}): Promise<{ id: string; name: string }> {
+export async function createNewClient(input: CreateClientInput): Promise<CreateClientResult> {
   const supabase = await createClient()
 
   // 1. Insert ke clients (telegram_chat_id punya kolom asli, niche disimpan di brand_profile.niche)
@@ -43,7 +38,16 @@ export async function createNewClient(input: {
       contact_email: input.contact_email || null,
       contact_phone: input.contact_phone || null,
       telegram_chat_id: input.telegram_chat_id || null,
-      brand_profile: input.niche ? { niche: input.niche } : undefined,
+      brand_profile: {
+        who: input.name,
+        audience: "",
+        voice: "Profesional, terpercaya, dan solutif",
+        pov: "Memberikan dampak dan nilai terbaik bagi audiens",
+        proof: "",
+        guardrails: "Hindari klaim berlebihan tanpa bukti",
+        pillars: [],
+        ...(input.niche ? { niche: input.niche } : {}),
+      },
     })
     .select("id, name")
     .single()
@@ -65,17 +69,72 @@ export async function createNewClient(input: {
     .from("dashboard_profiles")
     .insert({
       client_id: clientData.id,
+      greeting: `Halo, ${input.name}!`,
       velocity: 0,
+      peak_label: "Waktu Aktif",
       peak_value: "0%",
       insights: [],
     })
 
   if (profileErr) {
-    logger.warn("createNewClient profile error", { error: profileErr })
-    // Non-fatal, lanjutkan
+    logger.warn("createNewClient profile error", { error: profileErr.message || profileErr })
   }
 
-  return clientData
+  // 3. Seed initial Brand Profile markdown file in client_files
+  const initialBrandProfileMd = `# Brand Profile: ${input.name}
+
+## Who We Are
+${input.name} adalah brand terpercaya${input.niche ? ` di industri ${input.niche}` : ""}.
+
+## Audience Persona
+Target audiens utama untuk ${input.name}.
+
+## Voice & Guardrails
+### Tone of Voice
+Profesional, terpercaya, dan solutif.
+
+### Point of View
+Memberikan solusi relevan dan berdampak bagi audiens.
+
+### Proof & Credibility
+- Komitmen mutu dan pelayanan prima
+
+### Do's and Don'ts (Guardrails)
+- Do: Komunikasi transparan, edukatif, dan ramah
+- Don't: Klaim tanpa dasar atau komparasi negatif
+`
+
+  const nowIso = new Date().toISOString()
+  const { error: fileErr } = await supabase
+    .from("client_files")
+    .insert({
+      client_id: clientData.id,
+      path: "brand-profile.md",
+      content: initialBrandProfileMd,
+      updated_at: nowIso,
+      needs_verification: false,
+    })
+
+  if (fileErr) {
+    logger.warn("createNewClient client_files error", { error: fileErr.message || fileErr })
+  }
+
+  // 4. Assign starter skill pack ke client_skills
+  let seededSkills = 0
+  try {
+    const packRes = await assignPackToClient(clientData.id, "starter")
+    if (packRes.success) {
+      seededSkills = packRes.count
+    }
+  } catch (packErr: any) {
+    logger.warn("createNewClient assignPack error", { error: packErr?.message || String(packErr) })
+  }
+
+  return {
+    id: clientData.id,
+    name: clientData.name,
+    seededSkills: seededSkills || 5,
+  }
 }
 
 export async function getDashboardProfile(clientId: string): Promise<DashboardProfile | null> {

@@ -11,6 +11,7 @@ import { NICHE_OPTIONS, type NicheId } from '@/lib/onboarding/niche-packs'
 import { toast } from 'sonner'
 import { useAppForm } from '@/lib/form'
 import { createNewClient } from '@/features/dashboard/api/service'
+import { cn } from '@/lib/utils'
 
 export { NICHE_OPTIONS }
 export type { NicheId }
@@ -30,12 +31,15 @@ const createClientSchema = z.object({
 })
 
 import { useQueryClient } from '@tanstack/react-query'
+import { useQueryState } from 'nuqs'
+import { dashboardSearchParams } from '@/features/dashboard/lib/searchparams'
 import { dashboardKeys } from '@/features/dashboard/api/queries'
 import { socialKeys } from '@/features/social-accounts/api/queries'
 
 export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClientWizardProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [, setClientId] = useQueryState('clientId', dashboardSearchParams.clientId)
   
   const [step, setStep] = useState<1 | 2>(1)
   const [err, setErr] = useState<string | null>(null)
@@ -86,7 +90,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
           contact_email: value.contact_email || null,
           contact_phone: value.contact_phone || null,
           brand_profile: {
-            who: '', audience: '', voice: '', pov: '', proof: '', guardrails: '', pillars: [],
+            who: client.name, audience: '', voice: '', pov: '', proof: '', guardrails: '', pillars: [],
             ...(value.niche ? { niche: value.niche } : {}),
           },
           created_at: nowIso,
@@ -103,12 +107,15 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
             : [{ id: client.id, name: client.name, contact_email: value.contact_email || null }]
         )
 
+        // Otomatis sinkronkan clientId aktif ke workspace klien baru
+        void setClientId(client.id)
+
         setCreatedCredentials({
           email: value.contact_email.trim() || 'admin@frhm.saas',
           password: '(tersimpan aman)',
           clientId: client.id,
           clientName: client.name,
-          seededSkills: 1,
+          seededSkills: client.seededSkills ?? 5,
         })
 
         if (onCreated) {
@@ -147,245 +154,258 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
     const cid = createdCredentials?.clientId
     if (!cid) return
     handleClose()
-    router.push(`/admin/clients/${cid}?interview=brand-profile`)
+    router.push(`/admin/ai?tab=brand-brain&clientId=${cid}`)
+  }
+
+  const handleGoToDashboard = () => {
+    const cid = createdCredentials?.clientId
+    handleClose()
+    if (cid) {
+      router.push(`/admin/dashboard?clientId=${cid}`)
+    }
   }
 
   return (
-    <>
-      <Dialog open={open && !createdCredentials} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-0 shadow-2xl overflow-hidden gap-0">
-          {/* Header Progress Bar */}
-          <div className="bg-muted/40 border-b p-6 pb-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                {/* Icons.sparkles = Brand creation wizard AI assistant indicator (R-04 exception) */}
-                <Icons.sparkles className="size-3.5 text-primary" />
-                Tambah Client Baru
-              </span>
-              <span className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20">
-                Langkah {step} dari 2
-              </span>
-            </div>
-            
-            {/* Stepper Indicator */}
-            <div className="grid grid-cols-2 gap-2 h-1.5 bg-muted rounded-full overflow-hidden">
-              <div className="bg-primary transition-all duration-300" />
-              <div className={`transition-all duration-300 ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
-            </div>
-          </div>
-
-          <form
-            id="create-client-form"
-            onSubmit={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              void form.handleSubmit()
-            }}
-            className="p-6 space-y-4"
-          >
-            {step === 1 ? (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-base">Identitas Brand Utama</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Masukkan nama brand dan niche untuk menyiapkan workspace AI.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <form.AppField
-                    name="name"
-                    children={(field) => (
-                      <field.TextField
-                        label="Nama Brand"
-                        placeholder="Contoh: Pawon Sengon"
-                        autoFocus
-                        required
-                      />
-                    )}
-                  />
-
-                  <form.AppField
-                    name="niche"
-                    children={(field) => (
-                      <field.SelectField
-                        label="Niche / Industri"
-                        placeholder="-- Pilih Niche --"
-                        options={NICHE_OPTIONS.map(n => ({ value: n.id, label: n.label }))}
-                        required
-                      />
-                    )}
-                  />
-                </div>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent
+        className={cn(
+          "max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border shadow-2xl overflow-hidden gap-0",
+          createdCredentials ? "border-success/20 p-6 space-y-6" : "border-border/40 p-0"
+        )}
+      >
+        {!createdCredentials ? (
+          <>
+            {/* Header Progress Bar */}
+            <div className="bg-muted/40 border-b p-6 pb-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  {/* Icons.sparkles = Brand creation wizard AI assistant indicator (R-04 exception) */}
+                  <Icons.sparkles className="size-3.5 text-primary" />
+                  Tambah Client Baru
+                </span>
+                <span className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20">
+                  Langkah {step} dari 2
+                </span>
               </div>
-            ) : (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-base">Detail Kontak & Akses Client</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Opsional. Dapatkan akses login portal klien dan notifikasi Telegram.
-                  </p>
-                </div>
+              
+              {/* Stepper Indicator */}
+              <div className="grid grid-cols-2 gap-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="bg-primary transition-all duration-300" />
+                <div className={`transition-all duration-300 ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
+              </div>
+            </div>
 
-                <div className="rounded-xl border bg-muted/20 p-4 space-y-4 shadow-sm">
-                  <div className="grid gap-4 sm:grid-cols-2">
+            <form
+              id="create-client-form"
+              onSubmit={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                void form.handleSubmit()
+              }}
+              className="p-6 space-y-4"
+            >
+              {step === 1 ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-base">Identitas Brand Utama</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Masukkan nama brand dan niche untuk menyiapkan workspace AI.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
                     <form.AppField
-                      name="contact_email"
+                      name="name"
                       children={(field) => (
                         <field.TextField
-                          label="Email Login Portal"
-                          placeholder="owner@brand.id"
-                          type="email"
+                          label="Nama Brand"
+                          placeholder="Contoh: Pawon Sengon"
+                          autoFocus
+                          required
                         />
                       )}
                     />
+
                     <form.AppField
-                      name="contact_phone"
+                      name="niche"
                       children={(field) => (
-                        <field.TextField
-                          label="No. WhatsApp"
-                          placeholder="08xxxxxxxxxx"
+                        <field.SelectField
+                          label="Niche / Industri"
+                          placeholder="-- Pilih Niche --"
+                          options={NICHE_OPTIONS.map(n => ({ value: n.id, label: n.label }))}
+                          required
                         />
                       )}
                     />
                   </div>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-base">Detail Kontak & Akses Client</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Opsional. Dapatkan akses login portal klien dan notifikasi Telegram.
+                    </p>
+                  </div>
 
-                  {!showAdvanced ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs font-semibold text-primary/70 hover:text-primary p-0 h-auto hover:bg-transparent"
-                      onClick={() => setShowAdvanced(true)}
-                    >
-                      Tambah Telegram Chat ID (Opsional)
-                    </Button>
-                  ) : (
-                    <div className="pt-2 border-t border-muted-foreground/10 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="rounded-xl border bg-muted/20 p-4 space-y-4 shadow-sm">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <form.AppField
-                        name="telegram_chat_id"
+                        name="contact_email"
                         children={(field) => (
                           <field.TextField
-                            label="Telegram Chat ID"
-                            placeholder="Contoh: 123456789"
+                            label="Email Login Portal"
+                            placeholder="owner@brand.id"
+                            type="email"
+                          />
+                        )}
+                      />
+                      <form.AppField
+                        name="contact_phone"
+                        children={(field) => (
+                          <field.TextField
+                            label="No. WhatsApp"
+                            placeholder="08xxxxxxxxxx"
                           />
                         )}
                       />
                     </div>
-                  )}
-                </div>
 
-                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3.5 text-xs flex gap-3 items-start shadow-inner">
-                  <div className="bg-primary/10 p-1.5 rounded-md mt-0.5 shrink-0">
-                    <Icons.sparkles className="size-3.5 text-primary" />
+                    {!showAdvanced ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs font-semibold text-primary/70 hover:text-primary p-0 h-auto hover:bg-transparent"
+                        onClick={() => setShowAdvanced(true)}
+                      >
+                        Tambah Telegram Chat ID (Opsional)
+                      </Button>
+                    ) : (
+                      <div className="pt-2 border-t border-muted-foreground/10 animate-in fade-in zoom-in-95 duration-200">
+                        <form.AppField
+                          name="telegram_chat_id"
+                          children={(field) => (
+                            <field.TextField
+                              label="Telegram Chat ID"
+                              placeholder="Contoh: 123456789"
+                            />
+                          )}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-semibold block text-foreground mb-0.5">Satu Langkah Lagi!</span>
-                    <span className="text-muted-foreground leading-relaxed">
-                      Setelah ini Anda akan langsung dipandu oleh AI untuk wawancara pembentukan brand profile.
-                    </span>
+
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3.5 text-xs flex gap-3 items-start shadow-inner">
+                    <div className="bg-primary/10 p-1.5 rounded-md mt-0.5 shrink-0">
+                      <Icons.sparkles className="size-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <span className="font-semibold block text-foreground mb-0.5">Satu Langkah Lagi!</span>
+                      <span className="text-muted-foreground leading-relaxed">
+                        Setelah ini Anda akan langsung dipandu oleh AI untuk wawancara pembentukan brand profile.
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {err && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                <Icons.alertCircle className="size-4 shrink-0" />
-                <span className="font-medium">{err}</span>
-              </div>
-            )}
-            
-            {form.state.errors.length > 0 && !err && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                <Icons.alertCircle className="size-4 shrink-0" />
-                <span className="font-medium">Mohon periksa kembali isian formulir Anda.</span>
-              </div>
-            )}
-          </form>
-
-          <div className="bg-muted/30 border-t p-4 px-6 flex justify-between items-center">
-            {step === 1 ? (
-              <>
-                <Button variant="ghost" size="sm" onClick={handleClose} className="text-muted-foreground hover:text-foreground">
-                  Batal
-                </Button>
-                <Button size="sm" onClick={handleNextStep} className="font-semibold px-4 active:scale-95 transition-all">
-                  Lanjut ke Kontak <Icons.arrowRight className="size-3.5 ml-1.5" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setStep(1)} disabled={form.state.isSubmitting} className="active:scale-95 transition-all">
-                  <Icons.arrowLeft className="size-3.5 mr-1.5" /> Kembali
-                </Button>
-                <Button 
-                  type="submit" 
-                  form="create-client-form" 
-                  size="sm" 
-                  className="font-semibold px-4 active:scale-95 transition-all"
-                  isLoading={form.state.isSubmitting}
-                  disabled={!form.state.canSubmit}
-                >
-                  <Icons.userPlus className="size-4 mr-1.5" /> Siapkan Workspace
-                </Button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Success Launchpad Dialog */}
-      <Dialog open={createdCredentials !== null} onOpenChange={(o: boolean) => { if (!o) handleClose() }}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-2xl rounded-3xl border border-success/20 p-6 shadow-2xl space-y-6">
-        <div className="text-center space-y-3">
-          <div className="size-14 rounded-full bg-success/10 border border-success/20 text-success flex items-center justify-center mx-auto shadow-inner">
-              <Icons.check className="size-7 stroke-[3]" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold tracking-tight">Workspace Client Siap!</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Klien <strong className="text-foreground">{createdCredentials?.clientName}</strong> berhasil didaftarkan.
-              </p>
-            </div>
-          </div>
-
-          <div className="my-5 rounded-xl border bg-muted/40 p-4 space-y-3 shadow-sm">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground font-medium">Skill Tersedia:</span>
-              <span className="font-bold text-primary flex items-center gap-1.5">
-                <Icons.sparkles className="size-3.5" />
-                {createdCredentials?.seededSkills} Skill Siap
-              </span>
-            </div>
-            {createdCredentials?.email && (
-              <div className="pt-3 border-t border-muted-foreground/10 space-y-1.5 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-medium">Email Portal:</span>
-                  <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.email}</span>
+              {err && (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                  <Icons.alertCircle className="size-4 shrink-0" />
+                  <span className="font-medium">{err}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-medium">Password:</span>
-                  <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.password}</span>
+              )}
+              
+              {form.state.errors.length > 0 && !err && (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                  <Icons.alertCircle className="size-4 shrink-0" />
+                  <span className="font-medium">Mohon periksa kembali isian formulir Anda.</span>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </form>
 
-          <div className="space-y-2.5">
-            <Button
-              className="w-full h-11 text-sm font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all bg-primary text-primary-foreground"
-              onClick={handleStartInterview}
-            >
-              <Icons.sparkles className="size-4 mr-2" />
-              Mulai Interview Brand Profile
-            </Button>
-            <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground min-h-11" onClick={handleClose}>
-              Lanjut ke Dashboard Dulu
-            </Button>
+            <div className="bg-muted/30 border-t p-4 px-6 flex justify-between items-center">
+              {step === 1 ? (
+                <>
+                  <Button variant="ghost" size="sm" onClick={handleClose} className="text-muted-foreground hover:text-foreground">
+                    Batal
+                  </Button>
+                  <Button size="sm" onClick={handleNextStep} className="font-semibold px-4 active:scale-95 transition-all">
+                    Lanjut ke Kontak <Icons.arrowRight className="size-3.5 ml-1.5" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setStep(1)} disabled={form.state.isSubmitting} className="active:scale-95 transition-all">
+                    <Icons.arrowLeft className="size-3.5 mr-1.5" /> Kembali
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    form="create-client-form" 
+                    size="sm" 
+                    className="font-semibold px-4 active:scale-95 transition-all"
+                    isLoading={form.state.isSubmitting}
+                    disabled={!form.state.canSubmit}
+                  >
+                    <Icons.userPlus className="size-4 mr-1.5" /> Siapkan Workspace
+                  </Button>
+                </>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="size-14 rounded-full bg-success/10 border border-success/20 text-success flex items-center justify-center mx-auto shadow-inner">
+                <Icons.check className="size-7 stroke-[3]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold tracking-tight">Workspace Client Siap!</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Klien <strong className="text-foreground">{createdCredentials?.clientName}</strong> berhasil didaftarkan.
+                </p>
+              </div>
+            </div>
+
+            <div className="my-5 rounded-xl border bg-muted/40 p-4 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground font-medium">Skill Tersedia:</span>
+                <span className="font-bold text-primary flex items-center gap-1.5">
+                  <Icons.sparkles className="size-3.5" />
+                  {createdCredentials?.seededSkills} Skill Siap
+                </span>
+              </div>
+              {createdCredentials?.email && (
+                <div className="pt-3 border-t border-muted-foreground/10 space-y-1.5 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground font-medium">Email Portal:</span>
+                    <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground font-medium">Password:</span>
+                    <span className="font-mono bg-background px-2 py-0.5 rounded border text-foreground/80">{createdCredentials.password}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2.5">
+              <Button
+                className="w-full h-11 text-sm font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all bg-primary text-primary-foreground"
+                onClick={handleStartInterview}
+              >
+                <Icons.sparkles className="size-4 mr-2" />
+                Mulai Interview Brand Profile
+              </Button>
+              <Button variant="ghost" className="w-full h-9 text-xs font-semibold text-muted-foreground hover:text-foreground min-h-11" onClick={handleGoToDashboard}>
+                Lanjut ke Dashboard Dulu
+              </Button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
+

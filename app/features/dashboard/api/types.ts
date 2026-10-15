@@ -22,3 +22,18 @@ export type DashboardProfile = {
   metrics: DashboardMetric[]
   updated_at?: string
 }
+
+export type CreateClientInput = {
+  name: string
+  contact_email?: string
+  contact_phone?: string
+  telegram_chat_id?: string
+  niche?: string
+}
+
+export type CreateClientResult = {
+  id: string
+  name: string
+  seededSkills: number
+}
+
