@@ -27,10 +27,12 @@ test.describe('Social Accounts & Channel Dispatch (End-to-End QA)', () => {
     await page.getByRole('tab', { name: /All Accounts/i }).click();
     await page.waitForTimeout(300);
 
-    // Verify connected accounts are shown without NaN
-    const channelCards = page.locator('text=@');
-    if (await channelCards.count() > 0) {
-      await expect(channelCards.first()).toBeVisible();
+    // Verify connected accounts render without NaN. Scope to the board region
+    // and avoid bare `text=@` which also matches the Next.js dev-tools overlay.
+    const board = page.locator('main')
+    const handles = board.locator('span, p, div').filter({ hasText: /^@[A-Za-z0-9._-]+$/ })
+    if ((await handles.count()) > 0) {
+      await expect(handles.first()).toBeVisible()
     }
   });
 
