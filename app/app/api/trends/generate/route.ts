@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 import { logAudit } from '@/lib/audit/log'
 import { z } from 'zod'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,8 +37,8 @@ export async function POST(request: Request) {
 
   const cookieStore = await cookies()
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.server.NEXT_PUBLIC_SUPABASE_URL!,
+    env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
@@ -168,8 +169,8 @@ export async function POST(request: Request) {
 
   // 7. Kirim notifikasi Telegram ke klien (jika terhubung)
   if (client.telegram_chat_id && client.telegram_notifications_enabled) {
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = env.server.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = env.server.NEXT_PUBLIC_SUPABASE_URL
     notifyClientContentReady({
       clientChatId: client.telegram_chat_id,
       clientId: client.id,

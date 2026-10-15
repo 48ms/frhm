@@ -4,6 +4,8 @@
  * dan verifikasi token/secret pada request inbound.
  */
 
+import { env } from '@/lib/env'
+
 export interface WhatsAppWebhookVerificationResult {
   ok: boolean
   challenge?: string
@@ -42,7 +44,7 @@ export function verifyWhatsAppWebhookPost(
   // Jika secret di-set di env, wajib cocok (fail-closed).
   // Jika tidak di-set di development/test, beri izin jika env bukan production.
   if (!configuredSecret) {
-    if (process.env.NODE_ENV === 'production') {
+    if (env.server.NODE_ENV === 'production') {
       return { ok: false, reason: 'secret_not_configured_in_production' }
     }
     return { ok: true }

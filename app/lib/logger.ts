@@ -3,6 +3,8 @@
  * In production/Vercel Edge, structured JSON logs are critical for Datadog/Axiom/Vercel Logs integration.
  */
 
+import { env } from '@/lib/env'
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 interface LogContext {
@@ -37,7 +39,7 @@ class Logger {
   }
 
   constructor() {
-    const envLevel = (process.env.LOG_LEVEL || 'info').toLowerCase()
+    const envLevel = (env.server.LOG_LEVEL || 'info').toLowerCase()
     this.level = this.levels[envLevel as LogLevel] || 20
   }
 
@@ -56,7 +58,7 @@ class Logger {
     }
 
     // In local development, format it nicely. In production, write raw JSON.
-    if (process.env.NODE_ENV === 'development') {
+    if (env.server.NODE_ENV === 'development') {
       const { timestamp, level, msg, error, ...ctx } = entry
       const ctxStr = Object.keys(ctx).length ? `\n    ${JSON.stringify(ctx)}` : ''
       const errStr = error ? `\n    ${(error as Error).stack || (error as Error).message}` : ''

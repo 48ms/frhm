@@ -1,4 +1,5 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { env } from '@/lib/env'
 
 export interface SendWhatsAppOptions {
   phone: string
@@ -107,9 +108,9 @@ export async function sendWhatsAppNotification(
     }
   }
 
-  const apiToken = process.env.WHATSAPP_API_TOKEN
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
-  const customWebhookUrl = process.env.WHATSAPP_WEBHOOK_URL
+  const apiToken = env.server.WHATSAPP_API_TOKEN
+  const phoneNumberId = env.server.WHATSAPP_PHONE_NUMBER_ID
+  const customWebhookUrl = env.server.WHATSAPP_WEBHOOK_URL
 
   // Skenario A: Meta WhatsApp Business Cloud API terkonfigurasi
   if (apiToken && phoneNumberId) {
@@ -299,8 +300,8 @@ async function logWhatsAppNotification(params: {
   clickUrl?: string
   errorMessage?: string
 }) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = env.server.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = env.server.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) return
 

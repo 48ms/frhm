@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { USER_HEADERS } from './identity-headers'
+import { env } from '@/lib/env'
 
 /**
  * PERF: previously every /admin request paid FOUR sequential Supabase
@@ -41,8 +42,8 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = buildNextResponse()
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.server.NEXT_PUBLIC_SUPABASE_URL,
+    env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {

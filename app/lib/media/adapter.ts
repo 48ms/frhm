@@ -9,6 +9,8 @@
  * succeeded while nothing was stored.
  */
 
+import { env } from '@/lib/env'
+
 export type UploadResult =
   | { success: true; url: string; publicId: string }
   | { success: false; error: string }
@@ -20,8 +22,8 @@ export interface MediaAdapter {
   isConfigured(): boolean
 }
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET
+const CLOUD_NAME = env.server.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+const UPLOAD_PRESET = env.server.CLOUDINARY_UPLOAD_PRESET
 
 class CloudinaryAdapter implements MediaAdapter {
   isConfigured(): boolean {

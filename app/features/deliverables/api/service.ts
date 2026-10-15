@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createSupabaseServiceClient } from "@/lib/supabase/service"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 import { logAudit } from "@/lib/audit/log"
 import {
   createDeliverableSchema,
@@ -367,7 +368,7 @@ export async function submitDeliverableReview(
 
     // 7. Notifikasi Telegram Admin (non-blocking)
     try {
-      const adminChatId = process.env.ADMIN_TELEGRAM_CHAT_ID || process.env.TELEGRAM_ADMIN_CHAT_ID
+      const adminChatId = env.server.ADMIN_TELEGRAM_CHAT_ID || env.server.TELEGRAM_ADMIN_CHAT_ID
       if (adminChatId) {
         const statusBadge = safe.status === "approved" ? "DISETUJUI ✅" : "MINTA REVISI ⚠️"
         const stars = safe.rating ? "⭐".repeat(safe.rating) : "-"
@@ -456,7 +457,7 @@ export async function scheduleApprovedDeliverable(
 
     // 4. Notifikasi Telegram Admin (non-blocking)
     try {
-      const adminChatId = process.env.ADMIN_TELEGRAM_CHAT_ID || process.env.TELEGRAM_ADMIN_CHAT_ID
+      const adminChatId = env.server.ADMIN_TELEGRAM_CHAT_ID || env.server.TELEGRAM_ADMIN_CHAT_ID
       if (adminChatId) {
         const formattedDate = new Date(safe.scheduledAt).toLocaleString("id-ID", {
           dateStyle: "full",

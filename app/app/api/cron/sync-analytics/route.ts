@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { getActivePlatforms, getSocialAnalytics } from '@/lib/bridge/ayrshare'
 import { verifyCronSecret } from '@/lib/cron/auth'
@@ -9,14 +10,14 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   // Fail-closed cron auth
-  const cronAuth = verifyCronSecret(process.env.CRON_SECRET, request.headers.get('authorization'))
+  const cronAuth = verifyCronSecret(env.server.CRON_SECRET, request.headers.get('authorization'))
   if (!cronAuth.ok) {
     logger.warn('cron.sync-analytics.rejected', { route: 'api/cron/sync-analytics', reason: cronAuth.reason })
     return NextResponse.json({ error: 'Unauthorized CRON trigger' }, { status: 401 })
   }
 
   const supabase = createSupabaseServiceClient()
-  const apiKey = process.env.AYRSHARE_API_KEY
+  const apiKey = env.server.AYRSHARE_API_KEY
 
   if (!apiKey) {
     return NextResponse.json({ error: 'Ayrshare API key missing' }, { status: 503 })

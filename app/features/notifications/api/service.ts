@@ -12,6 +12,7 @@ import {
   sendTelegramMessage,
   TelegramButton,
 } from "@/lib/telegram/service"
+import { env } from "@/lib/env"
 import {
   dispatchReviewNotificationSchema,
   testNotificationSchema,
@@ -59,7 +60,7 @@ export async function getNotificationTargetForDeliverable(
     return null
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const appUrl = env.server.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   const reviewUrl = `${appUrl}/review/${deliverable.id}`
 
   const suggestedWhatsAppMessage = formatReviewNotificationMessage({

@@ -1,4 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// logger reads config via env.server (Rule 15). Mock it so the test can drive
+// NODE_ENV/LOG_LEVEL without tripping the browser guard.
+vi.mock('@/lib/env', () => ({
+  env: {
+    get server() {
+      return { NODE_ENV: process.env.NODE_ENV, LOG_LEVEL: process.env.LOG_LEVEL }
+    },
+  },
+}))
+
 import { logger } from './logger'
 
 describe('logger', () => {

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { env } from '@/lib/env'
 
 /**
  * Read the WoopSocial bridge key from bridge_config — the one server-side place it lives.
@@ -7,17 +8,17 @@ import { cookies } from 'next/headers'
  * Using a server client (session cookie) keeps RLS in play: only the admin can ever read the
  * key back out of the table. The key is a production credential and must never leave the server.
  *
- * Fallback: process.env.BRIDGE_API_KEY for serverless/cron contexts where no session exists.
+ * Fallback: BRIDGE_API_KEY for serverless/cron contexts where no session exists.
  */
 export async function getBridgeKey(): Promise<string | null> {
   // Direct env fallback for cron/serverless contexts (no session/cookies available)
-  const envKey = process.env.BRIDGE_API_KEY?.trim() || null
+  const envKey = env.server.BRIDGE_API_KEY?.trim() || null
   if (envKey) return envKey
 
   const cookieStore = await cookies()
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.server.NEXT_PUBLIC_SUPABASE_URL,
+    env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() { return cookieStore.getAll() },

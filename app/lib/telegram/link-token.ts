@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { env } from '@/lib/env'
 
 /**
  * One-time Telegram account-linking token.
@@ -25,8 +26,8 @@ export interface LinkTokenPayload {
 
 function getSecret(): string | null {
   return (
-    process.env.TELEGRAM_LINK_SECRET ||
-    process.env.TELEGRAM_BOT_SECRET_TOKEN ||
+    env.server.TELEGRAM_LINK_SECRET ||
+    env.server.TELEGRAM_BOT_SECRET_TOKEN ||
     null
   )
 }

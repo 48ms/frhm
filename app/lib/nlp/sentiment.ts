@@ -1,5 +1,6 @@
 import { chat, type Provider } from '@/lib/ai/providers'
 import { getCachedSentiment } from '@/lib/nlp/sentiment-cache'
+import { env } from '@/lib/env'
 
 export interface SentimentResult {
   sentiment: 'positive' | 'negative' | 'neutral'
@@ -35,9 +36,9 @@ Komentar: "${text.replace(/"/g, "'")}"`
 
   const aiProvider: Provider = provider || {
     kind: 'custom',
-    model: process.env.AI_DEFAULT_MODEL || 'gpt-oss:120b',
-    base_url: process.env.AI_DEFAULT_BASE_URL || 'http://localhost:11434/v1',
-    api_key: process.env.AI_DEFAULT_API_KEY || 'ollama',
+    model: env.server.AI_DEFAULT_MODEL || 'gpt-oss:120b',
+    base_url: env.server.AI_DEFAULT_BASE_URL || 'http://localhost:11434/v1',
+    api_key: env.server.AI_DEFAULT_API_KEY || 'ollama',
   }
 
   try {

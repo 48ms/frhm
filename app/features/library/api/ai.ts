@@ -5,6 +5,7 @@ import type { Provider } from '@/lib/ai/providers'
 import { resolveProvider } from '@/lib/ai/server'
 import { logAiUsage } from '@/lib/ai/usage'
 import { previewUrl } from '@/lib/media/transform'
+import { env } from '@/lib/env'
 
 export interface CaptionResult {
   caption: string
@@ -63,9 +64,9 @@ export async function generateAssetCaption(
 
   const provider: Provider = dbProvider || {
     kind: 'custom',
-    model: process.env.AI_DEFAULT_MODEL || 'gpt-4o-mini',
-    base_url: process.env.AI_DEFAULT_BASE_URL || 'http://localhost:11434/v1',
-    api_key: process.env.AI_DEFAULT_API_KEY || 'ollama',
+    model: env.server.AI_DEFAULT_MODEL || 'gpt-4o-mini',
+    base_url: env.server.AI_DEFAULT_BASE_URL || 'http://localhost:11434/v1',
+    api_key: env.server.AI_DEFAULT_API_KEY || 'ollama',
   }
 
   const system = `Kamu copywriter media sosial.

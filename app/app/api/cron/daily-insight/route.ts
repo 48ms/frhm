@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { logAudit } from '@/lib/audit/log'
 import { chatDetailed, type Provider } from '@/lib/ai/providers'
@@ -16,7 +17,7 @@ export const dynamic = 'force-dynamic'
 // Vercel Cron Job: GET /api/cron/daily-insight (scheduled harian via cron.yaml atau external)
 export async function GET(request: Request) {
   // Security: require Bearer token, fail-closed.
-  const cronAuth = verifyCronSecret(process.env.CRON_SECRET, request.headers.get('authorization'))
+  const cronAuth = verifyCronSecret(env.server.CRON_SECRET, request.headers.get('authorization'))
   if (!cronAuth.ok) {
     logger.warn('cron.daily-insight.rejected', { route: 'api/cron/daily-insight', reason: cronAuth.reason })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -398,7 +399,7 @@ async function generateDailyInsightForClient(
   }
 
   // A. Dispatch ke Admin/Bot Frhm Internal (TELEGRAM_ADMIN_CHAT_ID)
-  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID
+  const adminChatId = env.server.TELEGRAM_ADMIN_CHAT_ID
   let adminMessageId: number | undefined
   if (adminChatId) {
     const adminReportText = buildAdminReport(briefingData)

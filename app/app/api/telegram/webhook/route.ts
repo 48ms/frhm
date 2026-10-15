@@ -7,6 +7,7 @@ import { verifyTelegramLinkToken } from '@/lib/telegram/link-token'
 import { denyUnauthorized } from '@/lib/auth/guard'
 import { logger } from '@/lib/logger'
 import { logAudit } from '@/lib/audit/log'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
   // Verifikasi secret token Telegram webhook (fail-closed: tanpa secret
   // terkonfigurasi, tolak request — jangan pernah terima webhook tanpa auth).
   const verification = verifyTelegramWebhookSecret(
-    process.env.TELEGRAM_BOT_SECRET_TOKEN,
+    env.server.TELEGRAM_BOT_SECRET_TOKEN,
     request.headers.get('x-telegram-bot-api-secret-token'),
   )
   if (!verification.ok) {
@@ -62,8 +63,8 @@ export async function POST(request: Request) {
   const username = message.from?.username || message.chat.title || message.from?.first_name || null
   const text = message.text.trim()
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = env.server.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = env.server.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error('[Telegram Webhook] Supabase credentials tidak tersedia')
@@ -140,7 +141,7 @@ export async function POST(request: Request) {
       }
 
       // Kirim pesan konfirmasi sukses ke klien
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       await sendTelegramMessage({
         chatId,
         text: [
@@ -208,7 +209,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true })
       }
 
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       await sendTelegramMessage({
         chatId,
         text: [

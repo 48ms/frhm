@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
+import { env } from "@/lib/env"
 import { resolveProvider } from "@/lib/ai/server"
 import { chatJson } from "@/lib/ai/providers"
 import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
@@ -124,7 +125,7 @@ export async function syncChannel(channelId: string): Promise<void> {
     throw new Error("Ayrshare profile key not found for this client")
   }
 
-  const apiKey = process.env.AYRSHARE_API_KEY
+  const apiKey = env.server.AYRSHARE_API_KEY
   if (!apiKey) {
     throw new Error("Ayrshare API key not configured")
   }

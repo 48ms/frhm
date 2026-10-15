@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { notifyZeroMetricsEscalation } from '@/lib/telegram/service'
 import { reportError } from '@/lib/error-reporter'
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   // Fail-closed cron auth.
-  const cronAuth = verifyCronSecret(process.env.CRON_SECRET, request.headers.get('authorization'))
+  const cronAuth = verifyCronSecret(env.server.CRON_SECRET, request.headers.get('authorization'))
   if (!cronAuth.ok) {
     logger.warn('cron.check-zero-metrics.rejected', { route: 'api/cron/check-zero-metrics', reason: cronAuth.reason })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

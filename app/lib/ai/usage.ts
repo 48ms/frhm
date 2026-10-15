@@ -1,4 +1,5 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { env } from '@/lib/env'
 
 export type AiUsageInput = {
   /** Caller's user id (the admin/client who triggered the call). Null for system/cron calls. */
@@ -35,7 +36,7 @@ export type AiUsageInput = {
  */
 export async function logAiUsage(input: AiUsageInput): Promise<void> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!env.server.NEXT_PUBLIC_SUPABASE_URL || !env.server.SUPABASE_SERVICE_ROLE_KEY) {
       return
     }
     const admin = createSupabaseServiceClient()

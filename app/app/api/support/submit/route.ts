@@ -4,6 +4,7 @@ import { sendTelegramMessage } from "@/lib/telegram/service"
 import { logAudit } from "@/lib/audit/log"
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/middleware/rate-limit"
 import { z } from "zod"
+import { env } from "@/lib/env"
 
 export const dynamic = "force-dynamic"
 
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
   }
 
   // Kirim ke chat admin Frahma (env var konsisten dengan lib/telegram/service.ts)
-  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID
+  const adminChatId = env.server.TELEGRAM_ADMIN_CHAT_ID
 
   if (adminChatId) {
     const text = [

@@ -1,4 +1,5 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { env } from '@/lib/env'
 
 /**
  * Append one row to audit_log.
@@ -43,7 +44,7 @@ function forensicFromRequest(request?: Request) {
 
 export async function logAudit(input: AuditInput): Promise<void> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!env.server.NEXT_PUBLIC_SUPABASE_URL || !env.server.SUPABASE_SERVICE_ROLE_KEY) {
       return
     }
     const admin = createSupabaseServiceClient()

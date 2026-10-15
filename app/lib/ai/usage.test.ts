@@ -5,6 +5,18 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({ from: vi.fn(() => ({ insert: insertMock })) }),
 }))
 
+// logAiUsage gates on env.server (Rule 15). Mock it to mirror process.env.
+vi.mock('@/lib/env', () => ({
+  env: {
+    get server() {
+      return {
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      }
+    },
+  },
+}))
+
 import { logAiUsage } from './usage'
 
 describe('logAiUsage', () => {

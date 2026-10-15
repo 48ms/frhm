@@ -1,5 +1,6 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { createTelegramLinkToken } from '@/lib/telegram/link-token'
+import { env } from '@/lib/env'
 
 export interface TelegramButton {
   text: string
@@ -27,11 +28,11 @@ export interface TelegramSendResult {
 }
 
 export function getTelegramBotToken(): string | undefined {
-  return process.env.TELEGRAM_BOT_TOKEN
+  return env.server.TELEGRAM_BOT_TOKEN || undefined
 }
 
 export function getTelegramBotUsername(): string {
-  return process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'FrhmBot'
+  return env.server.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'FrhmBot'
 }
 
 /**
@@ -170,8 +171,8 @@ async function logTelegramNotification(params: {
   status: 'sent' | 'failed' | 'skipped'
   errorMessage?: string
 }) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = env.server.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = env.server.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) return
 
@@ -202,7 +203,7 @@ export async function notifyClientContentReady(params: {
   previewUrl?: string
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const reviewUrl = `${appUrl}/admin/erp`
 
   const lines = [
@@ -257,7 +258,7 @@ export async function notifyAdminClientFeedback(params: {
   deliverableId: string
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const adminUrl = `${appUrl}/admin/erp`
 
   const isApproved = params.action === 'approved'
@@ -289,7 +290,7 @@ export async function notifyAdminClientFeedback(params: {
     ],
   ]
 
-  const targetChatId = params.adminChatId || process.env.TELEGRAM_ADMIN_CHAT_ID
+  const targetChatId = params.adminChatId || env.server.TELEGRAM_ADMIN_CHAT_ID
   if (!targetChatId) {
     return { success: false, error: 'TELEGRAM_ADMIN_CHAT_ID not configured' }
   }
@@ -355,7 +356,7 @@ export async function notifyAdminPublishStatus(params: {
     lines.push(`• Posting ulang manual`)
   }
 
-  const targetChatId = params.adminChatId || process.env.TELEGRAM_ADMIN_CHAT_ID
+  const targetChatId = params.adminChatId || env.server.TELEGRAM_ADMIN_CHAT_ID
   if (!targetChatId) {
     return { success: false, error: 'TELEGRAM_ADMIN_CHAT_ID not configured' }
   }
@@ -407,13 +408,13 @@ export async function notifyZeroMetricsEscalation(params: {
     `Tindakan: cek native analytics IG/TikTok & input manual metrik di dashboard Frhm.`,
   ].filter(Boolean).join('\n')
 
-  const targetChatId = params.adminChatId || process.env.TELEGRAM_ADMIN_CHAT_ID
+  const targetChatId = params.adminChatId || env.server.TELEGRAM_ADMIN_CHAT_ID
   if (!targetChatId) {
     return { success: false, error: 'TELEGRAM_ADMIN_CHAT_ID not configured' }
   }
 
   const buttons: TelegramButton[][] = [[
-    { text: 'Buka Analytics Board', url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/analytics?clientId=${params.clientId}` },
+    { text: 'Buka Analytics Board', url: `${env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/analytics?clientId=${params.clientId}` },
   ]]
 
   return sendTelegramMessage({
@@ -438,7 +439,7 @@ export async function notifyClientReminder(params: {
   scheduledAt: string
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const calendarUrl = `${appUrl}/admin/calendar`
 
   const dateStr = new Date(params.scheduledAt).toLocaleDateString('id-ID', {

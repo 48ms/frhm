@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit/log'
 import { createOAuthState, OAUTH_STATE_COOKIE, OAUTH_STATE_TTL_SECONDS } from '@/lib/social/oauth-state'
 import { z } from 'zod'
+import { env } from '@/lib/env'
 
 const bodySchema = z.object({
   clientId: z.string().min(1, 'clientId wajib diisi'),
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     }
 
     // Call Ayrshare API
-    const ayrshareApiKey = process.env.AYRSHARE_API_KEY
+    const ayrshareApiKey = env.server.AYRSHARE_API_KEY
     if (!ayrshareApiKey) {
       return NextResponse.json({ error: 'Ayrshare API key not configured' }, { status: 500 })
     }
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
     // However, if we don't have JWT implemented, we can redirect to a direct login link 
     // or return the profileKey for the frontend to use Ayrshare's direct connection widget.
     // For now, we simulate a direct OAuth URL generation pattern using Ayrshare's portal.
-    const callbackUrl = new URL(process.env.NEXT_PUBLIC_APP_URL + '/api/social/callback')
+    const callbackUrl = new URL(env.server.NEXT_PUBLIC_APP_URL + '/api/social/callback')
     callbackUrl.searchParams.set('clientId', clientId)
     callbackUrl.searchParams.set('platform', platform)
 
@@ -115,7 +116,7 @@ export async function POST(req: Request) {
       name: OAUTH_STATE_COOKIE,
       value: stateToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.server.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: OAUTH_STATE_TTL_SECONDS,

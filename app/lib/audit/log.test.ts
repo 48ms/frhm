@@ -10,6 +10,19 @@ vi.mock('@supabase/supabase-js', () => ({
   }) }),
 }))
 
+// logAudit gates on env.server (Rule 15). Mock it to mirror process.env so the
+// "missing env" test can exercise the early-return guard.
+vi.mock('@/lib/env', () => ({
+  env: {
+    get server() {
+      return {
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      }
+    },
+  },
+}))
+
 import { logAudit } from './log'
 
 describe('logAudit', () => {

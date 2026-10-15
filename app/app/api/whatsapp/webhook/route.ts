@@ -5,6 +5,7 @@ import {
 } from '@/lib/whatsapp/verify-webhook'
 import { logger } from '@/lib/logger'
 import { logAudit } from '@/lib/audit/log'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+  const verifyToken = env.server.WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
   const verification = verifyWhatsAppWebhookGet(verifyToken, mode, token, challenge)
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     request.headers.get('x-whatsapp-webhook-secret') ||
     request.headers.get('x-hub-signature-256')
 
-  const configuredSecret = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+  const configuredSecret = env.server.WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
   const verification = verifyWhatsAppWebhookPost(configuredSecret, secretHeader)
   if (!verification.ok) {

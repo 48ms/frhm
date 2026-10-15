@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto'
+import { env } from '@/lib/env'
 
 /**
  * CSRF/authorization state for the Ayrshare social-linking flow.
@@ -29,7 +30,7 @@ export type OAuthStatePayload = {
 
 function getSecret(): string | null {
   // Server-only secrets; never part of the client bundle.
-  return process.env.OAUTH_STATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || null
+  return env.server.OAUTH_STATE_SECRET || env.server.SUPABASE_SERVICE_ROLE_KEY || null
 }
 
 function b64url(buf: Buffer): string {

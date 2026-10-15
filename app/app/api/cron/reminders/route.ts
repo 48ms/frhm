@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { notifyClientReminder } from '@/lib/telegram/service'
 import { isFeatureEnabled } from '@/lib/feature-flags'
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: Request) {
   // Fail-closed cron auth.
-  const cronAuth = verifyCronSecret(process.env.CRON_SECRET, request.headers.get('authorization'))
+  const cronAuth = verifyCronSecret(env.server.CRON_SECRET, request.headers.get('authorization'))
   if (!cronAuth.ok) {
     logger.warn('cron.reminders.rejected', { route: 'api/cron/reminders', reason: cronAuth.reason })
     return NextResponse.json({ error: 'Unauthorized CRON trigger' }, { status: 401 })

@@ -4,12 +4,13 @@ import { NextResponse } from 'next/server'
 import type { Provider } from './providers'
 import { logger } from '@/lib/logger'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { env } from '@/lib/env'
 
 export async function serverSupabase() {
   const cookieStore = await cookies()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.server.NEXT_PUBLIC_SUPABASE_URL,
+    env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { verifyOAuthState, OAUTH_STATE_COOKIE } from '@/lib/social/oauth-state'
+import { env } from '@/lib/env'
 
 function readCookie(req: Request, name: string): string | null {
   const header = req.headers.get('cookie')
@@ -67,7 +68,7 @@ export async function GET(req: Request) {
       return NextResponse.redirect(new URL('/admin/social-accounts?error=missing_params', req.url))
     }
 
-    const apiKey = process.env.AYRSHARE_API_KEY
+    const apiKey = env.server.AYRSHARE_API_KEY
     if (!apiKey) {
       return NextResponse.redirect(
         new URL('/admin/social-accounts?error=ayrshare_not_configured', req.url)

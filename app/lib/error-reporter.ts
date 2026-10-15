@@ -13,6 +13,7 @@
 
 import { sendTelegramMessage } from '@/lib/telegram/service'
 import { logger } from '@/lib/logger'
+import { env } from '@/lib/env'
 import { logAudit } from '@/lib/audit/log'
 
 interface ErrorReport {
@@ -135,7 +136,7 @@ export async function reportError(report: ErrorReport): Promise<void> {
   })
 
   // 4. Telegram notification (fire-and-forget, never blocks response)
-  const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID
+  const chatId = env.server.TELEGRAM_ADMIN_CHAT_ID
   if (!chatId) return
 
   try {

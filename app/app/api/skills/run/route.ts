@@ -6,6 +6,7 @@ import { denyUnauthorized, denyForbidden } from '@/lib/auth/guard'
 import { logAudit } from '@/lib/audit/log'
 import { ExecuteGenericSkillSchema } from '@/features/skills/api/types'
 import { executeGenericSkill } from '@/features/skills/api/service'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,8 +26,8 @@ export async function POST(request: Request) {
 
   const cookieStore = await cookies()
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.server.NEXT_PUBLIC_SUPABASE_URL!,
+    env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
