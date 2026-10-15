@@ -6,7 +6,7 @@ test.describe('Automated Schedule & Auto-Publish Engine (End-to-End QA)', () => 
 
   test('Flow 1: Schedule Approved Deliverable directly from ERP Dashboard', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/erp');
+    await page.goto('/admin/erp?clientId=5044af9e-0af1-4ec6-83ba-dacba4cfebf2');
     await page.waitForLoadState('networkidle');
 
     // Deliverables section exists
