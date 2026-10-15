@@ -1728,37 +1728,136 @@ const handleOpen = () => setOpen(true)
 
 ## 6. Database Schema & RLS
 
-### Tabel Utama
+> Semua informasi di section ini **diverifikasi langsung dari**:
+> - `app/supabase/migrations/001_initial_schema.sql` (skema tabel)
+> - `app/supabase/migrations/002_rls_policies.sql` (RLS policies)
+> - `app/features/*/api/service.ts` (nama tabel `.from()` yang dipakai di runtime)
 
-| Tabel | Fungsi | RLS Policy |
-|-------|--------|------------|
-| `clients` | Multi-tenant isolation | `tenant_id` matching |
-| `channels` | Social media connections | `client_id` foreign key |
-| `deliverables` | Content items (Ide→Done) | `client_id` isolation |
-| `scheduled_posts` | Calendar scheduling | `client_id` isolation |
-| `campaigns` | Marketing campaigns | `client_id` isolation |
-| `budgets` | Monthly budget tracking | `client_id` isolation |
-| `expenses` | KOL/Ads/Event costs | `client_id` isolation |
-| `ad_spend_logs` | Ads tracking data | `client_id` isolation |
-| `kol` | KOL/Partner CRM | `client_id` isolation |
-| `support_tickets` | Client communication | `client_id` isolation |
-| `dashboard_profiles` | KPI metrics storage | `client_id` isolation |
-| `brand_files` | Markdown content | `client_id` isolation |
-| `skills` | Strategic skill catalog | Global (no client restriction) |
-| `client_skills` | Skill assignments | `client_id` isolation |
+### Mekanisme Isolasi Tenant (SECURITY DEFINER Helpers)
 
-### RLS Enforcement
+RLS **TIDAK** menggunakan subquery langsung (cegah "infinite recursion detected"). 
+Gunakan **3 helper functions** `SECURITY DEFINER` + `row_security = off`:
 
-Semua tabel memiliki RLS policies yang enforce:
 ```sql
--- Contoh policy
-CREATE POLICY "Isolate by tenant" ON deliverables
-  FOR ALL USING (client_id IN (
-    SELECT client_id FROM clients WHERE tenant_id = current_setting('app.current_tenant')
-  ))
+-- Di migration 002_rls_policies.sql (faktual)
+CREATE OR REPLACE FUNCTION public.current_user_role()
+RETURNS text LANGUAGE sql SECURITY DEFINER
+SET search_path = public SET row_security = off STABLE
+AS $$ SELECT role FROM public.users WHERE id = auth.uid() $$;
+
+CREATE OR REPLACE FUNCTION public.current_user_client_id()
+RETURNS uuid LANGUAGE sql SECURITY DEFINER
+SET search_path = public SET row_security = off STABLE
+AS $$ SELECT client_id FROM public.users WHERE id = auth.uid() $$;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean LANGUAGE sql SECURITY DEFINER
+SET search_path = public SET row_security = off STABLE
+AS $$ SELECT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin') $$;
 ```
 
-**Rule Mutlak**: Query backend WAJIB scoped by `tenant_id`/`client_id`.
+Policies RLS pakai helpers ini, **BUKAN** subquery langsung:
+
+```sql
+-- Contoh faktual dari migration 002:
+CREATE POLICY client_own_deliverables ON deliverables
+  FOR SELECT USING (client_id = public.current_user_client_id());
+
+CREATE POLICY client_own_clients ON clients
+  FOR SELECT USING (id = public.current_user_client_id());
+```
+
+**Rule Mutlak**: Service layer WAJIB scope by `client_id` (bukan `tenant_id`).
+- Admin: semua `client_id` (policy `admin_all_*` pakai `is_admin()`)
+- Client: hanya `client_id` dari `current_user_client_id()`
+
+### Tabel Utama (16 tabel aktif di runtime)
+
+Sumber: `grep -rhoP '\.from("\K[a-z_]+' app/features app/lib` + migrations.
+
+| Tabel | Service Path | RLS Policy |
+|-------|--------------|------------|
+| `clients` | `dashboard/api/service.ts` | `admin_all_clients` / `client_own_client` |
+| `users` | `auth/` (Supabase Auth) | `admin_all_users` / `user_own_profile` |
+| `deliverables` | `deliverables/api/service.ts` | `admin_all_deliverables` / `client_own_deliverables` |
+| `comments` | (status_history.view) | `admin_all_comments` / `client_own_comments` |
+| `status_history` | `deliverables/api/service.ts` | `admin_all_status_history` / `client_own_status_history` |
+| `scheduled_posts` | `scheduled-posts/api/service.ts` | `client_id` isolation |
+| `content_campaigns` | `campaigns/api/service.ts` | `client_id` isolation |
+| `client_budgets` | `erp/api/service.ts` | `client_id` isolation |
+| `expenses` | `erp/api/service.ts` | `client_id` isolation |
+| `ad_spend_logs` | `erp/api/service.ts` | `client_id` isolation |
+| `kols` | `erp/api/service.ts` | `client_id` isolation |
+| `support_tickets` | `support/api/service.ts` | `client_id` isolation |
+| `dashboard_profiles` | `dashboard/api/service.ts` | `client_id` isolation |
+| `client_files` | `skills/api/service.ts`, `dashboard/api/service.ts` | `client_id` isolation |
+| `skills` | `skills/api/service.ts` | Global (tidak ada client_id) |
+| `client_skills` | `skills/api/service.ts` | `client_id` isolation |
+| `skill_packs` | `skills/api/service.ts` | Global (tidak ada client_id) |
+| `pack_skills` | `skills/api/service.ts` | Global |
+| `skill_outputs` | `skills/api/service.ts` | `client_id` isolation |
+| `ai_providers` | `ai-providers/api/service.ts` | Admin only |
+| `ai_usage_logs` | `analytics/api/service.ts` | Admin only |
+| `analytics_summaries` | `analytics/api/service.ts` | `client_id` isolation |
+| `analytics_predictions` | `analytics/api/service.ts` | `client_id` isolation |
+| `client_channels` | `social-accounts/api/service.ts` | `client_id` isolation |
+| `content_productions` | `content-production/api/service.ts` | `client_id` isolation |
+| `skill_files` | `skills/api/service.ts` | Global |
+| `post_metrics` | — (view/derived) | — |
+| `feedback` | — (view/derived) | — |
+| `brand_assets` | — | — |
+| `content_items` | — | — |
+| `events` | — | — |
+| `event_tasks` | — | — |
+| `event_vendors` | — | — |
+| `content_assets` | — | — |
+| `competitor_benchmarks` | — | — |
+| `platform_posts` | — | — |
+| `pipeline_stages` | — | — |
+| `deliverable_templates` | — | — |
+| `reminder_settings` | — | — |
+| `seasonal_periods` | — | — |
+| `feature_flags` | — | — |
+| `telegram_notification_logs` | — | — |
+| `whatsapp_notification_logs` | — | — |
+
+### Pola Query di Service Layer
+
+Semua service mengikuti pola konsisten yang diverifikasi dari kode:
+
+```typescript
+// GET: client-scoped, degrade → []
+const { data, error } = await supabase
+  .from("table_name")
+  .select("...")
+  .eq("client_id", clientId)
+  .order("created_at", { ascending: false })
+if (error) { logger.error(...); return [] }
+return data ?? []
+
+// CREATE: insert + audit
+const { data, error } = await supabase
+  .from("table_name")
+  .insert({...input})
+  .select().single()
+if (error) throw new Error(error.message)
+void logAudit({ action: "entity.create", ... })
+return data
+
+// UPDATE: .eq("id", id) + audit
+// DELETE: .eq("id", id) + audit
+```
+
+### Migrasi Schema (20 file)
+
+Urutan aplikasi migration di `app/supabase/migrations/`:
+- `001` Initial schema (clients, users, deliverables, comments)
+- `002` RLS policies + SECURITY DEFINER helpers
+- `003` Triggers & functions
+- `004–006` Deliverable views, realtime, brand profile
+- `007–018` Skills, packs, allowed tools, outputs, audit log
+- `009` Client files
+- `019–020` Scheduled posts, reserved slots
 
 ---
 
@@ -1840,26 +1939,75 @@ CREATE POLICY "Isolate by tenant" ON deliverables
 
 ## 9. Keamanan & Isolasi Tenant
 
-### Layer 1: Authentication
-- 100% Supabase Auth (tidak ada Clerk)
-- Session cookie management via `lib/supabase/server.ts`
-- Role-based access: `admin` vs `user`
+### Layer 1: Authentication (Supabase Auth)
 
-### Layer 2: Authorization
-- Middleware (`middleware.ts`) membaca user headers dan forwarding ke request
-- Admin-only routes: `/admin/*` redirect non-admin ke `/admin/dashboard`
-- Client routes: `/client/*` require authenticated session
+| Route | Path |
+|-------|------|
+| Login | `app/auth/login/page.tsx` |
+| Callback | `app/auth/callback/route.ts` |
+| Forgot Password | `app/auth/forgot-password/` |
+| Set Password | `app/auth/set-password/` |
 
-### Layer 3: Row-Level Security (RLS)
-- Semua query backend mem-filter by `client_id`
-- RLS policies di PostgreSQL memastikan data tidak bocor antar tenant
-- `authorizeFor()` helper THROW exception jika unauthorized
+- **100% Supabase Auth** — tidak ada Clerk atau auth custom
+- **Rate limiting**: `lib/middleware/rate-limit.ts` — 5 attempts/60s per IP pada callback
+- **Audit**: `logAudit({ action: 'auth.rate_limited', ... })` di callback route
 
-### Layer 4: Preview Guard
-- `/preview-*` routes memvalidasi tenant isolation
-- `lib/preview-guard.ts` mencegah akses data klien lain
+### Layer 2: Session Middleware
 
-### Layer 5: Environment Security
+File: `lib/supabase/middleware.ts` — **bukan root `middleware.ts`**
+
+**Fungsi `updateSession(request)`**:
+```typescript
+// Menggunakan @supabase/ssr createServerClient dengan cookie handling
+const supabase = createServerClient(
+  env.server.NEXT_PUBLIC_SUPABASE_URL,
+  env.server.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  { cookies: { getAll, setAll } }
+)
+```
+
+**Optimasi performa** (komentar di kode):
+- Sebelumnya: setiap `/admin` request 4 round-trip Sequestial (getUser + SELECT users × 2)
+- Sekarang: middleware resolve identity sekali, forward ke request headers
+- Layout component membaca dari headers, bukan query ulang
+
+**Keamanan headers**: Strip semua `USER_HEADERS` dari client-supplied headers sebelum set baru — mencegah spoofing identitas.
+
+### Layer 3: Authorization Helpers
+
+File: `lib/auth/guard.ts`, `lib/auth/use-current-user.ts`
+
+- `guardAdmin()` → throw 403 jika bukan admin
+- `useCurrentUser()` → hook untuk client component read role/client_id
+
+### Layer 4: Row-Level Security (RLS)
+
+Semua query backend mem-filter by `client_id`. RLS policies di PostgreSQL memastikan data tidak bocor antar tenant.
+
+Policies pakai **SECURITY DEFINER helpers** (bukan subquery langsung, cegah infinite recursion):
+- `current_user_role()` → role user
+- `current_user_client_id()` → client_id user
+- `is_admin()` → boolean admin check
+
+### Layer 5: Preview Guard
+
+File: `lib/preview-guard.ts`
+
+```typescript
+export function assertPreviewAllowed(): void {
+  const env = process.env.NODE_ENV
+  if (env === 'production') {
+    notFound()  // 404 di production
+  }
+}
+```
+
+- Preview routes (`/preview-*`) adalah UI fixtures untuk Playwright E2E
+- Di production: `notFound()` → 404
+- Di dev/test: tetap accessible
+
+### Layer 6: Environment Security
+
 - Rule 15: Semua env variable harus melalui Zod schema di `lib/env.ts`
 - Secret keys tidak pernah di-hardcode
 - `.env.local` di-ignore di git
@@ -1892,7 +2040,7 @@ CREATE POLICY "Isolate by tenant" ON deliverables
 **Gejala**: `npm run build` error
 **Solusi**:
 1. Jalankan `npx tsc --noEmit` untuk cek TypeScript errors
-2. Cek `node_modules/.pnpm-lock.yaml` consistency
+2. Cek `package-lock.yaml` consistency
 3. Hapus `.next` folder dan rebuild
 
 ---
