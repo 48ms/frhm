@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.use({ baseURL: process.env.BASE_URL || 'http://localhost:3000' });
+test.use({ baseURL: process.env.BASE_URL || 'http://localhost:3004' });
 
 // NOTE (fact): routes removed in commit 3e36ff3 (e.g. /admin/settings/ai,
 // /admin/settings/bridge, /admin/users) no longer exist. Unauthenticated access

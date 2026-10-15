@@ -6,11 +6,11 @@ import {
   AddClientHeaderButton,
 } from "./client-manager"
 
-const mockUseSuspenseQuery = vi.fn()
+const mockUseQuery = vi.fn()
 const mockOpenCreateClient = vi.fn()
 
 vi.mock("@tanstack/react-query", () => ({
-  useSuspenseQuery: (...args: unknown[]) => mockUseSuspenseQuery(...args),
+  useQuery: (...args: unknown[]) => mockUseQuery(...args),
 }))
 
 vi.mock("@/components/client/create-client-provider", () => ({
@@ -38,7 +38,7 @@ vi.mock("@/components/ai/brand-brain-editor-dialog", () => ({
 describe("ClientManager & Clients Page Components", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseSuspenseQuery.mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: [
         {
           id: "c-100",

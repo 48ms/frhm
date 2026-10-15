@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { useCreateClient } from "@/components/client/create-client-provider"
 import { Icons } from "@/components/icons"
@@ -39,7 +39,11 @@ export function AddClientHeaderButton() {
 }
 
 export function ClientManager() {
-  const { data: clients } = useSuspenseQuery(socialQueries.listClientsWithChannels())
+  const { data: clientsData } = useQuery({
+    ...socialQueries.listClientsWithChannels(),
+    placeholderData: [],
+  })
+  const clients = clientsData ?? []
   const { openCreateClient } = useCreateClient()
   const [selectedClientForEditor, setSelectedClientForEditor] = React.useState<{
     id: string

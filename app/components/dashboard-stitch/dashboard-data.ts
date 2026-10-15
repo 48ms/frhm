@@ -1,7 +1,6 @@
 "use client"
 
 import { useQueryState } from "nuqs"
-import React, { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { dashboardQueries } from "@/features/dashboard/api/queries"
 import { dashboardSearchParams } from "@/features/dashboard/lib/searchparams"
@@ -40,13 +39,11 @@ export function useActiveDashboard() {
     ? clientId 
     : clients[0]?.id
     
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
   const foundClient = clients.find(c => c.id === activeClientId)
+  // Always use client name from DB if exists; otherwise empty string to match SSR
   const client: ClientWithChannels = foundClient ?? {
     id: activeClientId,
-    name: mounted ? "New Client" : "", // Mencegah mismatch teks saat hydration
+    name: "", // SSR-first: empty matches server render; avoids hydration mismatch
     contact_email: null,
     contact_phone: null,
     brand_profile: {
