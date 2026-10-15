@@ -74,8 +74,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref,
       "data-slot": "button",
       className: cn(buttonVariants({ variant, size }), gap, className),
-      whileHover: { scale: hoverScale },
-      whileTap: { scale: tapScale },
+      // FIX hidrasi: JANGAN hardcode whileHover/whileTap di sini. Animate UI
+      // primitive (SSOT animasi) sudah mengelola gate `mounted` sehingga SSR
+      // dan klien merender markup identik; hardcode di sini menimpanya dan
+      // memicu "Hydration failed" (server tanpa animasi, klien dengan animasi).
+      hoverScale,
+      tapScale,
       ...props,
     }
 

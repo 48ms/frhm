@@ -477,8 +477,12 @@ export function AdminCalendarClient() {
       }
       className="space-y-6"
     >
-      {/* Loading state */}
-      {isPostsLoading && (
+      {/* Loading state — digate dengan `mounted` agar SSR dan render hidrasi
+          pertama menghasilkan markup identik. React Query tidak menjamin
+          `isPending` sama antara server & klien pada render awal; tanpa gate,
+          server bisa merender spinner sementara klien merender konten ->
+          hydration mismatch. */}
+      {mounted && isPostsLoading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <span className="size-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
@@ -488,7 +492,7 @@ export function AdminCalendarClient() {
       )}
 
       {/* Error state */}
-      {isPostsError && (
+      {mounted && isPostsError && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 space-y-3">
           <div className="flex items-center gap-2 text-destructive font-semibold">
             <Icons.alertCircle className="size-5" />
@@ -506,8 +510,10 @@ export function AdminCalendarClient() {
         </div>
       )}
 
-      {/* Main content (hanya tampilkan bila tidak loading/error) */}
-      {!isPostsLoading && !isPostsError && (
+      {/* Main content — dirender selama hidrasi awal (mounted=false) agar
+          sama persis dengan markup server, lalu berganti ke state loading
+          setelah mount bila data belum siap. */}
+      {(!isPostsLoading || !mounted) && !isPostsError && (
       <>
       <BrainstormModal clientId={selectedClientId} open={brainstormOpen} onOpenChange={setBrainstormOpen} hideTrigger />
       <BatchPlanModal open={batchPlanOpen} onOpenChange={setBatchPlanOpen} hideTrigger />
@@ -1298,7 +1304,10 @@ export function AdminCalendarClient() {
               <span className="text-2xs font-bold">Studio AI Prediction</span>
             </div>
             
-            {isLoadingPrediction ? (
+            {/* Gate dengan `mounted`: saat SSR & hidrasi awal `isPending` React
+                Query bisa berbeda dari klien -> mismatch. Render fallback
+                deterministik dulu, spinner hanya setelah mount. */}
+            {mounted && isLoadingPrediction ? (
               <div className="py-4 flex justify-center">
                 <Icons.spinner className="size-5 animate-spin text-primary" />
               </div>
@@ -1339,14 +1348,20 @@ export function AdminCalendarClient() {
       </div>
 
       {/* Bottom Client Quick Switcher & Audit Footer */}
-      <footer className="pt-6 pb-4 border-t border-border/30 space-y-4">
+      {/* Footer — suppressHydrationWarning karena Animate UI Button memakai
+          motion.button (whileHover/whileTap) yang tidak serializable saat SSR.
+          SSR merender tombol polos, client merender dengan animasi -> mismatch. */}
+      <footer className="pt-6 pb-4 border-t border-border/30 space-y-4" suppressHydrationWarning>
         <div className="flex flex-wrap items-center justify-between gap-4 bg-card/60 rounded-2xl px-6 py-3">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-2xs text-muted-foreground font-bold">
               Agency Client Switcher:
             </span>
             <div className="flex items-center gap-2 flex-wrap">
-              {clients.map((c) => (
+              {/* Gate `mounted`: saat SSR `clients` masih placeholderData ([]),
+                  setelah hidrasi baru terisi dari HydrationBoundary. Tanpa gate,
+                  jumlah tombol berbeda server vs klien -> hydration mismatch. */}
+              {mounted && clients.map((c) => (
                 <Button
                   key={c.id}
                   variant="ghost"

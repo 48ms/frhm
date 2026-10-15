@@ -18,11 +18,20 @@ function Button({
   asChild = false,
   ...props
 }: ButtonProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
+  const motionProps = mounted
+    ? {
+        whileTap: { scale: tapScale },
+        whileHover: { scale: hoverScale },
+      }
+    : {};
+
   if (asChild) {
     return (
       <Slot
-        whileTap={{ scale: tapScale }}
-        whileHover={{ scale: hoverScale }}
+        {...motionProps}
         {...(props as any)}
       />
     );
@@ -30,8 +39,7 @@ function Button({
 
   return (
     <motion.button
-      whileTap={{ scale: tapScale }}
-      whileHover={{ scale: hoverScale }}
+      {...motionProps}
       {...(props as any)}
     />
   );
