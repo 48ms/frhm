@@ -454,7 +454,11 @@ export function AnalyticsView() {
 
       <MultiAccountAggregator clientId={clientId} />
 
-      <CampaignAnalyticsView campaigns={preparedCampaigns} clients={clientsList} />
+      <CampaignAnalyticsView
+        campaigns={preparedCampaigns}
+        clients={clientsList}
+        isClientPortal={isClientPortal}
+      />
     </div>
   )
 }

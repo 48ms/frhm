@@ -257,7 +257,7 @@ export function SupportView() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Contoh: Revisi copy poster promo weekend"
-                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full h-11 px-4 rounded-xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 

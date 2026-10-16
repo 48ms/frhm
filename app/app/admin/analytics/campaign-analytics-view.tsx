@@ -40,6 +40,7 @@ export interface CampaignItem {
 interface CampaignAnalyticsViewProps {
   campaigns: CampaignItem[]
   clients: { id: string; name: string }[]
+  isClientPortal?: boolean
 }
 
 function formatNumber(num: number): string {
@@ -61,7 +62,7 @@ function formatPeriod(start: string | null, end: string | null): string {
   return `Hingga ${new Date(end!).toLocaleDateString("id-ID", opts)}`
 }
 
-export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsViewProps) {
+export function CampaignAnalyticsView({ campaigns, clients, isClientPortal }: CampaignAnalyticsViewProps) {
   const [statusFilter, setStatusFilter] = useQueryState("status", parseAsStringEnum(["all", "active", "completed"]).withDefault("all"))
   const [clientFilter, setClientFilter] = useQueryState("client", parseAsString.withDefault("all"))
   const [searchQuery, setSearchQuery] = useQueryState("q", parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) }))
@@ -123,33 +124,35 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
 
         {/* Client Selector & Search */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Client Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative min-h-11"
-              >
-                <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                <span>
-                  {clientFilter === "all"
-                    ? "Semua Client"
-                    : clients.find((cl) => cl.id === clientFilter)?.name ?? "Semua Client"}
-                </span>
-                <Icons.chevronDown className="size-3 text-muted-foreground ml-1" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 max-h-60 overflow-y-auto">
-              <DropdownMenuItem onClick={() => setClientFilter("all")}>
-                Semua Client
-              </DropdownMenuItem>
-              {clients.map((cl) => (
-                <DropdownMenuItem key={cl.id} onClick={() => setClientFilter(cl.id)}>
-                  {cl.name}
+          {/* Client Filter (Only in Admin Studio) */}
+          {!isClientPortal && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="h-8 pl-8 pr-3 text-xs font-medium bg-background hover:bg-muted/50 border border-border rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors cursor-pointer flex items-center gap-1.5 relative min-h-11"
+                >
+                  <Icons.adjustments className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <span>
+                    {clientFilter === "all"
+                      ? "Semua Client"
+                      : clients.find((cl) => cl.id === clientFilter)?.name ?? "Semua Client"}
+                  </span>
+                  <Icons.chevronDown className="size-3 text-muted-foreground ml-1" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 max-h-60 overflow-y-auto">
+                <DropdownMenuItem onClick={() => setClientFilter("all")}>
+                  Semua Client
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {clients.map((cl) => (
+                  <DropdownMenuItem key={cl.id} onClick={() => setClientFilter(cl.id)}>
+                    {cl.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Search Box */}
           <div className="relative flex-1 sm:w-48">
@@ -231,13 +234,19 @@ export function CampaignAnalyticsView({ campaigns, clients }: CampaignAnalyticsV
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Link 
-                            href={`/admin/clients/${c.client_id}`}
-                            className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-                          >
-                            {c.clientName}
-                            <Icons.arrowUpRight className="size-3 opacity-60 group-hover:opacity-100" />
-                          </Link>
+                          {!isClientPortal ? (
+                            <Link 
+                              href={`/admin/clients/${c.client_id}`}
+                              className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+                            >
+                              {c.clientName}
+                              <Icons.arrowUpRight className="size-3 opacity-60 group-hover:opacity-100" />
+                            </Link>
+                          ) : (
+                            <span className="text-xs font-semibold text-muted-foreground">
+                              {c.clientName}
+                            </span>
+                          )}
                           <Badge variant="outline" className="text-2xs py-0 px-1.5 font-normal">
                             {c.type === "promo" ? "Promo" : c.type === "event" ? "Event" : "Campaign"}
                           </Badge>

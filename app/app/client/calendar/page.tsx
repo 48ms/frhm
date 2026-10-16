@@ -19,14 +19,12 @@ export default async function ClientCalendarPage(props: {
   const clientId = await resolveClientId(parsedClientId)
 
   return (
-    <div className="space-y-6">
-      <Suspense
-        fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat kalender konten...</div>}
-      >
-        <DashboardPrefetcher clientId={clientId}>
-          <ClientCalendarView clientId={clientId} />
-        </DashboardPrefetcher>
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={<div className="p-10 animate-pulse text-muted-foreground text-sm">Memuat kalender konten...</div>}
+    >
+      <DashboardPrefetcher clientId={clientId}>
+        <ClientCalendarView clientId={clientId} />
+      </DashboardPrefetcher>
+    </Suspense>
   )
 }

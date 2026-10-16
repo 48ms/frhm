@@ -497,8 +497,26 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
         /* List View */
         <div className="rounded-2xl border border-border/40 bg-card divide-y divide-border/30 overflow-hidden shadow-xs">
           {filteredPosts.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground text-xs">
-              Belum ada postingan pada filter kanal ini.
+            <div className="py-16 px-6 text-center text-muted-foreground text-xs space-y-3">
+              <div className="size-12 rounded-2xl bg-muted/60 text-muted-foreground flex items-center justify-center mx-auto mb-1">
+                <Icons.calendar className="size-6 opacity-60" />
+              </div>
+              <p className="font-bold text-sm text-foreground">Belum ada postingan pada filter kanal ini</p>
+              <p className="max-w-md mx-auto text-muted-foreground">
+                Materi promosi yang telah disetujui akan otomatis tersusun di sini. Butuh jadwal postingan baru atau promosi mendadak?
+              </p>
+              <div className="pt-2">
+                <Link
+                  href={`/client/support?clientId=${effectiveClientId}`}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "rounded-xl text-xs font-semibold gap-1.5"
+                  )}
+                >
+                  <Icons.message className="size-3.5 text-primary" />
+                  <span>Ajukan Request Jadwal / Konten</span>
+                </Link>
+              </div>
             </div>
           ) : (
             filteredPosts.map((post) => {

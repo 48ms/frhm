@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { useQueryStates } from "nuqs"
 import { clientReviewSearchParams } from "@/lib/searchparams"
@@ -108,12 +109,26 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
           ))}
         </div>
       ) : filteredDeliverables.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-card border border-border/30 space-y-3">
-          <Icons.layers className="size-10 mx-auto text-muted-foreground/40" />
+        <div className="py-16 px-6 text-center rounded-2xl bg-card border border-border/30 space-y-4">
+          <div className="size-12 rounded-2xl bg-muted/60 text-muted-foreground flex items-center justify-center mx-auto mb-1">
+            <Icons.layers className="size-6 opacity-60" />
+          </div>
           <h3 className="font-bold text-base text-foreground">Tidak Ada Deliverable pada Kategori Ini</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Materi yang dipromosikan oleh tim Frhm akan otomatis muncul di sini untuk ditinjau.
+            Materi promosi yang dirancang oleh tim Frhm akan otomatis muncul di sini untuk Anda tinjau. Butuh materi kampanye khusus?
           </p>
+          <div className="pt-2">
+            <Link
+              href={`/client/support?clientId=${clientId}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-xl text-xs font-semibold gap-1.5"
+              )}
+            >
+              <Icons.message className="size-3.5 text-primary" />
+              <span>Ajukan Request Materi Baru</span>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -206,6 +221,46 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
           })}
         </div>
       )}
+
+      {/* SLA & Review Policy Guidance Section */}
+      <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+        <div>
+          <h3 className="font-bold text-base text-foreground">Kebijakan Ulasan &amp; SLA Revisi Tim Frhm</h3>
+          <p className="text-xs text-muted-foreground">Standar operasional demi menjamin kualitas dan ketepatan waktu tayang kampanye brand Anda</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <Icons.clock className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">SLA Revisi 1x24 Jam Kerja</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Catatan perbaikan copywriting, penyesuaian font, atau revisi visual minor diselesaikan tim dalam waktu maksimal 1 hari kerja.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <Icons.edit className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Catatan Spesifik &amp; Terarah</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Sertakan nomor slide atau visual spesifik saat mengajukan revisi agar eksekusi perbaikan tim kreatif tepat sasaran.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] flex items-center justify-center font-bold">
+              <Icons.checkCircle className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Otomatisasi Penjadwalan</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Begitu tombol &quot;Setujui&quot; ditekan, materi otomatis dikunci masuk ke kalender dan siap dipublikasikan ke media sosial.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Revision Request Modal */}
       <Dialog open={Boolean(revisionItem)} onOpenChange={(open) => !open && setRevisionItem(null)}>

@@ -140,85 +140,306 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
         </div>
       </div>
 
-      {/* 3. Upcoming Scheduled Posts & Quick Review Teaser */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Next Posts in Calendar */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-foreground">Postingan Tayang Terdekat</h3>
-              <p className="text-xs text-muted-foreground">Jadwal publikasi multi-platform dalam waktu dekat</p>
+      {/* 3. Master Two-Column Workspace Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* LEFT COLUMN: Primary Creative & Publishing Pipeline (lg:col-span-2 space-y-6) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Card 1: Deliverables Review Pipeline (Top priority for client!) */}
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-foreground">Antrean Materi &amp; Ulasan Kreatif</h3>
+                <p className="text-xs text-muted-foreground">Materi promosi terbaru dari tim Frhm yang siap Anda tinjau</p>
+              </div>
+              <Link
+                href={`/client/review?clientId=${clientId}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-8 px-3.5")}
+              >
+                Lihat Semua ({deliverables.length})
+              </Link>
             </div>
-            <Link
-              href={`/client/calendar?clientId=${clientId}`}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold")}
-            >
-              Lihat Semua Kalender
-            </Link>
+
+            {deliverables.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground text-xs space-y-2 rounded-xl bg-muted/20 border border-dashed border-border/30">
+                <Icons.layers className="size-7 mx-auto text-muted-foreground/50" />
+                <p className="font-semibold text-foreground text-xs">Belum ada deliverable yang dipublikasikan</p>
+                <p className="text-2xs max-w-sm mx-auto">Materi kreatif baru dari tim Frhm akan otomatis muncul di sini untuk Anda tinjau.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {deliverables.slice(0, 3).map((d) => {
+                  const isSent = d.status === "sent"
+                  const isApproved = d.status === "approved"
+                  const isRevision = d.status === "revision_requested"
+
+                  return (
+                    <div
+                      key={d.id}
+                      className="p-3.5 rounded-xl bg-muted/40 border border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-primary/40 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-9 rounded-xl bg-background border border-border/50 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0 shadow-2xs">
+                          <Icons.document className="size-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-3xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/40">
+                              {d.type}
+                            </span>
+                            <span className="text-2xs text-muted-foreground">
+                              {format(new Date(d.created_at), "dd MMM yyyy", { locale: idLocale })}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground truncate mt-0.5">
+                            {d.title}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <span
+                          className={cn(
+                            "px-2.5 py-1 rounded-full text-2xs font-bold uppercase border",
+                            isApproved
+                              ? "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border-[hsl(var(--success))]/20"
+                              : isRevision
+                              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              : "bg-primary/10 text-primary border-primary/20"
+                          )}
+                        >
+                          {isApproved ? "Disetujui" : isRevision ? "Revisi" : "Siap Review"}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/client/review?clientId=${clientId}`)}
+                          className="rounded-xl h-7 px-3 text-xs font-semibold cursor-pointer"
+                        >
+                          Ulas
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {upcomingPosts.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-xs space-y-1">
-              <Icons.calendar className="size-8 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="font-semibold text-foreground">Belum ada postingan terjadwal terdekat.</p>
-              <p>Materi yang telah disetujui akan otomatis tampil pada kalender ini.</p>
+          {/* Card 2: Upcoming Scheduled Posts */}
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-foreground">Postingan Tayang Terdekat</h3>
+                <p className="text-xs text-muted-foreground">Jadwal publikasi multi-platform dalam waktu dekat</p>
+              </div>
+              <Link
+                href={`/client/calendar?clientId=${clientId}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-8 px-3.5")}
+              >
+                Lihat Kalender
+              </Link>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {upcomingPosts.map((post: ScheduledPost) => (
-                <div
-                  key={post.id}
-                  className="p-4 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between gap-4 hover:border-primary/40 transition-all"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="size-10 rounded-xl bg-background border border-border/50 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0">
-                      {post.platform.slice(0, 2)}
+
+            {upcomingPosts.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground text-xs space-y-2 rounded-xl bg-muted/20 border border-dashed border-border/30">
+                <Icons.calendar className="size-7 mx-auto text-muted-foreground/50" />
+                <p className="font-semibold text-foreground text-xs">Belum ada postingan terjadwal terdekat</p>
+                <p className="text-2xs max-w-sm mx-auto">Materi yang telah disetujui akan otomatis tersusun pada kalender publikasi ini.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingPosts.map((post: ScheduledPost) => (
+                  <div
+                    key={post.id}
+                    className="p-3.5 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between gap-4 hover:border-primary/40 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="size-9 rounded-xl bg-background border border-border/50 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0 shadow-2xs">
+                        {post.platform.slice(0, 2)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">
+                          {post.content ? post.content.slice(0, 70) + "..." : post.title || "Tanpa caption"}
+                        </p>
+                        <p className="text-2xs text-muted-foreground mt-0.5">
+                          Jadwal: {format(new Date(post.scheduled_at), "eeee, dd MMMM yyyy HH:mm", { locale: idLocale })} WIB
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">
-                        {post.content ? post.content.slice(0, 75) + "..." : post.title || "Tanpa caption"}
-                      </p>
-                      <p className="text-2xs text-muted-foreground mt-0.5">
-                        Jadwal: {format(new Date(post.scheduled_at), "eeee, dd MMMM yyyy HH:mm", { locale: idLocale })} WIB
-                      </p>
-                    </div>
+                    <span className="shrink-0 px-2.5 py-1 rounded-full text-2xs font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                      {post.status}
+                    </span>
                   </div>
-                  <span className="shrink-0 px-2.5 py-1 rounded-full text-2xs font-bold uppercase bg-primary/10 text-primary border border-primary/20">
-                    {post.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Quick Contact & Hotline */}
-        <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-col justify-between space-y-6">
-          <div className="space-y-3">
-            <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-              <Icons.chat className="size-6" />
+        {/* RIGHT COLUMN: Brand Channels & Direct Hotline (lg:col-span-1 space-y-6) */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Card 1: Connected Brand Channels & Platform Integrations */}
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-foreground">Kanal Brand Aktif</h3>
+                <p className="text-xs text-muted-foreground">Status integrasi akun sosial media</p>
+              </div>
+              <Link
+                href={`/client/analytics?clientId=${clientId}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-8 px-3.5")}
+              >
+                Analitik
+              </Link>
             </div>
-            <div>
-              <h3 className="font-bold text-base text-foreground">Direct Agency Hotline</h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                Ada perubahan jadwal, event promosi mendadak, atau butuh materi tambahan? Ajukan tiket dukungan langsung ke tim Frhm.
+
+            {/* Platform list: shows connected accounts + remaining core platforms */}
+            <div className="space-y-2.5">
+              {/* Connected accounts */}
+              {channels.map((ch) => {
+                const p = ch.platform.toLowerCase()
+                const PlatformIcon =
+                  p === "instagram"
+                    ? Icons.instagram
+                    : p === "tiktok"
+                    ? Icons.tiktok
+                    : p === "youtube"
+                    ? Icons.youtube
+                    : p === "linkedin"
+                    ? Icons.linkedin
+                    : p === "twitter" || p === "x"
+                    ? Icons.twitter
+                    : Icons.hub
+
+                return (
+                  <div
+                    key={ch.id}
+                    className="p-3 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between gap-3 hover:border-primary/30 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="size-8 rounded-lg bg-background border border-border/50 flex items-center justify-center text-primary shrink-0 shadow-2xs">
+                        <PlatformIcon className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground capitalize truncate">
+                          {ch.platform}
+                        </p>
+                        <p className="text-2xs text-muted-foreground font-mono truncate">
+                          {ch.handle ? `@${ch.handle.replace(/^@/, "")}` : "Terhubung"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20">
+                      <span className="size-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
+                      Aktif
+                    </span>
+                  </div>
+                )
+              })}
+
+              {/* Complementary unlinked platforms to fill height harmoniously and show readiness */}
+              {["instagram", "tiktok"].filter(p => !channels.some(c => c.platform.toLowerCase() === p)).slice(0, 3 - channels.length).map((plat) => {
+                const PlatformIcon = plat === "instagram" ? Icons.instagram : Icons.tiktok
+                return (
+                  <div
+                    key={plat}
+                    className="p-3 rounded-xl bg-muted/20 border border-dashed border-border/40 flex items-center justify-between gap-3 opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="size-8 rounded-lg bg-muted/50 border border-border/40 flex items-center justify-center text-muted-foreground shrink-0">
+                        <PlatformIcon className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-muted-foreground capitalize truncate">
+                          {plat}
+                        </p>
+                        <p className="text-3xs text-muted-foreground truncate">
+                          Siap diintegrasikan
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/client/support?clientId=${clientId}`}
+                      className="text-3xs font-bold text-primary hover:underline px-2 py-1 rounded-md"
+                    >
+                      Koneksikan &rarr;
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Card 2: Quick Contact & Hotline */}
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+            <div className="flex items-start gap-3.5">
+              <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Icons.chat className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-foreground">Direct Agency Hotline</h3>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Ada event promosi mendadak atau butuh materi tambahan? Ajukan tiket dukungan langsung ke tim Frhm.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-border/30 space-y-2">
+              <Link
+                href={`/client/support?clientId=${clientId}`}
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "w-full rounded-xl font-semibold text-xs shadow-xs h-9 cursor-pointer"
+                )}
+              >
+                <Icons.message className="size-3.5 mr-2" />
+                <span>Buat Tiket Dukungan</span>
+              </Link>
+              <p className="text-3xs text-center text-muted-foreground">
+                Terkoneksi langsung ke Telegram Admin Frhm
               </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="space-y-2 pt-4 border-t border-border/30">
-            <Link
-              href={`/client/support?clientId=${clientId}`}
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                "w-full rounded-xl font-semibold text-xs shadow-xs"
-              )}
-            >
-              <Icons.message className="size-4 mr-2" />
-              <span>Buat Tiket Dukungan</span>
-            </Link>
-            <p className="text-2xs text-center text-muted-foreground">
-              Respon cepat terhubung ke notifikasi Telegram Admin Frhm
+      {/* 5. Frhm Partnership Collaboration Flow Guidance */}
+      <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+        <div>
+          <h3 className="font-bold text-base text-foreground">Alur Kolaborasi Konten Bersama Frhm</h3>
+          <p className="text-xs text-muted-foreground">3 langkah mudah dalam memastikan strategi konten brand Anda berjalan mulus</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+              01
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Produksi &amp; Riset Kreatif</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Tim kreatif Frhm meriset tren, menyusun pilar narasi, dan memproduksi visual serta draf copywriting berkualitas tinggi.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+              02
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Tinjau &amp; Approval Instan</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Anda memeriksa draf di Deliverables Hub. Berikan persetujuan instan dengan 1 klik atau sertakan catatan revisi spesifik.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] flex items-center justify-center font-black text-xs">
+              03
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Otomatis Tayang Terjadwal</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Materi yang telah disetujui langsung dikunci ke kalender publikasi dan tayang otomatis ke seluruh kanal media sosial aktif.
             </p>
           </div>
         </div>

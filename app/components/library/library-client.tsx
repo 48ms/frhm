@@ -535,10 +535,16 @@ export function LibraryClient() {
             <Icons.spinner className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : filteredAssets.length === 0 ? (
-          <div className="col-span-full py-16 text-center space-y-3">
-            <Icons.media className="size-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-foreground">Belum ada aset.</p>
-            <p className="text-xs text-muted-foreground">Upload file gambar atau video ke library untuk mulai menjadwalkan.</p>
+          <div className="col-span-full py-16 px-6 text-center space-y-3 rounded-2xl bg-muted/20 border border-dashed border-border/40">
+            <div className="size-12 rounded-2xl bg-muted/60 text-muted-foreground flex items-center justify-center mx-auto mb-1">
+              <Icons.media className="size-6 opacity-60" />
+            </div>
+            <p className="text-sm font-bold text-foreground">Belum ada aset media tersimpan.</p>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              {isClientPortal
+                ? "Tarik dan letakkan foto produk atau video promosi brand Anda pada kotak upload di atas untuk membagikannya ke tim kreatif Frhm."
+                : "Upload file gambar atau video ke library untuk mulai menjadwalkan."}
+            </p>
           </div>
         ) : (
           <SortableContext items={filteredAssets.map((a) => a.id)} strategy={rectSortingStrategy}>
@@ -559,6 +565,46 @@ export function LibraryClient() {
         )}
       </div>
       </DndContext>
+
+      {/* Brand Asset Specification & Best Practices (Especially helpful in Client Portal) */}
+      <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4 mt-8">
+        <div>
+          <h3 className="font-bold text-base text-foreground">Panduan Format &amp; Spesifikasi Aset Media</h3>
+          <p className="text-xs text-muted-foreground">Rekomendasi rasio dan standar resolusi untuk hasil promosi media sosial optimal</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <Icons.media className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Foto Feed (Rasio 1:1 &amp; 4:5)</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Format JPG/PNG/WebP resolusi minimal 1080x1080px (Square) atau 1080x1350px (Portrait) untuk ketajaman visual maksimal di feed.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <Icons.video className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Video Reels &amp; TikTok (9:16)</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Format MP4/MOV resolusi vertikal 1080x1920px (Full HD) dengan bitrate tinggi, batas maksimal 25MB per upload.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <div className="size-8 rounded-lg bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] flex items-center justify-center font-bold">
+              <Icons.download className="size-4" />
+            </div>
+            <h4 className="text-xs font-bold text-foreground">Penyimpanan Resolusi Penuh</h4>
+            <p className="text-2xs text-muted-foreground leading-relaxed">
+              Seluruh aset tersimpan aman di cloud CDN Frhm dan dapat Anda unduh dalam resolusi asli kapan saja untuk materi offline/cetak.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Asset detail lightbox */}
       <Dialog open={!!previewAsset} onOpenChange={(open) => !open && setPreviewAsset(null)}>

@@ -404,7 +404,31 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
 - [x] **Penyempurnaan Area 1 & 2: Fungsionalisasi Studio Strategy & Eliminasi Gap Workspace Switcher (2026-10-17)**
   - **Area 1 (Identitas Studio & AI)**: Mengubah kartu dekoratif dummy (`INTER SPACE.`) di [right-panel.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/right-panel.tsx) menjadi modul interaktif **Strategi Studio & AI Copilot Hub**. Menampilkan persona Brand Voice, pilar konten, metrik Campaign Velocity faktual, tombol aksi langsung "Atur Brand" (`/admin/settings?tab=brand`), tombol "Launch AI", dan tombol "Kampanye", serta menyatukan AI Launchpad untuk mengeliminasi dead space dan gap vertikal di kolom kanan.
   - **Area 2 (Workspace Switcher & Sidebar Top)**: Merapikan tombol trigger [workspace-switcher.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/workspace-switcher.tsx) ke proporsi `h-10 rounded-xl` yang seirama dengan tombol Tambah Klien `h-10 w-10 rounded-xl` di [app-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/app-sidebar.tsx). Mengurangi top padding `SidebarContent` menjadi `px-3 py-2` sehingga link navigasi pertama (`Overview`) langsung pas di bawah divider tanpa celah/gap anjlok.
+
+- [x] **Penyempurnaan Portal Klien: Eliminasi Visual Gap & Penyelarasan Modul 6 Halaman (2026-10-17)**
+  - **Client Overview Dashboard (`client/dashboard`)**:
+    - Mengeliminasi dead space lavender >400px dengan menambahkan modul 2-kolom: **Antrean Materi & Ulasan Kreatif (Deliverables Pipeline)** (preview draf materi, status badge, tombol ulas) dan **Kanal Brand Aktif** (daftar akun sosial terhubung dengan avatar/handle dan status live sync).
+    - **Penyempurnaan Simetri & Eliminasi Dead Space Internal (Master Two-Column Grid Architecture)**:
+      - Menyatukan baris grid yang terfragmentasi menjadi satu kontainer induk `grid grid-cols-1 lg:grid-cols-3 gap-6 items-start`.
+      - Kolom kiri (`lg:col-span-2 space-y-6`): Menempatkan *Antrean Materi & Ulasan Kreatif* di posisi atas sebagai prioritas aksi klien utama, diikuti *Postingan Tayang Terdekat* di bawahnya.
+      - Kolom kanan (`lg:col-span-1 space-y-6`): Menata *Kanal Brand Aktif* (dengan slot kesiapan integrasi platform Instagram/TikTok untuk mengisi ketinggian proporsional) dan *Direct Agency Hotline* di bawahnya tanpa peregangan paksa (`items-start`).
+      - Menyeragamkan seluruh tombol aksi kartu menjadi `h-8 px-3.5 rounded-full text-xs font-semibold`.
+    - Menambahkan modul panduan **Alur Kolaborasi Konten Bersama Frhm** (3 langkah: Produksi Kreatif -> Tinjau & Approval Instan -> Publikasi Otomatis Terjadwal) sehingga tampilan proporsional, padat, dan mewah.
+  - **Content Calendar (`client/calendar`)**:
+    - Memperkaya List View empty state dengan CTA langsung request ide konten/jadwal ke hotline support.
+    - Membersihkan double spacing margin di [app/client/calendar/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/calendar/page.tsx).
+  - **Deliverables & Review (`client/review`)**:
+    - Memperkaya empty state dengan CTA langsung ajukan materi baru.
+    - Menambahkan seksi edukasi **Kebijakan Ulasan & SLA Revisi Tim Frhm** (SLA 1x24 Jam Kerja, Catatan Terarah, Otomatisasi Penjadwalan).
+  - **Performance Analytics (`client/analytics`)**:
+    - Mengisolasi portal klien dari kebocoran filter agensi dengan menyembunyikan dropdown "Semua Client" dan menetralkan link admin `/admin/clients/...` menjadi teks biasa pada kartu kampanye.
+  - **Brand Assets (`client/assets`)**:
+    - Memperkaya empty state dan menambahkan panel **Panduan Format & Spesifikasi Aset Media** (Resolusi Feed 1:1/4:5, Video Reels 9:16, Penyimpanan Resolusi Penuh).
+  - **Support & Request (`client/support`)**:
+    - Menyeragamkan token radius input subjek ke `rounded-xl` agar harmonis dengan textarea dan kartu.
+  - Ditunjang unit test komprehensif baru: [client-dashboard-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.test.tsx) dan [client-review-hub.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.test.tsx).
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
-  - `npx vitest run`: 95/95 test suites PASS (553 tests passed, 0 failed).
+  - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
   - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, Service Layer 3-lapis.
+
