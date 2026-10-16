@@ -101,6 +101,15 @@ export async function promoteSkillOutputToDeliverable(
       return { success: false, error: "Dokumen strategi tidak ditemukan" }
     }
 
+    // Cegah cross-tenant: output harus milik client yang sama
+    if (output.client_id && output.client_id !== safe.clientId) {
+      logger.error("promoteSkillOutputToDeliverable.tenantMismatch", {
+        outputClientId: output.client_id,
+        requestedClientId: safe.clientId,
+      })
+      return { success: false, error: "Dokumen strategi tidak cocok dengan klien yang ditentukan" }
+    }
+
     // Tentukan deliverable type: jika diberikan eksplisit, gunakan; jika tidak, deteksi dari skill_id
     let deliverableType: DeliverableType = safe.type || "content"
     if (!safe.type) {
@@ -184,10 +193,16 @@ export async function updateDeliverableStatus(
       updatePayload.approved_at = now
     }
 
-    const { error: delivErr } = await service
+    let updateQuery = service
       .from("deliverables")
       .update(updatePayload)
       .eq("id", safe.deliverableId)
+
+    if (safe.clientId) {
+      updateQuery = updateQuery.eq("client_id", safe.clientId)
+    }
+
+    const { error: delivErr } = await updateQuery
 
     if (delivErr) {
       logger.error("updateDeliverableStatus.failed", { error: delivErr.message })
@@ -413,6 +428,15 @@ export async function scheduleApprovedDeliverable(
 
     if (delivErr || !deliverable) {
       return { success: false, error: "Deliverable tidak ditemukan" }
+    }
+
+    // Boundary check: deliverable harus milik client yang sama
+    if (deliverable.client_id && deliverable.client_id !== safe.clientId) {
+      logger.error("scheduleApprovedDeliverable.tenantMismatch", {
+        deliverableClientId: deliverable.client_id,
+        requestedClientId: safe.clientId,
+      })
+      return { success: false, error: "Deliverable tidak cocok dengan klien yang ditentukan" }
     }
 
     const { data: client } = await service

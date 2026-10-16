@@ -22,9 +22,10 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://res.cloudinary.com",
+      "media-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://o4512121963347968.ingest.us.sentry.io https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://api.cloudinary.com https://o4512121963347968.ingest.us.sentry.io https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -36,10 +37,11 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Supabase Storage serves brand assets from <project>.supabase.co
+    // Supabase Storage & Cloudinary serve media assets
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/**' },
       { protocol: 'https', hostname: '*.supabase.in', pathname: '/storage/v1/object/**' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
   },
   // React Compiler — memoize derived values automatically where types allow.

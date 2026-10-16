@@ -4,7 +4,17 @@
  * dan verifikasi token/secret pada request inbound.
  */
 
+import { timingSafeEqual } from 'node:crypto'
 import { env } from '@/lib/env'
+
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) {
+    return false
+  }
+  return timingSafeEqual(bufA, bufB)
+}
 
 export interface WhatsAppWebhookVerificationResult {
   ok: boolean
@@ -26,7 +36,7 @@ export function verifyWhatsAppWebhookGet(
     return { ok: false, reason: 'invalid_mode' }
   }
 
-  if (!token || token !== configuredVerifyToken) {
+  if (!token || !safeCompare(token, configuredVerifyToken)) {
     return { ok: false, reason: 'token_mismatch' }
   }
 
@@ -54,7 +64,7 @@ export function verifyWhatsAppWebhookPost(
     return { ok: false, reason: 'missing_secret_header' }
   }
 
-  if (receivedSecret !== configuredSecret) {
+  if (!safeCompare(receivedSecret, configuredSecret)) {
     return { ok: false, reason: 'secret_mismatch' }
   }
 

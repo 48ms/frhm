@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const { data: userProfile } = await supabase
     .from("users")
-    .select("role, full_name, email")
+    .select("role, full_name, email, client_id")
     .eq("id", user.id)
     .single()
 
@@ -51,12 +51,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Invalid payload" }, { status: 400 })
   }
 
+  // Non-admin (klien) wajib dibatasi ke client_id miliknya sendiri.
+  const isAdmin = userProfile?.role === 'admin'
+  const resolvedClientId = isAdmin ? (payload.clientId || null) : (userProfile?.client_id || null)
+
   // Persist tiket ke DB agar user/klien bisa melihat histori & statusnya.
   // RLS menjamin tenant isolation (client_insert_own / admin_all).
   const { data: ticket, error: ticketError } = await supabase
     .from("support_tickets")
     .insert({
-      client_id: payload.clientId || null,
+      client_id: resolvedClientId,
       created_by: user.id,
       subject: payload.subject,
       message: payload.message,
@@ -79,7 +83,7 @@ export async function POST(request: Request) {
       `🚨 <b>New Support Request</b>`,
       ``,
       `<b>From:</b> ${userProfile?.full_name || user.email} (${userProfile?.role})`,
-      `<b>Client ID:</b> ${payload.clientId || "N/A"}`,
+      `<b>Client ID:</b> ${resolvedClientId || "N/A"}`,
       `<b>Priority:</b> ${payload.priority}`,
       `<b>Subject:</b> ${payload.subject}`,
       ``,

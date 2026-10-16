@@ -17,21 +17,22 @@ Pillar 5: E2E Playwright & Edge Cases
 
 ---
 
-### 🛡️ PILLAR 1: Multi-Tenant Security & Backend Boundary (Kedaulatan Data)
+### 🛡️ PILLAR 1: Multi-Tenant Security & Backend Boundary (Kedaulatan Data) — SELESAI (100% VERIFIED)
 *Tujuan: Memastikan tidak ada kebocoran data antar-klien, bypass autentikasi, atau silent failure pada RLS.*
 
-- [ ] **1.1. Tenant Isolation & Client Scoping**:
-  - [ ] Audit seluruh 16 modul di `features/*/api/service.ts` untuk memastikan parameter `client_id` selalu divalidasi dan tidak dapat disuntikkan ID klien lain.
-  - [ ] Verifikasi konsistensi RLS policy Supabase untuk tabel `deliverables`, `campaigns`, `client_channels`, `scheduled_posts`, dan `expenses`.
-- [ ] **1.2. API Route & Webhook Authentication**:
-  - [ ] Audit endpoint `/api/cron/*` — pastikan validasi `Authorization: Bearer <CRON_SECRET>` aktif dan menolak request tak terotorisasi (401).
-  - [ ] Audit webhook WhatsApp (`/api/whatsapp/webhook`) — verifikasi HMAC SHA-256 signature verification.
-  - [ ] Audit webhook Telegram (`/api/telegram/webhook`) — verifikasi `X-Telegram-Bot-Api-Secret-Token` dan link token hashing.
-- [ ] **1.3. Secret Hygiene & Client Exposure**:
-  - [ ] Pastikan tidak ada kunci rahasia (`SERVICE_ROLE_KEY`, `AYRSHARE_API_KEY`, AI provider API keys) yang memakai awalan `NEXT_PUBLIC_`.
-  - [ ] Validasi skema Zod environment variables di `lib/env.ts` (`t3-env` / runtime validation).
-- [ ] **1.4. Security Headers & CSP**:
-  - [ ] Verifikasi `next.config.mjs` Content-Security-Policy (CSP) untuk domain Sentry (`*.sentry.io`, `o*.ingest.sentry.io`), Supabase, dan Ayrshare.
+- [x] **1.1. Tenant Isolation & Client Scoping**:
+  - [x] Audit seluruh 16 modul di `features/*/api/service.ts`: parameter `client_id` divalidasi dan di-scope ketat. Hardening boundary check ditambahkan pada `features/deliverables/api/service.ts` (`promoteSkillOutputToDeliverable`, `scheduleApprovedDeliverable`, `updateDeliverableStatus`) dan `app/api/support/submit/route.ts` (mencegah impersonasi `client_id` oleh non-admin).
+  - [x] Verifikasi konsistensi RLS policy Supabase untuk seluruh tabel tenant (`deliverables`, `campaigns`, `client_channels`, `scheduled_posts`, `expenses`, `events`, `support_tickets`, `analytics_predictions`, `competitor_benchmarks`, dll.) — semua tabel memiliki `ENABLE ROW LEVEL SECURITY` dan policy berbasis `public.current_user_client_id()` serta `public.is_admin()`.
+- [x] **1.2. API Route & Webhook Authentication**:
+  - [x] Audit endpoint `/api/cron/*`: 5/5 route handler terkonfirmasi memvalidasi `Authorization: Bearer <CRON_SECRET>` dengan perbandingan constant-time `timingSafeEqual` (fail-closed).
+  - [x] Audit webhook WhatsApp (`/api/whatsapp/webhook`): verifikasi token & secret ditingkatkan menggunakan `timingSafeEqual` (`lib/whatsapp/verify-webhook.ts`) untuk mitigasi timing attack.
+  - [x] Audit webhook Telegram (`/api/telegram/webhook`): verifikasi secret token ditingkatkan dengan `timingSafeEqual` (`lib/telegram/verify-webhook.ts`) dan link token hashing diverifikasi.
+  - [x] Audit seluruh 17 route handler `/api/**`: seluruh endpoint internal memvalidasi session `supabase.auth.getUser()`, role admin/client, dan rate-limiting.
+- [x] **1.3. Secret Hygiene & Client Exposure**:
+  - [x] Terverifikasi tidak ada rahasia (`SERVICE_ROLE_KEY`, `AYRSHARE_API_KEY`, AI keys) yang terekspos via awalan `NEXT_PUBLIC_`.
+  - [x] Validasi skema Zod environment variables aktif di `lib/env.ts` (`t3-env` style) lengkap dengan browser-throw guard `isBrowserEnvironment()`. Nol pemanggilan `process.env` mentah di komponen client.
+- [x] **1.4. Security Headers & CSP**:
+  - [x] Content-Security-Policy (CSP) di `next.config.mjs` diverifikasi: menambahkan `res.cloudinary.com` ke `img-src`, `media-src`, dan `images.remotePatterns`, serta `api.cloudinary.com` ke `connect-src` untuk mencegah CSP blocking pada pemutaran media & video. Sentry, Supabase, Ayrshare, dan Telegram terdaftar aman.
 
 ---
 

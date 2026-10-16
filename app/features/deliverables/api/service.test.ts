@@ -174,7 +174,8 @@ describe("Deliverables Service Layer", () => {
   })
 
   it("updateDeliverableStatus updates deliverable and syncs associated skill_outputs", async () => {
-    const mockDelivUpdateEq = vi.fn().mockResolvedValue({ error: null })
+    const mockDelivUpdateEq2 = vi.fn().mockResolvedValue({ error: null })
+    const mockDelivUpdateEq = vi.fn().mockReturnValue({ eq: mockDelivUpdateEq2 })
     const mockDelivUpdate = vi.fn().mockReturnValue({ eq: mockDelivUpdateEq })
 
     const mockOutputUpdateEq = vi.fn().mockResolvedValue({ error: null })
@@ -476,6 +477,70 @@ describe("Deliverables Service Layer", () => {
         }),
       ])
     )
+  })
+
+  it("promoteSkillOutputToDeliverable rejects when output belongs to different client", async () => {
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === "skill_outputs") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: {
+                  id: "output-other",
+                  client_id: "client-other",
+                  skill_id: "competitor-audit",
+                  title: "Other Client Strategy",
+                  content: "Content",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    const result = await promoteSkillOutputToDeliverable({
+      outputId: "output-other",
+      clientId: "client-1",
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain("tidak cocok")
+  })
+
+  it("scheduleApprovedDeliverable rejects when deliverable belongs to different client", async () => {
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === "deliverables") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "deliv-other",
+                  client_id: "client-other",
+                  title: "Other Client Deliverable",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    const result = await scheduleApprovedDeliverable({
+      deliverableId: "11111111-1111-1111-1111-111111111111",
+      clientId: "client-1",
+      platform: "instagram",
+      scheduledAt: "2026-10-16T10:00:00.000Z",
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain("tidak cocok")
   })
 })
 

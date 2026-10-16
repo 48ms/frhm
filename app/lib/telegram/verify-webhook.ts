@@ -9,6 +9,8 @@
  * Aturan: jika `TELEGRAM_BOT_SECRET_TOKEN` belum dikonfigurasi, TOLAK request
  * (fail-closed) — jangan pernah menerima webhook tanpa secret di produksi.
  */
+import { timingSafeEqual } from 'node:crypto'
+
 export function verifyTelegramWebhookSecret(
   configuredSecret: string | undefined,
   receivedSecret: string | null,
@@ -19,8 +21,12 @@ export function verifyTelegramWebhookSecret(
   if (!receivedSecret) {
     return { ok: false, reason: 'missing_header' }
   }
-  if (receivedSecret !== configuredSecret) {
+
+  const a = Buffer.from(receivedSecret)
+  const b = Buffer.from(configuredSecret)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return { ok: false, reason: 'mismatch' }
   }
+
   return { ok: true }
 }
