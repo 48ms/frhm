@@ -395,3 +395,12 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - Fallback onboarding empty-state jika belum ada saluran terhubung untuk memandu user/klien menghubungkan akun pertama mereka.
   - Server prefetching multi-account analytics di [dashboard-prefetcher.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/dashboard-prefetcher.tsx) (`analyticsQueries.multiAccount(clientId, "30d")`).
   - Ditunjang unit test komprehensif [performance-chart.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/performance-chart.test.tsx) (2/2 passed).
+
+- [x] **Penyempurnaan Pusat Notifikasi: Perbaikan Visual Gap & Sinkronisasi Count Faktual (2026-10-17)**
+  - Mengeliminasi ruang kosong putih (~190px gap) pada popover [notification-center.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/notification-center.tsx) dengan mengganti `h-[300px]` statis menjadi tinggi dinamis `h-auto` pada kondisi empty-state dan `max-h-[380px]` saat terisi notifikasi.
+  - Memperbaiki inkonsistensi data mismatch: menghapus nilai `unreadCount={1}` yang di-hardcode di [app/admin/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/layout.tsx) menjadi `0`, serta menyinkronkan counter popover dan trigger badge secara faktual dengan array `notifications`.
+  - Ditunjang unit test baru [notification-center.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/notification-center.test.tsx) (3/3 passed).
+- 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
+  - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+  - `npx vitest run`: 95/95 test suites PASS (553 tests passed, 0 failed).
+  - Kepatuhan Desain Sistem: 100% Radix UI Popover, Animate UI, semantic HSL tokens, zero hardcoded mock values.

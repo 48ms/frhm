@@ -91,7 +91,7 @@ export default async function AdminLayout({
               <div className="flex flex-1 flex-col min-w-0">
                 <AdminHeader
                   userName={displayName}
-                  unreadCount={1}
+                  unreadCount={0}
                 />
                 {/* Mobile: 16px top padding for header; Desktop: no extra padding */}
                 <div data-slot="admin-main" className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-4 pb-6 lg:p-8 md:pt-0">

@@ -24,6 +24,7 @@ export interface NotificationItem {
 interface NotificationCenterProps {
   role?: 'admin' | 'client';
   initialCount?: number;
+  initialNotifications?: NotificationItem[];
 }
 
 const notifListVariants: Variants = {
@@ -49,12 +50,18 @@ const notifItemVariants: Variants = {
   },
 };
 
-export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: NotificationCenterProps) {
+export function NotificationCenter({
+  role: _role = 'admin',
+  initialCount = 0,
+  initialNotifications,
+}: NotificationCenterProps) {
   const router = useRouter();
   const [filter, setFilter] = React.useState<'all' | 'unread'>('all');
 
-  // Faktual: Fitur notifikasi di database / realtime belum diimplementasikan, state mulai kosong
-  const [notifications, setNotifications] = React.useState<NotificationItem[]>([]);
+  // Faktual: state notifikasi tersinkronisasi murni dengan array notifikasi
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>(
+    initialNotifications ?? []
+  );
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -62,7 +69,8 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const count = initialCount > 0 ? initialCount : unreadCount;
+  // Sinkronisasi data: jika notifications kosong, count adalah 0 (tidak ada mismatch)
+  const count = notifications.length > 0 ? unreadCount : 0;
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === 'unread') return !n.read;
@@ -105,7 +113,7 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
       </PopoverTrigger>
       <PopoverContent
         align='end'
-        className='w-[calc(100vw-2rem)] p-0 sm:w-[380px] shadow-2xl rounded-2xl border border-border/40 overflow-hidden'
+        className='w-[calc(100vw-2rem)] p-0 sm:w-[380px] shadow-2xl rounded-2xl border border-border/40 overflow-hidden bg-card'
         sideOffset={8}
       >
         <div className='flex items-center justify-between px-4 py-3 bg-muted/20'>
@@ -153,12 +161,14 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
           </Tabs>
         </div>
 
-        <ScrollArea className='h-[300px]'>
+        <ScrollArea className={cn(filteredNotifications.length === 0 ? 'h-auto' : 'h-[320px] max-h-[380px]')}>
           {mounted && filteredNotifications.length === 0 ? (
-            <div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
-              <Icons.notification className='size-8 text-muted-foreground/30 mb-2' />
-              <p className='text-sm font-medium text-muted-foreground'>Tidak ada notifikasi</p>
-              <p className='text-xs text-muted-foreground/70 mt-0.5'>
+            <div className='flex flex-col items-center justify-center py-10 px-4 text-center'>
+              <div className='w-10 h-10 rounded-full bg-muted/70 flex items-center justify-center mx-auto mb-2 text-muted-foreground/60 shadow-2xs'>
+                <Icons.notification className='size-5' />
+              </div>
+              <p className='text-sm font-semibold text-foreground'>Tidak ada notifikasi</p>
+              <p className='text-xs text-muted-foreground mt-0.5 max-w-[260px] leading-relaxed'>
                 Semua pembaruan sistem dan antrean telah dibaca.
               </p>
             </div>
