@@ -1,0 +1,237 @@
+Each icon has several animations, with at least 3 animations by default:
+
+path: an animation of the pathLength from 0 to 1
+path-loop: pathLength animation from 1 to 0 to 1
+default: the default animation, customized for each icon
+animation
+
+<ArrowRight animation="pointing" />
+
+// or with AnimateIcon
+<AnimateIcon animation="pointing">
+  <ArrowRight />
+</AnimateIcon>
+You can set the animation on the wrapper and customize it for an icon:
+
+
+<AnimateIcon animation="pointing">
+  <ArrowRight />
+  <ArrowLeft animation="default" />
+</AnimateIcon>
+or you can set it for each icon individually:
+
+
+<AnimateIcon>
+  <ArrowRight animation="pointing" />
+  <ArrowLeft animation="default" />
+</AnimateIcon>
+API Reference
+Prop	Type	Default
+animation?
+
+StaticAnimations | string
+default
+
+
+
+#PERSISTENCE#
+Define whether the icon resets to its initial state or keeps the animation.
+
+persistOnAnimateEnd
+This allows the animation to remain in the animate state without returning to the initial state. This will have no impact in loop or when the animation ends in the same state as the initial state.
+
+Note: If the animation is not complete, it will remain in the paused animation state.
+
+
+<ArrowRight persistOnAnimateEnd />
+
+// or with AnimateIcon
+<AnimateIcon persistOnAnimateEnd>
+  <ArrowRight />
+</AnimateIcon>
+initialOnAnimateEnd
+This allows you to set the initial state without transition at the end of the animation. Very useful for rotation animations, for example, which give the impression of returning to the initial state even though they have the rotation applied.
+
+
+<ArrowRight initialOnAnimateEnd />
+
+// or with AnimateIcon
+<AnimateIcon initialOnAnimateEnd>
+  <ArrowRight />
+</AnimateIcon>
+completeOnStop
+This allows the current animation to finish before returning to the initial state.
+
+Note: If you set it to AnimateIcon with multiple child icons, it will wait for the last animation.
+
+
+<ArrowRight completeOnStop />
+
+// or with AnimateIcon
+<AnimateIcon completeOnStop>
+  <ArrowRight />
+</AnimateIcon>
+API Reference
+Prop	Type	Default
+initialOnAnimateEnd?
+
+boolean
+false
+persistOnAnimateEnd?
+
+boolean
+false
+completeOnStop?
+
+boolean
+false
+
+
+#Timing#
+
+
+Adjust animation timing with delays and loops.
+
+
+Open
+delay
+This allows you to add a delay in milliseconds before starting the animation.
+
+
+<ArrowRight delay={1000} />
+
+// or with AnimateIcon
+<AnimateIcon delay={1000}>
+  <ArrowRight />
+</AnimateIcon>
+loop
+This allows the animation to be played in a loop.
+
+Note: We recommend using loop when the final state of the animation is identical to the initial state.
+
+
+<ArrowRight loop />
+
+// or with AnimateIcon
+<AnimateIcon loop>
+  <ArrowRight />
+</AnimateIcon>
+loopDelay
+This allows you to add a delay in milliseconds between animations when the animation plays in a loop.
+
+
+<ArrowRight loop loopDelay={1000} />
+
+// or with AnimateIcon
+<AnimateIcon loop loopDelay={1000}>
+  <ArrowRight />
+</AnimateIcon>
+API Reference
+Prop	Type	Default
+delay?
+
+number
+0
+loop?
+
+boolean
+false
+loopDelay?
+
+number
+0
+
+
+#Triggers#
+Control how and when the icon animates.
+
+
+Open
+animate
+This sets the animate state.
+
+
+<ArrowRight animate />
+
+// or with AnimateIcon
+<AnimateIcon animate>
+  <ArrowRight />
+</AnimateIcon>
+animateOnHover
+This sets the state to animate on hover.
+
+
+<ArrowRight animateOnHover />
+
+// or with AnimateIcon
+<AnimateIcon animateOnHover>
+  <ArrowRight />
+</AnimateIcon>
+animateOnTap
+This sets the state to animate on tap.
+
+Note: The state will return to its initial state when the click is released. To ensure that the animation always ends, add the completeOnStop prop.
+
+
+<ArrowRight animateOnTap />
+
+// or with AnimateIcon
+<AnimateIcon animateOnTap>
+  <ArrowRight />
+</AnimateIcon>
+animateOnView
+This sets the animate state when the icon is in view.
+
+
+<ArrowRight animateOnView />
+
+// or with AnimateIcon
+<AnimateIcon animateOnView>
+  <ArrowRight />
+</AnimateIcon>
+animateOnViewMargin
+This sets the margin of the in view area.
+
+
+<ArrowRight animateOnView animateOnViewMargin="10px" />
+
+// or with AnimateIcon
+<AnimateIcon animateOnView animateOnViewMargin="10px">
+  <ArrowRight />
+</AnimateIcon>
+animateOnViewOnce
+This sets the icon to animate only once when it is in view (by default it is true).
+
+
+<ArrowRight animateOnView animateOnViewOnce={false} />
+
+// or with AnimateIcon
+<AnimateIcon animateOnView animateOnViewOnce={false}>
+  <ArrowRight />
+</AnimateIcon>
+API Reference
+Prop	Type	Default
+animate?
+
+boolean | string
+false
+animateOnHover?
+
+boolean | string
+false
+animateOnTap?
+
+boolean | string
+false
+animateOnView?
+
+boolean | string
+false
+animateOnViewMargin?
+
+string
+0px
+animateOnViewOnce?
+
+boolean
+true

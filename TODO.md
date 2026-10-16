@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 85 test suites passed (502/502 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 89 test suites passed (516/516 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -99,6 +99,11 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - [x] Pastikan tidak ada warna Tailwind hardcoded seperti `bg-slate-900` atau `text-[#123456]` di komponen fitur (termasuk eliminasi `text-white` pada button destructive, login OAuth, right panel, dan calendar post card).
 - [x] **4.4. Zero Layout-Shift Button Loading**:
   - [x] Pastikan seluruh tombol submit menggunakan prop `isLoading={isPending}` dengan teknik CSS Grid overlap agar dimensi tombol tidak melompat saat proses kirim (termasuk penambahan `isLoading` pada `DisconnectDialog`).
+- [x] **4.5. Arsitektur Resmi Animate UI Icons (`<AnimateIcon animateOnHover>`)**:
+  - [x] Implementasikan komponen standar resmi Animate UI Icons (`AnimateIcon`, `IconWrapper`, `useAnimateIconContext`, `getVariants`) di [app/components/animate-ui/icons/icon.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/icons/icon.tsx) sesuai spesifikasi `animate-ui.com`.
+  - [x] Implementasikan komponen resmi [ArrowRight](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/icons/arrow-right.tsx) dengan varian motion resmi (`default`, `pointing`, `out`, `path`).
+  - [x] Integrasikan [AnimatedIcon](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/components/icons/animated-icon.tsx) di sidebar (`AppSidebar` & `ClientSidebar`) agar mendukung wrapping langsung `<AnimateIcon animateOnHover>` dan pemanggilan icon semantik dengan spring physics micro-interactions.
+  - [x] Ditunjang unit tests [icon.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/icons/icon.test.tsx) & [animated-icon.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/components/icons/animated-icon.test.tsx) (100% passed).
 
 ---
 

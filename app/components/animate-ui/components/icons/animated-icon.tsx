@@ -4,15 +4,19 @@ import * as React from "react"
 import { motion, type Variants } from "motion/react"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { AnimateIcon } from "@/components/animate-ui/icons/icon"
+
+export * from "@/components/animate-ui/icons/icon"
 
 export type AnimatedIconName = keyof typeof Icons | string
 
-interface AnimatedIconProps extends React.HTMLAttributes<HTMLSpanElement> {
-  name: AnimatedIconName
+export interface AnimatedIconProps extends React.HTMLAttributes<HTMLSpanElement> {
+  name?: AnimatedIconName
   className?: string
   iconClassName?: string
   isActive?: boolean
   animateOnHover?: boolean
+  children?: React.ReactNode
 }
 
 // Spring physics configuration following Animate UI standards
@@ -133,25 +137,39 @@ export function AnimatedIcon({
   iconClassName,
   isActive = false,
   animateOnHover = true,
+  children,
   ...props
 }: AnimatedIconProps) {
+  // If children provided, wrap inside AnimateIcon
+  if (children) {
+    return (
+      <AnimateIcon animateOnHover={animateOnHover} className={cn("inline-flex items-center justify-center shrink-0", className)} {...(props as any)}>
+        {children}
+      </AnimateIcon>
+    )
+  }
+
+  if (!name) return null
   const IconCmp = Icons[name as keyof typeof Icons]
   if (!IconCmp) return null
 
   const selectedVariants = iconVariants[name] ?? iconVariants.default
 
   return (
-    <motion.span
-      className={cn("inline-flex items-center justify-center shrink-0 origin-center select-none", className)}
-      variants={animateOnHover ? selectedVariants : undefined}
-      initial={false}
-      animate={isActive ? "active" : "idle"}
-      whileHover={animateOnHover ? "hover" : undefined}
-      whileTap={{ scale: 0.92 }}
-      transition={springTransition}
-      {...(props as any)}
-    >
-      <IconCmp className={cn("size-5 transition-colors", iconClassName)} />
-    </motion.span>
+    <AnimateIcon animateOnHover={animateOnHover} asChild>
+      <motion.span
+        className={cn("inline-flex items-center justify-center shrink-0 origin-center select-none", className)}
+        variants={animateOnHover ? selectedVariants : undefined}
+        initial={false}
+        animate={isActive ? "active" : "idle"}
+        whileHover={animateOnHover ? "hover" : undefined}
+        whileTap={{ scale: 0.92 }}
+        transition={springTransition}
+        {...(props as any)}
+      >
+        <IconCmp className={cn("size-5 transition-colors", iconClassName)} />
+      </motion.span>
+    </AnimateIcon>
   )
 }
+
