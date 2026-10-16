@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
@@ -18,6 +19,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui/components/radix/tooltip"
 import { NavUser } from "@/components/nav-user"
+
+const MotionLink = motion.create(Link)
 
 export type ClientBrandInfo = {
   id: string
@@ -82,7 +85,7 @@ export function ClientSidebar({
                 const active = isActiveFor(pathname, item.url)
                 const targetUrl = `${item.url}?clientId=${client.id}`
                 return (
-                  <motion.a
+                  <MotionLink
                     key={item.title}
                     href={targetUrl}
                     aria-current={active ? "page" : undefined}
@@ -109,7 +112,7 @@ export function ClientSidebar({
                       className="size-5 shrink-0"
                     />
                     <span className="truncate">{item.title}</span>
-                  </motion.a>
+                  </MotionLink>
                 )
               })}
             </nav>
@@ -123,14 +126,14 @@ export function ClientSidebar({
               <p className="text-2xs text-muted-foreground leading-relaxed">
                 Punya revisi mendesak atau request konten baru? Ajukan langsung ke hotline tim Frhm.
               </p>
-              <a
+              <Link
                 href={`/client/support?clientId=${client.id}`}
                 onClick={() => isMobile && setOpenMobile(false)}
                 className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-background border border-border/50 text-foreground text-xs font-semibold shadow-2xs hover:bg-muted transition-all active:scale-95 group"
               >
                 <span>Ajukan Tiket</span>
                 <AnimatedIcon name="arrowRight" className="size-3 text-muted-foreground group-hover:text-foreground" />
-              </a>
+              </Link>
             </div>
           </>
         ) : (
@@ -141,7 +144,7 @@ export function ClientSidebar({
               return (
                 <Tooltip key={item.title}>
                   <TooltipTrigger asChild>
-                    <motion.a
+                    <MotionLink
                       href={targetUrl}
                       aria-label={item.title}
                       whileHover="hover"
@@ -161,7 +164,7 @@ export function ClientSidebar({
                         />
                       )}
                       <AnimatedIcon name={item.icon ?? ""} isActive={active} className="size-5" />
-                    </motion.a>
+                    </MotionLink>
                   </TooltipTrigger>
                   <TooltipContent side="right">{item.title}</TooltipContent>
                 </Tooltip>

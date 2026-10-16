@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "motion/react"
 import { NavUser } from "@/components/nav-user"
@@ -23,6 +24,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui/components/radix/tooltip"
 
+const MotionLink = motion.create(Link)
+
 export type AppUser = {
   name: string
   email: string
@@ -41,7 +44,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
       const active = isActiveFor(pathname, item.url)
       const targetUrl = activeClientId ? `${item.url}?clientId=${activeClientId}` : item.url
       return (
-        <motion.a
+        <MotionLink
           key={item.title}
           href={targetUrl}
           aria-current={active ? "page" : undefined}
@@ -68,7 +71,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             className="size-5 shrink-0"
           />
           <span className="truncate">{item.title}</span>
-        </motion.a>
+        </MotionLink>
       )
     })
   }
@@ -112,27 +115,27 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             </nav>
 
             <div className="mt-6 px-1">
-              <a
+              <Link
                 href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                 onClick={() => isMobile && setOpenMobile(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[hsl(var(--admin-cobalt))] text-primary-foreground font-semibold text-xs shadow-md transition-all hover:bg-opacity-90 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
               >
                 <AnimatedIcon name="rocket" className="size-4 text-primary-foreground" />
                 <span>New Post</span>
-              </a>
+              </Link>
             </div>
           </>
         ) : (
           <div className="flex flex-col items-center py-2 gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <a
+                <Link
                   href={`/admin/composer${activeClientId ? `?clientId=${activeClientId}` : ""}`}
                   aria-label="New Post"
                   className="flex items-center justify-center w-10 h-10 rounded-full bg-[hsl(var(--admin-cobalt))] text-primary-foreground shadow-md hover:bg-opacity-90 active:scale-95 transition-all mb-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
                 >
                   <AnimatedIcon name="rocket" className="size-5 text-primary-foreground" />
-                </a>
+                </Link>
               </TooltipTrigger>
               <TooltipContent side="right">New Post</TooltipContent>
             </Tooltip>
@@ -142,7 +145,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
               return (
                 <Tooltip key={item.title}>
                   <TooltipTrigger asChild>
-                    <motion.a
+                    <MotionLink
                       href={targetUrl}
                       aria-label={item.title}
                       aria-current={active ? "page" : undefined}
@@ -163,7 +166,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                         />
                       )}
                       <AnimatedIcon name={item.icon ?? ""} isActive={active} className="size-5" />
-                    </motion.a>
+                    </MotionLink>
                   </TooltipTrigger>
                   <TooltipContent side="right">{item.title}</TooltipContent>
                 </Tooltip>
@@ -177,7 +180,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
       <SidebarFooter className="p-3 border-t border-border/40 space-y-1 shrink-0">
         {open ? (
           <>
-            <motion.a
+            <MotionLink
               href="/admin/settings"
               whileHover="hover"
               initial="idle"
@@ -186,8 +189,8 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             >
               <AnimatedIcon name="settings" className="size-[18px]" />
               <span>Settings</span>
-            </motion.a>
-            <motion.a
+            </MotionLink>
+            <MotionLink
               href="/admin/support"
               whileHover="hover"
               initial="idle"
@@ -196,14 +199,14 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
             >
               <AnimatedIcon name="help" className="size-[18px]" />
               <span>Support</span>
-            </motion.a>
+            </MotionLink>
             <NavUser user={user} />
           </>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <motion.a
+                <MotionLink
                   href="/admin/settings"
                   whileHover="hover"
                   initial="idle"
@@ -211,13 +214,13 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                   className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-11 group"
                 >
                   <AnimatedIcon name="settings" className="size-[18px]" />
-                </motion.a>
+                </MotionLink>
               </TooltipTrigger>
               <TooltipContent side="right">Settings</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <motion.a
+                <MotionLink
                   href="/admin/support"
                   whileHover="hover"
                   initial="idle"
@@ -225,7 +228,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                   className="flex items-center justify-center w-10 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-11 group"
                 >
                   <AnimatedIcon name="help" className="size-[18px]" />
-                </motion.a>
+                </MotionLink>
               </TooltipTrigger>
               <TooltipContent side="right">Support</TooltipContent>
             </Tooltip>
