@@ -35,6 +35,16 @@ vi.mock("@/components/ai/brand-brain-editor-dialog", () => ({
     open ? <div data-testid="brand-brain-dialog">Brand Brain Modal for {clientName}</div> : null,
 }))
 
+import { NuqsTestingAdapter } from "nuqs/adapters/testing"
+
+function renderClientManager() {
+  return render(
+    <NuqsTestingAdapter>
+      <ClientManager />
+    </NuqsTestingAdapter>
+  )
+}
+
 describe("ClientManager & Clients Page Components", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -51,7 +61,7 @@ describe("ClientManager & Clients Page Components", () => {
   })
 
   it("renders client card and Playbooks button", () => {
-    render(<ClientManager />)
+    renderClientManager()
 
     expect(screen.getByText("Taraju Coffee")).toBeDefined()
     expect(screen.getByText(/Kanal Terhubung/i)).toBeDefined()
@@ -60,7 +70,7 @@ describe("ClientManager & Clients Page Components", () => {
   })
 
   it("opens ClientPlaybooksDialog when Playbooks button is clicked", () => {
-    render(<ClientManager />)
+    renderClientManager()
 
     const playbooksBtn = screen.getByRole("button", { name: /Playbooks/i })
     fireEvent.click(playbooksBtn)
@@ -70,7 +80,7 @@ describe("ClientManager & Clients Page Components", () => {
   })
 
   it("opens BrandBrainEditorDialog when Brand Brain button is clicked", () => {
-    render(<ClientManager />)
+    renderClientManager()
 
     const brandBrainBtn = screen.getByRole("button", { name: /Brand Brain/i })
     fireEvent.click(brandBrainBtn)
@@ -80,12 +90,30 @@ describe("ClientManager & Clients Page Components", () => {
   })
 
   it("triggers openCreateClient when Add New Client dashed card is clicked", () => {
-    render(<ClientManager />)
+    renderClientManager()
 
     const addCardBtn = screen.getByRole("button", { name: /Add New Client/i })
     fireEvent.click(addCardBtn)
 
     expect(mockOpenCreateClient).toHaveBeenCalledTimes(1)
+  })
+
+  it("filters client cards in real-time when searching", () => {
+    mockUseQuery.mockReturnValue({
+      data: [
+        { id: "c-1", name: "Taraju Coffee", contact_email: "halo@taraju.com", channels: [] },
+        { id: "c-2", name: "Pawon Sengon", contact_email: "info@pawon.id", channels: [] },
+      ],
+    })
+    renderClientManager()
+    expect(screen.getByText("Taraju Coffee")).toBeDefined()
+    expect(screen.getByText("Pawon Sengon")).toBeDefined()
+
+    const searchInput = screen.getByPlaceholderText("Cari client...")
+    fireEvent.change(searchInput, { target: { value: "Pawon" } })
+
+    expect(screen.queryByText("Taraju Coffee")).toBeNull()
+    expect(screen.getByText("Pawon Sengon")).toBeDefined()
   })
 
   it("renders ClientManagerSkeleton with accessibility role status", () => {

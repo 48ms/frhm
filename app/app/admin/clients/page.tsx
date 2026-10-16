@@ -10,6 +10,8 @@ import {
   AddClientHeaderButton,
 } from "@/components/client/client-manager"
 
+import { clientsParamsCache } from "@/lib/searchparams"
+
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
@@ -17,7 +19,10 @@ export const metadata: Metadata = {
   description: "Kelola portofolio klien, profil brand, dan workspace multi-tenant Frahma.",
 }
 
-export default async function ClientsPage() {
+export default async function ClientsPage(
+  props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
+) {
+  const { q } = clientsParamsCache.parse(await props.searchParams)
   const queryClient = getQueryClient()
 
   // 1. Server-side data prefetching (Aturan #3 TanStack Query v5)

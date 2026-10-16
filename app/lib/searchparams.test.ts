@@ -16,6 +16,8 @@ import {
   serializeAiParams,
   analyticsParamsCache,
   serializeAnalyticsParams,
+  clientsParamsCache,
+  serializeClientsParams,
 } from "./searchparams"
 
 describe("lib/searchparams URL State Synchronization", () => {
@@ -228,6 +230,25 @@ describe("lib/searchparams URL State Synchronization", () => {
       })
       expect(url).toContain("platform=tiktok")
       expect(url).toContain("period=90d")
+    })
+  })
+
+  describe("Clients Params Cache & Serializer", () => {
+    it("parses defaults for Clients", () => {
+      const parsed = clientsParamsCache.parse({})
+      expect(parsed.q).toBe("")
+    })
+
+    it("parses search query for Clients", () => {
+      const parsed = clientsParamsCache.parse({ q: "Pawon" })
+      expect(parsed.q).toBe("Pawon")
+    })
+
+    it("serializes Clients params", () => {
+      const url = serializeClientsParams("/admin/clients", {
+        q: "Taraju",
+      })
+      expect(url).toContain("q=Taraju")
     })
   })
 })

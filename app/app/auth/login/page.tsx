@@ -282,7 +282,7 @@ function LoginForm() {
                 onValueChange={(v) => {
                   setAuthError(null)
                   setSignupNotice(null)
-                  void setMode(v as 'login' | 'signup')
+                  void setMode(v as 'login' | 'signup', { shallow: true })
                 }}
                 className='w-full'
               >

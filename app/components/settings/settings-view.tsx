@@ -56,7 +56,7 @@ export function SettingsView() {
     >
 
       {/* Tab Navigation */}
-      <Tabs value={activeTab} onValueChange={(val) => setTab(val)}>
+      <Tabs value={activeTab} onValueChange={(val) => void setTab(val, { shallow: true })}>
         <TabsList
           aria-label="Settings sections"
           className="flex items-center gap-1.5 p-1 bg-secondary/40 rounded-full border border-border/20 w-max h-auto"

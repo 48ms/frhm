@@ -145,3 +145,14 @@ export const analyticsSearchParams = {
 
 export const analyticsParamsCache = createSearchParamsCache(analyticsSearchParams)
 export const serializeAnalyticsParams = createSerializer(analyticsSearchParams)
+
+// -------------------------------------------------------------
+// 9. Client Workspaces (/admin/clients)
+// -------------------------------------------------------------
+export const clientsSearchParams = {
+  q: parseAsString.withDefault(""),
+}
+
+export const clientsParamsCache = createSearchParamsCache(clientsSearchParams)
+export const serializeClientsParams = createSerializer(clientsSearchParams)
+

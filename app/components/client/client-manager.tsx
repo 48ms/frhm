@@ -4,6 +4,9 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { useCreateClient } from "@/components/client/create-client-provider"
+import { useQueryStates } from "nuqs"
+import { clientsSearchParams } from "@/lib/searchparams"
+import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
@@ -39,6 +42,7 @@ export function AddClientHeaderButton() {
 }
 
 export function ClientManager() {
+  const [{ q }, setClientsState] = useQueryStates(clientsSearchParams, { shallow: true })
   const { data: clientsData } = useQuery({
     ...socialQueries.listClientsWithChannels(),
     placeholderData: [],
@@ -54,10 +58,43 @@ export function ClientManager() {
     name: string
   } | null>(null)
 
+  const filteredClients = React.useMemo(() => {
+    if (!q) return clients
+    const query = q.toLowerCase()
+    return clients.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.contact_email || "").toLowerCase().includes(query)
+    )
+  }, [clients, q])
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3 max-w-sm">
+        <div className="relative flex-1">
+          <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari client..."
+            value={q}
+            onChange={(e) => void setClientsState({ q: e.target.value })}
+            className="pl-9 h-9 text-xs rounded-xl"
+          />
+        </div>
+        {q && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void setClientsState({ q: "" })}
+            className="h-9 px-2 text-xs"
+          >
+            Reset
+          </Button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients?.map((client) => (
+        {filteredClients?.map((client) => (
           <div
             key={client.id}
             data-client-id={client.id}
