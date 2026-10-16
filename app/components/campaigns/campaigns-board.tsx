@@ -19,7 +19,7 @@ import {
   useCreateCampaign,
   useUpdateCampaign,
 } from "@/features/campaigns/api/queries"
-import { contentProductionQueries, useUpdateContentProduction } from "@/features/content-production/api/queries"
+import { contentProductionQueries, useUpdateContentProduction, useCreateContentProduction } from "@/features/content-production/api/queries"
 import { erpQueries } from "@/features/erp/api/queries"
 import type { Campaign } from "@/features/campaigns/api/types"
 import type { ContentProduction, ContentStage } from "@/features/content-production/api/types"
@@ -33,6 +33,7 @@ import { PageContainer } from "@/components/layout/page-container"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { motion } from "motion/react"
 
 /* ------------------------------------------------------------------ */
@@ -346,12 +347,18 @@ export function CampaignsBoard() {
   const createCampaign = useCreateCampaign()
   const updateCampaign = useUpdateCampaign()
   const updateProduction = useUpdateContentProduction()
+  const createProduction = useCreateContentProduction()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [detail, setDetail] = useState<Campaign | null>(null)
   const [expenseFormOpen, setExpenseFormOpen] = useState(false)
   const [adSpendFormOpen, setAdSpendFormOpen] = useState(false)
+  const [newProdOpen, setNewProdOpen] = useState(false)
+  const [newProdTitle, setNewProdTitle] = useState("")
+  const [newProdPlatform, setNewProdPlatform] = useState("instagram")
+  const [newProdAssignee, setNewProdAssignee] = useState("")
+  const [newProdDue, setNewProdDue] = useState("")
 
   // Deep-link `?new=1` (mis. dari tombol "Create Campaign" di header global):
   // buka modal create sekali saat param muncul, lalu bersihkan agar refresh
@@ -883,27 +890,38 @@ export function CampaignsBoard() {
                   Production tracking, milestone gates, and creator approval flights.
                 </p>
               </div>
-              <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as "list" | "gantt")}>
-                <TabsList
-                  className="flex items-center p-1 bg-secondary/30 rounded-full border border-border/20 h-auto"
-                  highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNewProdOpen(true)}
+                  className="h-9 text-xs rounded-full border-border/50 gap-1.5 cursor-pointer"
                 >
-                  <TabsTrigger
-                    value="list"
-                    className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                  <Icons.add className="size-3.5" /> New Deliverable
+                </Button>
+                <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as "list" | "gantt")}>
+                  <TabsList
+                    className="flex items-center p-1 bg-secondary/30 rounded-full border border-border/20 h-auto"
+                    highlightClassName="bg-card text-foreground shadow-sm rounded-full"
                   >
-                    <Icons.listChecks className="size-4" />
-                    <span>Deliverables List</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="gantt"
-                    className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
-                  >
-                    <Icons.calendar className="size-4" />
-                    <span>Gantt Timeline</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                    <TabsTrigger
+                      value="list"
+                      className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                    >
+                      <Icons.listChecks className="size-4" />
+                      <span>Deliverables List</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="gantt"
+                      className="px-4 py-1.5 min-h-11 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer data-[state=active]:text-foreground text-muted-foreground hover:text-foreground"
+                    >
+                      <Icons.calendar className="size-4" />
+                      <span>Gantt Timeline</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
 
             {/* Deliverable rows */}
@@ -1034,6 +1052,121 @@ export function CampaignsBoard() {
               </span>
             </div>
           </section>
+
+          {/* New Deliverable Inline Form */}
+          {newProdOpen && (
+            <section className="admin-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-foreground">Tambah Deliverable Baru</h3>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setNewProdOpen(false)} className="cursor-pointer">
+                  <Icons.close className="size-4" />
+                </Button>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!newProdTitle.trim()) return
+                  createProduction.mutate(
+                    {
+                      client_id: activeClientId,
+                      title: newProdTitle.trim(),
+                      platform: newProdPlatform,
+                      stage: "idea",
+                      priority: "normal",
+                      assignee: newProdAssignee.trim() || null,
+                      due_date: newProdDue ? new Date(newProdDue).toISOString() : null,
+                      assets: [],
+                      notes: null,
+                    },
+                    {
+                      onSuccess: () => {
+                        setNewProdOpen(false)
+                        setNewProdTitle("")
+                        setNewProdPlatform("instagram")
+                        setNewProdAssignee("")
+                        setNewProdDue("")
+                      },
+                    }
+                  )
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label htmlFor="np-title" className="text-xs font-semibold text-foreground">
+                      Judul Deliverable
+                    </label>
+                    <Input
+                      id="np-title"
+                      value={newProdTitle}
+                      onChange={(e) => setNewProdTitle(e.target.value)}
+                      placeholder="Contoh: IG Reels - Promo Q4"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="np-platform" className="text-xs font-semibold text-foreground">
+                      Platform
+                    </label>
+                    <select
+                      id="np-platform"
+                      value={newProdPlatform}
+                      onChange={(e) => setNewProdPlatform(e.target.value)}
+                      className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="linkedin">LinkedIn</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="np-assignee" className="text-xs font-semibold text-foreground">
+                      Assignee
+                    </label>
+                    <Input
+                      id="np-assignee"
+                      value={newProdAssignee}
+                      onChange={(e) => setNewProdAssignee(e.target.value)}
+                      placeholder="Nama kreator/tim"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="np-due" className="text-xs font-semibold text-foreground">
+                      Due Date
+                    </label>
+                    <Input
+                      id="np-due"
+                      type="date"
+                      value={newProdDue}
+                      onChange={(e) => setNewProdDue(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button type="button" variant="ghost" onClick={() => setNewProdOpen(false)} className="cursor-pointer">
+                    Batal
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createProduction.isPending}
+                    className="admin-pill admin-pill-primary cursor-pointer"
+                  >
+                    {createProduction.isPending ? (
+                      <Icons.spinner className="size-4 animate-spin mr-2" />
+                    ) : (
+                      <Icons.add className="size-4 mr-2" />
+                    )}
+                    Simpan Deliverable
+                  </Button>
+                </div>
+              </form>
+            </section>
+          )}
         </div>
 
         {/* RIGHT RAIL (4 Cols) */}
