@@ -51,6 +51,37 @@ export function markdownToBrandProfile(md: string): Partial<BrandProfile> {
 }
 
 /**
+ * Render the BrandProfile JSON into the repo's canonical brand-profile.md shape.
+ */
+export function brandProfileToMarkdown(profile: Partial<BrandProfile>): string {
+  const pillars = (profile.pillars ?? []).map((p) => `- ${p}`).join("\n")
+  return `# Brand Profile
+
+## Who We Are
+${profile.who || ""}
+
+## Audience Persona
+${profile.audience || ""}
+
+## Voice & Guardrails
+### Tone of Voice
+${profile.voice || ""}
+
+### Point of View
+${profile.pov || ""}
+
+### Proof & Credibility
+${profile.proof || ""}
+
+### Do's and Don'ts (Guardrails)
+${profile.guardrails || ""}
+
+## Content Pillars
+${pillars}
+`
+}
+
+/**
  * Construct the compiled brand context exact string that Copilot prompt consumes.
  */
 export function compileBrandContext(clientName: string, files: Record<string, string>): string {

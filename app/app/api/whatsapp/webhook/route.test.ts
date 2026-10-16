@@ -68,5 +68,83 @@ describe('app/api/whatsapp/webhook', () => {
       const json = await res.json()
       expect(json.ok).toBe(true)
     })
+
+    it('extracts inbound message and logs whatsapp.message_received audit trail', async () => {
+      const { logAudit } = await import('@/lib/audit/log')
+      const req = new Request('http://localhost:3000/api/whatsapp/webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-whatsapp-webhook-secret': 'secret-verify-123',
+        },
+        body: JSON.stringify({
+          entry: [
+            {
+              changes: [
+                {
+                  value: {
+                    contacts: [{ profile: { name: 'Bunda' } }],
+                    messages: [
+                      {
+                        from: '62812345678',
+                        id: 'wamid.123',
+                        text: { body: 'Halo tim Frhm' },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      })
+
+      const res = await POST(req)
+      expect(res.status).toBe(200)
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'whatsapp.message_received',
+          summary: expect.stringContaining('Pesan WhatsApp dari Bunda (62812345678)'),
+        })
+      )
+    })
+
+    it('extracts delivery status and logs whatsapp.status_delivered audit trail', async () => {
+      const { logAudit } = await import('@/lib/audit/log')
+      const req = new Request('http://localhost:3000/api/whatsapp/webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-whatsapp-webhook-secret': 'secret-verify-123',
+        },
+        body: JSON.stringify({
+          entry: [
+            {
+              changes: [
+                {
+                  value: {
+                    statuses: [
+                      {
+                        id: 'wamid.123',
+                        status: 'delivered',
+                        recipient_id: '62812345678',
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      })
+
+      const res = await POST(req)
+      expect(res.status).toBe(200)
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'whatsapp.status_delivered',
+        })
+      )
+    })
   })
 })

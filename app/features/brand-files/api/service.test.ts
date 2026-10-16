@@ -6,7 +6,7 @@ import {
   verifyClientFile,
   deleteClientFile,
 } from "./service"
-import { markdownToBrandProfile, compileBrandContext } from "@/lib/brand-context"
+import { markdownToBrandProfile, compileBrandContext, brandProfileToMarkdown } from "@/lib/brand-context"
 import { createClient } from "@/lib/supabase/server"
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -72,6 +72,34 @@ Dilarang klaim menyembuhkan penyakit medis.
       expect(parsed.who).toBe("Hanya teks perkenalan saja.")
       expect(parsed.audience).toBeUndefined()
       expect(parsed.pillars).toBeUndefined()
+    })
+  })
+
+  describe("brandProfileToMarkdown & round-trip", () => {
+    it("renders canonical markdown and achieves lossless round-trip parse", () => {
+      const original = {
+        who: "Pawon Sengon adalah resto kuliner khas Jawa Timur.",
+        audience: "Keluarga dan pecinta kuliner nusantara.",
+        voice: "Hangat, ramah, dan berselera.",
+        pov: "Masakan rumah ibu adalah warisan terbaik.",
+        proof: "Berdiri sejak 2012, 100.000+ porsi terjual.",
+        guardrails: "Jangan gunakan istilah terlalu teknis.",
+        pillars: ["Menu Favorit", "Resep Warisan", "Promo Akhir Pekan"],
+      }
+
+      const md = brandProfileToMarkdown(original)
+      expect(md).toContain("## Who We Are\nPawon Sengon adalah resto kuliner khas Jawa Timur.")
+      expect(md).toContain("### Tone of Voice\nHangat, ramah, dan berselera.")
+      expect(md).toContain("## Content Pillars\n- Menu Favorit\n- Resep Warisan\n- Promo Akhir Pekan")
+
+      const roundTrip = markdownToBrandProfile(md)
+      expect(roundTrip.who).toBe(original.who)
+      expect(roundTrip.audience).toBe(original.audience)
+      expect(roundTrip.voice).toBe(original.voice)
+      expect(roundTrip.pov).toBe(original.pov)
+      expect(roundTrip.proof).toBe(original.proof)
+      expect(roundTrip.guardrails).toBe(original.guardrails)
+      expect(roundTrip.pillars).toEqual(original.pillars)
     })
   })
 

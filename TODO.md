@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 75 test files passed (423/423 tests), `tsc --noEmit` 0 error, Next.js build sukses.
+**Status Repositori:** Clean, 83 test suites passed (487/487 tests), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -215,3 +215,22 @@ Pillar 5: E2E Playwright & Edge Cases
     - `npx vitest run`: 83/83 test suites lulus (484 tests passed, 0 failed).
     - `npx playwright test`: 10 E2E tests lulus (100% passed: `connect-channel.spec.ts`, `social-accounts.spec.ts`, `social-oauth-csrf.spec.ts`, `composer-flow.spec.ts`).
     - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses (seluruh 30+ halaman dan route handlers tervalidasi).
+- ✅ **Deliverables Pipeline, WhatsApp/Support Dispatch, and Brand AI Context Sync (2026-10-16)**:
+  - **Opsi 1 — Deliverables Review Pipeline & Free-Auth Portal (SELESAI)**:
+    - *Alur Review Klien Publik:* Portal `/review/[id]` terverifikasi mengizinkan akses token publik tanpa login, rating bintang 1-5, dan permintaan revisi.
+    - *Penjadwalan Otomatis ke Kalender:* Saat deliverable disetujui (`status = 'approved'`), otomatis dipromosikan ke `scheduled_posts` dan di-link via `approved_post_id`.
+    - *Notifikasi Telegram Admin:* Memperbaiki parameter dispatch di [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/deliverables/api/service.ts) dengan `recipientType: 'admin'`, `recipientId: 'system'`, dan tipe event audit yang konsisten (`notification.sent`).
+    - *Verifikasi:* Unit test [service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/deliverables/api/service.test.ts) (9/9 passed), Playwright [client-portal-review.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/client-portal-review.spec.ts) (4/4 passed).
+  - **Opsi 2 — WhatsApp Inbound Webhooks & Support Ticket Telegram Dispatch (SELESAI)**:
+    - *WhatsApp Inbound Webhook Parsing:* Memperbarui [route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/whatsapp/webhook/route.ts) untuk mengekstrak pesan masuk (`sender`, `text`, `contact name`) dan status pesan (`delivered`, `read`), mencatat audit log spesifik (`whatsapp.message_received`, `whatsapp.status_delivered`, `whatsapp.status_read`), dan mengirimkan alert Telegram instan ke admin.
+    - *Support Ticket Real-Time Notification:* Menghubungkan pengiriman notifikasi Telegram `sendTelegramMessage` langsung ke fungsi [createSupportTicket](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/support/api/service.ts) di service layer dengan emoji prioritas (`🚨 Urgent`, `⚠️ High`, `📩 Normal`), sehingga tiket yang dibuat dari UI client langsung memicu notifikasi admin secara real-time.
+    - *Verifikasi:* Unit test [route.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/whatsapp/webhook/route.test.ts) (6/6 passed), [support-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/support/support-view.test.tsx) (1/1 passed), Playwright [support-view.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/support-view.spec.ts) (2/2 passed).
+  - **Opsi 3 — Brand Files Markdown Sync & AI Context Grounding Fallback (SELESAI)**:
+    - *Sentralisasi Konverter Markdown:* Mengekspor fungsi `brandProfileToMarkdown` dari [brand-context.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/brand-context.ts) dan mendeduplikasi implementasinya dari service akun sosial.
+    - *Resilient AI Context Fallback:* Menambahkan mekanisme fallback cerdas di `loadClientFiles` pada [server.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/ai/server.ts): jika file `brand-profile.md` belum tersimpan di tabel `client_files`, sistem secara dinamis mengonversi kolom JSONB `clients.brand_profile` menjadi format markdown kanonikal, sehingga AI Copilot dan Studio AI selalu memiliki konteks grounding yang lengkap tanpa prompt kosong.
+    - *Verifikasi:* Unit test round-trip [service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/brand-files/api/service.test.ts) (9/9 passed), Copilot [service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/copilot/api/service.test.ts) (13/13 passed), Playwright [ai-studio.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/ai-studio.spec.ts) (6/6 passed).
+  - **Verifikasi Kualitas Penuh (Full Verification Suite)**:
+    - `npx tsc --noEmit`: 0 error.
+    - `npx vitest run`: 83/83 test suites passed (487 tests passed, 0 failed).
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
+

@@ -76,7 +76,7 @@ export async function POST(request: Request) {
   }
 
   // Kirim ke chat admin Frahma (env var konsisten dengan lib/telegram/service.ts)
-  const adminChatId = env.server.TELEGRAM_ADMIN_CHAT_ID
+  const adminChatId = env.server.TELEGRAM_ADMIN_CHAT_ID || env.server.ADMIN_TELEGRAM_CHAT_ID
 
   if (adminChatId) {
     const text = [
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     actorId: user.id,
     entityType: "support_tickets",
     entityId: ticket.id,
-    clientId: payload.clientId || null,
+    clientId: resolvedClientId || null,
     summary: `Support request submitted: ${payload.subject}`,
     request,
   })

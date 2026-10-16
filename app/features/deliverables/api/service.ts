@@ -394,6 +394,9 @@ export async function submitDeliverableReview(
           chatId: adminChatId,
           text: `🔔 <b>[Frhm Client Portal Review]</b>\n\nKlien: <b>${client?.name || "Klien"}</b>\nDokumen: <b>${deliverable.title}</b>\nStatus: <b>${statusBadge}</b>\nRating: <b>${stars}</b>\n\nCatatan:\n<i>${safe.feedbackNote?.trim() || "Tidak ada catatan."}</i>`,
           parseMode: "HTML",
+          recipientType: "admin",
+          recipientId: "system",
+          eventType: "deliverable_review_submitted",
         })
       }
     } catch (tgErr: unknown) {
@@ -495,6 +498,9 @@ export async function scheduleApprovedDeliverable(
           chatId: adminChatId,
           text: `📅 <b>[Frhm Auto-Schedule Engine]</b>\n\nDeliverable: <b>${deliverable.title}</b>\nKlien: <b>${client?.name || "Klien"}</b>\nPlatform: <b>${safe.platform.toUpperCase()}</b>\nJadwal Tayang: <b>${formattedDate} WIB</b>\n\nStatus: <b>SCHEDULED ✅</b>`,
           parseMode: "HTML",
+          recipientType: "admin",
+          recipientId: "system",
+          eventType: "deliverable_scheduled",
         })
       }
     } catch (tgErr: unknown) {

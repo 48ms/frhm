@@ -14,6 +14,7 @@ import {
   type ConnectDirectChannelInput,
   type SocialPlatform,
 } from "./types"
+import { brandProfileToMarkdown } from "@/lib/brand-context"
 
 /**
  * Service Layer untuk Social Accounts
@@ -281,37 +282,6 @@ export async function syncChannel(channelId: string): Promise<void> {
   }
 }
 
-/** Render the BrandProfile JSON into the repo's canonical brand-profile.md shape. */
-function brandProfileToMarkdown(profile: {
-  who: string; audience: string; voice: string; pov: string
-  proof: string; guardrails: string; pillars: string[]
-}): string {
-  const pillars = (profile.pillars ?? []).map((p) => `- ${p}`).join("\n")
-  return `# Brand Profile
-
-## Who We Are
-${profile.who}
-
-## Audience Persona
-${profile.audience}
-
-## Voice & Guardrails
-### Tone of Voice
-${profile.voice}
-
-### Point of View
-${profile.pov}
-
-### Proof & Credibility
-${profile.proof}
-
-### Do's and Don'ts (Guardrails)
-${profile.guardrails}
-
-## Content Pillars
-${pillars}
-`
-}
 
 /** Update Brand Profile — writes BOTH the JSONB (Settings UI) and the markdown file (Copilot reads this). */
 export async function updateBrandProfile(clientId: string, profile: any): Promise<void> {

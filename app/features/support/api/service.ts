@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
+import { sendTelegramMessage } from "@/lib/telegram/service"
+import { env } from "@/lib/env"
 import type { SupportTicket, CreateSupportTicketInput } from "./types"
 
 /**
@@ -62,6 +64,36 @@ export async function createSupportTicket(input: CreateSupportTicketInput): Prom
     clientId: input.clientId || null,
     summary: `Created support ticket: ${input.subject}`,
   })
+
+  // Kirim notifikasi Telegram ke Admin Frahma (non-blocking)
+  try {
+    const adminChatId = env.server.TELEGRAM_ADMIN_CHAT_ID || env.server.ADMIN_TELEGRAM_CHAT_ID
+    if (adminChatId) {
+      const priorityEmoji = input.priority === "Urgent" ? "🚨" : input.priority === "High" ? "⚠️" : "📩"
+      const text = [
+        `${priorityEmoji} <b>New Support Request [${input.priority.toUpperCase()}]</b>`,
+        ``,
+        `<b>From User:</b> ${user.email}`,
+        `<b>Client ID:</b> ${input.clientId || "N/A"}`,
+        `<b>Subject:</b> ${input.subject.trim()}`,
+        ``,
+        `<b>Message:</b>`,
+        `<i>${input.message.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</i>`,
+      ].join("\n")
+
+      await sendTelegramMessage({
+        chatId: adminChatId,
+        text,
+        recipientType: "admin",
+        recipientId: "system",
+        eventType: "support_request_submitted",
+      })
+    }
+  } catch (tgErr: unknown) {
+    logger.warn("createSupportTicket.telegramFailed", {
+      error: tgErr instanceof Error ? tgErr.message : String(tgErr),
+    })
+  }
 
   return data as SupportTicket
 }

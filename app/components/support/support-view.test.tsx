@@ -22,6 +22,10 @@ vi.mock("@/features/support/api/queries", () => ({
   }),
 }))
 
+if (typeof window !== "undefined") {
+  window.scrollTo = vi.fn()
+}
+
 describe("SupportView", () => {
   function renderWithProviders(ui: React.ReactElement) {
     const queryClient = new QueryClient({

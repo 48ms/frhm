@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import type { Provider } from './providers'
 import { logger } from '@/lib/logger'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { brandProfileToMarkdown } from '@/lib/brand-context'
 import { env } from '@/lib/env'
 
 export async function serverSupabase() {
@@ -125,6 +126,23 @@ export async function loadClientFiles(
     .eq('client_id', clientId)
   const out: Record<string, string> = {}
   for (const r of data ?? []) out[r.path] = r.content
+
+  // Resilient fallback: jika brand-profile.md belum ada di client_files tapi clients.brand_profile ada di DB
+  if (!out['brand-profile.md']) {
+    const { data: clientRow } = await admin
+      .from('clients')
+      .select('brand_profile')
+      .eq('id', clientId)
+      .maybeSingle()
+
+    if (clientRow?.brand_profile && typeof clientRow.brand_profile === 'object') {
+      const bp = clientRow.brand_profile as Record<string, any>
+      if (bp.who || bp.voice || bp.audience || bp.pov || bp.guardrails) {
+        out['brand-profile.md'] = brandProfileToMarkdown(bp)
+      }
+    }
+  }
+
   return out
 }
 
