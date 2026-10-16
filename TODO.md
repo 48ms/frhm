@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 91 test suites passed (526/526 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 93 test suites passed (548/548 tests), Playwright E2E passed, `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -368,10 +368,24 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     1. [app-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/app-sidebar.tsx): Menghilangkan distorsi oval pada mode icon-only (mengganti `w-10 h-10 min-h-11` menjadi `size-10 rounded-full flex items-center justify-center`).
     2. [client-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-sidebar.tsx): Menyelaraskan geometri `size-10` dan menyematkan `aria-current={active ? "page" : undefined}` pada mode collapsed untuk aksesibilitas mutlak.
   - **Git Commit:** `0caaa10` (`feat(sidebar-ui): upgrade animated icons with active spring physics and fix collapsed button geometry`).
+- ✅ **Audit CRUD Menyeluruh 19 Halaman & Implementasi Lengkap (2026-10-16)**:
+  - **Events & Aktivasi (`/admin/events`)**: 100% Full CRUD (Create Event, Edit Event, Delete Event via Radix `AlertDialog`, `useUpdateEvent`, `useDeleteEvent`, dynamic counters `<MetricTicker>`, live search & status tab filter).
+  - **Campaigns Management (`/admin/campaigns`)**: Aksi Hapus Kampanye via Radix `AlertDialog` di modal detail kampanye dengan auto query invalidation.
+  - **Marketing ERP Deliverables (`/admin/erp`)**: Aksi Hapus Deliverable di UI tabel dengan pelepasan relasi `skill_outputs` dan konfirmasi Radix `AlertDialog`.
+  - **Marketing ERP Expenses (`features/erp/api`)**: `updateExpense` dan `deleteExpense` dengan rekonsiliasi saldo budget (`client_budgets`) otomatis dan audit trail terpusat.
+  - **AI Studio Brand Brain (`components/ai/brand-brain-editor-dialog.tsx`)**: Integrasi mutasi `useDeleteClientFile` untuk menghapus dokumen non-inti dengan konfirmasi Radix `AlertDialog` dan proteksi file inti `brand-profile.md`.
+  - **Centralized Icon Registry (`components/icons.tsx`)**: Konsolidasi seluruh ikon (`delete: IconTrash`, `moreVertical: IconDotsVertical`, `coin: IconCoin`, `chartBar: IconChartBar`).
+  - **Git Commits:** `2318f1a`, `fc8c744`.
+- ✅ **Marketing ERP Expenses & Budget Ledger View (`/admin/erp`) (2026-10-16)**:
+  - Membangun [expenses-ledger-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/expenses/expenses-ledger-view.tsx) dengan 4 kartu metrik FinOps (Total Budget, Sisa Saldo Kas, Total Realisasi, Persentase Terpakai dengan `<MetricTicker>` & status badges), tabel daftar pengeluaran lengkap dengan filter kategori & pencarian live, modal Edit Pengeluaran (`EditExpenseDialog`), konfirmasi Hapus Pengeluaran (`AlertDialog`), dan tabel log Ad Spend kampanye beserta kalkulasi dinamis rata-rata CPC.
+  - Mengintegrasikan tab navigasi modul atas di [erp-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/erp/erp-client.tsx) ("Deliverables & Konten" vs "Anggaran & Pengeluaran") dengan URL state synchronization `nuqs` (`erpFilter.tab`).
+  - Prefetching server-side paralel TanStack Query v5 di [app/admin/erp/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/erp/page.tsx) (`listBudgetsByClient`, `listExpensesByClient`).
+  - Ditunjang unit test [expenses-ledger-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/expenses/expenses-ledger-view.test.tsx) (4/4 passed).
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
-  - `npx vitest run`: 88/88 test suites PASS (512 tests passed, 0 failed).
-  - `npx playwright test e2e/client-portal.spec.ts`: 3/3 tests PASS (layout portal, modal akses klien, tiket dukungan inbox & portal bridge).
+  - `npx vitest run`: 93/93 test suites PASS (548 tests passed, 0 failed).
+  - Kepatuhan Desain Sistem: 100% Radix UI Primitives, Animate UI, semantic HSL tokens, Service Layer 3-lapis.
+
 
 
 

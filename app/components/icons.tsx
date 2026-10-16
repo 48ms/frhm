@@ -287,6 +287,7 @@ export const Icons = {
   trendingDown: IconTrendingDown,
   trendingUp: IconTrendingUp,
   barChart: IconChartBar,
+  coin: IconCoin,
   layers: IconStack2,
   eyeOff: IconEyeOff,
   eye: IconEye,

@@ -5,6 +5,7 @@ import { getQueryClient } from "@/lib/query-client"
 import { socialQueries } from "@/features/social-accounts/api/queries"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
+import { erpQueries } from "@/features/erp/api/queries"
 import { erpParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import { ErpDashboardClient } from "./erp-client"
@@ -33,6 +34,8 @@ export default async function AdminErpPage(props: {
     queryClient.prefetchQuery(socialQueries.listClientsWithChannels()),
     queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId)),
     queryClient.prefetchQuery(deliverableQueries.listByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listBudgetsByClient(clientId)),
+    queryClient.prefetchQuery(erpQueries.listExpensesByClient(clientId)),
   ])
 
   return (

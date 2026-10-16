@@ -13,6 +13,7 @@ import { CreateDeliverableDialog } from "@/components/deliverable/create-deliver
 import { ScheduleDeliverableDialog } from "@/components/deliverable/schedule-deliverable-dialog"
 import { DispatchNotificationDialog } from "@/components/notifications/dispatch-notification-dialog"
 import { ExportPdfDialog } from "@/components/deliverable/export-pdf-dialog"
+import { ExpensesLedgerView } from "@/components/expenses/expenses-ledger-view"
 import type { Deliverable } from "@/features/deliverables/api/types"
 import { StatusBadge, TypeBadge } from "@/components/deliverable/status-badge"
 import { PageContainer } from "@/components/layout/page-container"
@@ -139,8 +140,36 @@ export function ErpDashboardClient() {
 
       <CreateDeliverableDialog open={createOpen} onOpenChange={setCreateOpen} />
 
-      {/* TOP METRIC CARDS ROW */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* Top Module Navigation: Deliverables vs Pengeluaran & Anggaran */}
+      <div className="flex items-center gap-2 border-b border-border/30 pb-3">
+        <Button
+          type="button"
+          variant={erpFilter.tab !== "expenses" ? "default" : "outline"}
+          size="sm"
+          onClick={() => void setErpFilter({ tab: "deliverables" })}
+          className="rounded-full text-xs font-bold h-9 px-4 cursor-pointer gap-2"
+        >
+          <Icons.fileText className="size-4" />
+          Deliverables & Konten ({totalDeliverable})
+        </Button>
+        <Button
+          type="button"
+          variant={erpFilter.tab === "expenses" ? "default" : "outline"}
+          size="sm"
+          onClick={() => void setErpFilter({ tab: "expenses" })}
+          className="rounded-full text-xs font-bold h-9 px-4 cursor-pointer gap-2"
+        >
+          <Icons.coin className="size-4" />
+          Anggaran & Pengeluaran
+        </Button>
+      </div>
+
+      {erpFilter.tab === "expenses" ? (
+        <ExpensesLedgerView clientId={clientId} clientName={client.name} />
+      ) : (
+        <>
+          {/* TOP METRIC CARDS ROW */}
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Card: TOTAL DELIVERABLE */}
         <div className="lg:col-span-8 p-6 admin-card flex flex-col justify-between">
           <p className="admin-section-label">
@@ -483,6 +512,8 @@ export function ErpDashboardClient() {
            </div>
         </div>
       </section>
+        </>
+      )}
 
       {/* MODAL JADWALKAN DELIVERABLE */}
       <ScheduleDeliverableDialog
