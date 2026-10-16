@@ -51,6 +51,8 @@ import type {
   EvaluateTrendResponse,
 } from "./types"
 
+import { formatAiErrorMessage } from "@/lib/ai/error"
+
 async function recordCopilotUsage(
   supabase: any,
   clientId: string | null,
@@ -148,12 +150,13 @@ RULES:
     if (!object) return { error: "AI merespons dengan format yang salah atau gagal membuat rencana." }
     return { plan: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan saat membuat batch plan")
     logger.error("Batch Plan Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/batch-plan", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/batch-plan", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan saat membuat batch plan" }
+    return { error: formatted }
   }
 }
 
@@ -188,12 +191,13 @@ RULES:
 
     return { caption: raw.trim() }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan pada AI")
     logger.error("Copilot Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/caption", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/caption", provider, null, start, rawMsg)
     }
-    return { caption: "", error: msg || "Terjadi kesalahan pada AI" }
+    return { caption: "", error: formatted }
   }
 }
 
@@ -226,12 +230,13 @@ Topic/Trend constraint: ${trendOrTopic || "General brand pillars"}
     if (!object || !object.ideas) return { ideas: [], error: "Gagal meracik ide konten." }
     return { ideas: object.ideas }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan pada AI")
     logger.error("Copilot Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/content-ideas", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/content-ideas", provider, null, start, rawMsg)
     }
-    return { ideas: [], error: msg || "Terjadi kesalahan pada AI" }
+    return { ideas: [], error: formatted }
   }
 }
 
@@ -271,12 +276,13 @@ RULES:
     if (!object) return { error: "Gagal memproses skrip video." }
     return { script: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan pembuatan skrip video")
     logger.error("Video Script Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/video-script", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/video-script", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan" }
+    return { error: formatted }
   }
 }
 
@@ -317,12 +323,13 @@ WORKFLOW:
     if (!object) return { error: "Gagal merombak konten" }
     return { repurposed: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan perombakan konten")
     logger.error("Repurpose Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/repurpose", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/repurpose", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan" }
+    return { error: formatted }
   }
 }
 
@@ -359,12 +366,13 @@ RULES (from hook-writer playbook):
     if (!object || !object.hooks) return { hooks: [], error: "Gagal menghasilkan hook." }
     return { hooks: object.hooks }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan saat membuat hook")
     logger.error("Hook Generator Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/hooks", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/hooks", provider, null, start, rawMsg)
     }
-    return { hooks: [], error: msg || "Terjadi kesalahan saat membuat hook" }
+    return { hooks: [], error: formatted }
   }
 }
 
@@ -403,12 +411,13 @@ RULES (from carousel-writer playbook):
     if (!object) return { error: "Gagal menghasilkan carousel." }
     return { carousel: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan saat menyusun carousel")
     logger.error("Carousel Writer Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/carousel", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/carousel", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan saat menyusun carousel" }
+    return { error: formatted }
   }
 }
 
@@ -456,12 +465,13 @@ You must output valid JSON only matching the schema.
     if (!object) return { error: "Gagal memvalidasi konten." }
     return { result: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan validasi platform")
     logger.error("Platform Validator Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, null, "copilot/validate-post", provider, null, start, msg)
+      void recordCopilotUsage(supabase, null, "copilot/validate-post", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan validasi platform" }
+    return { error: formatted }
   }
 }
 
@@ -509,12 +519,13 @@ RULES (from image-prompt playbook):
     if (!object) return { error: "Gagal menghasilkan visual prompt." }
     return { result: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan saat meracik prompt visual")
     logger.error("Visual Prompt Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/visual-prompt", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/visual-prompt", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan saat meracik prompt visual" }
+    return { error: formatted }
   }
 }
 
@@ -556,12 +567,13 @@ RULES (from trend-jacking playbook - Three Gates):
     if (!object) return { error: "Gagal mengevaluasi tren." }
     return { evaluation: object }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    const formatted = formatAiErrorMessage(err, "Terjadi kesalahan saat mengevaluasi tren")
     logger.error("Trend Evaluation Error", { error: err })
     if (supabase && provider) {
-      void recordCopilotUsage(supabase, input.clientId, "copilot/trend-evaluation", provider, null, start, msg)
+      void recordCopilotUsage(supabase, input.clientId, "copilot/trend-evaluation", provider, null, start, rawMsg)
     }
-    return { error: msg || "Terjadi kesalahan saat mengevaluasi tren" }
+    return { error: formatted }
   }
 }
 

@@ -268,7 +268,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                   value={reviewerName}
                   onChange={(e) => setReviewerName(e.target.value)}
                   placeholder="Contoh: Pak Adit / Bunda"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 />
               </div>
 
@@ -284,7 +284,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(null)}
-                      className="p-1 rounded-md hover:bg-muted transition-colors focus: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                      className="p-1 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       aria-label={`Beri nilai ${star} bintang`}
                     >
                       <Icons.star
@@ -314,7 +314,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
                 value={feedbackNote}
                 onChange={(e) => setFeedbackNote(e.target.value)}
                 placeholder="Tuliskan masukan spesifik Anda di sini (misal: 'Tolong tone bagian caption dibuat lebih santai' atau 'Sudah oke, silakan jadwalkan')..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>

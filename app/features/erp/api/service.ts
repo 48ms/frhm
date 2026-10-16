@@ -88,9 +88,11 @@ export async function getKOLs(clientId: string): Promise<KOL[]> {
  * dikurangi (jika budget_id diberikan) agar angka di UI tetap konsisten
  * dengan total expenses yang ditampilkan.
  */
+import { notifyBudgetThresholdAlert } from "@/lib/telegram/service"
+
 export async function createExpense(
   input: CreateExpenseInput
-): Promise<{ success: boolean; data?: Expense; error?: string }> {
+): Promise<{ success: boolean; data?: Expense; error?: string; warning?: string }> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -111,11 +113,13 @@ export async function createExpense(
     return { success: false, error: error.message }
   }
 
+  let warning: string | undefined
+
   // Sinkronkan saldo budget terkait (read-modify-write, nilai faktual dari DB).
   if (input.budget_id) {
     const { data: budgetRow } = await supabase
       .from("client_budgets")
-      .select("remaining_balance")
+      .select("total_budget, remaining_balance")
       .eq("id", input.budget_id)
       .single()
 
@@ -129,6 +133,35 @@ export async function createExpense(
       if (budgetErr) {
         logger.warn("createExpense budget sync failed", { error: budgetErr.message })
       }
+
+      const totalBudget = budgetRow.total_budget ?? 0
+      const spent = totalBudget - nextBalance
+      const spentPercentage = totalBudget > 0 ? (spent / totalBudget) * 100 : 0
+
+      // Pemicu threshold alert jika realisasi anggaran >= 90% atau saldo habis
+      if (spentPercentage >= 90 || nextBalance <= 0) {
+        warning = spentPercentage >= 100
+          ? "Peringatan: Pengeluaran ini telah menghabiskan 100% budget klien!"
+          : "Peringatan: Pengeluaran ini telah mencapai 90% dari total alokasi budget klien."
+
+        const { data: clientData } = await supabase
+          .from("clients")
+          .select("name")
+          .eq("id", input.client_id)
+          .maybeSingle()
+
+        void notifyBudgetThresholdAlert({
+          clientName: clientData?.name || "Client",
+          clientId: input.client_id,
+          totalBudget,
+          remainingBalance: nextBalance,
+          spentPercentage,
+          expenseAmount: input.amount,
+          category: input.category,
+        }).catch((alertErr) => {
+          logger.warn("Telegram budget threshold alert notification failed", { error: alertErr })
+        })
+      }
     }
   }
 
@@ -139,7 +172,7 @@ export async function createExpense(
     summary: `Recorded expense ${data.amount} (${data.category ?? "uncategorized"})`,
   })
 
-  return { success: true, data: data as Expense }
+  return { success: true, data: data as Expense, warning }
 }
 
 /**

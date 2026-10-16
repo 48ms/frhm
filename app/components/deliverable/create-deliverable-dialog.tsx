@@ -189,9 +189,19 @@ export function CreateDeliverableDialog({
             >
               Batal
             </Button>
-            <form.SubmitButton disabled={false}>
-              Buat Deliverable
-            </form.SubmitButton>
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]) => (
+                <Button
+                  type="submit"
+                  disabled={!canSubmit}
+                  isLoading={isSubmitting}
+                  className="rounded-full font-bold text-xs bg-primary text-primary-foreground hover:bg-primary/90 px-5 shadow-xs"
+                >
+                  Buat Deliverable
+                </Button>
+              )}
+            />
           </div>
         </form>
       </DialogContent>

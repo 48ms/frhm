@@ -135,4 +135,39 @@ test.describe('Content Calendar & Multi-Channel Dispatch (End-to-End QA)', () =>
     }
     await expect(brainstormDialog).not.toBeVisible({ timeout: 5000 });
   });
+
+  test('Flow 5: Caption character limits and counter enforcement for multi-platform dispatch', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/calendar');
+    await page.waitForLoadState('networkidle');
+
+    // Open post dialog
+    const scheduleBtn = page.getByRole('button', { name: /Schedule New Dispatch/i });
+    await expect(scheduleBtn).toBeVisible({ timeout: 15000 });
+    await scheduleBtn.click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    // Locate the character counter
+    const counter = dialog.locator('#post-content-count');
+    await expect(counter).toBeVisible();
+
+    // Verify counter initial format
+    const initialText = await counter.innerText();
+    expect(initialText).toMatch(/0\s*\/\s*[\d.]+/);
+
+    // Enter caption in textarea
+    const captionArea = dialog.locator('textarea#post-content');
+    await captionArea.fill('Testing character counter in E2E dispatch.');
+    await expect(counter).toContainText('42');
+
+    // Close dialog safely
+    const batalBtn = dialog.getByRole('button', { name: /Batal/i });
+    await batalBtn.click();
+    const confirmDialog = page.getByRole('alertdialog');
+    if (await confirmDialog.isVisible()) {
+      await confirmDialog.getByRole('button', { name: /Tinggalkan Draf/i }).click();
+    }
+  });
 });

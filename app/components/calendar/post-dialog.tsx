@@ -83,6 +83,8 @@ const CAPTION_LIMIT: Record<string, number> = {
   linkedin: 3000,
   facebook: 5000,
   x: 280,
+  twitter: 280,
+  threads: 500,
 }
 
 const DEFAULT_CAPTION_LIMIT = 2200

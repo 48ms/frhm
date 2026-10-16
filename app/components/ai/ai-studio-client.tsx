@@ -267,7 +267,7 @@ export function AiStudioClient() {
         })
       }
     } catch (err: unknown) {
-      toast.error("Gagal membuat batch plan.")
+      toast.error(err instanceof Error ? err.message : "Gagal membuat batch plan.")
       console.error(err)
     }
   }
@@ -303,7 +303,7 @@ export function AiStudioClient() {
       })
       setBatchPosts([])
     } catch (err: unknown) {
-      toast.error("Gagal menjadwalkan sebagian postingan.")
+      toast.error(err instanceof Error ? err.message : "Gagal menjadwalkan sebagian postingan.")
       console.error(err)
     } finally {
       setIsSavingBatch(false)
@@ -356,7 +356,7 @@ export function AiStudioClient() {
         })
       }
     } catch (err: unknown) {
-      toast.error("Gagal melakukan evaluasi tren.")
+      toast.error(err instanceof Error ? err.message : "Gagal melakukan evaluasi tren.")
       console.error(err)
     }
   }

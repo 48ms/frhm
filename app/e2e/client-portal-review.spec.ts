@@ -85,4 +85,38 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
 
     await clientContext.close();
   });
+
+  test('Flow 4: Client selects star rating and submits revision request with specific instructions', async ({ browser }) => {
+    const clientContext = await browser.newContext();
+    const clientPage = await clientContext.newPage();
+
+    await clientPage.goto('/review/6b148453-5d1f-4085-9b72-0306097631ce');
+    await clientPage.waitForLoadState('networkidle');
+
+    // Verify Star Rating interaction: click 4th star
+    const star4 = clientPage.getByLabel('Beri nilai 4 bintang');
+    await expect(star4).toBeVisible();
+    await star4.click();
+    await expect(clientPage.getByText(/Bagus & Sangat Menarik/i)).toBeVisible();
+
+    // Fill reviewer name
+    const nameInput = clientPage.getByPlaceholder(/Contoh: Pak Adit \/ Bunda/i);
+    await expect(nameInput).toBeVisible();
+    await nameInput.fill('Bunda - Pawon Sengon');
+
+    // Fill specific revision note
+    const feedbackArea = clientPage.getByPlaceholder(/Tuliskan masukan spesifik Anda di sini/i);
+    await feedbackArea.fill('Mohon bagian hook video 2 disesuaikan dengan promo bundling akhir pekan.');
+
+    // Click "Minta Revisi"
+    const revisionBtn = clientPage.getByRole('button', { name: /Minta Revisi/i });
+    await revisionBtn.click();
+
+    // Verify revision requested feedback toast
+    await expect(
+      clientPage.getByText(/Permintaan revisi telah berhasil disampaikan ke tim Frhm/i)
+    ).toBeVisible({ timeout: 10000 });
+
+    await clientContext.close();
+  });
 });

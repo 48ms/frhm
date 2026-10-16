@@ -476,3 +476,61 @@ export async function notifyClientReminder(params: {
     onBlocked: options?.onBlocked,
   })
 }
+
+/**
+ * Notifikasi threshold budget ERP (saat pengeluaran mencapai atau melebihi 90% dari total alokasi budget).
+ */
+export async function notifyBudgetThresholdAlert(params: {
+  adminChatId?: string
+  clientName: string
+  clientId: string
+  totalBudget: number
+  remainingBalance: number
+  spentPercentage: number
+  expenseAmount: number
+  category?: string | null
+}, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
+  const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const erpUrl = `${appUrl}/admin/erp?clientId=${params.clientId}`
+
+  const isExceeded = params.remainingBalance <= 0 || params.spentPercentage >= 100
+  const alertIcon = isExceeded ? '🚨 [OVERBUDGET]' : '⚠️ [AMBANG BATAS 90%]'
+  const titleHeader = isExceeded
+    ? '<b>Peringatan: Alokasi Budget Terlampaui (100%+)</b>'
+    : '<b>Peringatan: Pengeluaran Telah Mencapai 90% Budget</b>'
+
+  const formatRupiah = (val: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val)
+
+  const lines = [
+    `${alertIcon} ${titleHeader}`,
+    ``,
+    `<b>Brand / Klien:</b> ${params.clientName}`,
+    `<b>Nominal Biaya Baru:</b> ${formatRupiah(params.expenseAmount)} ${params.category ? `(${params.category})` : ''}`,
+    `<b>Total Alokasi Budget:</b> ${formatRupiah(params.totalBudget)}`,
+    `<b>Sisa Saldo:</b> ${formatRupiah(params.remainingBalance)}`,
+    `<b>Realisasi Anggaran:</b> <b>${params.spentPercentage.toFixed(1)}%</b>`,
+    ``,
+    isExceeded
+      ? 'Pengeluaran ini telah menghabiskan seluruh sisa budget klien. Segera tinjau alokasi tambahan di ERP.'
+      : 'Budget bulanan klien hampir habis (tersisa kurang dari 10%). Harap pantau pengeluaran iklan dan operasional.',
+  ].filter(Boolean).join('\n')
+
+  const targetChatId = params.adminChatId || env.server.TELEGRAM_ADMIN_CHAT_ID
+  if (!targetChatId) {
+    return { success: false, error: 'TELEGRAM_ADMIN_CHAT_ID not configured' }
+  }
+
+  const buttons: TelegramButton[][] = [
+    [{ text: 'Buka Dashboard ERP', url: erpUrl }],
+  ]
+
+  return sendTelegramMessage({
+    chatId: targetChatId,
+    text: lines,
+    buttons,
+    recipientType: 'admin',
+    eventType: 'budget_threshold_alert',
+    onBlocked: options?.onBlocked,
+  })
+}

@@ -8,6 +8,7 @@ const mockQueryBuilder = {
   insert: vi.fn().mockReturnThis(),
   update: vi.fn().mockReturnThis(),
   single: vi.fn(),
+  maybeSingle: vi.fn().mockResolvedValue({ data: { name: 'Client Test' }, error: null }),
 }
 
 const mockSupabase = {
@@ -24,6 +25,10 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/lib/audit/log', () => ({
   logAudit: vi.fn(),
+}))
+
+vi.mock('@/lib/telegram/service', () => ({
+  notifyBudgetThresholdAlert: vi.fn().mockResolvedValue({ success: true }),
 }))
 
 describe('ERP Service', () => {
@@ -115,6 +120,27 @@ describe('ERP Service', () => {
 
       expect(mockQueryBuilder.update).toHaveBeenCalledWith(
         expect.objectContaining({ remaining_balance: 0 })
+      )
+    })
+
+    it('triggers budget threshold alert when spent reaches or exceeds 90%', async () => {
+      const { notifyBudgetThresholdAlert } = await import('@/lib/telegram/service')
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: { id: 'exp-4', client_id: 'c1', amount: 950000, category: 'Ads' }, error: null })
+        .mockResolvedValueOnce({ data: { total_budget: 1000000, remaining_balance: 1000000 }, error: null })
+
+      const res = await createExpense({ client_id: 'c1', budget_id: 'b1', amount: 950000 })
+
+      expect(res.success).toBe(true)
+      expect(res.warning).toBeDefined()
+      expect(notifyBudgetThresholdAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clientId: 'c1',
+          totalBudget: 1000000,
+          remainingBalance: 50000,
+          spentPercentage: 95,
+          expenseAmount: 950000,
+        })
       )
     })
   })

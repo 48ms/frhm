@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { generateHooks, generateCarousel, validatePlatformPost, generateVisualPrompt, evaluateTrend, repurposeCrossPlatform } from "./service"
+import { generateHooks, generateCarousel, validatePlatformPost, generateVisualPrompt, evaluateTrend, repurposeCrossPlatform, generateBatchPlan } from "./service"
+import { formatAiErrorMessage } from "@/lib/ai/error"
 
 const mockChatJson = vi.fn()
 const mockChat = vi.fn()
@@ -248,6 +249,92 @@ describe("Copilot Social Media Skills Integration", () => {
       expect(res.repurposed?.results[0].platform).toBe("linkedin")
       expect(res.repurposed?.results[0].format).toBe("Thought Leadership Post")
       expect(mockLoadSkillBundle).toHaveBeenCalledWith(expect.anything(), "cross-platform-repurposing")
+    })
+  })
+
+  describe("formatAiErrorMessage", () => {
+    it("handles rate limit (429) errors gracefully", () => {
+      const err = new Error("OpenAI 429: Rate limit exceeded for model")
+      const msg = formatAiErrorMessage(err)
+      expect(msg).toContain("Batas kuota request AI tercapai (Rate Limit 429)")
+      expect(msg).toContain("template preset manual")
+    })
+
+    it("handles connection timeout / abort errors gracefully", () => {
+      const err = new Error("The operation was aborted due to timeout")
+      const msg = formatAiErrorMessage(err)
+      expect(msg).toContain("Koneksi AI mengalami batas waktu (timeout)")
+    })
+
+    it("falls back to error message or default message for regular errors", () => {
+      expect(formatAiErrorMessage(new Error("Custom error"))).toBe("Custom error")
+      expect(formatAiErrorMessage(null, "Fallback message")).toBe("Fallback message")
+    })
+  })
+
+  describe("generateBatchPlan (batch-content-plan)", () => {
+    it("successfully creates a structured batch content plan", async () => {
+      mockChatJson.mockResolvedValueOnce({
+        posts: [
+          {
+            title: "Post 1: Edukasi Bahan Alami",
+            platform: "instagram",
+            scheduled_at: "2026-10-20T10:00:00Z",
+            content: "Tahukah Anda bahan alami kami dipetik langsung dari kebun pegunungan...",
+            notes: "Gunakan foto real b-roll",
+          },
+          {
+            title: "Post 2: Tips Praktis Penyeduhan",
+            platform: "tiktok",
+            scheduled_at: "2026-10-22T14:00:00Z",
+            content: "3 kesalahan saat menyeduh teh yang bikin rasanya pahit...",
+            notes: "Format video pendek ekspresif",
+          },
+        ],
+      })
+
+      const res = await generateBatchPlan({
+        clientId: "client-1",
+        period: "14 days",
+        goals: "Meningkatkan awareness produk teh organik",
+        postsPerWeek: 3,
+        platforms: ["instagram", "tiktok"],
+      })
+
+      expect(res.error).toBeUndefined()
+      expect(res.plan?.posts).toHaveLength(2)
+      expect(res.plan?.posts[0].platform).toBe("instagram")
+      expect(mockLoadSkillBundle).toHaveBeenCalledWith(expect.anything(), "batch-content-plan")
+    })
+
+    it("returns friendly rate limit message when AI throws 429 rate limit error", async () => {
+      mockChatJsonDetailed.mockRejectedValueOnce(new Error("OpenAI 429: Too Many Requests - rate limit exceeded"))
+
+      const res = await generateBatchPlan({
+        clientId: "client-1",
+        period: "this week",
+        goals: "Peluncuran kampanye diskon gajian",
+        postsPerWeek: 3,
+        platforms: ["instagram"],
+      })
+
+      expect(res.error).toBeDefined()
+      expect(res.error).toContain("Batas kuota request AI tercapai (Rate Limit 429)")
+    })
+
+    it("returns friendly timeout message when AI connection aborts or times out", async () => {
+      mockChatJsonDetailed.mockRejectedValueOnce(new Error("AbortError: signal is aborted without reason (timeout)"))
+
+      const res = await generateBatchPlan({
+        clientId: "client-1",
+        period: "this week",
+        goals: "Peluncuran kampanye diskon gajian",
+        postsPerWeek: 3,
+        platforms: ["instagram"],
+      })
+
+      expect(res.error).toBeDefined()
+      expect(res.error).toContain("Koneksi AI mengalami batas waktu (timeout)")
     })
   })
 })

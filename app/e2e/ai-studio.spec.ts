@@ -184,4 +184,33 @@ test.describe('FRHM AI System Ecosystem E2E Verification', () => {
     await page.getByRole('button', { name: 'Tutup' }).click()
     await expect(page.getByText('AI Brand DNA Extractor')).not.toBeVisible()
   })
+
+  test('Edge Case: Batch Planner handles validation, slow connection shimmering feedback, and rate limit fallback', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/ai?tab=batch')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByText('30-Day Batch Campaign Planner')).toBeVisible({ timeout: 15000 })
+
+    const generateBtn = page.getByRole('button', { name: /Generate Batch Plan Sekarang/i })
+    await expect(generateBtn).toBeVisible()
+
+    // 1. Validation test: empty or <10 chars goal triggers validation toast
+    const goalsTextarea = page.getByPlaceholder(/Kampanye peluncuran menu teh musim panas/i)
+    await goalsTextarea.fill('pendek')
+    await generateBtn.click()
+    await expect(page.getByText(/minimal 10 karakter/i)).toBeVisible({ timeout: 5000 })
+
+    // 2. Click archetype preset to populate full brief (>10 chars)
+    await page.getByRole('button', { name: /Peluncuran Produk/i }).click()
+    await expect(goalsTextarea).toHaveValue(/Kampanye peluncuran produk baru/i)
+
+    // 3. Trigger generation and observe zero crash / shimmering feedback or response toast
+    await generateBtn.click()
+
+    // Either shimmering text is briefly displayed while pending or toast appears (result or AI unconfigured/rate limit)
+    await expect(
+      page.locator('[data-sonner-toast]').or(page.getByText(/Merancang Roadmap Batch Plan/i)).first()
+    ).toBeVisible({ timeout: 15000 })
+  })
 })

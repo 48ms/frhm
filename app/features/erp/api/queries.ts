@@ -120,7 +120,13 @@ export function useCreateExpense() {
     },
     onSuccess: (res) => {
       if (res.success) {
-        toast.success("Pengeluaran berhasil dicatat!")
+        if (res.warning) {
+          toast.warning(res.warning, {
+            description: "Telegram alert telah dikirimkan ke tim admin.",
+          })
+        } else {
+          toast.success("Pengeluaran berhasil dicatat!")
+        }
       } else {
         toast.error(res.error || "Gagal mencatat pengeluaran")
       }

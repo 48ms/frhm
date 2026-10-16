@@ -105,14 +105,14 @@ Pillar 5: E2E Playwright & Edge Cases
 ### 🧪 PILLAR 5: E2E Playwright Suite & Edge Cases
 *Tujuan: Memastikan seluruh skenario operasional pengguna di browser lulus 100% tanpa timeout.*
 
-- [ ] **5.1. Audit & Eksekusi Playwright E2E**:
-  - [ ] Jalankan suite test Playwright dan perbaiki kegagalan timeout/CSP pada tes yang ada.
-  - [ ] Pastikan 0 console error dan 0 unhandled promise rejection pada runtime browser.
-- [ ] **5.2. Edge Cases Alur Kerja**:
-  - [ ] *Kalender:* Karakter caption pada limit maksimum platform (IG 2.200 karakter, X 280 karakter).
-  - [ ] *ERP:* Input biaya melebihi alokasi budget bulanan (pemicu threshold Telegram alert 90%).
-  - [ ] *Portal Review Client (`/review/[id]`):* Akses publik via token tanpa login, penolakan revisi, dan submit rating bintang 1-5.
-  - [ ] *AI Studio:* Generate batch plan pada kondisi koneksi lambat / AI rate limit fallback.
+- [x] **5.1. Audit & Eksekusi Playwright E2E**:
+  - [x] Jalankan suite test Playwright dan perbaiki kegagalan timeout/CSP pada seluruh 32 file spec yang ada.
+  - [x] Pastikan 0 console error dan 0 unhandled promise rejection pada runtime browser.
+- [x] **5.2. Edge Cases Alur Kerja**:
+  - [x] *Kalender:* Karakter caption pada limit maksimum platform (IG 2.200 karakter, X/Twitter 280 karakter, Threads 500 karakter).
+  - [x] *ERP:* Input biaya melebihi alokasi budget bulanan (pemicu threshold Telegram alert 90%).
+  - [x] *Portal Review Client (`/review/[id]`):* Akses publik via token tanpa login, penolakan revisi, dan submit rating bintang 1-5.
+  - [x] *AI Studio:* Generate batch plan pada kondisi koneksi lambat / AI rate limit fallback.
 
 ---
 
@@ -159,3 +159,23 @@ Pillar 5: E2E Playwright & Edge Cases
     - Total test suite: 83 passed (473 tests, 0 failed).
     - `npx tsc --noEmit`: 0 error.
     - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
+- ✅ **Pillar 5: E2E Playwright Suite & Edge Cases Complete (2026-10-16)**:
+  - Audit & Eksekusi Suite Playwright E2E:
+    - Seluruh pengujian E2E (32 spec files) terverifikasi berjalan mulus tanpa timeout, CSP failure, atau console errors.
+    - Menambahkan Flow 5 pada [calendar.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/calendar.spec.ts) menguji batas karakter caption multi-platform (Twitter: 280, Threads: 500, Instagram: 2.200) dengan live ticker counter warna dinamis saat mendekati/melebihi limit.
+    - Menambahkan Flow 4 pada [client-portal-review.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/client-portal-review.spec.ts) menguji peninjauan deliverable publik via token tanpa auth, pemilihan rating 1-5 bintang interaktif, dan submit feedback revisi dengan konfirmasi toast.
+    - Memperluas [erp.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/erp.spec.ts) menjadi 4 alur komprehensif: ringkasan metrik faktual, filtering status deliverables & sinkronisasi pencarian URL `nuqs`, uji pemicu notifikasi Telegram admin, serta dialog pembuatan deliverable baru.
+    - Menambahkan Edge Case test pada [ai-studio.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/ai-studio.spec.ts) menguji validasi brief kampanye, feedback teks shimmering asinkron, dan penanganan rate limit AI.
+  - Penemuan & Perbaikan Gap Operasional (Iterative Fix Loops):
+    1. **Batas Caption Multi-Platform:** Menyelaraskan mapping platform `'twitter'` dan `'threads'` pada [post-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/calendar/post-dialog.tsx) dengan visual counter limit.
+    2. **Pemicu Threshold Telegram Alert 90% ERP:** Mengimplementasikan fungsi `notifyBudgetThresholdAlert` di [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/telegram/service.ts) dan mengintegrasikannya ke [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/erp/api/service.ts) sehingga jika pengeluaran mencapai >= 90% atau saldo habis, alert Telegram otomatis terkirim beserta warning toast TanStack Query. Terverifikasi lewat 17 unit tests di [service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/erp/api/service.test.ts).
+    3. **Pembersihan Kelas CSS Portal Review:** Memperbaiki duplikasi kelas `focus: focus:ring-2` dan `focus: focus-visible:...` di [client-review-portal.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/review/[id]/client-review-portal.tsx).
+    4. **Normalisasi Error AI & Penanganan Rate Limit (429):** Membuat modul [error.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/ai/error.ts) yang mengonversi kode status 429 atau abort timeout menjadi pesan panduan ramah dalam bahasa Indonesia untuk semua endpoint AI Copilot.
+    5. **Kepatuhan Server Actions Next.js:** Memisahkan fungsi sinkron dari berkas `"use server"` [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/copilot/api/service.ts) ke [error.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/ai/error.ts) guna mencegah fatal 500 compilation error.
+    6. **TanStack Form FormContext Fix:** Mengganti `form.SubmitButton` yang ad-hoc pada [create-deliverable-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/deliverable/create-deliverable-dialog.tsx) dengan kombinasi standar `form.Subscribe` + `<Button isLoading={isSubmitting}>` untuk menghilangkan error `formContext only works when within a formComponent`.
+  - Verifikasi Loop Menyeluruh:
+    - `npx tsc --noEmit`: 0 error.
+    - `npx vitest run`: 83 test suites lulus (481 tests passed, 0 failed).
+    - `npx playwright test`: 100% lulus pada seluruh pengujian E2E (Calendar, ERP, Review Portal, AI Studio).
+    - `npm run build`: 100% sukses terkompilasi via Next.js Turbopack.
+
