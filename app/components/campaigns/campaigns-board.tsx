@@ -26,6 +26,7 @@ import type { ContentProduction, ContentStage } from "@/features/content-product
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CampaignModal } from "./campaign-modal"
 import { CampaignDetailModal } from "./campaign-detail-modal"
+import { AddAdSpendLogForm } from "@/components/expenses/add-ad-spend-log-form"
 import { CreateExpenseForm } from "@/components/expenses/create-expense-form"
 import { StitchAiHookModal } from "@/components/dashboard-stitch/ai-hook-modal"
 import { PageContainer } from "@/components/layout/page-container"
@@ -350,6 +351,7 @@ export function CampaignsBoard() {
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [detail, setDetail] = useState<Campaign | null>(null)
   const [expenseFormOpen, setExpenseFormOpen] = useState(false)
+  const [adSpendFormOpen, setAdSpendFormOpen] = useState(false)
 
   // Deep-link `?new=1` (mis. dari tombol "Create Campaign" di header global):
   // buka modal create sekali saat param muncul, lalu bersihkan agar refresh
@@ -1039,9 +1041,29 @@ export function CampaignsBoard() {
           {/* 1. Client Campaign Switcher & Budget Breakdown */}
           <div className="admin-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="admin-section-label">Client Switcher</span>
-              <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-cobalt))]" />
+              <span className="admin-section-label">Ad Spend Invested</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAdSpendFormOpen((v) => !v)}
+                className="h-7 text-xs rounded-lg border-border/50 gap-1.5 cursor-pointer"
+              >
+                <Icons.add className="size-3" /> Log Spend
+              </Button>
             </div>
+
+            {adSpendFormOpen && (
+              <div className="mb-4">
+                <AddAdSpendLogForm
+                  clientId={activeClientId}
+                  onSuccess={() => setAdSpendFormOpen(false)}
+                />
+              </div>
+            )}
+            <span className="admin-badge admin-badge-cobalt">
+              <MetricTicker value={adSpend.length} /> logs
+            </span>
             {/* Segmented Client Selector Pills */}
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary/30 rounded-full border border-border/20 mb-6">
               {clients.map((c) => (

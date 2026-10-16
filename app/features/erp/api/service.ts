@@ -3,8 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
-import type { ClientBudget, Expense, AdSpendLog, KOL, CreateExpenseInput } from "./types"
-
+import type { ClientBudget, Expense, AdSpendLog, KOL, CreateExpenseInput, AddAdSpendLogInput } from "./types"
 /**
  * Service Layer for ERP financial & partner data.
  * Covers: client_budgets, expenses, ad_spend_logs (036), kols (036 + 046).
@@ -141,4 +140,37 @@ export async function createExpense(
   })
 
   return { success: true, data: data as Expense }
+}
+
+/**
+ * Mencatat log ad spend untuk campaign/client.
+ */
+export async function addAdSpendLog(input: AddAdSpendLogInput): Promise<{ success: boolean; data?: AdSpendLog; error?: string }> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("ad_spend_logs")
+    .insert({
+      client_id: input.client_id,
+      campaign_name: input.campaign_name,
+      spend: input.spend,
+      clicks: input.clicks || 0,
+      log_date: input.log_date || new Date().toISOString().slice(0, 10),
+    })
+    .select("*")
+    .single()
+
+  if (error) {
+    logger.error("addAdSpendLog failed", { error })
+    return { success: false, error: error.message }
+  }
+
+  void logAudit({
+    action: "ads_spend.create",
+    entityType: "ad_spend_log",
+    entityId: data.id,
+    summary: `Logged spend ${input.spend} for campaign ${input.campaign_name}`,
+  })
+
+  return { success: true, data: data as AdSpendLog }
 }

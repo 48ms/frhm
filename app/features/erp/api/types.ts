@@ -50,3 +50,11 @@ export type CreateExpenseInput = {
   description?: string | null
   expense_date?: string | null
 }
+
+export type AddAdSpendLogInput = {
+  client_id: string
+  campaign_name: string
+  spend: number
+  clicks?: number
+  log_date?: string
+}

@@ -12,6 +12,7 @@ export const adminNavStitch: NavItem[] = [
   { title: 'Social Accounts', url: '/admin/social-accounts', icon: 'hub', shortcut: ['g', 's'] },
   { title: 'Composer', url: '/admin/composer', icon: 'rocket', shortcut: ['g', 'c'] },
   { title: 'Campaigns', url: '/admin/campaigns', icon: 'campaign', shortcut: ['g', 'm'] },
+  { title: 'Events', url: '/admin/events', icon: 'mapPin', shortcut: ['g', 'v'] },
   { title: 'Content Calendar', url: '/admin/calendar', icon: 'calendar_month', shortcut: ['g', 'k'] },
   { title: 'Analytics', url: '/admin/analytics', icon: 'monitoring', shortcut: ['g', 'a'] },
   { title: 'Media Library', url: '/admin/library', icon: 'media', shortcut: ['g', 'l'] },

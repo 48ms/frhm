@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense } from "./service"
-import type { CreateExpenseInput } from "./types"
+import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense, addAdSpendLog } from "./service"
+import type { CreateExpenseInput, AddAdSpendLogInput } from "./types"
 
 export const erpKeys = {
   all: ["erp"] as const,
@@ -87,3 +87,24 @@ export function useCreateExpense() {
   })
 }
 
+/**
+ * Hook mutasi untuk mencatat log ad spend.
+ */
+export function useAddAdSpendLog() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: AddAdSpendLogInput) => addAdSpendLog(input),
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Log ad spend berhasil dicatat!")
+        void queryClient.invalidateQueries({ queryKey: erpKeys.all })
+      } else {
+        toast.error(res.error || "Gagal mencatat ad spend")
+      }
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan")
+    },
+  })
+}
