@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { LibraryClient } from "@/components/library/library-client"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
-import { searchParamsCache } from "@/lib/searchparams"
+import { libraryParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
@@ -14,7 +14,7 @@ export const metadata = {
 export default async function LibraryPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { clientId: parsedClientId } = searchParamsCache.parse(await props.searchParams)
+  const { clientId: parsedClientId } = libraryParamsCache.parse(await props.searchParams)
   const clientId = await resolveClientId(parsedClientId)
 
   return (

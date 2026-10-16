@@ -2,7 +2,9 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useQueryState } from "nuqs"
+import { useQueryStates } from "nuqs"
+import { librarySearchParams, serializeCalendarParams } from "@/lib/searchparams"
+import { Input } from "@/components/ui/input"
 import {
   DndContext,
   closestCorners,
@@ -50,9 +52,14 @@ import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ti
 export function LibraryClient() {
   const router = useRouter()
   const { clientId, client: activeClient } = useActiveDashboard()
-  const [fileType, setFileType] = useQueryState("fileType", {
-    defaultValue: "all",
-  })
+  const [libraryState, setLibraryState] = useQueryStates(
+    {
+      fileType: librarySearchParams.fileType,
+      tag: librarySearchParams.tag,
+      q: librarySearchParams.q,
+    },
+    { shallow: true }
+  )
   const [assets, setAssets] = React.useState<Asset[]>([])
   const [loading, setLoading] = React.useState(true)
   const [uploading, setUploading] = React.useState(false)
@@ -61,7 +68,6 @@ export function LibraryClient() {
   const [batchBusy, setBatchBusy] = React.useState(false)
   const [tagInput, setTagInput] = React.useState("")
   const [tagOpen, setTagOpen] = React.useState(false)
-  const [tagFilter, setTagFilter] = useQueryState("tag", { defaultValue: "" })
   const [previewAsset, setPreviewAsset] = React.useState<Asset | null>(null)
   const [caption, setCaption] = React.useState("")
   const [captionBusy, setCaptionBusy] = React.useState(false)
@@ -127,7 +133,7 @@ export function LibraryClient() {
     }
   }
 
-  const activeFileType = fileType === "all" ? undefined : (fileType as AssetFileType)
+  const activeFileType = libraryState.fileType === "all" ? undefined : (libraryState.fileType as AssetFileType)
 
   // All tags present across this client's assets, for the filter chips.
   const allTags = React.useMemo(() => {
@@ -138,7 +144,8 @@ export function LibraryClient() {
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
   }, [assets])
 
-  const activeTag = tagFilter || undefined
+  const activeTag = libraryState.tag || undefined
+  const searchQuery = (libraryState.q || "").toLowerCase().trim()
 
   // Fetch assets
   React.useEffect(() => {
@@ -274,12 +281,19 @@ export function LibraryClient() {
     }
   }
 
-  const filteredAssets = assets
+  const filteredAssets = React.useMemo(() => {
+    if (!searchQuery) return assets
+    return assets.filter((a) => {
+      const matchName = (a.publicId || "").toLowerCase().includes(searchQuery)
+      const matchTag = a.tags.some((t) => t.toLowerCase().includes(searchQuery))
+      return matchName || matchTag
+    })
+  }, [assets, searchQuery])
 
   // Reordering only makes sense on the full list: a filtered view is a subset,
   // and dragging inside it would write positions that contradict the hidden
   // assets. So dragging is disabled whenever a type or tag filter is active.
-  const canReorder = !activeFileType && !activeTag && !sortBusy && filteredAssets.length > 1
+  const canReorder = !activeFileType && !activeTag && !searchQuery && !sortBusy && filteredAssets.length > 1
 
   return (
     <PageContainer
@@ -299,23 +313,52 @@ export function LibraryClient() {
         />
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={fileType} onValueChange={(f) => setFileType(f)} className="mt-4">
-        <TabsList
-          className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20 h-auto"
-          highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+      {/* Search & Filter Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
+        {/* Filter Tabs */}
+        <Tabs
+          value={libraryState.fileType}
+          onValueChange={(f) => void setLibraryState({ fileType: f as any })}
         >
-          {(["all", "image", "video"] as const).map((f) => (
-            <TabsTrigger
-              key={f}
-              value={f}
-              className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground min-h-11"
+          <TabsList
+            className="flex items-center gap-1 p-1 bg-secondary/50 rounded-full w-max border border-border/20 h-auto"
+            highlightClassName="bg-card text-foreground shadow-sm rounded-full"
+          >
+            {(["all", "image", "video"] as const).map((f) => (
+              <TabsTrigger
+                key={f}
+                value={f}
+                className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground min-h-11"
+              >
+                {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        {/* Search Input */}
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-64">
+            <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <Input
+              value={libraryState.q || ""}
+              onChange={(e) => void setLibraryState({ q: e.target.value })}
+              placeholder="Cari file, caption, tag..."
+              className="pl-8 h-9 text-xs rounded-xl"
+            />
+          </div>
+          {Boolean(libraryState.q) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void setLibraryState({ q: "" })}
+              className="h-9 text-xs px-2"
             >
-              {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+              Reset
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Tag filter chips */}
       {allTags.length > 0 && (
@@ -325,12 +368,12 @@ export function LibraryClient() {
             <Button
               key={tag}
               type="button"
-              variant={tagFilter === tag ? "default" : "outline"}
+              variant={libraryState.tag === tag ? "default" : "outline"}
               size="xs"
-              onClick={() => setTagFilter(tagFilter === tag ? "" : tag)}
+              onClick={() => void setLibraryState({ tag: libraryState.tag === tag ? "" : tag })}
               className={cn(
                 "rounded-full text-1xs font-bold transition-all cursor-pointer h-6 px-2.5",
-                tagFilter === tag
+                libraryState.tag === tag
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
               )}
@@ -339,12 +382,12 @@ export function LibraryClient() {
               <span className="ml-1 opacity-60">{count}</span>
             </Button>
           ))}
-          {tagFilter && (
+          {libraryState.tag && (
             <Button
               type="button"
               variant="ghost"
               size="xs"
-              onClick={() => setTagFilter("")}
+              onClick={() => void setLibraryState({ tag: "" })}
               className="rounded-full text-1xs font-bold text-destructive hover:bg-destructive/10 transition-colors h-6 px-2.5"
             >
               Reset
@@ -460,20 +503,17 @@ export function LibraryClient() {
         {/* Select all header */}
         {assets.length > 0 && (
           <div className="col-span-full flex items-center gap-3 mb-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+            <label
               onClick={selectAll}
-              className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary/50 transition-colors h-auto"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary/50 transition-colors cursor-pointer select-none"
             >
               <Checkbox
                 checked={selected.size === assets.length && assets.length > 0}
                 onCheckedChange={selectAll}
                 aria-label="Pilih semua aset"
               />
-              {selected.size === assets.length ? "Batalkan semua" : "Pilih semua"}
-            </Button>
+              <span>{selected.size === assets.length ? "Batalkan semua" : "Pilih semua"}</span>
+            </label>
             {selected.size > 0 && (
               <span className="text-xs text-muted-foreground">
                 {selected.size} / {assets.length} dipilih
@@ -604,9 +644,13 @@ export function LibraryClient() {
                   <Button
                     className="gap-2 w-full"
                     onClick={() => {
-                      const captionQuery = caption ? `&caption=${encodeURIComponent(caption)}` : ""
                       router.push(
-                        `/admin/calendar?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}${captionQuery}&new=1`
+                        `/admin/calendar${serializeCalendarParams({
+                          clientId,
+                          mediaUrl: previewAsset.url,
+                          caption: caption || undefined,
+                          new: "1",
+                        })}`
                       )
                     }}
                   >
@@ -746,7 +790,11 @@ function SortableAsset({
           className="gap-1 text-xs"
           onClick={() => {
             router.push(
-              `/admin/calendar?clientId=${clientId}&mediaUrl=${encodeURIComponent(asset.url)}&new=1`
+              serializeCalendarParams("/admin/calendar", {
+                clientId,
+                mediaUrl: asset.url,
+                new: "1",
+              })
             )
           }}
         >

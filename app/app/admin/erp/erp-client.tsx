@@ -18,12 +18,25 @@ import type { Deliverable } from "@/features/deliverables/api/types"
 import { StatusBadge, TypeBadge } from "@/components/deliverable/status-badge"
 import { PageContainer } from "@/components/layout/page-container"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
-import { serializeComposerParams } from "@/lib/searchparams"
+import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { useQueryStates } from "nuqs"
+import { erpSearchParams, serializeComposerParams } from "@/lib/searchparams"
 
 export function ErpDashboardClient() {
   const router = useRouter()
   const { clientId, client } = useActiveDashboard()
+
+  const [erpFilter, setErpFilter] = useQueryStates(
+    {
+      tab: erpSearchParams.tab,
+      status: erpSearchParams.status,
+      q: erpSearchParams.q,
+    },
+    { shallow: true }
+  )
+
   // Data khusus client aktif dari DB (bukan listAll() lalu filter).
   // PENTING (fakta): useQuery + placeholderData, BUKAN useSuspenseQuery.
   // Alasan sama dengan dashboard-data.ts: saat cache kosong (mis. route preview
@@ -72,6 +85,22 @@ export function ErpDashboardClient() {
   const todayPosts = clientPosts.filter(
     (p) => p.scheduled_at && String(p.scheduled_at).slice(0, 10) === todayStr
   )
+
+  // Filter deliverables berdasarkan status tab dan query pencarian URL
+  const filteredDeliverables = React.useMemo(() => {
+    const q = (erpFilter.q || "").toLowerCase().trim()
+    return clientDeliverables.filter((d) => {
+      if (erpFilter.status !== "all" && d.status !== erpFilter.status) return false
+      if (
+        q &&
+        !d.title.toLowerCase().includes(q) &&
+        !(d.content_md ?? "").toLowerCase().includes(q)
+      ) {
+        return false
+      }
+      return true
+    })
+  }, [clientDeliverables, erpFilter.status, erpFilter.q])
 
   return (
     <PageContainer
@@ -171,7 +200,7 @@ export function ErpDashboardClient() {
 
       {/* SECTION: DAFTAR DELIVERABLES */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h2 className="text-lg font-bold text-[hsl(var(--admin-on-surface))] admin-headline-md tracking-tight">
               Daftar Deliverables & Dokumen Strategi
@@ -191,19 +220,78 @@ export function ErpDashboardClient() {
           </Button>
         </div>
 
-        {clientDeliverables.length === 0 ? (
+        {/* URL-synchronized Filter & Search Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <Tabs
+            value={erpFilter.status}
+            onValueChange={(val) => void setErpFilter({ status: val as any })}
+          >
+            <TabsList className="bg-[hsl(var(--admin-surface-low))] p-1 rounded-full border border-[hsl(var(--admin-outline-variant))]/40 h-auto gap-1">
+              <TabsTrigger
+                value="all"
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground min-h-8"
+              >
+                Semua ({totalDeliverable})
+              </TabsTrigger>
+              <TabsTrigger
+                value="sent"
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground min-h-8"
+              >
+                Menunggu Review ({waitingReview})
+              </TabsTrigger>
+              <TabsTrigger
+                value="revision_requested"
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground min-h-8"
+              >
+                Perlu Revisi ({draft})
+              </TabsTrigger>
+              <TabsTrigger
+                value="approved"
+                className="px-3 py-1 rounded-full text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground min-h-8"
+              >
+                Disetujui ({approved})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-2">
+            <div className="relative w-full sm:w-64">
+              <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+              <Input
+                value={erpFilter.q || ""}
+                onChange={(e) => void setErpFilter({ q: e.target.value })}
+                placeholder="Cari deliverable..."
+                className="pl-8 h-8 text-xs rounded-xl"
+              />
+            </div>
+            {Boolean(erpFilter.q) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void setErpFilter({ q: "" })}
+                className="h-8 text-xs px-2"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {filteredDeliverables.length === 0 ? (
           <div className="p-8 text-center admin-card rounded-2xl border border-[hsl(var(--admin-outline-variant))]/30 space-y-2">
             <Icons.inbox className="size-8 text-[hsl(var(--admin-outline))]/50 mx-auto" />
             <p className="text-sm font-semibold text-[hsl(var(--admin-on-surface))]">
-              Belum Ada Deliverable
+              {clientDeliverables.length === 0 ? "Belum Ada Deliverable" : "Tidak Ada Deliverable yang Cocok"}
             </p>
             <p className="text-xs text-[hsl(var(--admin-outline))] max-w-sm mx-auto">
-              Kirim dokumen hasil playbook dari halaman Client Workspaces atau buat deliverable baru di sini.
+              {clientDeliverables.length === 0
+                ? "Kirim dokumen hasil playbook dari halaman Client Workspaces atau buat deliverable baru di sini."
+                : "Ubah filter status atau kata kunci pencarian untuk melihat dokumen lainnya."}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {clientDeliverables.map((d) => (
+            {filteredDeliverables.map((d) => (
               <div
                 key={d.id}
                 className="p-4 admin-card rounded-2xl border border-[hsl(var(--admin-outline-variant))]/40 hover:border-[hsl(var(--admin-cobalt))]/40 transition-all flex flex-col justify-between space-y-3"
@@ -224,7 +312,7 @@ export function ErpDashboardClient() {
                 </div>
 
                 <div className="pt-3 border-t border-[hsl(var(--admin-outline-variant))]/20 flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-1xs font-mono text-[hsl(var(--admin-outline))]">
+                  <span suppressHydrationWarning className="text-1xs font-mono text-[hsl(var(--admin-outline))]">
                     {d.created_at ? new Date(d.created_at).toLocaleDateString("id-ID", { dateStyle: "medium" }) : "-"}
                   </span>
 

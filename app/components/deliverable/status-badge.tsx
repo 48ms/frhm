@@ -57,7 +57,8 @@ const typeConfig: Record<DeliverableType, { label: string; icon: Icon }> = {
 }
 
 export function TypeBadge({ type, className }: { type: DeliverableType; className?: string }) {
-  const { label, icon: Icon } = typeConfig[type]
+  const config = typeConfig[type] ?? typeConfig.content
+  const { label, icon: Icon } = config
   return (
     <span
       className={cn(

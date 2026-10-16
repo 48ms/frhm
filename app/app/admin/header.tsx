@@ -11,6 +11,7 @@ import { AdminCommandSearch } from "@/components/admin-command-search"
 import { ThemeSelector } from "@/components/theme-selector"
 import { InfobarTrigger } from "@/components/ui/infobar"
 import { Button } from "@/components/ui/button"
+import { serializeCalendarParams, serializeCampaignsParams } from "@/lib/searchparams"
 
 interface AdminHeaderProps {
   userName: string
@@ -32,7 +33,7 @@ export function AdminHeader({
   // Quick Export: navigasi ke kalender dengan modal export terbuka (backing nyata
   // = CalendarExportModal yang men-download CSV/TSV dari data scheduled_posts).
   const handleQuickExport = () => {
-    router.push("/admin/calendar?export=1")
+    router.push(serializeCalendarParams("/admin/calendar", { export: "1" }))
     toast.info("Buka ekspor kalender", {
       description: "Pilih rentang dan format di halaman Kalender.",
     })
@@ -40,7 +41,7 @@ export function AdminHeader({
 
   // Create Campaign: buka modal pembuatan kampanye di halaman Campaigns.
   const handleCreateCampaign = () => {
-    router.push("/admin/campaigns?new=1")
+    router.push(serializeCampaignsParams("/admin/campaigns", { new: "1" }))
   }
 
   // Apps launcher: buka command palette (kbar) yang sudah terdaftar global.

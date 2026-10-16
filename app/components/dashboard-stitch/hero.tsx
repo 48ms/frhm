@@ -68,7 +68,7 @@ export function DashboardStitchHero() {
               aria-label="Sinkronkan ulang data dasbor"
             >
               <Icons.refresh className={cn("size-3", isSyncing && "animate-spin text-brand-accent")} />
-              <span>
+              <span suppressHydrationWarning>
                 {isSyncing
                   ? "Menyinkronkan..."
                   : `Synced ${profile.updated_at ? formatDistanceToNow(new Date(profile.updated_at), { addSuffix: true }) : 'never'}`}

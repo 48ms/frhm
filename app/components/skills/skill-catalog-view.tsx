@@ -54,7 +54,10 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
     "pack",
     parseAsString.withDefault("all")
   )
-  const [viewMode, setViewMode] = React.useState<"packs" | "all">("packs")
+  const [viewMode, setViewMode] = useQueryState(
+    "viewMode",
+    parseAsString.withDefault("packs")
+  )
 
   // Selected skill for Interview Modal
   const [activeSkill, setActiveSkill] = React.useState<Skill | null>(null)
@@ -119,8 +122,8 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
             size="sm"
             variant={viewMode === "packs" ? "default" : "ghost"}
             onClick={() => {
-              setViewMode("packs")
-              setSelectedPackId("all")
+              void setViewMode("packs", { shallow: true })
+              void setSelectedPackId("all", { shallow: true })
             }}
             className="h-7 text-xs px-3 rounded-lg gap-1.5 shadow-none"
           >
@@ -129,7 +132,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
           <Button
             size="sm"
             variant={viewMode === "all" ? "default" : "ghost"}
-            onClick={() => setViewMode("all")}
+            onClick={() => void setViewMode("all", { shallow: true })}
             className="h-7 text-xs px-3 rounded-lg gap-1.5 shadow-none"
           >
             <Icons.sparkles className="size-3.5" /> Semua 106 Playbook

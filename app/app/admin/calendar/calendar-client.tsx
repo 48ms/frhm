@@ -1,7 +1,8 @@
 "use client"
 
 import { useMemo, useState, useEffect, useCallback } from "react"
-import { parseAsStringEnum, parseAsString, useQueryState } from "nuqs"
+import { useQueryStates } from "nuqs"
+import { calendarSearchParams } from "@/lib/searchparams"
 import { Icons } from "@/components/icons"
 import { toast } from "sonner"
 import { PostDialog } from "@/components/calendar/post-dialog"
@@ -117,19 +118,33 @@ const PLATFORM_FILTERS = ["all", "instagram", "tiktok", "shorts", "linkedin"] as
 export function AdminCalendarClient() {
   const { clientId: selectedClientId, setClientId, client: activeClient, clients } = useActiveDashboard()
 
-  const [platformFilter, setPlatformFilter] = useQueryState(
-    "platform",
-    parseAsStringEnum([...PLATFORM_FILTERS]).withDefault("all")
+  const [calendarState, setCalendarState] = useQueryStates(
+    {
+      platform: calendarSearchParams.platform,
+      view: calendarSearchParams.view,
+      mediaUrl: calendarSearchParams.mediaUrl,
+      caption: calendarSearchParams.caption,
+      title: calendarSearchParams.title,
+      new: calendarSearchParams.new,
+      export: calendarSearchParams.export,
+    },
+    { shallow: true }
   )
-  const [viewMode, setViewMode] = useQueryState(
-    "view",
-    parseAsStringEnum([...VIEW_TABS]).withDefault("month")
-  )
-  const [mediaUrl, setMediaUrl] = useQueryState("mediaUrl", parseAsString.withDefault(""))
-  const [captionParam, setCaptionParam] = useQueryState("caption", parseAsString.withDefault(""))
-  const [titleParam, setTitleParam] = useQueryState("title", parseAsString.withDefault(""))
-  const [composeNew, setComposeNew] = useQueryState("new", parseAsString.withDefault(""))
-  const [exportParam, setExportParam] = useQueryState("export", parseAsString.withDefault(""))
+
+  const platformFilter = calendarState.platform
+  const viewMode = calendarState.view
+  const mediaUrl = calendarState.mediaUrl
+  const captionParam = calendarState.caption
+  const titleParam = calendarState.title
+  const composeNew = calendarState.new
+  const exportParam = calendarState.export
+
+  const setPlatformFilter = (p: (typeof PLATFORM_FILTERS)[number]) => {
+    void setCalendarState({ platform: p })
+  }
+  const setViewMode = (v: (typeof VIEW_TABS)[number]) => {
+    void setCalendarState({ view: v })
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [initialDate, setInitialDate] = useState<Date | undefined>()
@@ -141,32 +156,35 @@ export function AdminCalendarClient() {
   const [batchPlanOpen, setBatchPlanOpen] = useState(false)
 
   // Arriving from Media Library ("Use in Post") or AI Hook Modal: open the compose dialog with
-  // the chosen asset and caption pre-filled, then clear the transient query params.
+  // the chosen asset and caption pre-filled, then clear the transient query params atomically.
   useEffect(() => {
     if (composeNew === "1") {
       setEditingPost(null)
       setInitialDate(new Date())
       if (titleParam) {
         setInitialTitle(titleParam)
-        void setTitleParam("")
       }
       if (captionParam) {
         setInitialCaption(captionParam)
-        void setCaptionParam("")
       }
       setDialogOpen(true)
-      void setComposeNew("")
+      void setCalendarState({
+        new: "",
+        title: "",
+        caption: "",
+        mediaUrl: "",
+      })
     }
-  }, [composeNew, setComposeNew, titleParam, setTitleParam, captionParam, setCaptionParam])
+  }, [composeNew, titleParam, captionParam, setCalendarState])
 
   // Deep-link `?export=1` (dari tombol "Quick Export" di header global):
   // buka modal ekspor kalender, lalu bersihkan param.
   useEffect(() => {
     if (exportParam === "1") {
       setExportOpen(true)
-      void setExportParam("")
+      void setCalendarState({ export: "" })
     }
-  }, [exportParam, setExportParam])
+  }, [exportParam, setCalendarState])
 
   // Posts are now loaded strictly from the factual database (useScheduledPosts)
 
@@ -1408,9 +1426,11 @@ export function AdminCalendarClient() {
           setDialogOpen(false)
           setEditingPost(null)
           setInitialDate(undefined)
-          void setMediaUrl("")
-          void setCaptionParam("")
-          void setTitleParam("")
+          void setCalendarState({
+            mediaUrl: "",
+            caption: "",
+            title: "",
+          })
           setInitialCaption("")
           setInitialTitle("")
         }}

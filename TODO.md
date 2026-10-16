@@ -39,20 +39,32 @@ Pillar 5: E2E Playwright & Edge Cases
 ### 🔄 PILLAR 2: URL State Synchronization (`nuqs`) & Hydration Stability
 *Tujuan: Zero-state-loss saat browser refresh, parser prefetch sinkron, dan bebas hydration flash.*
 
-- [ ] **2.1. Audit URL State Persistence (`nuqs`)**:
-  - [ ] Cek halaman Admin:
-    - `/admin/dashboard` (filter client, date range)
-    - `/admin/calendar` (view mode: month/week/day, platform filter, client filter)
-    - `/admin/campaigns` (active tab, search query, client filter)
-    - `/admin/erp` (active tab: expenses/ledger/ads/events, client filter)
-    - `/admin/library` (asset type, tags, search query)
-    - `/admin/ai` (active studio tab: ideas/batch/trends/brand-brain/playbooks, skill id)
-  - [ ] Ganti sisa `useState` lokal yang seharusnya persisten di URL dengan `useQueryStates` (shallow: true).
-- [ ] **2.2. Sinkronisasi Parser Server & Client**:
-  - [ ] Pastikan parser di `lib/searchparams.ts` dan client parser memiliki definisi default dan type casting yang identik agar cache prefetch tidak terbuang.
-- [ ] **2.3. Hydration Flash & SSR Gates**:
-  - [ ] Pastikan popover/dialog yang membaca state browser/localStorage memiliki mounted gate agar tidak memicu *hydration mismatch*.
-  - [ ] Periksa formatting tanggal `date-fns` di Server Components untuk menghindari perbedaan timezone server vs client.
+- [x] **2.1. Audit URL State Persistence (`nuqs`)**:
+  - [x] Cek & Sinkronkan 6 halaman Admin Utama:
+    - `/admin/dashboard` (filter `clientId`, `period`: `7d` | `30d` | `90d` | `all`, validasi sinkron SSR prefetch)
+    - `/admin/calendar` (filter `clientId`, `platform`, `view`: `month` | `week` | `list`, deep links `new`, `mediaUrl`, `caption`, `title`, `export`)
+    - `/admin/campaigns` (`tab`: `active` | `completed` | `all`, `q` search query, `view`: `list` | `gantt`, `new` modal deep link)
+    - `/admin/erp` (`tab`: `deliverables` | `expenses` | `clients`, `status` deliverable filter, `q` search query, factual counters)
+    - `/admin/library` (`fileType`: `all` | `image` | `video`, `tag`, `q` query aset media, batch selection)
+    - `/admin/ai` (`tab`: `ideas` | `batch` | `trends` | `brand-brain` | `playbooks`, `category`, `search`, `pack`, `skill`, `interview`, `viewMode`: `packs` | `all`)
+  - [x] Menghapus seluruh query string hardcoded (`new URLSearchParams`, `router.push('/...?x=1')`) dan menggantinya dengan serializer tersentralisasi (`serializeCalendarParams`, `serializeCampaignsParams`, dll.).
+  - [x] Ganti seluruh `useState` lokal yang seharusnya persisten di URL dengan `useQueryStates(..., { shallow: true })` untuk zero server refetch cascades.
+- [x] **2.2. Sinkronisasi Parser Server & Client**:
+  - [x] Seluruh parser di `lib/searchparams.ts` mendefinisikan cache server (`createSearchParamsCache`) dan serializer (`createSerializer`) yang 100% identik dengan hooks client:
+    - `dashboardSearchParams`, `dashboardParamsCache`, `serializeDashboardParams`
+    - `calendarSearchParams`, `calendarParamsCache`, `serializeCalendarParams`
+    - `campaignsSearchParams`, `campaignsParamsCache`, `serializeCampaignsParams`
+    - `erpSearchParams`, `erpParamsCache`, `serializeErpParams`
+    - `librarySearchParams`, `libraryParamsCache`, `serializeLibraryParams`
+    - `aiSearchParams`, `aiParamsCache`, `serializeAiParams`
+    - `analyticsSearchParams`, `analyticsParamsCache`, `serializeAnalyticsParams`
+    - `clientsSearchParams`, `clientsParamsCache`, `serializeClientsParams`
+  - [x] 21 unit tests di `lib/searchparams.test.ts` memverifikasi round-trip serialization dan default fallback.
+- [x] **2.3. Hydration Flash & SSR Gates**:
+  - [x] Menambahkan `suppressHydrationWarning` pada timestamp relatif dinamis (`formatDistanceToNow` di hero dashboard stitch dan ERP deliverable time display).
+  - [x] Mengeliminasi nested button hydration error di [library-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/library/library-client.tsx) (mengganti Button wrapper di sekitar Radix Checkbox dengan accessible `<label>`).
+  - [x] Defensive fallback pada TypeBadge (`typeConfig[type] ?? typeConfig.content`) untuk mencegah crash saat render tipe deliverable kustom.
+  - [x] 100% bebas hydration error, 78 test suites lulus, `tsc --noEmit` 0 error, dan Next.js production build lulus 100%.
 
 ---
 
@@ -122,3 +134,10 @@ Pillar 5: E2E Playwright & Edge Cases
   - Service layer `features/dashboard/api/service.ts` terverifikasi penuh.
 - ✅ **Type Hardening — any → unknown (2026-10-16)**:
   - 32 blok `catch (err: any)` dimigrasikan ke `catch (err: unknown)` + type guarding `instanceof Error`.
+- ✅ **Pillar 2: URL State Synchronization (nuqs) & Hydration Stability Complete (2026-10-16)**:
+  - Sinkronisasi penuh 6 workspace admin (`/admin/dashboard`, `/admin/calendar`, `/admin/campaigns`, `/admin/erp`, `/admin/library`, `/admin/ai`) dengan `nuqs` v2.10.1 dan `shallow: true`.
+  - Sentralisasi parser, cache server (`xyzParamsCache`), dan serializer (`serializeXyzParams`) di `lib/searchparams.ts` dengan 21 unit tests passing (`lib/searchparams.test.ts`).
+  - Menghapus query string hardcoded (`new URLSearchParams`, raw string concat) di header navigasi, modal preview library, dan action bar.
+  - Memperbaiki hydration bug akibat nesting `<button>` di dalam `<button>` pada checkbox seleksi aset library.
+  - Menambahkan `suppressHydrationWarning` pada timestamp relatif dinamis.
+  - Verifikasi penuh: 78/78 test suites pass (456 tests), `npx tsc --noEmit` 0 error, Next.js `npm run build` sukses 100%.

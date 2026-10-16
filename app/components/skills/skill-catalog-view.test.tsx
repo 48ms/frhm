@@ -22,14 +22,19 @@ vi.mock("@/features/skills/api/queries", () => ({
   useExecuteGenericSkill: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }))
 
-vi.mock("nuqs", () => ({
-  useQueryState: (key: string, parser: any) => {
-    return ["all", vi.fn()]
-  },
-  parseAsString: {
-    withDefault: (val: string) => ({ default: val }),
-  },
-}))
+vi.mock("nuqs", async () => {
+  const React = await import("react")
+  return {
+    useQueryState: (_key: string, parser: any) => {
+      const defaultVal = parser?.default ?? ""
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return React.useState(defaultVal)
+    },
+    parseAsString: {
+      withDefault: (val: string) => ({ default: val }),
+    },
+  }
+})
 
 describe("SkillCatalogView Component", () => {
   beforeEach(() => {

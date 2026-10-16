@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import { AnalyticsView } from "./analytics-view"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
-import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
+import { analyticsParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import { PageContainer } from "@/components/layout/page-container"
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function AnalyticsPage(
   props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
 ) {
-  const { clientId: parsedClientId } = searchParamsCache.parse(await props.searchParams)
+  const { clientId: parsedClientId } = analyticsParamsCache.parse(await props.searchParams)
   const clientId = await resolveClientId(parsedClientId)
   return (
     <PageContainer

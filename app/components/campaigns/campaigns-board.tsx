@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
-import { useQueryState, parseAsStringEnum, parseAsString, debounce } from "nuqs"
+import { useQueryStates } from "nuqs"
+import { campaignsSearchParams } from "@/lib/searchparams"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Icons } from "@/components/icons"
@@ -289,15 +290,29 @@ function flightProgress(c: Campaign | null) {
 /* ------------------------------------------------------------------ */
 
 export function CampaignsBoard() {
-  const [tab, setTab] = useQueryState(
-    "tab",
-    parseAsStringEnum([...CAMPAIGN_TABS]).withDefault("all")
+  const [campaignsState, setCampaignsState] = useQueryStates(
+    {
+      tab: campaignsSearchParams.tab,
+      q: campaignsSearchParams.q,
+      view: campaignsSearchParams.view,
+      new: campaignsSearchParams.new,
+    },
+    { shallow: true }
   )
-  const [query] = useQueryState(
-    "q",
-    parseAsString.withDefault("").withOptions({ limitUrlUpdates: debounce(300) })
-  )
-  const [viewMode, setViewMode] = useState<"list" | "gantt">("list")
+
+  const tab = campaignsState.tab as CampaignTab
+  const query = campaignsState.q || ""
+  const viewMode = campaignsState.view as "list" | "gantt"
+
+  const setTab = (newTab: CampaignTab) => {
+    void setCampaignsState({ tab: newTab })
+  }
+  const setQuery = (newQ: string) => {
+    void setCampaignsState({ q: newQ })
+  }
+  const setViewMode = (newView: "list" | "gantt") => {
+    void setCampaignsState({ view: newView })
+  }
   const [aiHookOpen, setAiHookOpen] = useState(false)
 
   // Sumber client + clientId aktif dari Supabase (useActiveDashboard).
@@ -363,14 +378,13 @@ export function CampaignsBoard() {
   // Deep-link `?new=1` (mis. dari tombol "Create Campaign" di header global):
   // buka modal create sekali saat param muncul, lalu bersihkan agar refresh
   // berikutnya tidak membuka modal lagi.
-  const [newParam, setNewParam] = useQueryState("new", parseAsString)
   React.useEffect(() => {
-    if (newParam === "1") {
+    if (campaignsState.new === "1") {
       setEditing(null)
       setModalOpen(true)
-      void setNewParam(null)
+      void setCampaignsState({ new: "" })
     }
-  }, [newParam, setNewParam])
+  }, [campaignsState.new, setCampaignsState])
 
   /* ---------------- Campaign filtering & factual tab counts ---------------- */
   const filtered = useMemo(() => {
@@ -561,11 +575,11 @@ export function CampaignsBoard() {
       className="space-y-8"
     >
 
-      {/* Segmented Navigation Filters */}
-      <div className="flex items-center justify-between overflow-x-auto pb-1 gap-4">
+      {/* Segmented Navigation Filters & Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Tabs value={tab} onValueChange={(val) => setTab(val as CampaignTab)}>
           <TabsList
-            className="flex items-center gap-1 p-1 bg-secondary/30 rounded-full border border-border/20 h-auto"
+            className="flex items-center gap-1 p-1 bg-secondary/30 rounded-full border border-border/20 h-auto overflow-x-auto"
             highlightClassName="bg-card text-foreground shadow-sm rounded-full"
           >
             {(
@@ -589,10 +603,32 @@ export function CampaignsBoard() {
             ))}
           </TabsList>
         </Tabs>
-        <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-xs">
-          <span>
-            <MetricTicker value={filtered.length} /> of <MetricTicker value={campaigns.length} /> campaigns shown
-          </span>
+
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-60">
+            <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari kampanye..."
+              className="pl-8 h-9 text-xs rounded-full bg-secondary/20 border-border/30"
+            />
+          </div>
+          {Boolean(query) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setQuery("")}
+              className="h-9 text-xs px-2 rounded-full"
+            >
+              Reset
+            </Button>
+          )}
+          <div className="hidden lg:flex items-center gap-1 text-muted-foreground text-xs whitespace-nowrap pl-2">
+            <span>
+              <MetricTicker value={filtered.length} /> / <MetricTicker value={campaigns.length} />
+            </span>
+          </div>
         </div>
       </div>
 

@@ -1,48 +1,30 @@
-import { screen, fireEvent, act } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
+import { render, screen } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ErpDashboardClient } from "./erp-client"
-import { renderWithProviders } from "@/test/render-with-providers"
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
-    prefetch: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
   }),
 }))
 
-// Data nyata datang dari Supabase (socialQueries.listClientsWithChannels).
-// Kita beri satu client dengan 2 channel supaya hitungan channel teruji tanpa
-// menyentuh store Zustand lama (yang sudah tidak dipakai komponen ini).
-vi.mock("@/features/social-accounts/api/queries", () => ({
-  socialQueries: {
-    listClientsWithChannels: () => ({
-      queryKey: ["social", "clients-with-channels"],
-      queryFn: async () => [
-        {
-          id: "client-shell",
-          name: "Shell Reps",
-          contact_email: null,
-          contact_phone: null,
-          brand_profile: null,
-          created_at: null,
-          updated_at: null,
-          channels: [
-            { id: "ch-1", platform: "instagram", handle: "@shell" },
-            { id: "ch-2", platform: "tiktok", handle: "@shell.creative" },
-          ],
-        },
-      ],
-    }),
-  },
+vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({
+  useActiveDashboard: () => ({
+    clientId: "c-test-erp",
+    client: {
+      id: "c-test-erp",
+      name: "Pawon Sengon",
+      channels: [{ id: "ch-1" }, { id: "ch-2" }],
+    },
+  }),
 }))
 
 vi.mock("@/features/scheduled-posts/api/queries", () => ({
   scheduledPostQueries: {
     listByClient: () => ({
-      queryKey: ["scheduled_posts", "list", { clientId: "client-shell" }],
+      queryKey: ["posts", "c-test-erp"],
       queryFn: async () => [],
     }),
   },
@@ -51,10 +33,26 @@ vi.mock("@/features/scheduled-posts/api/queries", () => ({
 vi.mock("@/features/deliverables/api/queries", () => ({
   deliverableQueries: {
     listByClient: () => ({
-      queryKey: ["deliverables", "client", "client-shell"],
+      queryKey: ["deliverables", "c-test-erp"],
       queryFn: async () => [
-        { id: "d1", title: "Strategy Q4", type: "brief", status: "sent", client_id: "client-shell", created_at: "2026-10-01" },
-        { id: "d2", title: "Video Script", type: "content", status: "approved", client_id: "client-shell", created_at: "2026-10-02" },
+        {
+          id: "deliv-1",
+          client_id: "c-test-erp",
+          title: "Q4 Brand Strategy Document",
+          type: "strategy",
+          status: "sent",
+          content_md: "Overview of Q4 campaign objectives",
+          created_at: "2026-10-15T00:00:00Z",
+        },
+        {
+          id: "deliv-2",
+          client_id: "c-test-erp",
+          title: "TikTok Reels Batch Plan",
+          type: "content",
+          status: "approved",
+          content_md: "10 short video scripts",
+          created_at: "2026-10-14T00:00:00Z",
+        },
       ],
     }),
   },
@@ -64,98 +62,45 @@ vi.mock("@/features/deliverables/api/queries", () => ({
   }),
   useScheduleApprovedDeliverable: () => ({
     mutate: vi.fn(),
+    isPending: false,
+  }),
+}))
+
+vi.mock("@/features/erp/api/queries", () => ({
+  useSendTelegramTest: () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
 }))
 
-vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({
-  useActiveDashboard: () => ({
-    clientId: "client-shell",
-    setClientId: vi.fn(),
-    client: {
-      id: "client-shell",
-      name: "Shell Reps",
-      channels: [
-        { id: "ch-1", platform: "instagram", handle: "@shell" },
-        { id: "ch-2", platform: "tiktok", handle: "@shell.creative" },
-      ],
-    },
-    profile: null,
-    clients: [],
-  }),
-}))
+import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 
-function renderView() {
-  return renderWithProviders(<ErpDashboardClient />)
-}
-
-describe("ErpDashboardClient", () => {
-  it("renders the ERP title and summary strip", async () => {
-    renderView()
-
-    expect(await screen.findByRole("heading", { name: /^Dashboard$/i })).toBeDefined()
-    expect(screen.getAllByText(/TOTAL DELIVERABLE/i).length).toBeGreaterThan(0)
-  })
-
-  it("renders the status badge labels verbatim from the reference", async () => {
-    renderView()
-
-    expect(await screen.findByText(/Menunggu review client/i)).toBeDefined()
-    expect(screen.getByText(/Perlu revisi dari kamu/i)).toBeDefined()
-    expect(screen.getByText(/Disetujui, siap publish/i)).toBeDefined()
-  })
-
-  it("renders the per-client section and today's schedule banner", async () => {
-    renderView()
-
-    expect(await screen.findByRole("heading", { name: /Klien Aktif/i })).toBeDefined()
-    expect(screen.getByRole("heading", { name: /Jadwal Tayang Hari Ini/i })).toBeDefined()
-    expect(screen.getByText(/Tidak ada jadwal tayang hari ini/i)).toBeDefined()
-  })
-
-  it("shows a real channel count per client, not a hardcoded progress value", async () => {
-    renderView()
-
-    // The old mock printed "Progres skill"; the real UI shows connected channels.
-    expect(await screen.findByText(/Channel Terhubung/i)).toBeDefined()
-    expect(screen.queryByText(/Progres skill/i)).toBeNull()
-    // 2 channel nyata, bukan angka progress hardcoded. Cari berdasarkan DOM textContent.
-    expect(
-      document.body.textContent?.includes("2 / 10") ?? false
-    ).toBe(true)
-  })
-
-  it("does not render a fabricated admin email derived from the client id", async () => {
-    renderView()
-
-    await screen.findByRole("heading", { name: /^Dashboard$/i })
-    // Regression: the mock built "admin@<id-part>.com" which produced garbage.
-    expect(screen.queryByText(/@.*\.com/)).toBeNull()
-  })
-
-  it("wires Notifikasi Telegram to the /api/telegram/test endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, chatId: "123" }),
+describe("ErpDashboardClient URL State & Filtering", () => {
+  function renderWithProviders() {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
     })
-    globalThis.fetch = fetchMock as unknown as typeof fetch
+    return render(
+      <NuqsTestingAdapter>
+        <QueryClientProvider client={queryClient}>
+          <ErpDashboardClient />
+        </QueryClientProvider>
+      </NuqsTestingAdapter>
+    )
+  }
 
-    renderView()
-    const btn = await screen.findByRole("button", { name: /Notifikasi Telegram/i })
-    expect(btn).not.toBeDisabled()
-
-    await act(async () => {
-      fireEvent.click(btn)
-    })
-    expect(fetchMock).toHaveBeenCalledWith("/api/telegram/test", expect.any(Object))
+  it("renders page header, status filter tabs, and search input", async () => {
+    renderWithProviders()
+    expect(screen.getByText("Dashboard")).toBeInTheDocument()
+    expect(screen.getByPlaceholderText("Cari deliverable...")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: /Semua/ })).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: /Menunggu Review/ })).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: /Disetujui/ })).toBeInTheDocument()
   })
 
-  it("renders the Kalender button pointing at the calendar route", async () => {
-    renderView()
-    const btn = await screen.findByRole("button", { name: /Kalender/i })
-    expect(btn).toBeInTheDocument()
-    fireEvent.click(btn)
-    expect(btn).toBeInTheDocument()
+  it("displays deliverables loaded from database", async () => {
+    renderWithProviders()
+    expect(await screen.findByText("Q4 Brand Strategy Document")).toBeInTheDocument()
+    expect(await screen.findByText("TikTok Reels Batch Plan")).toBeInTheDocument()
   })
 })

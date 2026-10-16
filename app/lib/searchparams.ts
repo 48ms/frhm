@@ -10,8 +10,11 @@ import { createSearchParamsCache, createSerializer, parseAsString, parseAsString
 // -------------------------------------------------------------
 // 1. Dashboard / Multi-Tenant Tenancy
 // -------------------------------------------------------------
+export const DASHBOARD_PERIODS = ["7d", "30d", "90d"] as const
+
 export const dashboardSearchParams = {
   clientId: parseAsString.withDefault(""),
+  period: parseAsStringEnum([...DASHBOARD_PERIODS]).withDefault("30d"),
 }
 
 export const dashboardParamsCache = createSearchParamsCache(dashboardSearchParams)
@@ -55,18 +58,63 @@ export const serializeComposerParams = createSerializer(composerSearchParams)
 // -------------------------------------------------------------
 // 4. Campaigns Board (/admin/campaigns)
 // -------------------------------------------------------------
+export const CAMPAIGN_TABS = ["all", "active", "review", "completed", "draft"] as const
+export const CAMPAIGN_VIEW_MODES = ["list", "gantt"] as const
+
 export const campaignsSearchParams = {
   clientId: parseAsString.withDefault(""),
-  status: parseAsString.withDefault("all"),
+  tab: parseAsStringEnum([...CAMPAIGN_TABS]).withDefault("all"),
+  status: parseAsString.withDefault("all"), // Backward compatibility alias
+  q: parseAsString.withDefault(""),
+  new: parseAsString.withDefault(""),
+  view: parseAsStringEnum([...CAMPAIGN_VIEW_MODES]).withDefault("list"),
 }
 
 export const campaignsParamsCache = createSearchParamsCache(campaignsSearchParams)
 export const serializeCampaignsParams = createSerializer(campaignsSearchParams)
 
 // -------------------------------------------------------------
-// 5. AI Studio (/admin/ai)
+// 5. Marketing ERP & Deliverables (/admin/erp)
+// -------------------------------------------------------------
+export const ERP_TABS = ["deliverables", "expenses", "ledger", "ads", "events"] as const
+export const ERP_DELIVERABLE_STATUSES = [
+  "all",
+  "sent",
+  "revision_requested",
+  "approved",
+  "draft",
+] as const
+
+export const erpSearchParams = {
+  clientId: parseAsString.withDefault(""),
+  tab: parseAsStringEnum([...ERP_TABS]).withDefault("deliverables"),
+  status: parseAsStringEnum([...ERP_DELIVERABLE_STATUSES]).withDefault("all"),
+  q: parseAsString.withDefault(""),
+}
+
+export const erpParamsCache = createSearchParamsCache(erpSearchParams)
+export const serializeErpParams = createSerializer(erpSearchParams)
+
+// -------------------------------------------------------------
+// 6. Media Library (/admin/library)
+// -------------------------------------------------------------
+export const LIBRARY_FILE_TYPES = ["all", "image", "video"] as const
+
+export const librarySearchParams = {
+  clientId: parseAsString.withDefault(""),
+  fileType: parseAsStringEnum([...LIBRARY_FILE_TYPES]).withDefault("all"),
+  tag: parseAsString.withDefault(""),
+  q: parseAsString.withDefault(""),
+}
+
+export const libraryParamsCache = createSearchParamsCache(librarySearchParams)
+export const serializeLibraryParams = createSerializer(librarySearchParams)
+
+// -------------------------------------------------------------
+// 7. AI Studio (/admin/ai)
 // -------------------------------------------------------------
 export const AI_STUDIO_TABS = ["ideas", "batch", "trends", "brand-brain", "playbooks"] as const
+export const AI_STUDIO_VIEW_MODES = ["packs", "all"] as const
 
 export const aiSearchParams = {
   clientId: parseAsString.withDefault(""),
@@ -74,14 +122,17 @@ export const aiSearchParams = {
   category: parseAsString.withDefault("all"),
   search: parseAsString.withDefault(""),
   pack: parseAsString.withDefault("all"),
-  skillId: parseAsString.withDefault(""),
+  skill: parseAsString.withDefault(""),
+  skillId: parseAsString.withDefault(""), // Backward compatibility alias
+  interview: parseAsString.withDefault(""),
+  viewMode: parseAsStringEnum([...AI_STUDIO_VIEW_MODES]).withDefault("packs"),
 }
 
 export const aiParamsCache = createSearchParamsCache(aiSearchParams)
 export const serializeAiParams = createSerializer(aiSearchParams)
 
 // -------------------------------------------------------------
-// 6. Analytics Module (/admin/analytics)
+// 8. Analytics Module (/admin/analytics)
 // -------------------------------------------------------------
 export const ANALYTICS_PLATFORMS = ["all", "instagram", "tiktok", "youtube", "twitter", "x"] as const
 export const ANALYTICS_PERIODS = ["7d", "30d", "90d", "all"] as const
@@ -94,4 +145,3 @@ export const analyticsSearchParams = {
 
 export const analyticsParamsCache = createSearchParamsCache(analyticsSearchParams)
 export const serializeAnalyticsParams = createSerializer(analyticsSearchParams)
-

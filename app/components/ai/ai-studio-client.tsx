@@ -120,7 +120,7 @@ export function AiStudioClient() {
 
   const handleTabChange = (val: string) => {
     setLocalTab(val as StudioTab)
-    void setCurrentTab(val)
+    void setCurrentTab(val, { shallow: true })
   }
 
   const activeTab: StudioTab = localTab
@@ -1349,8 +1349,8 @@ export function AiStudioClient() {
         onOpenChange={(open) => {
           setIsInterviewOpen(open)
           if (!open) {
-            void setInterviewParam(null)
-            void setActiveInterviewSkillId(null)
+            void setInterviewParam(null, { shallow: true })
+            void setActiveInterviewSkillId(null, { shallow: true })
           }
         }}
         skill={interviewSkillDetail?.skill || (activeInterviewSkillId === "brand-profile" ? {
