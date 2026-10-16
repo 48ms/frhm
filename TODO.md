@@ -286,4 +286,18 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx playwright test e2e/client-portal.spec.ts`: 2/2 tests passed (layout, 6 rute portal klien, dan dialog akses admin).
     - `npx tsc --noEmit`: 0 error.
     - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses (seluruh rute `/client/*` dan `/api/admin/client-users` lolos statically & dynamically optimized).
+- ✅ **Live Admin Full Walkthrough, Client Portal Verification & Workspace Switcher Upgrade (2026-10-16)**:
+  - **Uji Coba Penuh E2E Admin Walkthrough & Portal Klien (100% Passed)**:
+    - Membuat suite Playwright komprehensif [admin-full-walkthrough.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/admin-full-walkthrough.spec.ts) yang menguji live browser secara nyata dari login admin (`test-user@frhm.dev`), dashboard admin, kelola klien `/admin/clients`, modal *Akses Klien* (copy template WA & undang user), hingga peninjauan langsung 3 halaman portal klien (`/client/dashboard`, `/client/review`, `/client/support`).
+    - Menghasilkan 8 tangkapan layar visual beresolusi tinggi di artifact direktori ([admin_login_and_client_portal_walkthrough.md](file:///C:/Users/bimam/.gemini/antigravity-ide/brain/95c51313-b3d5-4a88-bd7f-8fa9d7f9c215/admin_login_and_client_portal_walkthrough.md)).
+  - **Penguatan Alur & Eliminasi Gap Operasional**:
+    - *Auto-Provisioning User Klien Saat Buat Client Baru:* Di [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/dashboard/api/service.ts), pembuatan brand baru dengan `contact_email` kini otomatis meng-upsert baris ke `public.users` dengan role `client` dan binding `client_id`, sehingga akun klien langsung siap login mandiri tanpa input manual ulang.
+    - *Quick Search Workspace Switcher:* Menambahkan input pencarian cepat instan di [workspace-switcher.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/workspace-switcher.tsx) bila jumlah brand > 3, memudahkan admin memfilter puluhan brand agensi dalam hitungan milidetik.
+    - *Eliminasi Flash SSR Waterfall pada Dukungan Klien:* [support/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/support/page.tsx) kini dibungkus `<DashboardPrefetcher clientId={clientId}>` untuk data prefetching paralel di server.
+    - *Kepatuhan Desain Sistem HSL:* Memperbaiki warna hardcoded `text-slate-950` di [client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx) dan [client-dashboard-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.tsx) menjadi `text-primary-foreground`.
+  - **Verifikasi Kualitas Penuh (Verification Loop Pass)**:
+    - `npx vitest run`: 85/85 test suites lulus (502 tests passed, 0 failed).
+    - `npx tsc --noEmit`: 0 error.
+    - `npx playwright test e2e/admin-full-walkthrough.spec.ts`: 1 suite (1 comprehensive test) passed (100% lulus dalam 25.5s).
+
 

@@ -10,6 +10,12 @@ import { useCreateClient } from "@/components/client/create-client-provider"
 import { dashboardQueries } from "@/features/dashboard/api/queries"
 import { Button } from "@/components/ui/button"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { AnimatedIcon } from "@/components/animate-ui/components/icons/animated-icon"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/animate-ui/components/radix/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,17 +68,24 @@ export function WorkspaceSwitcher({
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           {collapsed ? (
-            <Button
-              type="button"
-              variant="outline"
-              aria-label={`Current workspace: ${activeClient.name}`}
-              className={cn(
-                "w-8 h-8 p-0 rounded-xl bg-brand-accent text-primary-foreground font-bold text-xs flex items-center justify-center mx-auto shadow-sm cursor-pointer border border-border/20 hover:border-brand-accent/50 transition-all",
-                open && "ring-2 ring-brand-accent/20 border-brand-accent/50"
-              )}
-            >
-              {activeClient.name.charAt(0).toUpperCase()}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label={`Current workspace: ${activeClient.name}`}
+                  className={cn(
+                    "w-8 h-8 p-0 rounded-xl bg-brand-accent text-primary-foreground font-bold text-xs flex items-center justify-center mx-auto shadow-sm cursor-pointer border border-border/20 hover:border-brand-accent/50 transition-all",
+                    open && "ring-2 ring-brand-accent/20 border-brand-accent/50"
+                  )}
+                >
+                  {activeClient.name.charAt(0).toUpperCase()}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                Workspace: {activeClient.name} (Klik untuk beralih)
+              </TooltipContent>
+            </Tooltip>
           ) : (
             <Button
               type="button"
@@ -96,7 +109,8 @@ export function WorkspaceSwitcher({
                   </span>
                 </div>
               </div>
-              <Icons.chevronDown
+              <AnimatedIcon
+                name="chevronDown"
                 className={cn(
                   "size-4 text-muted-foreground group-hover:text-foreground transition-transform shrink-0",
                   open && "rotate-180"
@@ -191,7 +205,7 @@ export function WorkspaceSwitcher({
             className="w-full flex items-center gap-2.5 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer text-left group"
           >
             <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-dashed border-muted-foreground/40 group-hover:border-foreground/50 transition-colors">
-              <Icons.add className="size-4" />
+              <AnimatedIcon name="add" className="size-4" />
             </div>
             <div className="truncate leading-tight flex-1 min-w-0">
               <span className="block text-xs font-semibold text-foreground">Tambah Client Baru</span>
@@ -207,7 +221,7 @@ export function WorkspaceSwitcher({
             className="w-full flex items-center gap-2.5 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer text-left group"
           >
             <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
-              <Icons.layers className="size-4 text-muted-foreground" />
+              <AnimatedIcon name="layers" className="size-4 text-muted-foreground" />
             </div>
             <div className="truncate leading-tight flex-1 min-w-0">
               <span className="block text-xs font-semibold text-foreground">Semua Client</span>

@@ -2,7 +2,9 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
+import { motion } from "motion/react"
 import { Icons } from "@/components/icons"
+import { AnimatedIcon } from "@/components/animate-ui/components/icons/animated-icon"
 import { isActiveFor } from "@/hooks/use-nav"
 import { cn } from "@/lib/utils"
 import { clientNav } from "@/config/nav-config"
@@ -44,11 +46,6 @@ export function ClientSidebar({
   const pathname = usePathname()
   const { isMobile, open, setOpenMobile } = useSidebar()
 
-  function renderIcon(icon: string) {
-    const IconCmp = Icons[icon as keyof typeof Icons]
-    return IconCmp ? <IconCmp className="size-5" /> : null
-  }
-
   const brandInitial = (client.name?.charAt(0) || "C").toUpperCase()
 
   return (
@@ -85,23 +82,34 @@ export function ClientSidebar({
                 const active = isActiveFor(pathname, item.url)
                 const targetUrl = `${item.url}?clientId=${client.id}`
                 return (
-                  <a
+                  <motion.a
                     key={item.title}
                     href={targetUrl}
                     aria-current={active ? "page" : undefined}
                     onClick={() => isMobile && setOpenMobile(false)}
+                    whileHover="hover"
+                    initial="idle"
                     className={cn(
-                      "flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group",
                       active
-                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                        : "text-muted-foreground font-medium hover:text-foreground hover:bg-muted/60"
+                        ? "text-primary-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     )}
                   >
-                    <span className="flex items-center justify-center shrink-0">
-                      {renderIcon(item.icon ?? "")}
-                    </span>
+                    {active && (
+                      <motion.span
+                        layoutId="client-active-pill"
+                        className="absolute inset-0 rounded-full bg-primary shadow-xs -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                      />
+                    )}
+                    <AnimatedIcon
+                      name={item.icon ?? ""}
+                      isActive={active}
+                      className="size-5 shrink-0"
+                    />
                     <span className="truncate">{item.title}</span>
-                  </a>
+                  </motion.a>
                 )
               })}
             </nav>
@@ -109,7 +117,7 @@ export function ClientSidebar({
             {/* Quick Urgent Request Card */}
             <div className="mt-6 p-3 rounded-2xl bg-muted/40 border border-border/30 space-y-2">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <Icons.messageSquare className="size-4 text-primary" />
+                <AnimatedIcon name="messageSquare" className="size-4 text-primary" />
                 <span>Butuh Bantuan?</span>
               </div>
               <p className="text-2xs text-muted-foreground leading-relaxed">
@@ -118,10 +126,10 @@ export function ClientSidebar({
               <a
                 href={`/client/support?clientId=${client.id}`}
                 onClick={() => isMobile && setOpenMobile(false)}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-background border border-border/50 text-foreground text-xs font-semibold shadow-2xs hover:bg-muted transition-all active:scale-95"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-background border border-border/50 text-foreground text-xs font-semibold shadow-2xs hover:bg-muted transition-all active:scale-95 group"
               >
                 <span>Ajukan Tiket</span>
-                <Icons.arrowRight className="size-3" />
+                <AnimatedIcon name="arrowRight" className="size-3 text-muted-foreground group-hover:text-foreground" />
               </a>
             </div>
           </>
@@ -133,18 +141,27 @@ export function ClientSidebar({
               return (
                 <Tooltip key={item.title}>
                   <TooltipTrigger asChild>
-                    <a
+                    <motion.a
                       href={targetUrl}
                       aria-label={item.title}
+                      whileHover="hover"
+                      initial="idle"
                       className={cn(
-                        "flex items-center justify-center w-10 h-10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11",
+                        "relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11 group",
                         active
-                          ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                          ? "text-primary-foreground font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
-                      {renderIcon(item.icon ?? "")}
-                    </a>
+                      {active && (
+                        <motion.span
+                          layoutId="client-active-pill-collapsed"
+                          className="absolute inset-0 rounded-full bg-primary shadow-xs -z-10"
+                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                        />
+                      )}
+                      <AnimatedIcon name={item.icon ?? ""} isActive={active} className="size-5" />
+                    </motion.a>
                   </TooltipTrigger>
                   <TooltipContent side="right">{item.title}</TooltipContent>
                 </Tooltip>
