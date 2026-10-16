@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getEvents, createEvent } from './service'
+import { getEvents, createEvent, updateEvent, deleteEvent } from './service'
 
 const mockQueryBuilder = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
+  delete: vi.fn().mockReturnThis(),
   single: vi.fn(),
 }
 
@@ -32,6 +34,8 @@ describe('Events Service', () => {
     mockQueryBuilder.eq.mockReturnThis()
     mockQueryBuilder.order.mockReturnThis()
     mockQueryBuilder.insert.mockReturnThis()
+    mockQueryBuilder.update.mockReturnThis()
+    mockQueryBuilder.delete.mockReturnThis()
   })
 
   it('getEvents returns empty array if clientId is missing', async () => {
@@ -80,5 +84,48 @@ describe('Events Service', () => {
 
     expect(res.success).toBe(false)
     expect(res.error).toBe('RLS denied')
+  })
+
+  it('updateEvent updates and returns success with data', async () => {
+    const updated = { id: 'ev-1', client_id: 'c1', name: 'Updated Grand Opening', status: 'ongoing' }
+    mockQueryBuilder.single.mockResolvedValue({ data: updated, error: null })
+
+    const res = await updateEvent({ id: 'ev-1', name: 'Updated Grand Opening', status: 'ongoing' })
+
+    expect(res.success).toBe(true)
+    expect(res.data).toEqual(updated)
+    expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Updated Grand Opening', status: 'ongoing' })
+    )
+    expect(mockQueryBuilder.eq).toHaveBeenCalledWith('id', 'ev-1')
+  })
+
+  it('updateEvent returns error when update fails', async () => {
+    mockQueryBuilder.single.mockResolvedValue({ data: null, error: { message: 'Update failed' } })
+
+    const res = await updateEvent({ id: 'ev-1', name: 'Broken' })
+
+    expect(res.success).toBe(false)
+    expect(res.error).toBe('Update failed')
+  })
+
+  it('deleteEvent deletes row and returns success', async () => {
+    mockQueryBuilder.eq.mockResolvedValue({ error: null })
+
+    const res = await deleteEvent('ev-1')
+
+    expect(res.success).toBe(true)
+    expect(mockSupabase.from).toHaveBeenCalledWith('events')
+    expect(mockQueryBuilder.delete).toHaveBeenCalled()
+    expect(mockQueryBuilder.eq).toHaveBeenCalledWith('id', 'ev-1')
+  })
+
+  it('deleteEvent returns error when delete fails', async () => {
+    mockQueryBuilder.eq.mockResolvedValue({ error: { message: 'Delete failed' } })
+
+    const res = await deleteEvent('ev-1')
+
+    expect(res.success).toBe(false)
+    expect(res.error).toBe('Delete failed')
   })
 })

@@ -249,12 +249,14 @@ export const Icons = {
   // Actions
   add: IconPlus,
   edit: IconEdit,
+  delete: IconTrash,
   upload: IconUpload,
   download: IconDownload,
   share: IconShare,
   login: IconLogin,
   logout: IconLogout,
   gripVertical: IconGripVertical,
+  moreVertical: IconDotsVertical,
 
   // Shapes / Indicators
   circle: IconCircle,

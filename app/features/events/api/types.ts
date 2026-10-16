@@ -18,3 +18,12 @@ export type CreateEventInput = {
   location?: string | null
   status?: string | null
 }
+
+export type UpdateEventInput = {
+  id: string
+  name?: string
+  description?: string | null
+  event_date?: string | null
+  location?: string | null
+  status?: string | null
+}

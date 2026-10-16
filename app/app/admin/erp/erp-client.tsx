@@ -6,9 +6,8 @@ import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { useQuery } from "@tanstack/react-query"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
-import { deliverableQueries } from "@/features/deliverables/api/queries"
+import { deliverableQueries, useUpdateDeliverableStatus, useDeleteDeliverable } from "@/features/deliverables/api/queries"
 import { useSendTelegramTest } from "@/features/erp/api/queries"
-import { useUpdateDeliverableStatus } from "@/features/deliverables/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CreateDeliverableDialog } from "@/components/deliverable/create-deliverable-dialog"
 import { ScheduleDeliverableDialog } from "@/components/deliverable/schedule-deliverable-dialog"
@@ -21,6 +20,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/animate-ui/components/radix/alert-dialog"
 import { useQueryStates } from "nuqs"
 import { erpSearchParams, serializeComposerParams } from "@/lib/searchparams"
 
@@ -56,8 +65,10 @@ export function ErpDashboardClient() {
   const [schedulingDeliverable, setSchedulingDeliverable] = React.useState<Deliverable | null>(null)
   const [notifyingDeliverable, setNotifyingDeliverable] = React.useState<Deliverable | null>(null)
   const [exportingPdfDeliverable, setExportingPdfDeliverable] = React.useState<Deliverable | null>(null)
+  const [deletingDeliverable, setDeletingDeliverable] = React.useState<Deliverable | null>(null)
   const { mutateAsync: sendTelegramTest, isPending: notifSending } = useSendTelegramTest()
   const updateStatusMutation = useUpdateDeliverableStatus()
+  const deleteDeliverableMutation = useDeleteDeliverable()
 
   // Tombol "Notifikasi Telegram": kirim test ping ke Telegram admin via mutation hook.
   const handleNotifyTelegram = async () => {
@@ -360,6 +371,16 @@ export function ErpDashboardClient() {
                       <Icons.fileTypePdf className="size-3 text-destructive" /> PDF
                     </Button>
 
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeletingDeliverable(d)}
+                      className="h-7 text-xs px-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 gap-1 cursor-pointer"
+                      title="Hapus Dokumen Deliverable"
+                    >
+                      <Icons.trash className="size-3" />
+                    </Button>
+
                     {d.status === "sent" && (
                       <>
                         <Button
@@ -485,6 +506,50 @@ export function ErpDashboardClient() {
         deliverable={exportingPdfDeliverable}
         clientName={client.name}
       />
+
+      {/* MODAL HAPUS DELIVERABLE */}
+      <AlertDialog open={Boolean(deletingDeliverable)} onOpenChange={(open) => !open && setDeletingDeliverable(null)}>
+        <AlertDialogContent className="max-w-md bg-card border border-border/50 rounded-2xl shadow-xl">
+          <AlertDialogHeader>
+            <div className="size-11 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-2">
+              <Icons.trash className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-base font-bold text-foreground">
+              Hapus Deliverable?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Anda akan menghapus dokumen deliverable <strong className="text-foreground">&ldquo;{deletingDeliverable?.title}&rdquo;</strong>.
+              Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 gap-2">
+            <AlertDialogCancel
+              disabled={deleteDeliverableMutation.isPending}
+              className="text-xs cursor-pointer rounded-xl"
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                if (!deletingDeliverable) return
+                deleteDeliverableMutation.mutate(
+                  { deliverableId: deletingDeliverable.id, clientId },
+                  {
+                    onSuccess: () => {
+                      setDeletingDeliverable(null)
+                    },
+                  }
+                )
+              }}
+              disabled={deleteDeliverableMutation.isPending}
+              className="text-xs cursor-pointer rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteDeliverableMutation.isPending ? "Menghapus..." : "Ya, Hapus Deliverable"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageContainer>
   )
 }

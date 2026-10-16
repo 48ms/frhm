@@ -7,6 +7,7 @@ import {
   updateDeliverableStatus,
   submitDeliverableReview,
   scheduleApprovedDeliverable,
+  deleteDeliverable,
 } from "./service"
 import type {
   PromoteSkillOutputInput,
@@ -189,6 +190,30 @@ export function useScheduleApprovedDeliverable() {
       toast.error("Gagal menjadwalkan postingan", {
         description: err instanceof Error ? err.message : "Terjadi kesalahan",
       })
+    },
+  })
+}
+
+export function useDeleteDeliverable() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ deliverableId, clientId }: { deliverableId: string; clientId?: string }) =>
+      deleteDeliverable(deliverableId, clientId),
+    onSuccess: (res, vars) => {
+      if (res.success) {
+        toast.success("Deliverable berhasil dihapus.")
+        queryClient.invalidateQueries({ queryKey: deliverableKeys.all })
+        if (vars.clientId) {
+          queryClient.invalidateQueries({ queryKey: deliverableKeys.byClient(vars.clientId) })
+        }
+        queryClient.invalidateQueries({ queryKey: skillKeys.all })
+      } else {
+        toast.error(res.error || "Gagal menghapus deliverable")
+      }
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus")
     },
   })
 }

@@ -7,6 +7,7 @@ import {
   getDeliverableById,
   submitDeliverableReview,
   scheduleApprovedDeliverable,
+  deleteDeliverable,
 } from "./service"
 
 const mockSupabase = {
@@ -541,6 +542,70 @@ describe("Deliverables Service Layer", () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toContain("tidak cocok")
+  })
+
+  describe("deleteDeliverable", () => {
+    it("deletes deliverable and updates linked skill_outputs", async () => {
+      const mockDelivQuery = {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: "deliv-del", client_id: "c-1", title: "Obsolete Draft" },
+              error: null,
+            }),
+          }),
+        }),
+        delete: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        }),
+      }
+
+      const mockSkillQuery = {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: null }),
+        }),
+      }
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === "deliverables") return mockDelivQuery
+        if (table === "skill_outputs") return mockSkillQuery
+        return {}
+      })
+
+      const res = await deleteDeliverable("deliv-del", "c-1")
+      expect(res.success).toBe(true)
+      expect(mockDelivQuery.delete).toHaveBeenCalled()
+      expect(mockSkillQuery.update).toHaveBeenCalledWith(
+        expect.objectContaining({ deliverable_id: null, status: "draft" })
+      )
+    })
+
+    it("returns error if database deletion fails", async () => {
+      const mockDelivQuery = {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: "deliv-err", client_id: "c-1", title: "Err" },
+              error: null,
+            }),
+          }),
+        }),
+        delete: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: { message: "Foreign key constraint" } }),
+        }),
+      }
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === "deliverables") return mockDelivQuery
+        return {}
+      })
+
+      const res = await deleteDeliverable("deliv-err")
+      expect(res.success).toBe(false)
+      expect(res.error).toBe("Foreign key constraint")
+    })
   })
 })
 

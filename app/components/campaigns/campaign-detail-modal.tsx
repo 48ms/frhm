@@ -16,9 +16,20 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/animate-ui/components/radix/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/animate-ui/components/radix/alert-dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/animate-ui/components/radix/tabs"
 import { Button } from "@/components/ui/button"
 import { serializeComposerParams } from "@/lib/searchparams"
+import { useDeleteCampaign } from "@/features/campaigns/api/queries"
 
 /**
  * Status kampanye dihitung dari tanggal faktual (start/end), bukan angka rekaan.
@@ -68,7 +79,22 @@ export function CampaignDetailModal({
 }) {
   const router = useRouter()
   const [tab, setTab] = useState<"overview" | "performance">("overview")
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const { mutate: deleteCampaignMutate, isPending: isDeleting } = useDeleteCampaign()
+
   if (!open || !campaign || !client) return null
+
+  const handleDelete = () => {
+    deleteCampaignMutate(
+      { id: campaign.id },
+      {
+        onSuccess: () => {
+          setDeleteOpen(false)
+          onClose()
+        },
+      }
+    )
+  }
 
   const meta = CAMPAIGN_TYPE_META[campaign.type]
   const status = getStatus(campaign)
@@ -205,6 +231,16 @@ export function CampaignDetailModal({
               type="button"
               variant="outline"
               size="sm"
+              className="inline-flex items-center gap-1.5 rounded-full border-destructive/30 text-destructive hover:bg-destructive/10 text-xs font-semibold cursor-pointer"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Icons.trash className="size-3.5" />
+              Hapus
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               className="inline-flex items-center gap-1.5 rounded-full border-border/40 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
               onClick={() => {
                 onClose()
@@ -243,6 +279,42 @@ export function CampaignDetailModal({
             </Button>
           </div>
         </div>
+
+        {/* Delete Confirmation Alert Dialog */}
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent className="max-w-md bg-card border border-border/50 rounded-2xl shadow-xl">
+            <AlertDialogHeader>
+              <div className="size-11 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-2">
+                <Icons.trash className="size-5" />
+              </div>
+              <AlertDialogTitle className="text-base font-bold text-foreground">
+                Hapus Kampanye?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                Anda akan menghapus kampanye <strong className="text-foreground">&ldquo;{campaign.name}&rdquo;</strong>.
+                Seluruh jadwal dan data terkait kampanye ini akan dilepas. Tindakan ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-4 gap-2">
+              <AlertDialogCancel
+                disabled={isDeleting}
+                className="text-xs cursor-pointer rounded-xl"
+              >
+                Batal
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleDelete()
+                }}
+                disabled={isDeleting}
+                className="text-xs cursor-pointer rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Kampanye"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   )

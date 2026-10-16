@@ -8,9 +8,17 @@ import type { ClientWithChannels } from "@/features/social-accounts/api/types"
 const pushMock = vi.fn()
 const onCloseMock = vi.fn()
 const onEditMock = vi.fn()
+const mockDeleteMutate = vi.fn()
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
+}))
+
+vi.mock("@/features/campaigns/api/queries", () => ({
+  useDeleteCampaign: () => ({
+    mutate: mockDeleteMutate,
+    isPending: false,
+  }),
 }))
 
 vi.mock("sonner", () => ({
@@ -107,5 +115,31 @@ describe("CampaignDetailModal", () => {
 
     expect(onCloseMock).toHaveBeenCalled()
     expect(onEditMock).toHaveBeenCalledWith(MOCK_CAMPAIGN)
+  })
+
+  it("renders 'Hapus' button and triggers delete mutation upon confirmation", () => {
+    render(
+      <CampaignDetailModal
+        campaign={MOCK_CAMPAIGN}
+        client={MOCK_CLIENT}
+        open={true}
+        onClose={onCloseMock}
+        onEdit={onEditMock}
+      />
+    )
+
+    const deleteBtn = screen.getByText("Hapus")
+    expect(deleteBtn).toBeInTheDocument()
+
+    fireEvent.click(deleteBtn)
+    expect(screen.getByText("Hapus Kampanye?")).toBeInTheDocument()
+
+    const confirmBtn = screen.getByText("Ya, Hapus Kampanye")
+    fireEvent.click(confirmBtn)
+
+    expect(mockDeleteMutate).toHaveBeenCalledWith(
+      { id: MOCK_CAMPAIGN.id },
+      expect.any(Object)
+    )
   })
 })

@@ -515,3 +515,53 @@ export async function scheduleApprovedDeliverable(
   }
 }
 
+/**
+ * Menghapus deliverable (draft atau arsip) dan melepaskan referensi dari skill_outputs.
+ */
+export async function deleteDeliverable(
+  deliverableId: string,
+  clientId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const service = createSupabaseServiceClient()
+
+    // Ambil data untuk audit
+    const { data: existing } = await service
+      .from("deliverables")
+      .select("id, client_id, title")
+      .eq("id", deliverableId)
+      .maybeSingle()
+
+    let query = service.from("deliverables").delete().eq("id", deliverableId)
+    if (clientId) {
+      query = query.eq("client_id", clientId)
+    }
+
+    const { error } = await query
+    if (error) {
+      logger.error("deleteDeliverable failed", { error: error.message })
+      return { success: false, error: error.message }
+    }
+
+    // Lepaskan kaitan dari skill_outputs jika ada
+    await service
+      .from("skill_outputs")
+      .update({ deliverable_id: null, status: "draft" })
+      .eq("deliverable_id", deliverableId)
+
+    void logAudit({
+      action: "deliverable.delete",
+      entityType: "deliverable",
+      entityId: deliverableId,
+      clientId: clientId ?? existing?.client_id ?? null,
+      summary: `Menghapus deliverable "${existing?.title || deliverableId}"`,
+    })
+
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("deleteDeliverable.exception", { error: msg })
+    return { success: false, error: msg ?? "Gagal menghapus deliverable" }
+  }
+}
+

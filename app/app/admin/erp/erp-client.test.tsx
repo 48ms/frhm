@@ -60,6 +60,10 @@ vi.mock("@/features/deliverables/api/queries", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useDeleteDeliverable: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
   useScheduleApprovedDeliverable: () => ({
     mutate: vi.fn(),
     isPending: false,
