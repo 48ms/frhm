@@ -93,7 +93,10 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => openCreateClient()}
+                  onClick={() => {
+                    if (isMobile) setOpenMobile(false)
+                    openCreateClient()
+                  }}
                   className="size-8 rounded-xl shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all border border-border/40 hover:border-brand-accent/50 cursor-pointer"
                   aria-label="Tambah Client Baru"
                 >
