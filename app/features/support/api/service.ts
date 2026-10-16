@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
 import { sendTelegramMessage } from "@/lib/telegram/service"
 import { env } from "@/lib/env"
-import type { SupportTicket, CreateSupportTicketInput } from "./types"
+import type { SupportTicket, CreateSupportTicketInput, UpdateSupportTicketInput, AdminSupportTicket } from "./types"
 
 /**
  * Service Layer untuk Support Tickets.
@@ -94,6 +94,89 @@ export async function createSupportTicket(input: CreateSupportTicketInput): Prom
       error: tgErr instanceof Error ? tgErr.message : String(tgErr),
     })
   }
+
+  return data as SupportTicket
+}
+
+export async function getAllSupportTickets(): Promise<AdminSupportTicket[]> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .select(`
+      id, client_id, created_by, subject, message, priority, status, admin_reply, resolved_at, created_at, updated_at,
+      clients:client_id ( name )
+    `)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    logger.error("getAllSupportTickets failed", { error })
+    return []
+  }
+
+  return ((data ?? []) as any[]).map((t) => ({
+    id: t.id,
+    client_id: t.client_id,
+    created_by: t.created_by,
+    subject: t.subject,
+    message: t.message,
+    priority: t.priority,
+    status: t.status,
+    admin_reply: t.admin_reply,
+    resolved_at: t.resolved_at,
+    created_at: t.created_at,
+    updated_at: t.updated_at,
+    client_name: t.clients?.name ?? "Klien Partner",
+  }))
+}
+
+export async function updateSupportTicket(input: UpdateSupportTicketInput): Promise<SupportTicket> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  const updates: Record<string, any> = {
+    status: input.status,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (input.adminReply !== undefined) {
+    updates.admin_reply = input.adminReply.trim()
+  }
+
+  if (input.status === "resolved" || input.status === "closed") {
+    updates.resolved_at = new Date().toISOString()
+  }
+
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .update(updates)
+    .eq("id", input.ticketId)
+    .select()
+    .single()
+
+  if (error) {
+    logger.error("updateSupportTicket failed", { error })
+    throw new Error("Gagal memperbarui status tiket")
+  }
+
+  void logAudit({
+    action: "support_ticket.update",
+    entityType: "support_ticket",
+    entityId: input.ticketId,
+    clientId: input.clientId || null,
+    summary: `Updated support ticket: ${input.ticketId} status to ${input.status}`,
+  })
 
   return data as SupportTicket
 }

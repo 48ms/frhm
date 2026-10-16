@@ -21,3 +21,14 @@ export type CreateSupportTicketInput = {
   message: string
   priority: SupportTicketPriority
 }
+
+export type UpdateSupportTicketInput = {
+  ticketId: string
+  clientId?: string | null
+  status: SupportTicketStatus
+  adminReply?: string
+}
+
+export type AdminSupportTicket = SupportTicket & {
+  client_name?: string
+}

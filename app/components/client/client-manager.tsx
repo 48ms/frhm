@@ -14,6 +14,10 @@ import { ClientPlaybooksDialog } from "@/components/client/client-playbooks-dial
 import { ClientAccessDialog } from "@/components/client/client-access-dialog"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
+import Link from "next/link"
+import { useAllSupportTickets } from "@/features/support/api/queries"
+import { AdminSupportTicketsDialog } from "@/components/support/admin-support-tickets-dialog"
+
 export function ClientManagerSkeleton() {
   return (
     <div
@@ -25,6 +29,32 @@ export function ClientManagerSkeleton() {
         <div key={i} className="h-40 rounded-2xl bg-card border border-border/50" />
       ))}
     </div>
+  )
+}
+
+export function SupportTicketsHeaderButton() {
+  const [open, setOpen] = React.useState(false)
+  const { data: tickets = [] } = useAllSupportTickets()
+  const activeCount = tickets.filter((t) => t.status === "open" || t.status === "in_progress").length
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+        className="gap-2 cursor-pointer shadow-sm font-semibold rounded-xl border-border/60 hover:bg-muted/80 relative"
+      >
+        <Icons.inbox className="size-4 text-primary" />
+        <span>Tiket Dukungan</span>
+        {activeCount > 0 && (
+          <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-2xs font-bold leading-none text-primary-foreground bg-primary rounded-full">
+            <MetricTicker value={activeCount} />
+          </span>
+        )}
+      </Button>
+      <AdminSupportTicketsDialog open={open} onOpenChange={setOpen} />
+    </>
   )
 }
 
@@ -59,6 +89,10 @@ export function ClientManager() {
     name: string
   } | null>(null)
   const [selectedClientForAccess, setSelectedClientForAccess] = React.useState<{
+    id: string
+    name: string
+  } | null>(null)
+  const [selectedClientForTickets, setSelectedClientForTickets] = React.useState<{
     id: string
     name: string
   } | null>(null)
@@ -161,6 +195,14 @@ export function ClientManager() {
                   <Icons.users className="size-3 text-primary" />
                   Akses Klien
                 </Button>
+                <Link
+                  href={`/client/dashboard?clientId=${client.id}`}
+                  className="h-7 px-2.5 text-xs font-bold rounded-full flex items-center gap-1.5 border border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+                  title={`Buka Portal Klien ${client.name}`}
+                >
+                  <Icons.externalLink className="size-3 text-primary" />
+                  Portal Klien
+                </Link>
               </div>
             </div>
           </div>
@@ -202,6 +244,14 @@ export function ClientManager() {
           onOpenChange={(open) => !open && setSelectedClientForAccess(null)}
           clientId={selectedClientForAccess.id}
           clientName={selectedClientForAccess.name}
+        />
+      )}
+
+      {selectedClientForTickets && (
+        <AdminSupportTicketsDialog
+          open={Boolean(selectedClientForTickets)}
+          onOpenChange={(open) => !open && setSelectedClientForTickets(null)}
+          initialClientId={selectedClientForTickets.id}
         />
       )}
     </div>

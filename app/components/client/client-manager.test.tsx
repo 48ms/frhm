@@ -4,10 +4,12 @@ import {
   ClientManager,
   ClientManagerSkeleton,
   AddClientHeaderButton,
+  SupportTicketsHeaderButton,
 } from "./client-manager"
 
 const mockUseQuery = vi.fn()
 const mockOpenCreateClient = vi.fn()
+const mockUseAllSupportTickets = vi.fn()
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (...args: unknown[]) => mockUseQuery(...args),
@@ -23,6 +25,15 @@ vi.mock("@/features/social-accounts/api/queries", () => ({
   socialQueries: {
     listClientsWithChannels: () => ({ queryKey: ["clients"] }),
   },
+}))
+
+vi.mock("@/features/support/api/queries", () => ({
+  useAllSupportTickets: () => mockUseAllSupportTickets(),
+}))
+
+vi.mock("@/components/support/admin-support-tickets-dialog", () => ({
+  AdminSupportTicketsDialog: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="support-tickets-dialog">Admin Support Tickets Modal</div> : null,
 }))
 
 vi.mock("./client-playbooks-dialog", () => ({
@@ -67,6 +78,7 @@ describe("ClientManager & Clients Page Components", () => {
     expect(screen.getByText(/Kanal Terhubung/i)).toBeDefined()
     expect(screen.getByRole("button", { name: /Playbooks/i })).toBeDefined()
     expect(screen.getByRole("button", { name: /Brand Brain/i })).toBeDefined()
+    expect(screen.getByRole("link", { name: /Portal Klien/i })).toBeDefined()
   })
 
   it("opens ClientPlaybooksDialog when Playbooks button is clicked", () => {
@@ -132,5 +144,24 @@ describe("ClientManager & Clients Page Components", () => {
 
     fireEvent.click(headerBtn)
     expect(mockOpenCreateClient).toHaveBeenCalledTimes(1)
+  })
+
+  it("renders SupportTicketsHeaderButton and opens tickets dialog on click", () => {
+    mockUseAllSupportTickets.mockReturnValue({
+      data: [
+        { id: "t-1", status: "open" },
+        { id: "t-2", status: "in_progress" },
+        { id: "t-3", status: "resolved" },
+      ],
+    })
+
+    render(<SupportTicketsHeaderButton />)
+
+    const ticketsBtn = screen.getByRole("button", { name: /Tiket Dukungan/i })
+    expect(ticketsBtn).toBeDefined()
+
+    // Clicking it opens the dialog
+    fireEvent.click(ticketsBtn)
+    expect(screen.getByTestId("support-tickets-dialog")).toBeDefined()
   })
 })

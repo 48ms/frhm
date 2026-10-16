@@ -71,4 +71,24 @@ test.describe('Dedicated Client Portal & Navigation Shell', () => {
     await expect(page.getByText(/Akses Portal Klien/i)).toBeVisible()
     await expect(page.getByText(/Tambah Pengguna Klien Baru/i)).toBeVisible()
   })
+
+  test('admin workspace has support tickets inbox and client portal bridge', async ({ page }) => {
+    await login(page)
+
+    await page.goto('/admin/clients')
+    await page.waitForLoadState('networkidle')
+
+    // 1. Verify Portal Klien link exists on client card
+    const portalLink = page.getByRole('link', { name: /Portal Klien/i }).first()
+    await expect(portalLink).toBeVisible({ timeout: 15_000 })
+
+    // 2. Verify Tiket Dukungan button exists in header action
+    const ticketsBtn = page.getByRole('button', { name: /Tiket Dukungan/i })
+    await expect(ticketsBtn).toBeVisible({ timeout: 15_000 })
+    await ticketsBtn.click()
+
+    // 3. Verify Admin Support Tickets Inbox dialog opens
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/Inbox Tiket Dukungan Klien/i)).toBeVisible()
+  })
 })
