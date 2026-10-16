@@ -56,3 +56,25 @@ app/e2e/.auth/
 app/test-results/
 app/playwright-report/
 _archive_dead/
+
+# Audit screenshots & debug captures (not source)
+*.png
+!app/public/**/*.png
+!app/app/**/*.png
+!app/components/**/*.png
+
+# Scratch / temporary refactor scripts
+scratch_*.mjs
+scratch_*.js
+scratch_*.ts
+
+# Agent & tooling folders (kept locally, not part of the product)
+.agents/
+.hermes/
+.codex/
+.impeccable/
+.specify/
+
+# Editor/OS junk
+*.bak
+*.orig
