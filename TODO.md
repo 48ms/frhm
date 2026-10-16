@@ -332,10 +332,27 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - [admin/clients/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/clients/page.tsx): Prefetch server-side paralel TanStack Query v5 `Promise.all([socialQueries.listClientsWithChannels(), supportTicketQueries.listAll()])` dan menyematkan `SupportTicketsHeaderButton` di `pageHeaderAction`.
     - Unit test [client-manager.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.test.tsx) diperbarui (8/8 PASS).
   - **Git Commit:** `521f33a` (`feat(admin-support): implement admin support ticket inbox and quick client portal preview bridge`).
+- ✅ **Audit Menyeluruh & Penghidupan Tombol Mati / Dummy (2026-10-16)**:
+  - **Board Kampanye (`campaigns-board.tsx`)**:
+    1. *Export Campaign Deck:* Menggantikan `<span>` mati "(Coming soon)" dengan `<Button>` yang mengekspor data komprehensif kampanye aktif klien (`name`, `status`, `start_date`, `end_date`, `productions`, `notes`) dalam format CSV UTF-8 + trigger download + `toast.success`.
+    2. *View Creative Assets:* Menggantikan `<span>` mati dengan `<Link>` semantik aktif menuju `/admin/library?clientId=${activeClientId}`, menjembatani kampanye langsung ke aset media terkait.
+    3. *Pause / Resume Flight:* Menggantikan placeholder mati dengan `<Button>` mutasi TanStack Query `useUpdateCampaign()` yang men-toggle status flight kampanye secara faktual di Supabase + sonner feedback instan.
+    4. *Generate Creative Angles:* Menggantikan `<span>` mati dengan `<Button>` aktif yang memicu modal `StitchAiHookModal` (AI Studio Hook & Idea Generator) secara instan.
+  - **Preferensi Workspace Agensi (`settings-view.tsx`)**:
+    - Menambahkan card action dan tombol `<Button>` "Simpan Konfigurasi" pada `WorkspaceTab` dengan persistensi `localStorage` (`agencyName`, `slug`, `timezone`, `currency`, guardrails) dan notifikasi feedback `toast.success`.
+  - **Keaktifan Tab Triggers & Navigasi Interaktif**:
+    - [performance-chart.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/performance-chart.tsx): Tabs timeframe (7D / 30D / 90D) diperkuat dengan `onClick={() => setTf(t.id)}` dan cursor pointer.
+    - [calendar-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/calendar/calendar-client.tsx): View switcher (Month/Week/List) dan Platform filters diperkuat dengan `onClick` eksplisit.
+    - [client-calendar-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-calendar-view.tsx) & [client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx): Tab views dan filter kategori status (Semua / Menunggu Review / Perlu Revisi / Disetujui) diperkuat dengan `onClick` eksplisit dan touch target `min-h-11`.
+    - [library-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/library/library-client.tsx): Filter tipe file media (All / Images / Videos) diperkuat dengan `onClick` eksplisit.
+  - **Pendaftaran Ikon Terpusat (`@/components/icons`)**:
+    - Mendaftarkan `IconPlayerPause`, `pause`, dan `image` pada registry terpusat [components/icons.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/icons.tsx) mematuhi Aturan 5 kedaulatan icon.
+  - **Git Commit:** `17b8288` (`feat(ui-actions): activate dead buttons and connect reactive handlers across campaigns, settings, and views`).
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 88/88 test suites PASS (512 tests passed, 0 failed).
   - `npx playwright test e2e/client-portal.spec.ts`: 3/3 tests PASS (layout portal, modal akses klien, tiket dukungan inbox & portal bridge).
+
 
 
 
