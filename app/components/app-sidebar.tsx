@@ -83,7 +83,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
       {...props}
     >
       {/* Header — sejajar horizontal presisi dengan AdminHeader (md:h-14 / h-16) */}
-      <SidebarHeader className="h-16 md:h-14 border-b border-border/40 px-3 flex flex-row items-center justify-between gap-2 overflow-hidden shrink-0">
+      <SidebarHeader className="h-16 md:h-14 border-b border-border/40 px-3 flex flex-row items-center justify-between gap-1.5 overflow-hidden shrink-0">
         <div className="flex items-center gap-1.5 w-full min-w-0">
           <WorkspaceSwitcher className="mb-0 flex-1 min-w-0" collapsed={!open} />
           {open && (
@@ -97,7 +97,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                     if (isMobile) setOpenMobile(false)
                     openCreateClient()
                   }}
-                  className="size-8 rounded-xl shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all border border-border/40 hover:border-brand-accent/50 cursor-pointer"
+                  className="h-10 w-10 rounded-xl shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all border border-border/40 hover:border-brand-accent/50 cursor-pointer"
                   aria-label="Tambah Client Baru"
                 >
                   <AnimatedIcon name="add" className="size-4" />
@@ -110,7 +110,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
       </SidebarHeader>
 
       {/* Content Navigation */}
-      <SidebarContent className="no-scrollbar p-3 gap-1 overflow-y-auto">
+      <SidebarContent className="no-scrollbar px-3 py-2 gap-1 overflow-y-auto">
         {open ? (
           <>
             <nav className="flex flex-col gap-1" aria-label="Main Navigation">

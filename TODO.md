@@ -400,7 +400,11 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - Mengeliminasi ruang kosong putih (~190px gap) pada popover [notification-center.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/notification-center.tsx) dengan mengganti `h-[300px]` statis menjadi tinggi dinamis `h-auto` pada kondisi empty-state dan `max-h-[380px]` saat terisi notifikasi.
   - Memperbaiki inkonsistensi data mismatch: menghapus nilai `unreadCount={1}` yang di-hardcode di [app/admin/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/layout.tsx) menjadi `0`, serta menyinkronkan counter popover dan trigger badge secara faktual dengan array `notifications`.
   - Ditunjang unit test baru [notification-center.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/notification-center.test.tsx) (3/3 passed).
+
+- [x] **Penyempurnaan Area 1 & 2: Fungsionalisasi Studio Strategy & Eliminasi Gap Workspace Switcher (2026-10-17)**
+  - **Area 1 (Identitas Studio & AI)**: Mengubah kartu dekoratif dummy (`INTER SPACE.`) di [right-panel.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/right-panel.tsx) menjadi modul interaktif **Strategi Studio & AI Copilot Hub**. Menampilkan persona Brand Voice, pilar konten, metrik Campaign Velocity faktual, tombol aksi langsung "Atur Brand" (`/admin/settings?tab=brand`), tombol "Launch AI", dan tombol "Kampanye", serta menyatukan AI Launchpad untuk mengeliminasi dead space dan gap vertikal di kolom kanan.
+  - **Area 2 (Workspace Switcher & Sidebar Top)**: Merapikan tombol trigger [workspace-switcher.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/workspace-switcher.tsx) ke proporsi `h-10 rounded-xl` yang seirama dengan tombol Tambah Klien `h-10 w-10 rounded-xl` di [app-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/app-sidebar.tsx). Mengurangi top padding `SidebarContent` menjadi `px-3 py-2` sehingga link navigasi pertama (`Overview`) langsung pas di bawah divider tanpa celah/gap anjlok.
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 95/95 test suites PASS (553 tests passed, 0 failed).
-  - Kepatuhan Desain Sistem: 100% Radix UI Popover, Animate UI, semantic HSL tokens, zero hardcoded mock values.
+  - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, Service Layer 3-lapis.

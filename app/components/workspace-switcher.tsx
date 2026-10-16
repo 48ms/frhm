@@ -92,19 +92,19 @@ export function WorkspaceSwitcher({
               variant="outline"
               aria-label={`Current workspace: ${activeClient.name}`}
               className={cn(
-                "w-full h-auto flex items-center justify-between p-2.5 rounded-2xl bg-card border border-border/40 hover:border-brand-accent/50 transition-all cursor-pointer shadow-sm group select-none text-left",
+                "w-full h-10 flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-card border border-border/40 hover:border-brand-accent/50 hover:bg-muted/40 transition-all cursor-pointer shadow-xs group select-none text-left",
                 open && "ring-2 ring-brand-accent/20 border-brand-accent/50"
               )}
             >
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-xl bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-border/20">
+              <div className="flex items-center gap-2 overflow-hidden min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 shadow-xs border border-border/20">
                   {activeClient.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="truncate leading-tight text-left">
-                  <span className="block text-2xs font-bold text-muted-foreground uppercase tracking-wider">
+                <div className="truncate leading-none text-left min-w-0">
+                  <span className="block text-3xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
                     Workspace
                   </span>
-                  <span className="block text-sm font-bold text-foreground truncate">
+                  <span className="block text-xs font-bold text-foreground truncate">
                     {activeClient.name}
                   </span>
                 </div>
@@ -112,7 +112,7 @@ export function WorkspaceSwitcher({
               <AnimatedIcon
                 name="chevronDown"
                 className={cn(
-                  "size-4 text-muted-foreground group-hover:text-foreground transition-transform shrink-0",
+                  "size-3.5 text-muted-foreground group-hover:text-foreground transition-transform shrink-0 ml-1",
                   open && "rotate-180"
                 )}
               />

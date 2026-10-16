@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { useActiveDashboard } from "./dashboard-data"
@@ -86,6 +87,7 @@ const CHANNEL_STATUS_STYLES: Record<string, { label: string; pill: string }> = {
 }
 
 export function DashboardStitchConnectedHub() {
+  const router = useRouter()
   const { client, clientId, profile } = useActiveDashboard()
   
   // Data FAKTUAL dari tabel client_channels (PostgreSQL Supabase)
@@ -98,7 +100,7 @@ export function DashboardStitchConnectedHub() {
   const { mutateAsync: disconnectChannelMutate, isPending: isDisconnecting } = useDisconnectChannel()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Connected Hub Panel */}
       <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all">
         <div className="space-y-3 border-b border-border/30 pb-4">
@@ -244,61 +246,106 @@ export function DashboardStitchConnectedHub() {
         </div>
       </div>
 
-      {/* Studio Identity Card */}
-      <div className="p-6 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all">
+      {/* Studio Strategy & AI Copilot Hub (Fungsional & Zero-Gap) */}
+      <div className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm transition-all space-y-3.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-muted-foreground">
-            Identitas studio
-          </span>
-        </div>
-        <div className="mt-4">
-          <span className="block font-syne font-extrabold text-2xl text-foreground tracking-tight leading-none">
-            {client.name.substring(0, 5).toUpperCase()}
-          </span>
-          <span className="block font-syne font-extrabold text-2xl text-brand-accent tracking-tight leading-none">
-            SPACE.
-          </span>
-        </div>
-        <div className="pt-6">
-          <div className="p-3.5 rounded-2xl bg-muted/60 border border-border/40 shadow-sm">
-            <p className="font-sans font-bold text-sm text-foreground">
-              Campaign Velocity: {profile.velocity}%
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Multi-network algorithmic amplification active for {client.name}.
-            </p>
-            <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-2xs font-bold text-brand-accent">
-                Status: {profile.velocity >= 90 ? "Accelerating" : "Steady"}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-secondary/15 text-secondary text-2xs font-bold">
-                Active Amplification
-              </span>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-brand-accent/20 text-brand-accent flex items-center justify-center">
+              <Icons.sparkles className="size-3.5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-foreground">
+                Strategi Studio &amp; AI
+              </h3>
+              <p className="text-3xs text-muted-foreground font-mono">
+                {client.name}
+              </p>
             </div>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/admin/settings?tab=brand${clientId ? `&clientId=${clientId}` : ""}`)}
+            className="h-7 px-2 text-2xs text-muted-foreground hover:text-foreground font-semibold gap-1 hover:bg-muted/60 rounded-lg cursor-pointer"
+          >
+            <Icons.settings className="size-3" />
+            Atur Brand
+          </Button>
         </div>
-      </div>
 
-      {/* AI Hooks Generator Launchpad */}
-      <div className="p-5 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/40 shadow-sm text-center">
-        <div className="w-10 h-10 mx-auto rounded-full bg-brand-accent flex items-center justify-center text-brand-accent-foreground shadow-sm mb-2.5">
-          <Icons.sparkles className="size-5" />
+        {/* Brand Persona & Content Pillars Capsule */}
+        <div className="p-3 rounded-xl bg-muted/40 border border-border/30 space-y-2">
+          <div className="flex items-center justify-between text-2xs">
+            <span className="font-semibold text-muted-foreground">Brand Voice:</span>
+            <span className="font-bold text-foreground truncate max-w-[170px]">
+              {client.brand_profile?.voice || "Dinamis & Edukatif"}
+            </span>
+          </div>
+          {client.brand_profile?.pillars && client.brand_profile.pillars.length > 0 ? (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {client.brand_profile.pillars.slice(0, 3).map((pillar, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-0.5 rounded-md bg-muted text-foreground text-3xs font-semibold border border-border/40 truncate max-w-[130px]"
+                >
+                  {pillar}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-2xs pt-1 border-t border-border/20">
+              <span className="text-3xs text-muted-foreground">Pilar Konten:</span>
+              <span className="text-3xs font-medium text-brand-accent">3 Pilar Terjadwal</span>
+            </div>
+          )}
         </div>
-        <h3 className="font-sans font-bold text-base text-foreground">
-          Need AI Content Hooks?
-        </h3>
-        <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-          Generate caption, klaster hashtag, dan konsep video untuk{" "}
-          {client.name}.
-        </p>
-        <Button
-          type="button"
-          onClick={() => setAiOpen(true)}
-          className="mt-3.5 w-full rounded-full bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shadow-sm"
-        >
-          <Icons.bot className="size-4" />
-          Launch Studio AI
-        </Button>
+
+        {/* Campaign Velocity & Real-time Status */}
+        <div className="p-3 rounded-xl bg-muted/40 border border-border/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground block">
+                Campaign Velocity
+              </span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono font-bold text-base text-foreground">
+                  <MetricTicker value={profile.velocity} />%
+                </span>
+                <span className="text-3xs font-semibold text-muted-foreground">amplifikasi</span>
+              </div>
+            </div>
+            <span className={cn(
+              "px-2 py-0.5 rounded-full text-3xs font-bold",
+              profile.velocity >= 90
+                ? "bg-brand-accent/20 text-brand-accent border border-brand-accent/30"
+                : "bg-muted text-muted-foreground border border-border/40"
+            )}>
+              {profile.velocity >= 90 ? "Accelerating" : "Steady"}
+            </span>
+          </div>
+        </div>
+
+        {/* Tombol Aksi Fungsional (Zero Gap) */}
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <Button
+            type="button"
+            onClick={() => setAiOpen(true)}
+            className="w-full h-9 rounded-xl bg-brand-accent text-brand-accent-foreground text-xs font-bold gap-1.5 shadow-xs hover:bg-brand-accent/90 cursor-pointer"
+          >
+            <Icons.bot className="size-3.5" />
+            Launch AI
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(`/admin/campaigns${clientId ? `?new=1&clientId=${clientId}` : "?new=1"}`)}
+            className="w-full h-9 rounded-xl border-border/60 hover:bg-muted text-xs font-semibold gap-1.5 cursor-pointer"
+          >
+            <Icons.add className="size-3.5" />
+            Kampanye
+          </Button>
+        </div>
       </div>
 
       <AlertDialog open={Boolean(disconnectId)} onOpenChange={(open) => !open && setDisconnectId(null)}>
