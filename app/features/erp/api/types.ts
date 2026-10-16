@@ -51,6 +51,14 @@ export type CreateExpenseInput = {
   expense_date?: string | null
 }
 
+export type UpdateExpenseInput = {
+  id: string
+  amount?: number
+  category?: string | null
+  description?: string | null
+  expense_date?: string | null
+}
+
 export type AddAdSpendLogInput = {
   client_id: string
   campaign_name: string

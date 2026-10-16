@@ -207,3 +207,129 @@ export async function addAdSpendLog(input: AddAdSpendLogInput): Promise<{ succes
 
   return { success: true, data: data as AdSpendLog }
 }
+
+/**
+ * Memperbarui catatan expense (dan merekonsiliasi saldo budget jika nominal berubah).
+ */
+export async function updateExpense(
+  input: import("./types").UpdateExpenseInput
+): Promise<{ success: boolean; data?: Expense; error?: string }> {
+  const supabase = await createClient()
+
+  // 1. Ambil data expense eksisting untuk cek perubahan amount dan budget_id
+  const { data: existing, error: fetchErr } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("id", input.id)
+    .single()
+
+  if (fetchErr || !existing) {
+    logger.error("updateExpense.fetchFailed", { error: fetchErr })
+    return { success: false, error: "Expense tidak ditemukan" }
+  }
+
+  const payload: Record<string, unknown> = {}
+  if (input.amount !== undefined) payload.amount = input.amount
+  if (input.category !== undefined) payload.category = input.category
+  if (input.description !== undefined) payload.description = input.description
+  if (input.expense_date !== undefined) payload.expense_date = input.expense_date
+
+  const { data: updated, error: updateErr } = await supabase
+    .from("expenses")
+    .update(payload)
+    .eq("id", input.id)
+    .select("*")
+    .single()
+
+  if (updateErr) {
+    logger.error("updateExpense failed", { error: updateErr })
+    return { success: false, error: updateErr.message }
+  }
+
+  // 2. Rekonsiliasi saldo budget jika amount berubah dan terkait budget_id
+  if (input.amount !== undefined && input.amount !== existing.amount && existing.budget_id) {
+    const diff = input.amount - existing.amount
+    const { data: budgetRow } = await supabase
+      .from("client_budgets")
+      .select("total_budget, remaining_balance")
+      .eq("id", existing.budget_id)
+      .single()
+
+    if (budgetRow && typeof budgetRow.remaining_balance === "number") {
+      const nextBalance = Math.max(0, budgetRow.remaining_balance - diff)
+      await supabase
+        .from("client_budgets")
+        .update({ remaining_balance: nextBalance, updated_at: new Date().toISOString() })
+        .eq("id", existing.budget_id)
+    }
+  }
+
+  void logAudit({
+    action: "expense.update",
+    entityType: "expense",
+    entityId: input.id,
+    clientId: existing.client_id,
+    summary: `Updated expense ${input.id}`,
+  })
+
+  return { success: true, data: updated as Expense }
+}
+
+/**
+ * Menghapus expense dan mengembalikan (re-credit) saldo ke client_budgets terkait.
+ */
+export async function deleteExpense(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  // 1. Ambil data expense untuk cek budget_id dan amount
+  const { data: existing, error: fetchErr } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("id", id)
+    .single()
+
+  if (fetchErr || !existing) {
+    logger.error("deleteExpense.fetchFailed", { error: fetchErr })
+    return { success: false, error: "Expense tidak ditemukan" }
+  }
+
+  // 2. Hapus expense
+  const { error: delErr } = await supabase
+    .from("expenses")
+    .delete()
+    .eq("id", id)
+
+  if (delErr) {
+    logger.error("deleteExpense failed", { error: delErr })
+    return { success: false, error: delErr.message }
+  }
+
+  // 3. Kembalikan saldo ke budget terkait
+  if (existing.budget_id && typeof existing.amount === "number") {
+    const { data: budgetRow } = await supabase
+      .from("client_budgets")
+      .select("total_budget, remaining_balance")
+      .eq("id", existing.budget_id)
+      .single()
+
+    if (budgetRow && typeof budgetRow.remaining_balance === "number") {
+      const nextBalance = Math.min(budgetRow.total_budget, budgetRow.remaining_balance + existing.amount)
+      await supabase
+        .from("client_budgets")
+        .update({ remaining_balance: nextBalance, updated_at: new Date().toISOString() })
+        .eq("id", existing.budget_id)
+    }
+  }
+
+  void logAudit({
+    action: "expense.delete",
+    entityType: "expense",
+    entityId: id,
+    clientId: existing.client_id,
+    summary: `Deleted expense ${id} and restored balance ${existing.amount}`,
+  })
+
+  return { success: true }
+}

@@ -32,6 +32,7 @@ import {
   useClientFiles,
   useUpsertClientFile,
   useVerifyClientFile,
+  useDeleteClientFile,
 } from "@/features/brand-files/api/queries"
 import {
   STANDARD_BRAND_FILES,
@@ -59,10 +60,12 @@ export function BrandBrainEditorDialog({
   const { data: serverFiles = [], isLoading } = useClientFiles(clientId)
   const { mutateAsync: upsertFile, isPending: isSaving } = useUpsertClientFile()
   const { mutateAsync: verifyFile, isPending: isVerifying } = useVerifyClientFile()
+  const { mutateAsync: deleteFile, isPending: isDeleting } = useDeleteClientFile()
 
   const [activePath, setActivePath] = React.useState<BrandFileKey>(initialPath)
   const [viewMode, setViewMode] = React.useState<ViewMode>("split")
   const [contentBuffer, setContentBuffer] = React.useState<Record<string, string>>({})
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
 
   // Sinkronisasi data server ke buffer lokal saat dialog dibuka atau file dimuat
   React.useEffect(() => {
@@ -219,6 +222,23 @@ export function BrandBrainEditorDialog({
     } catch (err: unknown) {
       console.error(err)
       toast.error("Gagal memperbarui status verifikasi.")
+    }
+  }
+
+  const handleDeleteFile = async () => {
+    if (!clientId) return
+    try {
+      await deleteFile({ clientId, path: activePath })
+      setContentBuffer((prev) => {
+        const next = { ...prev }
+        delete next[activePath]
+        return next
+      })
+      setConfirmDeleteOpen(false)
+      toast.success(`Dokumen ${activePath} berhasil dihapus dari Brand Brain.`)
+    } catch (err: unknown) {
+      console.error(err)
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus dokumen.")
     }
   }
 
@@ -822,6 +842,19 @@ export function BrandBrainEditorDialog({
                 Template Standar
               </Button>
             )}
+
+            {activePath !== "brand-profile.md" && Boolean(serverFile) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDeleteOpen(true)}
+                className="text-xs font-semibold text-destructive hover:bg-destructive/10 border-destructive/30 rounded-full cursor-pointer h-9 px-3 gap-1.5"
+              >
+                <Icons.delete className="size-3.5" />
+                Hapus Dokumen
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -870,6 +903,30 @@ export function BrandBrainEditorDialog({
               }}
             >
               Tinggalkan Perubahan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete file confirmation dialog */}
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Dokumen {activeMeta.shortLabel}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dokumen <strong>{activePath}</strong> akan dihapus dari basis data AI Brand Brain klien. AI Copilot akan menggunakan aturan baku sistem tanpa kustomisasi dokumen ini. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteOpen(false)}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteFile}
+              disabled={isDeleting}
+            >
+              Hapus Dokumen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -6,6 +6,7 @@ import { renderWithProviders } from "@/test/render-with-providers"
 
 const mockUpsertMutateAsync = vi.fn()
 const mockVerifyMutateAsync = vi.fn()
+const mockDeleteMutateAsync = vi.fn()
 
 vi.mock("react-markdown", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -45,6 +46,10 @@ vi.mock("@/features/brand-files/api/queries", () => ({
   })),
   useVerifyClientFile: vi.fn(() => ({
     mutateAsync: mockVerifyMutateAsync,
+    isPending: false,
+  })),
+  useDeleteClientFile: vi.fn(() => ({
+    mutateAsync: mockDeleteMutateAsync,
     isPending: false,
   })),
 }))
@@ -149,5 +154,33 @@ describe("BrandBrainEditorDialog", () => {
     fireEvent.click(auditBtn)
 
     expect(await screen.findByText(/Kesiapan Brand DNA untuk AI Copilot/i)).toBeInTheDocument()
+  })
+
+  it("shows Hapus Dokumen button for non-core file that exists on server and calls deleteFile", async () => {
+    mockDeleteMutateAsync.mockResolvedValue(undefined)
+    renderDialog({ initialPath: "guardrails.md" })
+
+    const deleteBtn = screen.getByRole("button", { name: /Hapus Dokumen/i })
+    expect(deleteBtn).toBeInTheDocument()
+    fireEvent.click(deleteBtn)
+
+    // AlertDialog opens with confirmation
+    expect(screen.getByText(/Hapus Dokumen Guardrails & Never-List\?/i)).toBeInTheDocument()
+
+    // Click confirm in the AlertDialog
+    const confirmBtn = screen.getByRole("button", { name: "Hapus Dokumen" })
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(mockDeleteMutateAsync).toHaveBeenCalledWith({
+        clientId: "c-1",
+        path: "guardrails.md",
+      })
+    })
+  })
+
+  it("does not show Hapus Dokumen button for core brand-profile.md file", () => {
+    renderDialog({ initialPath: "brand-profile.md" })
+    expect(screen.queryByRole("button", { name: /Hapus Dokumen/i })).toBeNull()
   })
 })

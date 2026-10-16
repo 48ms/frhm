@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense } from './service'
+import {
+  getClientBudgets,
+  getExpenses,
+  getAdSpendLogs,
+  getKOLs,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+} from './service'
 
 const mockQueryBuilder = {
   select: vi.fn().mockReturnThis(),
@@ -7,6 +15,7 @@ const mockQueryBuilder = {
   order: vi.fn().mockReturnThis(),
   insert: vi.fn().mockReturnThis(),
   update: vi.fn().mockReturnThis(),
+  delete: vi.fn().mockReturnThis(),
   single: vi.fn(),
   maybeSingle: vi.fn().mockResolvedValue({ data: { name: 'Client Test' }, error: null }),
 }
@@ -39,6 +48,7 @@ describe('ERP Service', () => {
     mockQueryBuilder.order.mockReturnThis()
     mockQueryBuilder.insert.mockReturnThis()
     mockQueryBuilder.update.mockReturnThis()
+    mockQueryBuilder.delete.mockReturnThis()
   })
 
   const readTests = [
@@ -141,6 +151,83 @@ describe('ERP Service', () => {
           spentPercentage: 95,
           expenseAmount: 950000,
         })
+      )
+    })
+  })
+
+  describe('updateExpense', () => {
+    it('returns error when expense is not found', async () => {
+      mockQueryBuilder.single.mockResolvedValueOnce({ data: null, error: { message: 'Expense not found' } })
+
+      const res = await updateExpense({ id: 'exp-99', amount: 300000 })
+
+      expect(res.success).toBe(false)
+      expect(res.error).toBe('Expense tidak ditemukan')
+    })
+
+    it('updates expense without budget reconciliation if budget_id not set', async () => {
+      const existing = { id: 'exp-1', client_id: 'c1', amount: 200000 }
+      const updated = { id: 'exp-1', client_id: 'c1', amount: 350000, description: 'Updated desc' }
+
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: existing, error: null })
+        .mockResolvedValueOnce({ data: updated, error: null })
+
+      const res = await updateExpense({ id: 'exp-1', amount: 350000, description: 'Updated desc' })
+
+      expect(res.success).toBe(true)
+      expect(res.data).toEqual(updated)
+      expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 350000, description: 'Updated desc' })
+      )
+    })
+
+    it('reconciles budget remaining_balance when amount increases', async () => {
+      const existing = { id: 'exp-1', client_id: 'c1', amount: 200000, budget_id: 'b1' }
+      const updated = { id: 'exp-1', client_id: 'c1', amount: 300000, budget_id: 'b1' }
+      const budgetRow = { total_budget: 1000000, remaining_balance: 800000 }
+
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: existing, error: null })
+        .mockResolvedValueOnce({ data: updated, error: null })
+        .mockResolvedValueOnce({ data: budgetRow, error: null })
+
+      const res = await updateExpense({ id: 'exp-1', amount: 300000 })
+
+      expect(res.success).toBe(true)
+      // Selisih = 300000 - 200000 = +100000. Saldo baru = 800000 - 100000 = 700000
+      expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ remaining_balance: 700000 })
+      )
+    })
+  })
+
+  describe('deleteExpense', () => {
+    it('returns error when expense is not found', async () => {
+      mockQueryBuilder.single.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } })
+
+      const res = await deleteExpense('exp-99')
+
+      expect(res.success).toBe(false)
+      expect(res.error).toBe('Expense tidak ditemukan')
+    })
+
+    it('deletes expense and restores balance to client_budgets', async () => {
+      const existing = { id: 'exp-1', client_id: 'c1', amount: 250000, budget_id: 'b1' }
+      const budgetRow = { total_budget: 1000000, remaining_balance: 600000 }
+
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: existing, error: null })
+        .mockResolvedValueOnce({ data: budgetRow, error: null })
+
+      const res = await deleteExpense('exp-1')
+
+      expect(res.success).toBe(true)
+      expect(mockSupabase.from).toHaveBeenCalledWith('expenses')
+      expect(mockQueryBuilder.delete).toHaveBeenCalled()
+      // Saldo dipulihkan: 600000 + 250000 = 850000
+      expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ remaining_balance: 850000 })
       )
     })
   })

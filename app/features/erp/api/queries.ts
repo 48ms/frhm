@@ -1,7 +1,23 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense, addAdSpendLog } from "./service"
-import type { CreateExpenseInput, AddAdSpendLogInput, Expense, ClientBudget, AdSpendLog } from "./types"
+import {
+  getClientBudgets,
+  getExpenses,
+  getAdSpendLogs,
+  getKOLs,
+  createExpense,
+  addAdSpendLog,
+  updateExpense,
+  deleteExpense,
+} from "./service"
+import type {
+  CreateExpenseInput,
+  UpdateExpenseInput,
+  AddAdSpendLogInput,
+  Expense,
+  ClientBudget,
+  AdSpendLog,
+} from "./types"
 
 export const erpKeys = {
   all: ["erp"] as const,
@@ -182,6 +198,48 @@ export function useAddAdSpendLog() {
     },
     onSettled: (_data, _err, variables) => {
       void queryClient.invalidateQueries({ queryKey: erpKeys.adSpend(variables.client_id) })
+    },
+  })
+}
+
+export function useUpdateExpense() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: UpdateExpenseInput) => updateExpense(input),
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Catatan expense berhasil diperbarui!")
+      } else {
+        toast.error(res.error || "Gagal memperbarui expense")
+      }
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan")
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: erpKeys.all })
+    },
+  })
+}
+
+export function useDeleteExpense() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteExpense(id),
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Catatan expense berhasil dihapus.")
+      } else {
+        toast.error(res.error || "Gagal menghapus expense")
+      }
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus")
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: erpKeys.all })
     },
   })
 }
