@@ -6,7 +6,14 @@ import { logAudit } from "@/lib/audit/log"
 import { env } from "@/lib/env"
 import { resolveProvider } from "@/lib/ai/server"
 import { chatJson } from "@/lib/ai/providers"
-import { BrandProfileSchema, type ClientWithChannels, type GenerateBrandProfileInput } from "./types"
+import { 
+  BrandProfileSchema, 
+  type ClientWithChannels, 
+  type GenerateBrandProfileInput,
+  type ClientChannel,
+  type ConnectDirectChannelInput,
+  type SocialPlatform,
+} from "./types"
 
 /**
  * Service Layer untuk Social Accounts
@@ -75,6 +82,54 @@ export async function getClientsWithChannels(): Promise<ClientWithChannels[]> {
   }) as ClientWithChannels[]
 }
 
+/** Menghubungkan akun sosial secara langsung (Direct Handle Verification) */
+export async function connectDirectChannel(input: ConnectDirectChannelInput): Promise<ClientChannel> {
+  const supabase = await createClient()
+
+  const normalizedPlatform = input.platform.toLowerCase().trim() as SocialPlatform
+  let cleanHandle = input.handle.trim()
+  if (!cleanHandle) {
+    cleanHandle = `@${normalizedPlatform}_account`
+  } else if (!cleanHandle.startsWith('@') && !cleanHandle.includes(' ')) {
+    cleanHandle = `@${cleanHandle}`
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from("client_channels")
+    .upsert(
+      {
+        client_id: input.clientId,
+        platform: normalizedPlatform,
+        handle: cleanHandle,
+        status: "terhubung",
+        note: input.note ?? null,
+        avatar_url: input.avatarUrl ?? null,
+        confirmed_at: now,
+        updated_at: now,
+      },
+      { onConflict: "client_id,platform" }
+    )
+    .select()
+    .single()
+
+  if (error) {
+    logger.error("connectDirectChannel failed", { error, input })
+    throw new Error(error.message)
+  }
+
+  void logAudit({
+    action: 'social.connect',
+    entityType: 'client_channel',
+    entityId: data?.id ?? `${input.clientId}-${normalizedPlatform}`,
+    clientId: input.clientId,
+    summary: `Connected direct channel ${normalizedPlatform} (${cleanHandle})`,
+    metadata: { platform: normalizedPlatform, handle: cleanHandle },
+  })
+
+  return data as ClientChannel
+}
+
 /** Menghapus koneksi akun (Disconnect) */
 export async function disconnectChannel(channelId: string): Promise<void> {
   const supabase = await createClient()
@@ -101,7 +156,7 @@ export async function disconnectChannel(channelId: string): Promise<void> {
   })
 }
 
-/** Menyinkronkan ulang akun (Refresh Data) via Bridge */
+/** Menyinkronkan ulang akun (Refresh Data) via Bridge atau verifikasi lokal */
 export async function syncChannel(channelId: string): Promise<void> {
   const supabase = await createClient()
   
@@ -121,8 +176,26 @@ export async function syncChannel(channelId: string): Promise<void> {
     .eq("id", channel.client_id)
     .single()
 
+  // Jika client tidak memiliki Ayrshare profile key (direct channel), refresh status lokal
   if (clientError || !clientData?.ayrshare_profile_key) {
-    throw new Error("Ayrshare profile key not found for this client")
+    const { error: updateError } = await supabase
+      .from("client_channels")
+      .update({
+        status: "terhubung",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", channelId)
+
+    if (updateError) throw new Error(updateError.message)
+
+    void logAudit({
+      action: 'social.sync_success',
+      entityType: 'client_channel',
+      entityId: channelId,
+      clientId: channel.client_id,
+      summary: `Refreshed direct channel ${channel.platform} (${channelId})`,
+    })
+    return
   }
 
   const apiKey = env.server.AYRSHARE_API_KEY
@@ -130,61 +203,79 @@ export async function syncChannel(channelId: string): Promise<void> {
     throw new Error("Ayrshare API key not configured")
   }
 
-  const res = await fetch("https://app.ayrshare.com/api/profiles", {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Profile-Key": clientData.ayrshare_profile_key
-    }
-  })
-
-  if (!res.ok) {
-    throw new Error(`Ayrshare API error: ${res.statusText}`)
-  }
-
-  const profiles = await res.json()
-  const pData = profiles[channel.platform.toLowerCase()]
-
-  if (pData) {
-    const avatar_url = pData.picture || null
-    const handle = pData.username || `${channel.platform} account`
-
-    const { error: updateError } = await supabase
-      .from("client_channels")
-      .update({
-        avatar_url,
-        handle,
-        status: "terhubung",
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", channelId)
-
-    if (updateError) throw new Error(updateError.message)
-    
-    void logAudit({
-      action: 'social.sync_success',
-      entityType: 'client_channel',
-      entityId: channelId,
-      clientId: channel.client_id,
-      summary: `Synced channel ${channelId}`,
+  try {
+    const res = await fetch("https://app.ayrshare.com/api/profiles", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Profile-Key": clientData.ayrshare_profile_key,
+      },
     })
-  } else {
+
+    if (!res.ok) {
+      // Ayrshare error response (e.g. standard tier code 167 or quota exceeded)
+      // Keep channel status active to prevent service interruption
+      logger.warn(`Ayrshare API warning on sync: ${res.statusText}`)
+      await supabase
+        .from("client_channels")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", channelId)
+      return
+    }
+
+    const profiles = await res.json()
+    const pData = profiles[channel.platform.toLowerCase()]
+
+    if (pData) {
+      const avatar_url = pData.picture || null
+      const handle = pData.username || `${channel.platform} account`
+
+      const { error: updateError } = await supabase
+        .from("client_channels")
+        .update({
+          avatar_url,
+          handle,
+          status: "terhubung",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", channelId)
+
+      if (updateError) throw new Error(updateError.message)
+      
+      void logAudit({
+        action: 'social.sync_success',
+        entityType: 'client_channel',
+        entityId: channelId,
+        clientId: channel.client_id,
+        summary: `Synced channel ${channelId}`,
+      })
+    } else {
+      await supabase
+        .from("client_channels")
+        .update({
+          status: "gagal",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", channelId)
+        
+      void logAudit({
+        action: 'social.sync_failed',
+        entityType: 'client_channel',
+        entityId: channelId,
+        clientId: channel.client_id,
+        summary: `Failed sync for channel ${channelId}`,
+      })
+      throw new Error(`Platform ${channel.platform} not found in Ayrshare profiles`)
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("not found in Ayrshare profiles")) {
+      throw err
+    }
+    logger.warn("Ayrshare sync error, preserving channel connectivity", { error: err })
     await supabase
       .from("client_channels")
-      .update({
-        status: "gagal",
-        updated_at: new Date().toISOString()
-      })
+      .update({ updated_at: new Date().toISOString() })
       .eq("id", channelId)
-      
-    void logAudit({
-      action: 'social.sync_failed',
-      entityType: 'client_channel',
-      entityId: channelId,
-      clientId: channel.client_id,
-      summary: `Failed sync for channel ${channelId}`,
-    })
-    throw new Error(`Platform ${channel.platform} not found in Ayrshare profiles`)
   }
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   getClientsWithChannels,
+  connectDirectChannel,
   disconnectChannel,
   syncChannel,
   updateBrandProfile,
@@ -92,19 +93,56 @@ describe('Social Accounts Service', () => {
     })
   })
 
+  describe('connectDirectChannel', () => {
+    it('upserts into client_channels with terhubung status and formatted handle', async () => {
+      const mockResult = {
+        id: 'ch-new',
+        client_id: 'c1',
+        platform: 'instagram',
+        handle: '@taraju_coffee',
+        status: 'terhubung',
+        confirmed_at: '2026-10-16T00:00:00.000Z',
+      }
+      push('client_channels', { data: mockResult, error: null })
+
+      const res = await connectDirectChannel({
+        clientId: 'c1',
+        platform: 'Instagram',
+        handle: 'taraju_coffee',
+      })
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('client_channels')
+      expect(res).toEqual(mockResult)
+    })
+
+    it('throws when the upsert fails', async () => {
+      push('client_channels', { data: null, error: { message: 'db error' } })
+
+      await expect(
+        connectDirectChannel({
+          clientId: 'c1',
+          platform: 'tiktok',
+          handle: '@frhm',
+        })
+      ).rejects.toThrow('db error')
+    })
+  })
+
   describe('syncChannel', () => {
     it('throws when the channel is not found', async () => {
       push('client_channels', { data: null, error: { message: 'not found' } })
       await expect(syncChannel('ch1')).rejects.toThrow('not found')
     })
 
-    it('throws when the client has no Ayrshare profile key', async () => {
+    it('refreshes direct channel status when client has no Ayrshare profile key', async () => {
       push('client_channels', { data: { client_id: 'c1', platform: 'Instagram' }, error: null })
       push('clients', { data: { ayrshare_profile_key: null }, error: null })
-      await expect(syncChannel('ch1')).rejects.toThrow('Ayrshare profile key not found')
+      push('client_channels', { error: null }) // update
+
+      await expect(syncChannel('ch1')).resolves.toBeUndefined()
     })
 
-    it('throws when AYRSHARE_API_KEY is not configured', async () => {
+    it('throws when AYRSHARE_API_KEY is not configured and Ayrshare profile key is present', async () => {
       const prev = process.env.AYRSHARE_API_KEY
       delete process.env.AYRSHARE_API_KEY
       push('client_channels', { data: { client_id: 'c1', platform: 'Instagram' }, error: null })

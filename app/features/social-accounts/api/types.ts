@@ -16,6 +16,16 @@ export type ClientChannel = {
   updated_at: string
 }
 
+export const ConnectDirectChannelInputSchema = z.object({
+  clientId: z.string().min(1, 'Client ID wajib diisi'),
+  platform: z.string().min(1, 'Platform wajib diisi'),
+  handle: z.string().min(1, 'Handle / username wajib diisi'),
+  avatarUrl: z.string().url().nullable().optional(),
+  note: z.string().nullable().optional(),
+})
+export type ConnectDirectChannelInput = z.infer<typeof ConnectDirectChannelInputSchema>
+
+
 export const BrandProfileSchema = z.object({
   who: z.string(),
   audience: z.string(),

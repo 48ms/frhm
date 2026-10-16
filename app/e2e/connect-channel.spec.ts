@@ -37,3 +37,37 @@ test('Connect Channel modal: platform cards and gating', async ({ page }) => {
   // No console errors during the whole interaction.
   expect(errors.filter((e) => !e.includes('sentry'))).toHaveLength(0)
 })
+
+test('Connect Channel modal: connects account via Direct Connect end-to-end', async ({ page }) => {
+  await loginAsAdmin(page)
+  await page.goto('/admin/social-accounts')
+  await page.waitForLoadState('networkidle')
+
+  // Open the wizard from the board header.
+  await page.getByRole('button', { name: /Connect account/i }).click()
+
+  const dialog = page.getByRole('dialog', { name: /Connect social account/i })
+  await expect(dialog).toBeVisible()
+
+  // Select YouTube from platform dropdown
+  const platformSelect = dialog.getByLabel('Pilih platform untuk direct connect')
+  await platformSelect.selectOption('YouTube')
+
+  // Type custom handle
+  const handleInput = dialog.locator('input[placeholder="taraju_official"]')
+  await handleInput.fill('taraju_qa_stream')
+
+  // Click Hubungkan button
+  const submitBtn = dialog.getByRole('button', { name: /Hubungkan/i })
+  await submitBtn.click()
+
+  // Wait for success toast and dialog dismiss
+  await expect(page.getByText(/Akun YouTube @taraju_qa_stream berhasil terhubung/i)).toBeVisible({ timeout: 10000 })
+  await expect(dialog).not.toBeVisible({ timeout: 5000 })
+
+  // Verify the newly connected account handle is rendered on the board
+  const channelCard = page.locator('main').getByText('@taraju_qa_stream', { exact: true })
+  await expect(channelCard).toBeVisible({ timeout: 10000 })
+})
+
+

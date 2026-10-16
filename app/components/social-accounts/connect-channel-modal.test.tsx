@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConnectChannelModal } from "./connect-channel-modal"
 
 // Toast adalah efek samping; kita cek panggilannya, bukan tampilannya.
@@ -11,16 +12,22 @@ const fetchMock = vi.fn()
 vi.stubGlobal("fetch", fetchMock)
 
 function renderModal(overrides: Partial<React.ComponentProps<typeof ConnectChannelModal>> = {}) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
   return render(
-    <ConnectChannelModal
-      open={true}
-      client={{ id: "client-test", name: "B2B Shell Representatives" }}
-      existingPlatforms={[]}
-      onClose={() => {}}
-      {...overrides}
-    />
+    <QueryClientProvider client={queryClient}>
+      <ConnectChannelModal
+        open={true}
+        client={{ id: "client-test", name: "B2B Shell Representatives" }}
+        existingPlatforms={[]}
+        onClose={() => {}}
+        {...overrides}
+      />
+    </QueryClientProvider>
   )
 }
+
 
 describe("ConnectChannelModal — OAuth flow", () => {
   beforeEach(() => {

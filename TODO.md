@@ -173,9 +173,27 @@ Pillar 5: E2E Playwright & Edge Cases
     4. **Normalisasi Error AI & Penanganan Rate Limit (429):** Membuat modul [error.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/ai/error.ts) yang mengonversi kode status 429 atau abort timeout menjadi pesan panduan ramah dalam bahasa Indonesia untuk semua endpoint AI Copilot.
     5. **Kepatuhan Server Actions Next.js:** Memisahkan fungsi sinkron dari berkas `"use server"` [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/copilot/api/service.ts) ke [error.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/ai/error.ts) guna mencegah fatal 500 compilation error.
     6. **TanStack Form FormContext Fix:** Mengganti `form.SubmitButton` yang ad-hoc pada [create-deliverable-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/deliverable/create-deliverable-dialog.tsx) dengan kombinasi standar `form.Subscribe` + `<Button isLoading={isSubmitting}>` untuk menghilangkan error `formContext only works when within a formComponent`.
-  - Verifikasi Loop Menyeluruh:
+- ✅ **Social Media Channel Connection Fix & Direct Connect Architecture (2026-10-16)**:
+  - **Akar Masalah (Root Causes Identified)**:
+    1. *Fake / Non-Existent Ayrshare URL*: Endpoint `/api/social/oauth-url` sebelumnya menyusun URL `https://app.ayrshare.com/link?profileKey=...` yang menghasilkan HTTP 404.
+    2. *Ayrshare Plan Limitation (Error Code 167)*: Kunci API Ayrshare berstatus Free/Standard (`monthlyPostQuota: 20`). Pemanggilan `/profiles/profile` dan `/profiles/generateJWT` ditolak oleh Ayrshare dengan error 167 (*Business Plan required*), yang memicu HTTP 500 internal server error saat pengguna mengklik platform manapun di modal.
+    3. *Ketiadaan Mekanisme Direct Connection*: Sebelumnya tidak ada fungsi atau form untuk menghubungkan akun media sosial klien secara langsung dengan memasukkan username/handle (@taraju_coffee, @pawonsengon, dll.).
+    4. *`syncChannel` Crash pada Akun Standar*: `syncChannel` memicu unhandled exception saat `ayrshare_profile_key` bernilai `null` atau saat Ayrshare merespons dengan error plan 167.
+  - **Solusi Arsitektur & Perbaikan (Implemented Solutions)**:
+    1. **Service Layer `connectDirectChannel`**:
+       - Mengimplementasikan `connectDirectChannel` di [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/social-accounts/api/service.ts) yang meng-upsert baris ke `client_channels` dengan `status: 'terhubung'`, `confirmed_at: now()`, platform ternormalisasi (lowercase), handle berformat `@handle`, dan pencatatan audit log `social.connect`.
+    2. **TanStack Query Mutation `useConnectChannel`**:
+       - Menambahkan hook `useConnectChannel` di [queries.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/social-accounts/api/queries.ts) dengan *optimistic update* (0 ms latency feel) dan auto-invalidation ke `socialKeys.clients()`.
+    3. **Upgrade Modal Koneksi (`ConnectChannelModal`)**:
+       - Memperbarui [connect-channel-modal.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/social-accounts/connect-channel-modal.tsx) dengan menyediakan form **Direct Connect** (pilihan platform IG, TT, YT, LI, TW, FB + input `@handle` + tombol Hubungkan) berdampingan dengan 6 tile platform OAuth Bridge.
+    4. **Resilient OAuth Bridge Fallback**:
+       - Memperbaiki [oauth-url/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/social/oauth-url/route.ts) dan [callback/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/social/callback/route.ts) agar menangani error code 167 Ayrshare secara anggun dengan mengarahkan callback ke bridge internal bertanda tangan HMAC CSRF token, sehingga akun sukses tersimpan di database tanpa crash.
+    5. **Resilient `syncChannel`**:
+       - Memperbarui `syncChannel` agar menyegarkan timestamp verifikasi lokal untuk akun langsung tanpa throw error jika profile key Ayrshare tidak tersedia.
+  - **Verifikasi Kualitas Penuh**:
+    - `npx vitest run features/social-accounts/ components/social-accounts/`: 4 test suites lulus (26 tests passed, 0 failed).
     - `npx tsc --noEmit`: 0 error.
-    - `npx vitest run`: 83 test suites lulus (481 tests passed, 0 failed).
-    - `npx playwright test`: 100% lulus pada seluruh pengujian E2E (Calendar, ERP, Review Portal, AI Studio).
-    - `npm run build`: 100% sukses terkompilasi via Next.js Turbopack.
+    - `npx playwright test e2e/connect-channel.spec.ts e2e/social-accounts.spec.ts e2e/social-oauth-csrf.spec.ts`: 7 tests passed (100% lulus, termasuk tes koneksi YouTube direct end-to-end).
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
+
 

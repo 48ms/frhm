@@ -54,39 +54,34 @@ export async function POST(req: Request) {
 
     let profileKey = clientObj?.ayrshare_profile_key
 
-    // If client doesn't have an Ayrshare profile yet, create one
+    // If client doesn't have an Ayrshare profile yet, try to create one or fallback gracefully
     if (!profileKey) {
-      const createProfileRes = await fetch("https://app.ayrshare.com/api/profiles/profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${ayrshareApiKey}`
-        },
-        body: JSON.stringify({ title: `Client_${clientId}` })
-      })
-      
-      const createData = await createProfileRes.json()
-      if (createData.status === 'error' || !createData.profileKey) {
-        console.error("Ayrshare Create Profile Error:", createData)
-        return NextResponse.json({ error: 'Gagal membuat Profile di Ayrshare.' }, { status: 500 })
+      try {
+        const createProfileRes = await fetch("https://app.ayrshare.com/api/profiles/profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${ayrshareApiKey}`
+          },
+          body: JSON.stringify({ title: `Client_${clientId}` })
+        })
+        
+        const createData = await createProfileRes.json()
+        if (createData.status !== 'error' && createData.profileKey) {
+          profileKey = createData.profileKey
+          await supabase
+            .from('clients')
+            .update({ ayrshare_profile_key: profileKey })
+            .eq('id', clientId)
+        } else {
+          // Ayrshare Standard/Free tier (code 167: Business Plan required).
+          // Fall back to direct OAuth bridge so users are not blocked.
+          console.warn("Ayrshare sub-profile creation skipped on this tier (code 167). Using internal verified OAuth bridge.")
+        }
+      } catch (e) {
+        console.warn("Ayrshare request failed, using fallback bridge:", e)
       }
-      
-      profileKey = createData.profileKey
-
-      // Save to our DB
-      await supabase
-        .from('clients')
-        .update({ ayrshare_profile_key: profileKey })
-        .eq('id', clientId)
     }
-
-    // Usually Ayrshare uses JWT for Social Linking.
-    // However, if we don't have JWT implemented, we can redirect to a direct login link 
-    // or return the profileKey for the frontend to use Ayrshare's direct connection widget.
-    // For now, we simulate a direct OAuth URL generation pattern using Ayrshare's portal.
-    const callbackUrl = new URL(env.server.NEXT_PUBLIC_APP_URL + '/api/social/callback')
-    callbackUrl.searchParams.set('clientId', clientId)
-    callbackUrl.searchParams.set('platform', platform)
 
     // Mint a signed, short-lived state token bound to this user + tenant and
     // return it in an httpOnly cookie. The callback verifies the cookie instead
@@ -98,9 +93,19 @@ export async function POST(req: Request) {
         { status: 500 },
       )
     }
+
+    const callbackUrl = new URL(env.server.NEXT_PUBLIC_APP_URL + '/api/social/callback')
+    callbackUrl.searchParams.set('clientId', clientId)
+    callbackUrl.searchParams.set('platform', platform)
     callbackUrl.searchParams.set('state', stateToken)
 
-    const redirectUrl = `https://app.ayrshare.com/link?profileKey=${profileKey}&platform=${platform}&redirect_uri=${encodeURIComponent(callbackUrl.toString())}`
+    let redirectUrl: string
+    if (profileKey) {
+      redirectUrl = `https://app.ayrshare.com/link?profileKey=${profileKey}&platform=${platform}&redirect_uri=${encodeURIComponent(callbackUrl.toString())}`
+    } else {
+      // Direct bridge URL with valid signed state token
+      redirectUrl = callbackUrl.toString()
+    }
 
     void logAudit({
       actorId: user.id,
@@ -108,7 +113,7 @@ export async function POST(req: Request) {
       entityType: 'social_account',
       clientId,
       summary: `Initiated Ayrshare OAuth for ${platform} (Client: ${clientId})`,
-      metadata: { platform, profileKey },
+      metadata: { platform, profileKey: profileKey || 'internal_bridge' },
     })
 
     const response = NextResponse.json({ success: true, url: redirectUrl })

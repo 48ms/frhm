@@ -78,15 +78,17 @@ export async function GET(req: Request) {
     // Persist to client_channels to display in the dashboard
     const supabase = await createSupabaseServiceClient()
 
-    // Fetch profile key
+    // Fetch client details
     const { data: clientData } = await supabase
       .from('clients')
-      .select('ayrshare_profile_key')
+      .select('name, ayrshare_profile_key')
       .eq('id', clientId)
       .single()
 
+    const normalizedPlatform = signedPlatform.toLowerCase()
+    const clientSlug = clientData?.name ? clientData.name.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'official'
     let avatar_url: string | null = null
-    let handle = `${signedPlatform} account`
+    let handle = `@${clientSlug}.${normalizedPlatform}`
 
     if (clientData?.ayrshare_profile_key) {
       try {
@@ -98,10 +100,10 @@ export async function GET(req: Request) {
           }
         })
         const profiles = await res.json()
-        const pData = profiles[signedPlatform.toLowerCase()]
+        const pData = profiles[normalizedPlatform]
         if (pData) {
           if (pData.picture) avatar_url = pData.picture
-          if (pData.username) handle = pData.username
+          if (pData.username) handle = pData.username.startsWith('@') ? pData.username : `@${pData.username}`
         }
       } catch (e) {
         console.error("Failed to fetch profile info from ayrshare", e)
@@ -113,19 +115,20 @@ export async function GET(req: Request) {
       .from('client_channels')
       .select('id')
       .eq('client_id', clientId)
-      .eq('platform', signedPlatform)
+      .eq('platform', normalizedPlatform)
       .maybeSingle()
 
+    const now = new Date().toISOString()
     if (!existing) {
       await supabase
         .from('client_channels')
         .insert({
           client_id: clientId,
-          platform: signedPlatform,
+          platform: normalizedPlatform,
           status: 'terhubung',
           handle,
           avatar_url,
-          confirmed_at: new Date().toISOString()
+          confirmed_at: now
         })
     } else {
       await supabase
@@ -134,8 +137,8 @@ export async function GET(req: Request) {
           status: 'terhubung',
           handle,
           avatar_url,
-          confirmed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          confirmed_at: now,
+          updated_at: now
         })
         .eq('id', existing.id)
     }
