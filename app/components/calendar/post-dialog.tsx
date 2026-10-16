@@ -376,7 +376,9 @@ export function PostDialog({
       onSave()
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan post.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -391,7 +393,9 @@ export function PostDialog({
       onDelete(editingPost.id)
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal menghapus')
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus post.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
