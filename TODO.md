@@ -458,6 +458,20 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx tsc --noEmit`: 0 error (100% clean typecheck).
     - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
 
+- [x] **Penyempurnaan Total Deliverables & Review Hub: Arsitektur 2-Kolom & Eliminasi Dead Space (2026-10-17)**
+  - **Arsitektur Master 2-Column Workspace (`lg:col-span-2` & `lg:col-span-1`)**:
+    - Mengeliminasi problem kekosongan 67% viewport saat hanya ada 1 deliverable dengan membagi layout menjadi 2 kolom terstruktur:
+      - **Kolom Kiri Utama (`lg:col-span-2`)**: Tabs filter status, daftar draf materi dengan kartu ulasan lebar penuh (*full-width rich review cards*), status info callout contextual (banner proses revisi SLA 1x24 jam, banner siap review, dan banner persetujuan kalender), serta aksi persetujuan instan / ajukan revisi.
+      - **Kolom Kanan Pendukung (`lg:col-span-1`)**: Panel panduan **Alur Review Mandiri** (3 langkah mudah: Buka Visual -> Catatan Spesifik -> 1-Klik Approval) dan kartu **Request Materi Khusus** dengan info SLA < 2 Jam Kerja langsung ke tim agensi.
+  - **Penambahan 4 Baris Metrik Eksekutif (Executive Metric Tickers)**:
+    - Menyeragamkan bahasa visual dengan Dashboard dan Calendar melalui 4 kartu metrik dinamis di bagian atas: *Total Deliverable*, *Menunggu Review*, *Perlu Revisi*, dan *Telah Disetujui* menggunakan `<MetricTicker>`.
+  - **Rhythm Vertikal Seragam**:
+    - Membungkus seluruh halaman dalam `<div className="flex flex-col gap-6">` untuk konsistensi gap 24px seragam.
+    - Menambahkan tombol aksi header `Request Materi Baru` pada `PageContainer`.
+  - **Verifikasi Kualitas (Verification Loop)**:
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
+
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
