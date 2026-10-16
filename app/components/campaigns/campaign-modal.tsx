@@ -144,9 +144,9 @@ export function CampaignModal({
       } else {
         toast.error("Gagal mendapatkan rekomendasi AI.")
       }
-    } catch {
+    } catch (err: unknown) {
       toast.dismiss(toastId)
-      toast.error("Terjadi kendala saat meracik sudut pandang.")
+      toast.error(err instanceof Error ? err.message : "Terjadi kendala saat meracik sudut pandang.")
     }
   }
 

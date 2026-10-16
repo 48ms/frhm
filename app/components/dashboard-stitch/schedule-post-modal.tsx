@@ -144,9 +144,9 @@ export function SchedulePostModal({
         setCaption(res.caption)
         toast.success("Caption berhasil diracik AI sesuai Brand Voice!")
       }
-    } catch {
+    } catch (err: unknown) {
       toast.dismiss(toastId)
-      toast.error("Gagal membuat caption AI.")
+      toast.error(err instanceof Error ? err.message : "Gagal membuat caption AI.")
     }
   }
 
@@ -174,9 +174,9 @@ export function SchedulePostModal({
         setShowHookSuggestions(true)
         toast.success(`${res.hooks.length} variasi hook siap dipilih!`)
       }
-    } catch {
+    } catch (err: unknown) {
       toast.dismiss(toastId)
-      toast.error("Gagal membuat variasi hook.")
+      toast.error(err instanceof Error ? err.message : "Gagal membuat variasi hook.")
     }
   }
 
@@ -257,7 +257,7 @@ export function SchedulePostModal({
       })
       onScheduled?.(title.trim())
       onClose()
-    } catch (err) {
+    } catch (err: unknown) {
       toast.error("Gagal menjadwalkan post.", {
         description: err instanceof Error ? err.message : "Terjadi kesalahan tak terduga.",
       })

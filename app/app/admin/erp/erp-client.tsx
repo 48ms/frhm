@@ -61,14 +61,11 @@ export function ErpDashboardClient() {
 
   // Tombol "Notifikasi Telegram": kirim test ping ke Telegram admin via mutation hook.
   const handleNotifyTelegram = async () => {
-    try {
-      const data = await sendTelegramTest()
-      toast.success("Notifikasi Telegram berhasil dikirim.", {
-        description: `Pesan uji coba terkirim ke chat ${data.chatId}.`,
-      })
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Gagal mengirim notifikasi Telegram.")
-    }
+    toast.promise(sendTelegramTest(), {
+      loading: "Mengirim sinyal uji coba Telegram...",
+      success: (data) => `Notifikasi Telegram berhasil dikirim ke chat ${data.chatId}.`,
+      error: (err: unknown) => (err instanceof Error ? err.message : "Gagal mengirim notifikasi Telegram."),
+    })
   }
   const clientPosts = posts || []
   const clientDeliverables = deliverables || []

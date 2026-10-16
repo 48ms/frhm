@@ -163,8 +163,8 @@ export function SupportView() {
       setSubject("")
       setMessage("")
       setPriority("Normal")
-    } catch (err) {
-      toast.error("Gagal mengirim permintaan.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengirim permintaan.")
     }
   }
 

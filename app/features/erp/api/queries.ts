@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense, addAdSpendLog } from "./service"
-import type { CreateExpenseInput, AddAdSpendLogInput } from "./types"
+import type { CreateExpenseInput, AddAdSpendLogInput, Expense, ClientBudget, AdSpendLog } from "./types"
 
 export const erpKeys = {
   all: ["erp"] as const,
@@ -64,47 +64,118 @@ export function useSendTelegramTest() {
 }
 
 /**
- * Hook mutasi untuk mencatat expense baru.
- * Menginvalidasi cache `erp` (expenses + budgets) agar breakdown budget di
- * campaigns-board langsung menampilkan angka faktual terbaru.
+ * Hook mutasi untuk mencatat expense baru dengan Optimistic Updates (Aturan #16).
+ * Segera memperbarui daftar pengeluaran dan mengurangi alokasi budget lokal
+ * dengan rollback jika koneksi terputus.
  */
 export function useCreateExpense() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (input: CreateExpenseInput) => createExpense(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: erpKeys.expenses(input.client_id) })
+      await queryClient.cancelQueries({ queryKey: erpKeys.budgets(input.client_id) })
+
+      const previousExpenses = queryClient.getQueryData<Expense[]>(erpKeys.expenses(input.client_id))
+      const previousBudgets = queryClient.getQueryData<ClientBudget[]>(erpKeys.budgets(input.client_id))
+
+      const optimisticExpense: Expense = {
+        id: `temp-${Date.now()}`,
+        client_id: input.client_id,
+        budget_id: input.budget_id ?? null,
+        amount: input.amount,
+        category: input.category ?? null,
+        description: input.description ?? null,
+        expense_date: input.expense_date ?? new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      }
+
+      queryClient.setQueryData<Expense[]>(erpKeys.expenses(input.client_id), (old = []) => [
+        optimisticExpense,
+        ...(Array.isArray(old) ? old : []),
+      ])
+
+      if (input.budget_id && previousBudgets) {
+        queryClient.setQueryData<ClientBudget[]>(
+          erpKeys.budgets(input.client_id),
+          previousBudgets.map((b) =>
+            b.id === input.budget_id
+              ? { ...b, remaining_balance: b.remaining_balance - input.amount }
+              : b
+          )
+        )
+      }
+
+      return { previousExpenses, previousBudgets, clientId: input.client_id }
+    },
+    onError: (err: unknown, _vars, context) => {
+      if (context?.previousExpenses) {
+        queryClient.setQueryData(erpKeys.expenses(context.clientId), context.previousExpenses)
+      }
+      if (context?.previousBudgets) {
+        queryClient.setQueryData(erpKeys.budgets(context.clientId), context.previousBudgets)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal mencatat pengeluaran")
+    },
     onSuccess: (res) => {
       if (res.success) {
         toast.success("Pengeluaran berhasil dicatat!")
-        void queryClient.invalidateQueries({ queryKey: erpKeys.all })
       } else {
         toast.error(res.error || "Gagal mencatat pengeluaran")
       }
     },
-    onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan")
+    onSettled: (_data, _err, variables) => {
+      void queryClient.invalidateQueries({ queryKey: erpKeys.expenses(variables.client_id) })
+      void queryClient.invalidateQueries({ queryKey: erpKeys.budgets(variables.client_id) })
     },
   })
 }
 
 /**
- * Hook mutasi untuk mencatat log ad spend.
+ * Hook mutasi untuk mencatat log ad spend dengan Optimistic Updates.
  */
 export function useAddAdSpendLog() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (input: AddAdSpendLogInput) => addAdSpendLog(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: erpKeys.adSpend(input.client_id) })
+      const previousLogs = queryClient.getQueryData<AdSpendLog[]>(erpKeys.adSpend(input.client_id))
+
+      const optimisticLog: AdSpendLog = {
+        id: `temp-${Date.now()}`,
+        client_id: input.client_id,
+        campaign_name: input.campaign_name,
+        spend: input.spend,
+        clicks: input.clicks ?? 0,
+        log_date: input.log_date ?? new Date().toISOString().slice(0, 10),
+        created_at: new Date().toISOString(),
+      }
+
+      queryClient.setQueryData<AdSpendLog[]>(erpKeys.adSpend(input.client_id), (old = []) => [
+        optimisticLog,
+        ...(Array.isArray(old) ? old : []),
+      ])
+
+      return { previousLogs, clientId: input.client_id }
+    },
+    onError: (err: unknown, _vars, context) => {
+      if (context?.previousLogs) {
+        queryClient.setQueryData(erpKeys.adSpend(context.clientId), context.previousLogs)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal mencatat log ad spend")
+    },
     onSuccess: (res) => {
       if (res.success) {
         toast.success("Log ad spend berhasil dicatat!")
-        void queryClient.invalidateQueries({ queryKey: erpKeys.all })
       } else {
         toast.error(res.error || "Gagal mencatat ad spend")
       }
     },
-    onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan")
+    onSettled: (_data, _err, variables) => {
+      void queryClient.invalidateQueries({ queryKey: erpKeys.adSpend(variables.client_id) })
     },
   })
 }

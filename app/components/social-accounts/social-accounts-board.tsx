@@ -151,16 +151,13 @@ export function ClientChannelsBoard() {
 
   const handleRefreshOne = React.useCallback((account: ClientChannel) => {
     setSyncing(true)
-    syncMutation.mutate(account.id, {
-      onSuccess: () => {
-        setSyncing(false)
-        toast.success(`Refreshed ${account.handle || account.platform}`)
-      },
-      onError: (err) => {
-        setSyncing(false)
-        toast.error(`Failed to refresh: ${err.message}`)
-      },
+    const promise = syncMutation.mutateAsync(account.id)
+    toast.promise(promise, {
+      loading: `Refreshing ${account.handle || account.platform}...`,
+      success: `Refreshed ${account.handle || account.platform}`,
+      error: (err: unknown) => `Failed to refresh: ${err instanceof Error ? err.message : "Network error"}`,
     })
+    promise.finally(() => setSyncing(false))
   }, [syncMutation])
 
   const handleReconnect = React.useCallback((account: ClientChannel) => {

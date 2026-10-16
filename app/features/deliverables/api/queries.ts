@@ -14,6 +14,7 @@ import type {
   SubmitDeliverableReviewInput,
   ScheduleDeliverableInput,
 } from "./schema"
+import type { Deliverable } from "./types"
 import { skillKeys } from "@/features/skills/api/queries"
 import { postKeys } from "@/features/scheduled-posts/api/queries"
 
@@ -54,22 +55,23 @@ export function usePromoteSkillOutputToDeliverable() {
 
   return useMutation({
     mutationFn: (input: PromoteSkillOutputInput) => promoteSkillOutputToDeliverable(input),
-    onSuccess: (res) => {
+    onSuccess: (res, vars) => {
       if (res.success) {
         toast.success("Dokumen Berhasil Dikirim ke Client!", {
           description: `Deliverable "${res.deliverable?.title}" siap ditinjau klien.`,
         })
-        queryClient.invalidateQueries({ queryKey: deliverableKeys.all })
-        queryClient.invalidateQueries({ queryKey: skillKeys.all })
+        queryClient.invalidateQueries({ queryKey: deliverableKeys.byClient(vars.clientId) })
+        queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
+        queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
       } else {
         toast.error("Gagal mengirim dokumen ke client", {
           description: res.error,
         })
       }
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       toast.error("Gagal mengirim ke client", {
-        description: err.message,
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       })
     },
   })
@@ -80,6 +82,34 @@ export function useUpdateDeliverableStatus() {
 
   return useMutation({
     mutationFn: (input: UpdateDeliverableStatusInput) => updateDeliverableStatus(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: deliverableKeys.byClient(input.clientId) })
+      const previousDeliverables = queryClient.getQueryData<Deliverable[]>(deliverableKeys.byClient(input.clientId))
+
+      if (previousDeliverables) {
+        queryClient.setQueryData<Deliverable[]>(
+          deliverableKeys.byClient(input.clientId),
+          previousDeliverables.map((d) =>
+            d.id === input.deliverableId
+              ? {
+                  ...d,
+                  status: input.status,
+                  updated_at: new Date().toISOString(),
+                  approved_at: input.status === "approved" ? new Date().toISOString() : d.approved_at,
+                }
+              : d
+          )
+        )
+      }
+
+      return { previousDeliverables, clientId: input.clientId }
+    },
+    onError: (err: unknown, _vars, context) => {
+      if (context?.previousDeliverables) {
+        queryClient.setQueryData(deliverableKeys.byClient(context.clientId), context.previousDeliverables)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal mengubah status")
+    },
     onSuccess: (res, vars) => {
       if (res.success) {
         const actionLabel =
@@ -90,18 +120,16 @@ export function useUpdateDeliverableStatus() {
             : "Status deliverable diperbarui."
 
         toast.success(actionLabel)
-        queryClient.invalidateQueries({ queryKey: deliverableKeys.all })
-        queryClient.invalidateQueries({ queryKey: skillKeys.all })
       } else {
         toast.error("Gagal mengubah status", {
           description: res.error,
         })
       }
     },
-    onError: (err: any) => {
-      toast.error("Gagal mengubah status", {
-        description: err.message,
-      })
+    onSettled: (_data, _err, vars) => {
+      void queryClient.invalidateQueries({ queryKey: deliverableKeys.byClient(vars.clientId) })
+      void queryClient.invalidateQueries({ queryKey: deliverableKeys.detail(vars.deliverableId) })
+      void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
     },
   })
 }
@@ -128,9 +156,9 @@ export function useSubmitDeliverableReview() {
         })
       }
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       toast.error("Gagal mengirim ulasan", {
-        description: err.message,
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       })
     },
   })
@@ -148,18 +176,18 @@ export function useScheduleApprovedDeliverable() {
             vars.scheduledAt
           ).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}.`,
         })
-        queryClient.invalidateQueries({ queryKey: deliverableKeys.all })
+        queryClient.invalidateQueries({ queryKey: deliverableKeys.byClient(vars.clientId) })
         queryClient.invalidateQueries({ queryKey: deliverableKeys.detail(vars.deliverableId) })
-        queryClient.invalidateQueries({ queryKey: postKeys.all })
+        queryClient.invalidateQueries({ queryKey: postKeys.list(vars.clientId) })
       } else {
         toast.error("Gagal menjadwalkan postingan", {
           description: res.error,
         })
       }
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       toast.error("Gagal menjadwalkan postingan", {
-        description: err.message,
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       })
     },
   })

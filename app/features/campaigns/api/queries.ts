@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { getCampaigns, createCampaign, updateCampaign, deleteCampaign } from "./service"
 import type { CreateCampaignInput, UpdateCampaignInput } from "./types"
 
@@ -43,10 +44,16 @@ export function useCreateCampaign() {
       )
       return { previousData, clientId: input.client_id }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(campaignKeys.byClient(context.clientId), context.previousData)
       }
+      toast.error(err instanceof Error ? err.message : "Gagal membuat kampanye")
+    },
+    onSuccess: (res) => {
+      toast.success("Kampanye berhasil dibuat!", {
+        description: `Kampanye "${res.name}" berhasil ditambahkan.`,
+      })
     },
     onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.byClient(variables.client_id) })
@@ -68,12 +75,18 @@ export function useUpdateCampaign() {
       })
       return { previousData }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
         })
       }
+      toast.error(err instanceof Error ? err.message : "Gagal memperbarui kampanye")
+    },
+    onSuccess: (res) => {
+      toast.success("Kampanye berhasil diperbarui!", {
+        description: `Perubahan pada "${res.name}" disimpan.`,
+      })
     },
     onSettled: (data) => {
       if (data?.client_id) {
@@ -98,12 +111,16 @@ export function useDeleteCampaign() {
       })
       return { previousData }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
         })
       }
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus kampanye")
+    },
+    onSuccess: () => {
+      toast.success("Kampanye berhasil dihapus.")
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.all })

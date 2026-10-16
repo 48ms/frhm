@@ -98,18 +98,22 @@ export function ScheduleDeliverableDialog({
       return;
     }
 
-    await scheduleMutation.mutateAsync({
-      deliverableId: deliverable.id,
-      clientId,
-      platform,
-      scheduledAt: scheduledDate.toISOString(),
-      customTitle: title.trim(),
-      customContent: content.trim(),
-      mediaUrl: mediaUrl.trim() || undefined,
-      campaignTag: campaignTag.trim() || undefined,
-    });
+    try {
+      await scheduleMutation.mutateAsync({
+        deliverableId: deliverable.id,
+        clientId,
+        platform,
+        scheduledAt: scheduledDate.toISOString(),
+        customTitle: title.trim(),
+        customContent: content.trim(),
+        mediaUrl: mediaUrl.trim() || undefined,
+        campaignTag: campaignTag.trim() || undefined,
+      });
 
-    onOpenChange(false);
+      onOpenChange(false);
+    } catch {
+      // Handled by scheduleMutation's onError toast
+    }
   };
 
   return (

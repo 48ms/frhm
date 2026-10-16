@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { 
   getScheduledPostsByClient,
   getAllScheduledPosts,
@@ -64,10 +65,11 @@ export function useCreateScheduledPost() {
       ])
       return { previousPosts, clientId: input.client_id }
     },
-    onError: (_, __, context) => {
+    onError: (err: unknown, __, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postKeys.list(context.clientId), context.previousPosts)
       }
+      toast.error(err instanceof Error ? err.message : "Gagal membuat postingan")
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.client_id) })
@@ -107,10 +109,11 @@ export function useUpdateScheduledPost() {
       )
       return { previousPosts, clientId }
     },
-    onError: (_, variables, context) => {
+    onError: (err: unknown, variables, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postKeys.list(variables.clientId), context.previousPosts)
       }
+      toast.error(err instanceof Error ? err.message : "Gagal memperbarui postingan")
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
@@ -129,10 +132,13 @@ export function useDeleteScheduledPost() {
       queryClient.setQueryData(postKeys.list(clientId), (old: any[]) => 
         old?.filter((p) => p.id !== id)
       )
-      return { previousPosts }
+      return { previousPosts, clientId }
     },
-    onError: (_, variables, context) => {
-      queryClient.setQueryData(postKeys.list(variables.clientId), context?.previousPosts)
+    onError: (err: unknown, variables, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(postKeys.list(variables.clientId), context.previousPosts)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus postingan")
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })

@@ -84,8 +84,7 @@ export function CreateDeliverableDialog({
         onOpenChange(false)
         form.reset()
       } catch (err: unknown) {
-        toast.error("Gagal membuat deliverable.")
-        console.error(err)
+        toast.error(err instanceof Error ? err.message : "Gagal membuat deliverable.")
       }
     },
   })

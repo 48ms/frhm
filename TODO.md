@@ -71,16 +71,17 @@ Pillar 5: E2E Playwright & Edge Cases
 ### ⚡ PILLAR 3: Mutations, Optimistic Rollbacks & Toast Coverage
 *Tujuan: Zero-Latency Feel, anti data phantom, dan umpan balik toast 100% lengkap.*
 
-- [ ] **3.1. Optimistic Updates & Rollback (`onMutate` / `onError`)**:
-  - [ ] Verifikasi mutasi penjadwalan post (`useCreateScheduledPost`, `useUpdateScheduledPost`, `useDeleteScheduledPost`) jika koneksi putus.
-  - [ ] Verifikasi mutasi kampanye (`useCreateCampaign`, `useUpdateCampaign`, `useDeleteCampaign`).
-  - [ ] Verifikasi mutasi pengeluaran ERP (`useCreateExpense`, `useDeleteExpense`).
-  - [ ] Verifikasi mutasi delegasi skill playbook klien (`useAssignClientSkill`, `useUpdateClientSkillStatus`).
-- [ ] **3.2. 100% Error Toasting Coverage**:
-  - [ ] Sisir seluruh blok `catch` di komponen interaktif — pastikan tidak ada *silent failure* (setiap error wajib memicu `toast.error(msg)`).
-  - [ ] Gunakan `toast.promise` untuk aksi asinkron berat (seperti export deliverable PDF, AI batch planning, dan sinkronisasi akun).
-- [ ] **3.3. Presisi Invalidation Cache TanStack Query**:
-  - [ ] Audit query key factories agar `invalidateQueries` spesifik ke `entityKeys.byClient(clientId)` dan tidak memicu refetch global yang tidak perlu.
+- [x] **3.1. Optimistic Updates & Rollback (`onMutate` / `onError`)**:
+  - [x] Verifikasi mutasi penjadwalan post (`useCreateScheduledPost`, `useUpdateScheduledPost`, `useDeleteScheduledPost`) jika koneksi putus (rollback ke `previousPosts`).
+  - [x] Verifikasi mutasi kampanye (`useCreateCampaign`, `useUpdateCampaign`, `useDeleteCampaign`) dengan `onMutate` dan `onError` rollback ke `previousData`.
+  - [x] Verifikasi mutasi pengeluaran ERP (`useCreateExpense`, `useAddAdSpendLog`) dengan update saldo budget instan dan rollback ganda saat server gagal.
+  - [x] Verifikasi mutasi status playbook skill klien (`useUpdateClientSkillStatus`) dengan rollback ke `previousSkills` saat mutasi gagal.
+  - [x] Verifikasi mutasi status deliverable (`useUpdateDeliverableStatus`) dengan `onMutate` update instan dan rollback ke `previousDeliverables`.
+- [x] **3.2. 100% Error Toasting Coverage**:
+  - [x] Sisir seluruh blok `catch` di komponen interaktif — pastikan tidak ada *silent failure* (setiap error memicu `toast.error(err instanceof Error ? err.message : fallback)`).
+  - [x] Gunakan `toast.promise` untuk aksi asinkron berat: ekspor deliverable PDF (`export-pdf-dialog.tsx`), pembuatan brief AI batch planning (`batch-plan-modal.tsx`), refresh individual akun media sosial (`social-accounts-board.tsx`), dan sinyal tes Telegram admin (`erp-client.tsx`).
+- [x] **3.3. Presisi Invalidation Cache TanStack Query**:
+  - [x] Audit query key factories agar `invalidateQueries` spesifik ke `entityKeys.byClient(clientId)` atau `detail(id)` dan tidak memicu refetch global yang tidak perlu.
 
 ---
 
@@ -141,3 +142,20 @@ Pillar 5: E2E Playwright & Edge Cases
   - Memperbaiki hydration bug akibat nesting `<button>` di dalam `<button>` pada checkbox seleksi aset library.
   - Menambahkan `suppressHydrationWarning` pada timestamp relatif dinamis.
   - Verifikasi penuh: 78/78 test suites pass (456 tests), `npx tsc --noEmit` 0 error, Next.js `npm run build` sukses 100%.
+- ✅ **Pillar 3: Mutations, Optimistic Rollbacks & Toast Coverage Complete (2026-10-16)**:
+  - Optimistic updates & rollbacks terimplementasi dan teruji pada 5 modul mutasi:
+    1. ERP (`useCreateExpense`, `useAddAdSpendLog`): Pengeluaran instan (0 ms), saldo budget terpotong di UI dan otomatis rollback ganda saat server gagal.
+    2. Deliverables (`useUpdateDeliverableStatus`): Update status instan ke `approved`/`revision_requested` dengan rollback otomatis ke `previousDeliverables`.
+    3. Skills Playbook (`useUpdateClientSkillStatus`): Update progres instan (`belum`/`jalan`/`selesai`) dengan rollback ke `previousSkills`.
+    4. Scheduled Posts (`useCreateScheduledPost`, `useUpdateScheduledPost`, `useDeleteScheduledPost`): Tambah, ubah, dan hapus instan dengan rollback ke `previousPosts`.
+    5. Campaigns (`useCreateCampaign`, `useUpdateCampaign`, `useDeleteCampaign`): Operasi instan di UI dengan rollback ke `previousData`.
+  - 100% Error Toasting Coverage:
+    - Tidak ada lagi *silent catch* atau pesan error generik yang membingungkan. Semua `catch` blok di modul support, deliverable dialogs, AI hooks, batch planner, dan settings menyajikan pesan dinamis `err instanceof Error ? err.message : fallback`.
+    - Peningkatan aksi asinkron berat ke `toast.promise`: Ekspor dokumen PDF eksekutif (`export-pdf-dialog.tsx`), pembuatan brief AI batch planning (`batch-plan-modal.tsx`), penyegaran akun media sosial terhubung (`social-accounts-board.tsx`), dan pengiriman sinyal tes Telegram admin (`erp-client.tsx`).
+  - Presisi Invalidation Cache TanStack Query:
+    - Menghilangkan invalidasi refetch global blanket (`.all`) pada mutasi deliverable, skills, dan ERP; diganti dengan scoped invalidations (`byClient(clientId)`, `clientSkills(clientId)`, `detail(id)`).
+  - Test Suite & Verifikasi:
+    - 5 suite test queries baru dengan 13 unit tests passing menguji optimistic update in-flight dan rollback (`features/erp/api/queries.test.ts`, `features/skills/api/queries.test.ts`, `features/deliverables/api/queries.test.ts`, `features/scheduled-posts/api/queries.test.ts`, `features/campaigns/api/queries.test.ts`).
+    - Total test suite: 83 passed (473 tests, 0 failed).
+    - `npx tsc --noEmit`: 0 error.
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.

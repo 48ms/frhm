@@ -109,8 +109,8 @@ export function BatchPlanModal({
       } else {
         toast.error("Gagal mendapatkan posts dari AI.")
       }
-    } catch {
-      toast.error("Gagal men-generate batch plan.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal men-generate batch plan.")
     }
   }
 
@@ -162,9 +162,9 @@ export function BatchPlanModal({
       setStep("config")
       setGeneratedPosts([])
       setIsOpen(false)
-    } catch {
+    } catch (err: unknown) {
       toast.dismiss(toastId)
-      toast.error("Terjadi kesalahan saat menyimpan post.")
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan post.")
     } finally {
       setIsSaving(false)
     }
@@ -179,7 +179,7 @@ export function BatchPlanModal({
     }
 
     setIsExportingDeliverable(true)
-    try {
+    const exportPromise = (async () => {
       const briefContentMd = `# Brief Batch Plan: ${period.toUpperCase()}\n\n` +
         `**Goal Kampanye:**\n${goals}\n\n` +
         `**Daftar Konten Terencana (${selected.length} Post):**\n\n` +
@@ -199,11 +199,18 @@ export function BatchPlanModal({
       })
 
       queryClient.invalidateQueries({ queryKey: deliverableQueries.listByClient(clientId).queryKey })
-      toast.success("Deliverable Brief Berhasil Dibuat!", {
-        description: "Tersimpan di modul ERP Deliverables untuk direview dan disetujui klien.",
-      })
+    })()
+
+    toast.promise(exportPromise, {
+      loading: "Membuat dokumen deliverable brief...",
+      success: "Deliverable Brief Berhasil Dibuat! Tersimpan di modul ERP Deliverables.",
+      error: (err: unknown) => (err instanceof Error ? err.message : "Gagal membuat deliverable brief."),
+    })
+
+    try {
+      await exportPromise
     } catch {
-      toast.error("Gagal membuat deliverable brief.")
+      // Handled by toast.promise
     } finally {
       setIsExportingDeliverable(false)
     }

@@ -69,7 +69,7 @@ export function ExportPdfDialog({
     if (!deliverable) return
     setIsGenerating(true)
 
-    try {
+    const generatePromise = (async () => {
       const { buildDeliverablePdfBlob } = await import("@/lib/pdf/deliverable-pdf")
 
       const blob = await buildDeliverablePdfBlob({
@@ -92,7 +92,6 @@ export function ExportPdfDialog({
 
       if (action === "preview") {
         window.open(blobUrl, "_blank")
-        toast.success("Pratinjau PDF dibuka di tab baru.")
       } else {
         const link = document.createElement("a")
         link.href = blobUrl
@@ -100,14 +99,22 @@ export function ExportPdfDialog({
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
-        toast.success("Dokumen PDF berhasil diunduh.", {
-          description: `Disimpan sebagai ${fileName}`,
-        })
         onOpenChange(false)
       }
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Gagal memproses dokumen PDF."
-      toast.error(errorMsg)
+      return fileName
+    })()
+
+    toast.promise(generatePromise, {
+      loading: action === "preview" ? "Menyiapkan pratinjau dokumen PDF..." : "Menyusun dan mengunduh dokumen PDF...",
+      success: (fileName) =>
+        action === "preview" ? "Pratinjau PDF dibuka di tab baru." : `Dokumen PDF berhasil diunduh (${fileName}).`,
+      error: (err: unknown) => (err instanceof Error ? err.message : "Gagal memproses dokumen PDF."),
+    })
+
+    try {
+      await generatePromise
+    } catch {
+      // Handled by toast.promise
     } finally {
       setIsGenerating(false)
     }

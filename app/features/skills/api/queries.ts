@@ -18,6 +18,7 @@ import {
 import type {
   SkillFilters,
   ClientSkillStatus,
+  ClientSkill,
   SaveSkillOutputInput,
   SkillChatTurn,
   ExecuteGenericSkillInput,
@@ -105,7 +106,7 @@ export function useAssignPackToClient() {
   })
 }
 
-/** Mutasi update status skill klien */
+/** Mutasi update status skill klien dengan Optimistic Updates (Aturan #16) */
 export function useUpdateClientSkillStatus() {
   const queryClient = useQueryClient()
 
@@ -121,8 +122,43 @@ export function useUpdateClientSkillStatus() {
       status: ClientSkillStatus
       notes?: string
     }) => updateClientSkillStatus(clientId, skillId, status, notes),
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
+    onMutate: async ({ clientId, skillId, status, notes }) => {
+      await queryClient.cancelQueries({ queryKey: skillKeys.clientSkills(clientId) })
+      const previousSkills = queryClient.getQueryData<ClientSkill[]>(skillKeys.clientSkills(clientId))
+
+      if (previousSkills) {
+        queryClient.setQueryData<ClientSkill[]>(
+          skillKeys.clientSkills(clientId),
+          previousSkills.map((s) =>
+            s.skill_id === skillId
+              ? {
+                  ...s,
+                  status,
+                  notes: notes !== undefined ? notes : s.notes,
+                  updated_at: new Date().toISOString(),
+                }
+              : s
+          )
+        )
+      }
+
+      return { previousSkills, clientId }
+    },
+    onError: (err: unknown, _vars, context) => {
+      if (context?.previousSkills) {
+        queryClient.setQueryData(skillKeys.clientSkills(context.clientId), context.previousSkills)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal memperbarui status playbook")
+    },
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Status playbook berhasil diperbarui!")
+      } else {
+        toast.error(res.error || "Gagal memperbarui status playbook")
+      }
+    },
+    onSettled: (_data, _err, vars) => {
+      void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
     },
   })
 }
