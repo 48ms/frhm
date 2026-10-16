@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useQueryStates } from "nuqs"
 import { librarySearchParams, serializeCalendarParams } from "@/lib/searchparams"
 import { Input } from "@/components/ui/input"
@@ -51,6 +51,8 @@ import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ti
 
 export function LibraryClient() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isClientPortal = pathname?.startsWith("/client") ?? false
   const { clientId, client: activeClient } = useActiveDashboard()
   const [libraryState, setLibraryState] = useQueryStates(
     {
@@ -297,8 +299,12 @@ export function LibraryClient() {
 
   return (
     <PageContainer
-      pageTitle="Media Library"
-      pageDescription={`Aset media untuk ${activeClient.name}. File diupload ke Cloudinary dan tersimpan di storage client ini.`}
+      pageTitle={isClientPortal ? "Brand Media Assets" : "Media Library"}
+      pageDescription={
+        isClientPortal
+          ? `Gudang penyimpanan foto dan video promosi resmi untuk ${activeClient.name}. Anda dapat mengunduh materi resolusi penuh kapan pun diperlukan.`
+          : `Aset media untuk ${activeClient.name}. File diupload ke Cloudinary dan tersimpan di storage client ini.`
+      }
     >
       {/* Upload Zone */}
       <div className="rounded-xl border border-dashed border-border p-6">
@@ -412,15 +418,17 @@ export function LibraryClient() {
           >
             <Icons.tag className="size-3.5" /> Tag
           </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => void handleBatchDelete()}
-            disabled={batchBusy}
-            className="gap-1 text-xs"
-          >
-            <Icons.trash className="size-3.5" /> Hapus
-          </Button>
+          {!isClientPortal && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => void handleBatchDelete()}
+              disabled={batchBusy}
+              className="gap-1 text-xs"
+            >
+              <Icons.trash className="size-3.5" /> Hapus
+            </Button>
+          )}
           {tagOpen && (
             <div className="flex items-center gap-2 ml-2">
               <input
@@ -640,55 +648,79 @@ export function LibraryClient() {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2 mt-2">
-                  <Button
-                    className="gap-2 w-full"
-                    onClick={() => {
-                      router.push(
-                        `/admin/calendar${serializeCalendarParams({
-                          clientId,
-                          mediaUrl: previewAsset.url,
-                          caption: caption || undefined,
-                          new: "1",
-                        })}`
-                      )
-                    }}
-                  >
-                    <Icons.calendar className="size-4" /> Jadwalkan dengan aset ini
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="gap-2 w-full"
-                    onClick={() => {
-                      const contentQuery = caption ? `&content=${encodeURIComponent(caption)}` : ""
-                      router.push(
-                        `/admin/composer?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}${contentQuery}`
-                      )
-                    }}
-                  >
-                    <Icons.send className="size-4" /> Buka di Composer
-                  </Button>
-                  <a
-                    href={previewAsset.url}
-                    download
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline" }), "gap-2 w-full")}
-                  >
-                    <Icons.download className="size-4" /> Download
-                  </a>
-                  <Button
-                    variant="destructive"
-                    className="gap-2 w-full"
-                    disabled={deletingId === previewAsset.id}
-                    onClick={() => {
-                      void handleDelete(previewAsset.id)
-                      setPreviewAsset(null)
-                    }}
-                  >
-                    <Icons.trash className="size-4" /> Hapus aset
-                  </Button>
-                </div>
+                {isClientPortal ? (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <a
+                      href={previewAsset.url}
+                      download
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cn(buttonVariants({ variant: "default" }), "gap-2 w-full font-semibold text-xs")}
+                    >
+                      <Icons.download className="size-4" /> Download Aset Resolusi Penuh
+                    </a>
+                    <Button
+                      variant="outline"
+                      className="gap-2 w-full text-xs font-semibold"
+                      onClick={() => {
+                        setPreviewAsset(null)
+                        router.push(`/client/support?clientId=${clientId}`)
+                      }}
+                    >
+                      <Icons.chat className="size-4 text-primary" /> Request Materi Tambahan
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <Button
+                      className="gap-2 w-full"
+                      onClick={() => {
+                        router.push(
+                          `/admin/calendar${serializeCalendarParams({
+                            clientId,
+                            mediaUrl: previewAsset.url,
+                            caption: caption || undefined,
+                            new: "1",
+                          })}`
+                        )
+                      }}
+                    >
+                      <Icons.calendar className="size-4" /> Jadwalkan dengan aset ini
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2 w-full"
+                      onClick={() => {
+                        const contentQuery = caption ? `&content=${encodeURIComponent(caption)}` : ""
+                        router.push(
+                          `/admin/composer?clientId=${clientId}&mediaUrl=${encodeURIComponent(previewAsset.url)}${contentQuery}`
+                        )
+                      }}
+                    >
+                      <Icons.send className="size-4" /> Buka di Composer
+                    </Button>
+                    <a
+                      href={previewAsset.url}
+                      download
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cn(buttonVariants({ variant: "outline" }), "gap-2 w-full")}
+                    >
+                      <Icons.download className="size-4" /> Download
+                    </a>
+                    <Button
+                      variant="destructive"
+                      className="gap-2 w-full"
+                      disabled={deletingId === previewAsset.id}
+                      onClick={() => {
+                        void handleDelete(previewAsset.id)
+                        setPreviewAsset(null)
+                      }}
+                    >
+                      <Icons.trash className="size-4" /> Hapus aset
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}

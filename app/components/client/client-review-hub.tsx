@@ -2,9 +2,12 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useQueryStates } from "nuqs"
+import { clientReviewSearchParams } from "@/lib/searchparams"
 import { deliverableQueries, useUpdateDeliverableStatus } from "@/features/deliverables/api/queries"
 import { PageContainer } from "@/components/layout/page-container"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
+import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { Icons } from "@/components/icons"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -27,7 +30,7 @@ interface ClientReviewHubProps {
 
 export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
   const { data: deliverables = [], isLoading } = useQuery(deliverableQueries.listByClient(clientId))
-  const [filter, setFilter] = React.useState<"all" | "sent" | "revision_requested" | "approved">("all")
+  const [{ status: filter }, setReviewState] = useQueryStates(clientReviewSearchParams, { shallow: true })
   const [revisionItem, setRevisionItem] = React.useState<Deliverable | null>(null)
   const [revisionNotes, setRevisionNotes] = React.useState("")
 
@@ -75,19 +78,23 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
     >
       {/* Status Filter Tabs */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <Tabs value={filter} onValueChange={(val) => setFilter(val as typeof filter)}>
+        <Tabs value={filter} onValueChange={(val) => void setReviewState({ status: val as any })}>
           <TabsList aria-label="Deliverable filter tabs" className="h-auto p-1 bg-muted/60 rounded-full border border-border/30">
-            <TabsTrigger value="all" className="rounded-full text-xs font-semibold px-4 py-2">
-              Semua ({deliverables.length})
+            <TabsTrigger value="all" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+              <span>Semua</span>
+              <span className="opacity-80">(<MetricTicker value={deliverables.length} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="sent" className="rounded-full text-xs font-semibold px-4 py-2">
-              Menunggu Review ({pendingCount})
+            <TabsTrigger value="sent" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+              <span>Menunggu Review</span>
+              <span className="opacity-80">(<MetricTicker value={pendingCount} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="revision_requested" className="rounded-full text-xs font-semibold px-4 py-2">
-              Perlu Revisi ({revisionCount})
+            <TabsTrigger value="revision_requested" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+              <span>Perlu Revisi</span>
+              <span className="opacity-80">(<MetricTicker value={revisionCount} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="approved" className="rounded-full text-xs font-semibold px-4 py-2">
-              Disetujui ({approvedCount})
+            <TabsTrigger value="approved" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+              <span>Disetujui</span>
+              <span className="opacity-80">(<MetricTicker value={approvedCount} />)</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>

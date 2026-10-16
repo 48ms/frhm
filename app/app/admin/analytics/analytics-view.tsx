@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -42,6 +43,8 @@ function getCampaignStatus(c: { start_date: string | null; end_date: string | nu
 }
 
 export function AnalyticsView() {
+  const pathname = usePathname()
+  const isClientPortal = pathname?.startsWith("/client") ?? false
   // Klien aktif factual dari DB (useActiveDashboard) — sumber clientId URL.
   const { clientId, client: activeClient, clients } = useActiveDashboard()
 
@@ -399,11 +402,11 @@ export function AnalyticsView() {
                             </p>
                           </div>
                           <Link
-                            href={`/admin/composer`}
+                            href={isClientPortal ? `/client/support?clientId=${clientId}` : `/admin/composer`}
                             className="shrink-0 text-primary hover:underline text-2xs font-semibold flex items-center gap-0.5"
-                            title="Buat di Composer"
+                            title={isClientPortal ? "Ajukan Permintaan Konten" : "Buat di Composer"}
                           >
-                            <span>Composer</span>
+                            <span>{isClientPortal ? "Request" : "Composer"}</span>
                             <Icons.arrowRight className="size-3" />
                           </Link>
                         </div>

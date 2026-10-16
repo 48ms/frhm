@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { ThemeSelector } from "@/components/theme-selector"
@@ -12,12 +13,14 @@ interface ClientHeaderProps {
   clientName: string
   clientId: string
   userName: string
+  isAdmin?: boolean
 }
 
 export function ClientHeader({
   clientName,
   clientId,
   userName,
+  isAdmin,
 }: ClientHeaderProps) {
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 px-4 w-full md:h-14 md:px-6 border-b border-border/40 bg-background/85 backdrop-blur-xl">
@@ -33,7 +36,21 @@ export function ClientHeader({
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        <a
+        {isAdmin && (
+          <Link
+            href="/admin/dashboard"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "items-center gap-1.5 text-xs font-bold rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+            )}
+            title="Kembali ke Admin Studio"
+          >
+            <Icons.arrowLeft className="size-3.5" />
+            <span className="hidden sm:inline">Admin Studio</span>
+          </Link>
+        )}
+
+        <Link
           href={`/client/review?clientId=${clientId}`}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
@@ -42,9 +59,9 @@ export function ClientHeader({
         >
           <Icons.layers className="size-3.5 text-primary" />
           <span>Review Deliverable</span>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href={`/client/support?clientId=${clientId}`}
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
@@ -53,7 +70,7 @@ export function ClientHeader({
         >
           <Icons.message className="size-3.5" />
           <span>Hotline Support</span>
-        </a>
+        </Link>
 
         <ThemeSelector />
       </div>

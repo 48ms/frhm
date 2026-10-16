@@ -103,6 +103,7 @@ export default async function ClientLayout({
               clientName={clientInfo.name}
               clientId={clientInfo.id}
               userName={userInfo.name}
+              isAdmin={identity.role === "admin"}
             />
             <main
               data-slot="client-main"

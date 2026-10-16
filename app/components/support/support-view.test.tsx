@@ -40,10 +40,10 @@ describe("SupportView", () => {
 
   it("renders support channels and empty tickets state", async () => {
     renderWithProviders(<SupportView />)
-    expect(screen.getByText("Support Center")).toBeInTheDocument()
-    expect(screen.getByText("Email Support")).toBeInTheDocument()
-    expect(screen.getByText("Priority Live Chat")).toBeInTheDocument()
-    expect(screen.getByText("Knowledge Base")).toBeInTheDocument()
+    expect(screen.getByText("Hotline Dukungan & Kemitraan")).toBeInTheDocument()
+    expect(screen.getByText("Email Resmi Agensi")).toBeInTheDocument()
+    expect(screen.getByText("Hotline Telegram Instan")).toBeInTheDocument()
+    expect(screen.getByText("SLA Tanggapan Tim")).toBeInTheDocument()
     expect(await screen.findByText("Belum ada tiket")).toBeInTheDocument()
   })
 })

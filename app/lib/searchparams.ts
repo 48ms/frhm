@@ -156,3 +156,16 @@ export const clientsSearchParams = {
 export const clientsParamsCache = createSearchParamsCache(clientsSearchParams)
 export const serializeClientsParams = createSerializer(clientsSearchParams)
 
+// -------------------------------------------------------------
+// 10. Client Review Hub (/client/review)
+// -------------------------------------------------------------
+export const CLIENT_REVIEW_STATUSES = ["all", "sent", "revision_requested", "approved"] as const
+
+export const clientReviewSearchParams = {
+  clientId: parseAsString.withDefault(""),
+  status: parseAsStringEnum([...CLIENT_REVIEW_STATUSES]).withDefault("all"),
+}
+
+export const clientReviewParamsCache = createSearchParamsCache(clientReviewSearchParams)
+export const serializeClientReviewParams = createSerializer(clientReviewSearchParams)
+

@@ -8,6 +8,7 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     replace: vi.fn(),
   }),
+  usePathname: () => "/admin/library",
 }))
 
 vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({

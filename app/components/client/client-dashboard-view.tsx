@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { deliverableQueries } from "@/features/deliverables/api/queries"
@@ -148,12 +149,12 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
               <h3 className="font-bold text-base text-foreground">Postingan Tayang Terdekat</h3>
               <p className="text-xs text-muted-foreground">Jadwal publikasi multi-platform dalam waktu dekat</p>
             </div>
-            <a
+            <Link
               href={`/client/calendar?clientId=${clientId}`}
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold")}
             >
               Lihat Semua Kalender
-            </a>
+            </Link>
           </div>
 
           {upcomingPosts.length === 0 ? (
@@ -206,7 +207,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
           </div>
 
           <div className="space-y-2 pt-4 border-t border-border/30">
-            <a
+            <Link
               href={`/client/support?clientId=${clientId}`}
               className={cn(
                 buttonVariants({ variant: "default" }),
@@ -215,7 +216,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
             >
               <Icons.message className="size-4 mr-2" />
               <span>Buat Tiket Dukungan</span>
-            </a>
+            </Link>
             <p className="text-2xs text-center text-muted-foreground">
               Respon cepat terhubung ke notifikasi Telegram Admin Frhm
             </p>

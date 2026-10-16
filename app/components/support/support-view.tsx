@@ -76,54 +76,52 @@ function formatDate(iso: string): string {
 
 const FAQS = [
   {
-    q: "How do I connect a new social channel to a client workspace?",
-    a: "Open Social Accounts, select the active client from the top bar, then use Connect Channel to authorize Instagram, TikTok, or Facebook. The OAuth token is stored per client and auto-renews before expiry.",
+    q: "Bagaimana alur peninjauan dan persetujuan materi promosi?",
+    a: "Buka menu 'Deliverables & Review'. Di sana Anda dapat melihat draf materi, memberikan persetujuan dengan tombol 'Setujui', atau meminta revisi dengan menuliskan catatan spesifik pada slide atau desain terkait.",
   },
   {
-    q: "Why is a scheduled post stuck in the approval gate?",
-    a: "The Strict Client Approval Gate blocks publishing until the client signs off in their review portal. Check the Content Calendar for the pending badge and nudge the reviewer, or disable the gate in Settings → Workspace if your workflow allows it.",
+    q: "Berapa lama estimasi waktu revisi diproses oleh tim Frhm?",
+    a: "Untuk revisi minor (seperti penyesuaian copywriting, font, atau warna), tim kami menyelesaikannya dalam 1x24 jam kerja. Untuk revisi konsep besar, tim lead kreatif kami akan berkoordinasi langsung dengan Anda.",
   },
   {
-    q: "How do I rotate a compromised webhook signing secret?",
-    a: "Go to Settings → Integrations → Webhook Signing & Cryptographic Keys, then rotate the key from your middleware. Never expose the secret in client-side code; rotate immediately if it leaks.",
+    q: "Bagaimana jika ada event atau peluncuran produk mendadak yang butuh konten segera?",
+    a: "Ajukan tiket dukungan melalui form di samping dengan prioritas 'Urgent'. Notifikasi darurat akan langsung berbunyi di bot Telegram admin utama Frhm untuk diprioritaskan saat itu juga.",
   },
   {
-    q: "Can I invite a client as a read-only reviewer?",
-    a: "Yes. In Settings → User Access, invite them with the Client Guest Reviewer role. They get approval-gate access only and cannot publish or edit campaign assets.",
+    q: "Bagaimana cara mengunduh materi desain dan video resolusi tinggi?",
+    a: "Kunjungi menu 'Brand Assets' pada sidebar. Semua aset gambar dan video beresolusi penuh dapat diunduh langsung untuk kebutuhan internal promosi atau arsip brand Anda.",
   },
   {
-    q: "What happens when I hit my API webhook quota?",
-    a: "Dispatches queue for up to 24 hours at the 85% soft threshold and pause at 100%. Upgrade the quota from Settings → Billing, or batch low-priority triggers to stay under the limit.",
+    q: "Kapan konten sosial media yang telah disetujui akan dipublikasikan?",
+    a: "Setelah materi berstatus 'Approved' (Disetujui), tim Frhm akan mengunci jadwalnya di kalender multi-platform dan postingan akan otomatis tayang sesuai tanggal & jam yang tertera.",
   },
 ]
 
 const CHANNELS = [
   {
     Icon: Icons.mail,
-    iconClass: "bg-brand-blue/10 text-brand-blue dark:text-brand-blue",
-    title: "Email Support",
-    desc: "support@frhm.agency",
-    meta: "Send us the details",
-    action: "Send Email",
-    href: "mailto:support@frhm.agency",
+    iconClass: "bg-primary/10 text-primary",
+    title: "Email Resmi Agensi",
+    desc: "halo@frhm.dev",
+    meta: "Kirim dokumen atau aset",
+    action: "Kirim Email",
+    href: "mailto:halo@frhm.dev",
   },
   {
     Icon: Icons.chat,
     iconClass: "bg-brand-accent/10 text-brand-accent",
-    title: "Priority Live Chat",
-    desc: "Enterprise tier",
-    meta: "Coming soon",
-    action: "Start Chat",
-    soon: true,
+    title: "Hotline Telegram Instan",
+    desc: "Admin Terhubung Langsung",
+    meta: "Form Tiket di Bawah",
+    action: "Gunakan Form",
   },
   {
-    Icon: Icons.bookOpen,
-    iconClass: "bg-muted/40 text-muted-foreground",
-    title: "Knowledge Base",
-    desc: "Guides & API references",
-    meta: "Coming soon",
-    action: "Browse Docs",
-    soon: true,
+    Icon: Icons.clock,
+    iconClass: "bg-muted text-muted-foreground",
+    title: "SLA Tanggapan Tim",
+    desc: "1x24 Jam Kerja (Revisi Minor)",
+    meta: "Prioritas Urgent: < 2 Jam",
+    action: "Info Layanan",
   },
 ]
 
@@ -170,8 +168,8 @@ export function SupportView() {
 
   return (
     <PageContainer
-      pageTitle="Support Center"
-      pageDescription={`Get help with workspace configuration, publishing pipelines, and API integrations for ${activeClient?.name ?? "your workspace"}.`}
+      pageTitle="Hotline Dukungan & Kemitraan"
+      pageDescription={`Koordinasi langsung, permintaan revisi darurat, dan konsultasi strategi konten untuk ${activeClient?.name ?? "brand Anda"}.`}
       className="pb-20 space-y-8"
     >
 
@@ -196,14 +194,14 @@ export function SupportView() {
               {c.href ? (
                 <a
                   href={c.href}
-                  className="text-xs font-semibold text-brand-accent hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="text-xs font-semibold text-primary hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {c.action}
                 </a>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="text-xs font-semibold text-foreground/70 cursor-not-allowed"
+                  className="text-xs font-semibold text-muted-foreground"
                 >
                   {c.action}
                 </span>
@@ -217,9 +215,9 @@ export function SupportView() {
         {/* FAQ */}
         <div className="lg:col-span-3 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
           <div className="border-b border-border/60 pb-5 mb-6">
-            <h2 className="text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+            <h2 className="text-xl font-bold text-foreground">Pertanyaan Umum (FAQ Kemitraan)</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Quick answers to the most common workspace and publishing questions.
+              Panduan ringkas mengenai alur persetujuan, jadwal penayangan, dan pengelolaan materi.
             </p>
           </div>
           <Accordion type="single" collapsible defaultValue="faq-0" className="space-y-3">
@@ -243,29 +241,29 @@ export function SupportView() {
         {/* Contact Form */}
         <div className="lg:col-span-2 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
           <div className="border-b border-border/60 pb-5 mb-6">
-            <h2 className="text-xl font-bold text-foreground">Submit a Request</h2>
+            <h2 className="text-xl font-bold text-foreground">Kirim Permintaan / Tiket</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Our support team typically responds within 2 business hours.
+              Pemberitahuan akan terkirim instan ke bot Telegram admin agensi Frhm.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground block" htmlFor="sup-subject">
-                Subject
+                Subjek Permintaan
               </label>
               <input
                 id="sup-subject"
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="Brief summary of the issue"
-                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus: transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                placeholder="Contoh: Revisi copy poster promo weekend"
+                className="w-full h-12 px-5 rounded-full bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground block" htmlFor="sup-priority">
-                Priority
+                Tingkat Urgensi
               </label>
               <Tabs value={priority} onValueChange={(val) => setPriority(val as SupportTicketPriority)}>
                 <TabsList
@@ -282,25 +280,25 @@ export function SupportView() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground block" htmlFor="sup-message">
-                Message
+                Detail Catatan / Pesan
               </label>
               <textarea
                 id="sup-message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
-                placeholder="Describe what happened, which client workspace is affected, and any steps to reproduce."
-                className="w-full px-5 py-3 rounded-2xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-brand-accent focus: transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                placeholder="Tuliskan detail perubahan, instruksi materi, atau jadwal yang ingin disesuaikan..."
+                className="w-full px-5 py-3 rounded-2xl bg-muted/60 border border-border/40 text-sm text-foreground focus:bg-background focus:ring-2 focus:ring-primary transition-all resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
 
             <Button
               type="submit"
               isLoading={isSubmitting}
-              className="w-full h-12 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-bold hover:shadow-lg hover:bg-brand-accent/90 transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
             >
               <Icons.send className="size-4" />
-              Submit Request
+              Kirim Tiket ke Tim Frhm
             </Button>
           </form>
         </div>
@@ -311,7 +309,7 @@ export function SupportView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6 mb-6">
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <span>Your Recent Tickets</span>
+              <span>Riwayat Tiket Dukungan Brand Anda</span>
               {tickets.length > 0 && (
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted border border-border/40 font-mono font-semibold">
                   <MetricTicker value={tickets.length} />
@@ -319,7 +317,7 @@ export function SupportView() {
               )}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Track the status of requests raised by your agency team.
+              Pantau status penanganan tiket dan balasan resmi dari tim Frhm.
             </p>
           </div>
         </div>

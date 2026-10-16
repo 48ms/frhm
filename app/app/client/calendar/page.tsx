@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { AdminCalendarClient } from "@/app/admin/calendar/calendar-client"
+import { ClientCalendarView } from "@/components/client/client-calendar-view"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { calendarParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
@@ -24,7 +24,7 @@ export default async function ClientCalendarPage(props: {
         fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat kalender konten...</div>}
       >
         <DashboardPrefetcher clientId={clientId}>
-          <AdminCalendarClient />
+          <ClientCalendarView clientId={clientId} />
         </DashboardPrefetcher>
       </Suspense>
     </div>
