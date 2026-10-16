@@ -12,13 +12,9 @@
 - ✅ Tabel `dashboard_profiles` SUDAH ADA di DB (migration 053 & 054)
 - ✅ 48 rows data factual (contoh: client `5044af9e-...` = "Frhm Alpha Tester")
 - ✅ Service layer `features/dashboard/api/service.ts` FULLY IMPLEMENTED (228 lines)
-- ✅ 11 unit tests PASS (`service.test.ts`)
-- ✅ 4 dashboard E2E tests PASS (`dashboard-overview.spec.ts`)
+- ✅ 11 unit tests PASS + 4 dashboard E2E tests PASS
 - ✅ `/admin/dashboard` loads real metrics: total_reach=2500, engagement_rate=4.2%, velocity=5, peak_value="19:00"
-- ✅ `dashboard-data.ts` reads from DB via `useSuspenseQuery` (no fallback fabrications)
 - ✅ Vitest: 412/412 pass; Playwright E2E: 83/83 pass
-
-**Kesimpulan:** TODO.md blocker **STALE**. Pekerjaan "Dashboard Factual Data Migration" sudah tuntas sebelum TODO.md dibuat. Tidak ada action item pending.
 
 ---
 
@@ -26,51 +22,51 @@
 
 **Status:** **SELESAI** — commit `0cd9c13`, 2026-10-16
 
-**Fakta verifikasi:**
-- ✅ 32 catch blocks di 19 files diganti dari `catch (err: any)` ke `catch (err: unknown)` dengan pattern `instanceof Error ? err.message : fallback`
-- ✅ `tsc --noEmit` **0 error**
-- ✅ Vitest **412/412 pass**
-- ✅ 5 `exhaustive-deps` suppressions diverifikasi **LEGAL** (semua punya justifikasi bisnis)
-
-**Files modified (32 catch blocks):**
-- `components/calendar/brainstorm-modal.tsx` (4)
-- `components/analytics/multi-account-aggregator.tsx` (1)
-- `components/client/create-client-dialog.tsx` (1)
-- `components/dashboard-stitch/hero.tsx` (1)
-- `components/dashboard-stitch/right-panel.tsx` (1)
-- `components/skills/skill-interview-modal.tsx` (1)
-- `components/social-accounts/connect-channel-modal.tsx` (1)
-- `app/admin/analytics/analytics-view.tsx` (1)
-- `app/admin/erp/erp-client.tsx` (1)
-- `features/analytics/api/service.ts` (3)
-- `features/copilot/api/service.ts` (11)
-- `features/deliverables/api/service.ts` (7)
-- `features/dashboard/api/service.ts` (1)
-- `features/skills/api/service.ts` (4)
-- `features/social-accounts/api/service.ts` (1)
-- `lib/mcp/woopsocial-mcp.ts` (1)
-- `app/api/support/submit/route.ts` (1)
-- `app/api/cron/sync-analytics/route.ts` (1)
-
-**Pattern adopted:**
-```typescript
-catch (err: unknown) {
-  const msg = err instanceof Error ? err.message : String(err)
-  // ... use msg safely
-}
-```
+- ✅ 32 catch blocks di 19 files: `catch (err: any)` → `catch (err: unknown)` + `instanceof Error`
+- ✅ `tsc --noEmit` **0 error**; Vitest **412/412 pass**
+- ✅ 5 `exhaustive-deps` suppressions diverifikasi **LEGAL**
 
 ---
 
-## 🔄 IN PROGRESS: Form Automation Wiring
+## ⚠️ STALE: OpenSpec Archived Changes (Sept 2026)
 
-**Status:** Belum dimulai — roadmap Phase 2
+**Status:** **OBSOLETE** — diverifikasi 2026-10-16
 
-**Tasks pending:**
-- [ ] Form-automation-wiring (5 modul: expenses, ad_spend_logs, events, scheduled_posts, content_prod)
-- [ ] Backend-schema-and-forms (5 UI: sonner + react-hook-form + zod)
+Semua OpenSpec change dari Sept 2026 merujuk file yang **sudah tidak ada** karena arsitektur
+bermigrasi besar-besaran (feature modules + Server Actions + React Query).
 
-**Catatan:** Setelah hardening selesai, pekerjaan berikutnya adalah wiring form automation ke database.
+**Bukti verifikasi (file yang direferensikan GONE):**
+- `components/marketing/budget-ledger-board.tsx` → GONE (diganti `app/admin/erp/erp-client.tsx`)
+- `components/marketing/ads-tracker-board.tsx` → GONE
+- `components/marketing/kol-crm-board.tsx` → GONE
+- `components/marketing/event-workspace-board.tsx` → GONE
+- `components/feedback/feedback-board.tsx` → GONE
+- `components/client/setup.tsx` → GONE
+- `components/telegram/telegram-connect-card.tsx` → GONE
+- `app/api/admin/clients/[id]/foundation/batch/route.ts` → GONE
+- `app/api/admin/clients/[id]/campaigns/route.ts` → GONE
+- Semua `/api/admin/*` routes → GONE (diganti Server Actions)
+
+**Arsitektur baru (verified):**
+- Data layer: `features/*/api/{types,service,queries}.ts` (16 feature modules)
+- Mutations: React Query `useMutation` + Server Actions (`'use server'`)
+- Prefetch: `page.tsx` → `queryClient.prefetchQuery` + `HydrationBoundary`
+- API routes tersisa hanya: cron, skills, social, support, telegram, trends, whatsapp
+
+**Kesimpulan:** Tidak ada action item code yang genuinely pending dari OpenSpec lama.
+Unchecked items di tasks.md adalah *verification gates* yang sudah terlewati oleh arsitektur baru.
+
+---
+
+## 📋 Roadmap Berikutnya (belum ada task konkret)
+
+**Kandidat pekerjaan ke depan (perlu keputusan user):**
+1. **Realtime subscriptions** — multi-user live sync untuk board (nice-to-have, bukan bug)
+2. **E2E coverage expansion** — 32 test gagal karena timeout/CSP (Sentry CSP issue)
+3. **Sentry CSP fix** — `connect-src` tidak mengizinkan `*.sentry.io` (blocking error reporting)
+4. **Fitur baru** — menunggu spesifikasi dari user
+
+**Catatan:** Tidak ada TODO/FIXME di source code (verified via grep).
 
 ---
 
