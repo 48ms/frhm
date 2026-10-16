@@ -17,3 +17,16 @@ export const adminNavStitch: NavItem[] = [
   { title: 'Analytics', url: '/admin/analytics', icon: 'monitoring', shortcut: ['g', 'a'] },
   { title: 'Media Library', url: '/admin/library', icon: 'media', shortcut: ['g', 'l'] },
 ];
+
+/**
+ * Dedicated client portal navigation.
+ * Tailored for business owners / client partners (approval, schedule, results).
+ */
+export const clientNav: NavItem[] = [
+  { title: 'Overview', url: '/client/dashboard', icon: 'dashboard', shortcut: ['g', 'd'] },
+  { title: 'Content Calendar', url: '/client/calendar', icon: 'calendar_month', shortcut: ['g', 'k'] },
+  { title: 'Deliverables & Review', url: '/client/review', icon: 'layers', shortcut: ['g', 'r'] },
+  { title: 'Analytics', url: '/client/analytics', icon: 'monitoring', shortcut: ['g', 'a'] },
+  { title: 'Brand Assets', url: '/client/assets', icon: 'media', shortcut: ['g', 'l'] },
+  { title: 'Support & Request', url: '/client/support', icon: 'bot', shortcut: ['g', 's'] },
+];

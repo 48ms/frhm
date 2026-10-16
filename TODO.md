@@ -1,18 +1,18 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 83 test suites passed (487/487 tests), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 85 test suites passed (502/502 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
 
 ---
 
-## 🎯 Prioritas Utama: Audit & Penyelesaian Celah (Bug & Gap) 5-Pilar
+## 🎯 Prioritas Utama: Audit & Penyelesaian Celah (Bug & Gap) 6-Pilar
 
 Rencana kerja terstruktur untuk menyisir, mendeteksi, dan menuntaskan celah di seluruh lapisan platform Frhm:
 
 ```
 Pillar 1: Security & Data Isolation  ──► Pillar 2: URL State & Hydration
 Pillar 3: Mutations & Rollbacks     ──► Pillar 4: Radix A11y & Animate UI
-Pillar 5: E2E Playwright & Edge Cases
+Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal & RBAC
 ```
 
 ---
@@ -113,6 +113,35 @@ Pillar 5: E2E Playwright & Edge Cases
   - [x] *ERP:* Input biaya melebihi alokasi budget bulanan (pemicu threshold Telegram alert 90%).
   - [x] *Portal Review Client (`/review/[id]`):* Akses publik via token tanpa login, penolakan revisi, dan submit rating bintang 1-5.
   - [x] *AI Studio:* Generate batch plan pada kondisi koneksi lambat / AI rate limit fallback.
+
+---
+
+### 🏛️ PILLAR 6: Dedicated Client Portal (`/client/*`) & Role-Based Access Control (RBAC)
+*Tujuan: Portal klien mandiri dengan otentikasi satu pintu, isolasi tenant mutlak, dan panel admin untuk kelola hak akses klien.*
+
+- [x] **6.1. Auth Redirection & Multi-Tenant Gate**:
+  - [x] Update [middleware.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/supabase/middleware.ts): cegat akses `/admin/*` bagi user ber-role `client` dan alihkan ke `/client/dashboard`. Paksa parameter `clientId` identik dengan `user.client_id`, dan inject `USER_HEADERS` (`x-user-id`, `x-user-role`, `x-user-client-id`).
+  - [x] Perbaiki [admin/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/layout.tsx): cegah infinite redirect loop dengan mengalihkan non-admin ke `/client/dashboard` (jika client) atau `/waitlist` (jika non-role).
+  - [x] Update [auth/login/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/auth/login/page.tsx) & [auth/callback/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/auth/callback/route.ts): sesuaikan default redirect dinamis berdasarkan `profile.role` (`admin` -> `/admin/dashboard`, `client` -> `/client/dashboard`, `null` -> `/waitlist`).
+- [x] **6.2. Client Portal Shell & Navigation (`app/app/client/`)**:
+  - [x] Buat layout kedaulatan klien [app/app/client/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/layout.tsx) yang mematuhi Aturan 6 `AGENTS.md` (`<PageContainer>`, token HSL, dark/light theme, server-side client identity verification).
+  - [x] Buat `ClientSidebar` ([components/client/client-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-sidebar.tsx)): navigasi esensial eksekutif (Overview, Calendar, Review, Analytics, Assets, Support) tanpa ERP, AI Studio, atau Workspace Switcher.
+  - [x] Buat `ClientHeader` ([components/client/client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx)): sticky header dengan logo brand, badge Client Portal, dan quick actions.
+- [x] **6.3. Dedicated Client Views**:
+  - [x] `/client/dashboard`: Ringkasan eksekutif, banner approval mendesak, metrik pertumbuhan `<MetricTicker>`, dan jadwal terdekat ([client-dashboard-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.tsx)).
+  - [x] `/client/calendar`: Kalender jadwal konten bulanan dengan dialog detail visual & tombol aksi approval/revisi ([app/app/client/calendar/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/calendar/page.tsx)).
+  - [x] `/client/review`: Hub review deliverable mandiri dengan rating bintang 1-5, tabs status, dan dialog catatan revisi instan ([client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx)).
+  - [x] `/client/analytics`: Visualisasi performa akun sosial media (reach, engagement, top posts) ([app/app/client/analytics/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/analytics/page.tsx)).
+  - [x] `/client/assets`: Media library aset brand dengan preview filter ([app/app/client/assets/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/assets/page.tsx)).
+  - [x] `/client/support`: Form pengajuan tiket request mendesak / bantuan langsung ke admin Telegram ([app/app/client/support/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/support/page.tsx)).
+- [x] **6.4. Admin Client Access Management (`/admin/clients`)**:
+  - [x] Tambahkan tombol `[ Akses Klien ]` pada kartu brand di [client-manager.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.tsx).
+  - [x] Buat modal dialog [client-access-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-access-dialog.tsx) untuk melihat akun aktif, mengundang/menambah akun klien, menyalin template WhatsApp, dan mencabut akses.
+  - [x] Implementasikan endpoint API [app/app/api/admin/client-users/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/admin/client-users/route.ts) (GET, POST, DELETE) dengan proteksi `assertAdmin()`, validasi email via auth admin client, dan pencatatan audit log `client.user_assigned` / `client.user_revoked`.
+- [x] **6.5. Verification Loop & E2E Testing**:
+  - [x] Unit tests Vitest: 8 unit tests di [middleware.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/supabase/middleware.test.ts) dan 7 unit tests di [route.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/admin/client-users/route.test.ts) (15 tests passed).
+  - [x] Playwright E2E tests: [client-portal.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/client-portal.spec.ts) (2/2 passed) menguji layout navigation portal klien, route reachability 6 halaman, dan dialog akses klien admin.
+  - [x] `tsc --noEmit` 0 error & Next.js production build sukses 100%.
 
 ---
 
@@ -233,4 +262,28 @@ Pillar 5: E2E Playwright & Edge Cases
     - `npx tsc --noEmit`: 0 error.
     - `npx vitest run`: 83/83 test suites passed (487 tests passed, 0 failed).
     - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
+- ✅ **Pillar 6: Dedicated Client Portal (/client/*) & Role-Based Access Control (RBAC) Complete (2026-10-16)**:
+  - **Arsitektur Autentikasi & Multi-Tenant Gate**:
+    1. *Single-Entry Login & Role Detection:* `/auth/login` dan `/auth/callback` mendeteksi profil pengguna secara dinamis: admin diarahkan ke `/admin/dashboard`, klien diarahkan ke `/client/dashboard?clientId=<user.client_id>`, dan user tanpa tenant diarahkan ke `/waitlist`.
+    2. *Middleware Tenant Enforcement:* [middleware.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/supabase/middleware.ts) mencegat user ber-role `client` mengakses rute admin (`/admin/*`) dan memaksa parameter `clientId` pada rute klien sama persis dengan `user.client_id` untuk mencegah cross-tenant spoofing.
+    3. *Eliminasi Infinite Redirect Loop:* [admin/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/layout.tsx) diperbaiki agar tidak me-redirect user admin berulang kali, serta mendistribusikan user non-admin secara tepat ke portal klien atau waitlist.
+  - **Kedaulatan UI Shell Klien (`app/app/client/`)**:
+    1. *Layout Khusus Klien:* [layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/layout.tsx) memverifikasi identitas sesi server-side, me-resolve profil klien aktif (nama & logo brand), dan mengunci tema antarmuka.
+    2. *ClientSidebar & ClientHeader:* [client-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-sidebar.tsx) & [client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) menyediakan navigasi eksekutif (Overview, Calendar, Review, Analytics, Assets, Support) bebas dari menu internal (ERP, AI Studio, Workspace Switcher, dsb.) dengan Radix Tooltips dan user profile logout footer.
+  - **Enam Tampilan Portal Klien Mandiri**:
+    1. *Executive Dashboard (`/client/dashboard`):* [client-dashboard-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.tsx) menyajikan banner mendesak untuk deliverable yang membutuhkan persetujuan, 4 kartu KPI dinamis `<MetricTicker>` (reach, engagement, approved posts, active channels), timeline jadwal posting terdekat, dan kartu hotline support cepat.
+    2. *Interactive Calendar (`/client/calendar`):* Kalender konten bulanan/mingguan dengan filter platform dan modal detail konten visual.
+    3. *Review Hub (`/client/review`):* [client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx) dengan status tab bar (`Semua`, `Menunggu Review`, `Revisi Diminta`, `Disetujui`), tombol persetujuan instan, dialog catatan revisi, rating bintang 1-5, dan pembuka dokumen PDF eksekutif.
+    4. *Performance Analytics (`/client/analytics`):* Visualisasi grafik performa multi-kanal sosial media, rincian metrik reach, impressions, dan engagement rate.
+    5. *Brand Assets Media (`/client/assets`):* Grid aset visual resmi brand klien dengan filter jenis file (`image`/`video`) dan badge unduh instan.
+    6. *Direct Support (`/client/support`):* Form pembuatan tiket kendala dan permintaan mendesak yang langsung memicu dispatch notifikasi Telegram real-time ke admin.
+  - **Manajemen Akses Klien di Admin (`/admin/clients`)**:
+    1. *Tombol Akses Klien:* Ditambahkan pada kartu brand di [client-manager.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.tsx).
+    2. *Modal Akses Klien:* [client-access-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-access-dialog.tsx) untuk melihat daftar pengguna klien aktif, menambahkan akun via email, menyalin template pesan WhatsApp instan (*"Halo, berikut akses portal..."*), dan mencabut akses pengguna.
+    3. *API Handler Admin:* [route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/admin/client-users/route.ts) mengimplementasikan GET, POST, dan DELETE dengan otorisasi ketat `assertAdmin()`, validasi email via Supabase admin auth, pengaitan profile `client_id`, dan pencatatan audit log `client.user_assigned` / `client.user_revoked`.
+  - **Verifikasi Kualitas Penuh (Verification Loop Pass)**:
+    - `npx vitest run`: 85/85 test suites lulus (502 tests passed, 0 failed), mencakup 8 tests di [middleware.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/supabase/middleware.test.ts) dan 7 tests di [route.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/admin/client-users/route.test.ts).
+    - `npx playwright test e2e/client-portal.spec.ts`: 2/2 tests passed (layout, 6 rute portal klien, dan dialog akses admin).
+    - `npx tsc --noEmit`: 0 error.
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses (seluruh rute `/client/*` dan `/api/admin/client-users` lolos statically & dynamically optimized).
 

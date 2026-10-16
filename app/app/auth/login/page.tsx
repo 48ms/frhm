@@ -125,7 +125,7 @@ function LoginForm() {
     onSubmit: async ({ value }) => {
       setAuthError(null)
       setSignupNotice(null)
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: value.email,
         password: value.password,
       })
@@ -147,7 +147,27 @@ function LoginForm() {
       } catch {
         // Storage full or blocked, non-fatal, continue to the redirect.
       }
-      router.push(redirect)
+
+      // If user came to login without an explicit target parameter, resolve destination by role
+      const explicitTarget = searchParams.get('next') ?? searchParams.get('redirect')
+      let destination = redirect
+      if (!explicitTarget && data?.user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .single()
+
+        if (profile?.role === 'client') {
+          destination = '/client/dashboard'
+        } else if (profile?.role === 'admin') {
+          destination = '/admin/dashboard'
+        } else {
+          destination = '/waitlist'
+        }
+      }
+
+      router.push(destination)
       router.refresh()
     },
   })

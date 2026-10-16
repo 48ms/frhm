@@ -70,21 +70,19 @@ export async function updateSession(request: NextRequest) {
 
   // Define protected routes
   const isProtectedAdmin = request.nextUrl.pathname.startsWith('/admin')
+  const isProtectedClient = request.nextUrl.pathname.startsWith('/client')
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
 
-  // If user is not logged in and tries to access /admin, redirect to login
-  if (!user && isProtectedAdmin) {
+  // If user is not logged in and tries to access /admin or /client, redirect to login
+  if (!user && (isProtectedAdmin || isProtectedClient)) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    url.searchParams.set('next', request.nextUrl.pathname)
+    url.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search)
     return applyCookies(NextResponse.redirect(url))
   }
 
-  // Tenant Strict Guard: non-admin users may ONLY ever see their own client's
-  // data on the shared /admin/* routes (there is no separate /client portal).
-  // If a clientId param is absent or does not match their binding, force it to
-  // their own client_id so they cannot read another tenant via clients[0].
-  if (user && isProtectedAdmin) {
+  // Tenant Strict Guard & Identity Resolution
+  if (user && (isProtectedAdmin || isProtectedClient || isAuthPage)) {
     const requestedClientId = request.nextUrl.searchParams.get('clientId')
 
     // Ambil profile user dari public.users untuk cek role & binding.
@@ -95,7 +93,7 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // Hand the resolved identity to the admin layout via request headers.
+    // Hand the resolved identity to layouts via request headers.
     requestHeaders.set(USER_HEADERS.id, user.id)
     requestHeaders.set(USER_HEADERS.email, user.email ?? '')
     requestHeaders.set(USER_HEADERS.role, userProfile?.role ?? '')
@@ -103,22 +101,54 @@ export async function updateSession(request: NextRequest) {
     requestHeaders.set(USER_HEADERS.clientId, userProfile?.client_id ?? '')
     supabaseResponse = buildNextResponse()
 
-    if (userProfile && userProfile.role !== 'admin') {
+    // If user is logged in and visits auth page, redirect based on role
+    if (isAuthPage) {
+      const url = request.nextUrl.clone()
+      if (userProfile?.role === 'client') {
+        url.pathname = '/client/dashboard'
+      } else if (userProfile?.role === 'admin') {
+        url.pathname = '/admin/dashboard'
+      } else {
+        url.pathname = '/waitlist'
+      }
+      return applyCookies(NextResponse.redirect(url))
+    }
+
+    // User without role or profile in public.users -> redirect to waitlist
+    if (!userProfile?.role) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/waitlist'
+      return applyCookies(NextResponse.redirect(url))
+    }
+
+    // Role: Client
+    if (userProfile.role === 'client') {
       const ownClientId = userProfile.client_id
-      // Only enforce when we know the tenant; otherwise let the page render.
-      if (ownClientId && requestedClientId !== ownClientId) {
+      // Client without bound client_id cannot access data -> waitlist
+      if (!ownClientId) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/waitlist'
+        return applyCookies(NextResponse.redirect(url))
+      }
+
+      // Client attempting to access agency admin -> redirect to client portal
+      if (isProtectedAdmin) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/client/dashboard'
+        url.searchParams.set('clientId', ownClientId)
+        return applyCookies(NextResponse.redirect(url))
+      }
+
+      // Client in /client/* -> enforce clientId matches ownClientId strictly
+      if (isProtectedClient && requestedClientId !== ownClientId) {
         const url = request.nextUrl.clone()
         url.searchParams.set('clientId', ownClientId)
         return applyCookies(NextResponse.redirect(url))
       }
     }
-  }
 
-  // If user is logged in and tries to access /auth pages, redirect to dashboard
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/admin/dashboard'
-    return applyCookies(NextResponse.redirect(url))
+    // Role: Admin
+    // Admin has full access to /admin/* and can view /client/* for any client
   }
 
   // Inject security headers

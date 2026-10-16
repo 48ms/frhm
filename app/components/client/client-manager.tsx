@@ -11,6 +11,7 @@ import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
 import { ClientPlaybooksDialog } from "@/components/client/client-playbooks-dialog"
+import { ClientAccessDialog } from "@/components/client/client-access-dialog"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 export function ClientManagerSkeleton() {
@@ -54,6 +55,10 @@ export function ClientManager() {
     name: string
   } | null>(null)
   const [selectedClientForPlaybooks, setSelectedClientForPlaybooks] = React.useState<{
+    id: string
+    name: string
+  } | null>(null)
+  const [selectedClientForAccess, setSelectedClientForAccess] = React.useState<{
     id: string
     name: string
   } | null>(null)
@@ -144,6 +149,18 @@ export function ClientManager() {
                   <Icons.bot className="size-3 text-primary" />
                   Brand Brain
                 </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setSelectedClientForAccess({ id: client.id, name: client.name })
+                  }
+                  className="h-7 text-xs font-bold rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                >
+                  <Icons.users className="size-3 text-primary" />
+                  Akses Klien
+                </Button>
               </div>
             </div>
           </div>
@@ -176,6 +193,15 @@ export function ClientManager() {
           onOpenChange={(open) => !open && setSelectedClientForPlaybooks(null)}
           clientId={selectedClientForPlaybooks.id}
           clientName={selectedClientForPlaybooks.name}
+        />
+      )}
+
+      {selectedClientForAccess && (
+        <ClientAccessDialog
+          open={Boolean(selectedClientForAccess)}
+          onOpenChange={(open) => !open && setSelectedClientForAccess(null)}
+          clientId={selectedClientForAccess.id}
+          clientName={selectedClientForAccess.name}
         />
       )}
     </div>

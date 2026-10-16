@@ -63,8 +63,9 @@ export default async function AdminLayout({
 }) {
   const identity = await resolveIdentity()
 
-  if (!identity) redirect("/auth/login?redirect=/admin/dashboard")
-  if (identity.role !== "admin") redirect("/admin/dashboard")
+  if (!identity) redirect("/auth/login?next=/admin/dashboard")
+  if (identity.role === "client") redirect("/client/dashboard")
+  if (identity.role !== "admin") redirect("/waitlist")
 
   const displayName = identity.fullName || identity.email || "Admin"
 

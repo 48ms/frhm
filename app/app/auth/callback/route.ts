@@ -48,7 +48,10 @@ export async function GET(request: NextRequest) {
             summary: `Login berhasil (${profile.role})`,
             request,
           })
-          const url = new URL(redirect, request.url)
+          const defaultTarget = profile.role === 'client' ? '/client/dashboard' : '/admin/dashboard'
+          const explicitRedirect = searchParams.get('redirect')
+          const destination = explicitRedirect ? safeRedirect(explicitRedirect, defaultTarget) : defaultTarget
+          const url = new URL(destination, request.url)
           return NextResponse.redirect(url)
         }
         void logAudit({
