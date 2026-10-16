@@ -348,6 +348,15 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - **Pendaftaran Ikon Terpusat (`@/components/icons`)**:
     - Mendaftarkan `IconPlayerPause`, `pause`, dan `image` pada registry terpusat [components/icons.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/icons.tsx) mematuhi Aturan 5 kedaulatan icon.
   - **Git Commit:** `17b8288` (`feat(ui-actions): activate dead buttons and connect reactive handlers across campaigns, settings, and views`).
+- ✅ **Upgrade Mikro-Interaksi Ikon Hidup & Presisi Geometri Sidebar (2026-10-16)**:
+  - **Spring Physics & Active State Variants ([animated-icon.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/animate-ui/components/icons/animated-icon.tsx))**:
+    1. Mengeliminasi `animate={isActive ? "idle" : undefined}` yang sebelumnya mematikan animasi saat cursor menyorot halaman/link aktif.
+    2. Menambahkan varian `"active"` (scale 1.06–1.1 dengan micro-tilt spring) dan tactile feedback `whileTap={{ scale: 0.92 }}`.
+    3. Seluruh 18+ kategori ikon (`dashboard`, `building`, `layers`, `auto_awesome`, `hub`, `rocket`, `campaign`, `mapPin`, `calendar_month`, `monitoring`, `media`, `settings`, `bot`, `help`, `add`, `arrowRight`, dll.) kini merespons hover dan klik dengan spring motion physics Animate UI yang nyata.
+  - **Presisi Geometri Collapsed Sidebar**:
+    1. [app-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/app-sidebar.tsx): Menghilangkan distorsi oval pada mode icon-only (mengganti `w-10 h-10 min-h-11` menjadi `size-10 rounded-full flex items-center justify-center`).
+    2. [client-sidebar.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-sidebar.tsx): Menyelaraskan geometri `size-10` dan menyematkan `aria-current={active ? "page" : undefined}` pada mode collapsed untuk aksesibilitas mutlak.
+  - **Git Commit:** `0caaa10` (`feat(sidebar-ui): upgrade animated icons with active spring physics and fix collapsed button geometry`).
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 88/88 test suites PASS (512 tests passed, 0 failed).
