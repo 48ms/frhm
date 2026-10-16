@@ -213,7 +213,7 @@ export function SupportView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* FAQ */}
-        <div className="lg:col-span-3 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+        <div className="lg:col-span-3 order-2 lg:order-1 admin-card bg-card/90 backdrop-blur-2xl p-5 sm:p-8 shadow-sm">
           <div className="border-b border-border/60 pb-5 mb-6">
             <h2 className="text-xl font-bold text-foreground">Pertanyaan Umum (FAQ Kemitraan)</h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -239,7 +239,7 @@ export function SupportView() {
         </div>
 
         {/* Contact Form */}
-        <div className="lg:col-span-2 admin-card bg-card/90 backdrop-blur-2xl p-8 shadow-sm">
+        <div className="lg:col-span-2 order-1 lg:order-2 admin-card bg-card/90 backdrop-blur-2xl p-5 sm:p-8 shadow-sm">
           <div className="border-b border-border/60 pb-5 mb-6">
             <h2 className="text-xl font-bold text-foreground">Kirim Permintaan / Tiket</h2>
             <p className="text-sm text-muted-foreground mt-1">

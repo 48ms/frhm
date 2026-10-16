@@ -341,16 +341,17 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
           <p className="text-xs text-muted-foreground font-semibold">Memuat jadwal publikasi...</p>
         </div>
       ) : viewMode === "month" ? (
-        <div className="rounded-2xl border border-border/40 bg-card p-4 overflow-hidden shadow-xs">
-          {/* Day of Week Header */}
-          <div className="grid grid-cols-7 gap-2 mb-2 pb-2 border-b border-border/30 text-center text-2xs font-bold text-muted-foreground">
-            {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
-              <div key={d}>{d}</div>
-            ))}
-          </div>
+        <div className="rounded-2xl border border-border/40 bg-card p-3 sm:p-4 shadow-xs overflow-x-auto">
+          <div className="min-w-[640px] md:min-w-0">
+            {/* Day of Week Header */}
+            <div className="grid grid-cols-7 gap-2 mb-2 pb-2 border-b border-border/30 text-center text-2xs font-bold text-muted-foreground">
+              {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
 
-          {/* Month Days Grid */}
-          <div className="grid grid-cols-7 gap-2">
+            {/* Month Days Grid */}
+            <div className="grid grid-cols-7 gap-2">
             {Array.from({ length: monthDays.firstDayIndex }).map((_, idx) => (
               <div
                 key={`empty-${idx}`}
@@ -423,6 +424,7 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
             })}
           </div>
         </div>
+      </div>
       ) : viewMode === "week" ? (
         <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
           {weekDays.map((d) => {

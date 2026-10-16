@@ -78,9 +78,9 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
       pageDescription="Tinjau materi konten, draf desain, dan publikasi promosi. Berikan persetujuan instan atau ajukan catatan revisi ke tim Frhm."
     >
       {/* Status Filter Tabs */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <Tabs value={filter} onValueChange={(val) => void setReviewState({ status: val as any })}>
-          <TabsList aria-label="Deliverable filter tabs" className="h-auto p-1 bg-muted/60 rounded-full border border-border/30">
+      <div className="flex items-center justify-between gap-4 w-full overflow-x-auto no-scrollbar pb-1">
+        <Tabs value={filter} onValueChange={(val) => void setReviewState({ status: val as any })} className="w-full sm:w-auto">
+          <TabsList aria-label="Deliverable filter tabs" className="h-auto p-1 bg-muted/60 rounded-full border border-border/30 flex items-center w-max">
             <TabsTrigger value="all" onClick={() => void setReviewState({ status: "all" })} className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5 cursor-pointer min-h-11">
               <span>Semua</span>
               <span className="opacity-80">(<MetricTicker value={deliverables.length} />)</span>

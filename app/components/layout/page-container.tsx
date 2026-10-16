@@ -48,14 +48,14 @@ export function PageContainer({
       className={cn("flex flex-1 flex-col px-4 pt-2 pb-4 md:px-6 md:pt-4", className)}
     >
       {hasHeader && (
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{pageTitle}</h1>
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl truncate sm:whitespace-normal">{pageTitle}</h1>
             {pageDescription && (
-              <p className="text-muted-foreground text-sm mt-1">{pageDescription}</p>
+              <p className="text-muted-foreground text-sm mt-1 leading-relaxed">{pageDescription}</p>
             )}
           </div>
-          {pageHeaderAction && <div className="shrink-0">{pageHeaderAction}</div>}
+          {pageHeaderAction && <div className="shrink-0 flex flex-wrap items-center gap-2">{pageHeaderAction}</div>}
         </div>
       )}
       {isLoading ? (

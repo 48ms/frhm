@@ -76,10 +76,11 @@ export function AdminHeader({
         <Button
           type="button"
           onClick={handleCreateCampaign}
-          className="admin-pill admin-pill-lime flex items-center gap-2 px-5 py-2.5 h-auto cursor-pointer"
+          className="admin-pill admin-pill-lime flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 h-auto cursor-pointer text-xs"
         >
-          <Icons.add_circle className="size-[18px]" />
-          Create Campaign
+          <Icons.add_circle className="size-4 sm:size-[18px]" />
+          <span className="hidden xs:inline">Create Campaign</span>
+          <span className="xs:hidden">Campaign</span>
         </Button>
 
         <ThemeSelector />
@@ -90,11 +91,12 @@ export function AdminHeader({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Apps"
+          aria-label="Search and Apps"
           onClick={handleOpenApps}
-          className="hidden p-2 rounded-full text-foreground transition-all hover:bg-[hsl(var(--admin-surface-high))]/60 active:scale-95 sm:inline-flex cursor-pointer"
+          className="p-1.5 sm:p-2 rounded-full text-foreground transition-all hover:bg-[hsl(var(--admin-surface-high))]/60 active:scale-95 inline-flex cursor-pointer"
         >
-          <Icons.apps className="size-[22px]" />
+          <Icons.search className="size-4 sm:hidden" />
+          <Icons.apps className="hidden sm:block size-[22px]" />
         </Button>
         <Button
           type="button"

@@ -427,8 +427,23 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - **Support & Request (`client/support`)**:
     - Menyeragamkan token radius input subjek ke `rounded-xl` agar harmonis dengan textarea dan kartu.
   - Ditunjang unit test komprehensif baru: [client-dashboard-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.test.tsx) dan [client-review-hub.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.test.tsx).
+- [x] **Penyempurnaan Responsif & Touch UX Mobile Menyeluruh: Audit Bebas Overflow & Kolisi (2026-10-17)**
+  - **Reflow Header Universal ([page-container.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/layout/page-container.tsx))**:
+    - Mengeliminasi tabrakan judul halaman dan tombol aksi header di layar kecil dengan mengubah container menjadi `flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4` serta wrapping actions `flex flex-wrap items-center gap-2`.
+  - **Navigasi Header Mobile ([client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) & [header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/header.tsx))**:
+    - Portal Klien: Truncation nama brand (`max-w-[100px] xs:max-w-[150px] sm:max-w-[220px]`), badge "Partner Portal" tersembunyi di ultra-compact screens, dan tombol "Hotline Support" adaptif tanpa overflow horizontal.
+    - Studio Admin: Tombol "Create Campaign" adaptif (`Campaign` pada mobile), tombol Command Search & Apps dapat diakses via ikon pencarian di mobile (`inline-flex`) untuk akses instan ke KBar shortcut.
+  - **Kalender Multi-Kanal Bebas Kompresi ([calendar-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/calendar/calendar-client.tsx) & [client-calendar-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-calendar-view.tsx))**:
+    - Membungkus tampilan Bulan (7 kolom) dan Minggu dalam container `overflow-x-auto` dengan `min-w-[640px] md:min-w-0` sehingga sel kalender tidak tertekan menjadi 40px di layar handphone dan kartu postingan terbaca jelas.
+  - **Deliverables & Media Hub Mobile**:
+    - [client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx): Tabs status review ("Semua", "Menunggu Review", "Perlu Revisi", "Disetujui") dilengkapi horizontal scroll pill container `overflow-x-auto no-scrollbar` untuk mencegah page blowout.
+    - [library-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/library/library-client.tsx): Sticky batch action bar dibuat `flex-wrap` dengan input tag adaptif (`w-32 sm:w-44`).
+  - **Touch Accessibility & Prioritas Alur ([right-panel.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/right-panel.tsx) & [support-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/support/support-view.tsx))**:
+    - Tombol putuskan kanal (`Disconnect`) diubah dari `opacity-0` hover-only menjadi `opacity-100 md:opacity-0 md:group-hover:opacity-100` agar 100% dapat dilihat dan disentuh pengguna mobile touch.
+    - Halaman Hotline Dukungan: Formulir Tiket diprioritaskan di atas FAQ pada mobile (`order-1 lg:order-2`), dan padding dikompresi ke `p-5 sm:p-8`.
+    - Hero Dashboard Stitch ([hero.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/hero.tsx)): Baris badge Workspace + tombol sync diperkuat dengan `flex-wrap`.
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
-  - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, Service Layer 3-lapis.
+  - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
 

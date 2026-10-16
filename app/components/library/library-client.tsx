@@ -405,7 +405,7 @@ export function LibraryClient() {
 
       {/* Batch action bar — appears only when assets are selected */}
       {selected.size > 0 && (
-        <div className="sticky top-4 z-20 flex items-center gap-2 rounded-xl border border-primary/40 bg-card/95 backdrop-blur p-3 shadow-lg mt-4">
+        <div className="sticky top-4 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-card/95 backdrop-blur p-3 shadow-lg mt-4">
           <span className="text-sm font-bold text-foreground">
             {selected.size} dipilih
           </span>
@@ -431,13 +431,13 @@ export function LibraryClient() {
             </Button>
           )}
           {tagOpen && (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex flex-wrap items-center gap-2 ml-0 sm:ml-2">
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="tag1, tag2"
-                className="h-8 w-44 rounded-lg border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="h-8 w-32 sm:w-44 rounded-lg border border-input bg-background px-3 text-xs focus:ring-2 focus:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
               <Button
                 size="sm"

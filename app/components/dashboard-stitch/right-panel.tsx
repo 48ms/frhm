@@ -220,7 +220,7 @@ export function DashboardStitchConnectedHub() {
                             e.stopPropagation()
                             setDisconnectId(ch.id)
                           }}
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100"
                           aria-label="Disconnect channel"
                         >
                           <Icons.close className="size-3.5" />

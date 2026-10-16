@@ -27,21 +27,23 @@ export function ClientHeader({
       <div className="flex items-center gap-3">
         <SidebarTrigger className="-ml-1 h-9 w-9 cursor-pointer" />
         <Separator orientation="vertical" className="h-4 opacity-50 data-[orientation=vertical]:self-center" />
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-base tracking-tight text-foreground">{clientName}</span>
-          <span className="text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-bold text-sm sm:text-base tracking-tight text-foreground truncate max-w-[100px] xs:max-w-[150px] sm:max-w-[220px] md:max-w-none">
+            {clientName}
+          </span>
+          <span className="hidden xs:inline-flex text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
             Partner Portal
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
         {isAdmin && (
           <Link
             href="/admin/dashboard"
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "items-center gap-1.5 text-xs font-bold rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+              "items-center gap-1.5 text-xs font-bold rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 px-2.5 sm:px-3"
             )}
             title="Kembali ke Admin Studio"
           >
@@ -65,11 +67,12 @@ export function ClientHeader({
           href={`/client/support?clientId=${clientId}`}
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
-            "items-center gap-1.5 text-xs font-semibold rounded-full shadow-xs bg-primary text-primary-foreground hover:bg-primary/90"
+            "items-center gap-1.5 text-xs font-semibold rounded-full shadow-xs bg-primary text-primary-foreground hover:bg-primary/90 px-3 sm:px-3.5"
           )}
         >
           <Icons.message className="size-3.5" />
-          <span>Hotline Support</span>
+          <span className="hidden xs:inline">Hotline Support</span>
+          <span className="xs:hidden">Support</span>
         </Link>
 
         <ThemeSelector />

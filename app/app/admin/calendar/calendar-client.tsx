@@ -730,11 +730,11 @@ export function AdminCalendarClient() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         {/* Calendar Interface: 8 cols */}
         <div className="xl:col-span-8 space-y-4">
-          <div className="admin-glass rounded-3xl p-5 shadow-sm overflow-hidden" data-calendar>
+          <div className="admin-glass rounded-3xl p-3 sm:p-5 shadow-sm overflow-x-auto" data-calendar>
 
             {/* ===== MONTH VIEW ===== */}
             {viewMode === "month" && (
-              <>
+              <div className="min-w-[640px] md:min-w-0">
                 <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-3 pb-3 border-b border-border/30 text-center">
                   {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
                     <div key={d} className="text-2xs text-muted-foreground font-bold">
@@ -826,12 +826,12 @@ export function AdminCalendarClient() {
                     )
                   })}
                 </div>
-              </>
+              </div>
             )}
 
             {/* ===== WEEK VIEW (existing grid) ===== */}
             {viewMode === "week" && (
-            <>
+            <div className="min-w-[700px] md:min-w-0">
             {/* Calendar Day Header */}
             <div className="grid grid-cols-7 gap-2 mb-3 pb-3 border-b border-border/30 text-center">
               {weekDays.map((d, i) => (
@@ -1050,7 +1050,7 @@ export function AdminCalendarClient() {
                 )
               })}
             </div>
-            </>
+            </div>
             )}
 
             {/* ===== LIST VIEW ===== */}

@@ -49,8 +49,8 @@ export function DashboardStitchHero() {
 
         <div className="relative z-10 space-y-2">
           {/* WORKSPACE ACTIVE badge */}
-          <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold border border-brand-accent/20 cursor-default select-none">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold border border-brand-accent/20 cursor-default select-none max-w-full truncate">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
               <span>Workspace</span>
               <span className="opacity-40">•</span>
