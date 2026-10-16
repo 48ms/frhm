@@ -17,16 +17,16 @@ interface ClientReviewPortalProps {
 
 const TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   brief: { label: 'Creative Brief', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
-  copy: { label: 'Copywriting / Post Plan', color: 'bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 border-border/4000/20' },
+  copy: { label: 'Copywriting / Post Plan', color: 'bg-primary/10 text-primary border-primary/20' },
   report: { label: 'Report / Analysis', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' },
   strategy: { label: 'Marketing Strategy', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
   audit: { label: 'Account Audit', color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
 };
 
-const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; badgeClass: string; icon: any }> = {
+const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; badgeClass: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Draft Internal', variant: 'secondary', badgeClass: 'bg-muted text-muted-foreground border-border', icon: Icons.clock },
   sent: { label: 'Menunggu Review Anda', variant: 'outline', badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30', icon: Icons.clock },
-  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 border-border/4000/30', icon: Icons.circleCheck },
+  approved: { label: 'Disetujui (Approved)', variant: 'default', badgeClass: 'bg-primary/10 text-primary border-primary/30', icon: Icons.circleCheck },
   revision_requested: { label: 'Revisi Diminta', variant: 'destructive', badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Icons.warning },
 };
 
@@ -164,8 +164,8 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
           </div>
 
           {deliverable.status === 'approved' && (
-            <div className="p-4 rounded-xl border border-border/4000/30 bg-brand-accent00/10 flex items-start gap-3 text-brand-accent00 dark:text-brand-accent00">
-              <Icons.circleCheck className="size-5 shrink-0 text-brand-accent00 dark:text-brand-accent00 mt-0.5" />
+            <div className="p-4 rounded-xl border border-primary/30 bg-primary/10 flex items-start gap-3 text-primary">
+              <Icons.circleCheck className="size-5 shrink-0 text-primary mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold">Dokumen Ini Telah Disetujui (Approved)</p>
                 <p className="text-xs opacity-90 mt-0.5">

@@ -109,7 +109,7 @@ export function ClientPlaybooksDialog({
             <div className="flex items-center gap-2">
               <div className="px-3 py-1 rounded-xl bg-muted/40 border border-border/30 text-xs flex items-center gap-1.5 font-medium">
                 <span className="text-muted-foreground">Selesai:</span>
-                <span className="text-brand-accent00 font-bold">
+                <span className="text-primary font-bold">
                   <MetricTicker value={completedCount} />
                 </span>
                 <span className="text-muted-foreground/60">/ {totalAssigned}</span>
@@ -203,7 +203,7 @@ export function ClientPlaybooksDialog({
                                   {skill.category}
                                 </Badge>
                                 {cs.status === "selesai" ? (
-                                  <span className="text-2xs font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <span className="text-2xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Icons.check className="size-2.5" /> Selesai
                                   </span>
                                 ) : cs.status === "jalan" ? (
@@ -400,7 +400,7 @@ export function ClientPlaybooksDialog({
                                         })
                                       }
                                       disabled={updateStatusMutation.isPending}
-                                      className="h-7 text-xs rounded-lg gap-1 text-brand-accent00 hover:text-brand-accent00 hover:bg-brand-accent00/10 border-border/4000/30"
+                                      className="h-7 text-xs rounded-lg gap-1 text-primary hover:text-primary hover:bg-primary/10 border-primary/30"
                                     >
                                       <Icons.check className="size-3" /> Setujui
                                     </Button>
@@ -441,7 +441,7 @@ export function ClientPlaybooksDialog({
                                         approved_at: null,
                                       })
                                     }
-                                    className="h-7 text-xs rounded-lg gap-1 bg-brand-accent00 hover:bg-brand-accent00 text-white shadow-xs"
+                                    className="h-7 text-xs rounded-lg gap-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
                                   >
                                     <Icons.calendar className="size-3" /> Jadwalkan
                                   </Button>

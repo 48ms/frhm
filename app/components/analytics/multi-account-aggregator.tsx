@@ -227,7 +227,7 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
               <span className="text-2xs text-muted-foreground uppercase tracking-wider font-semibold">
                 Inquiries Terarah (WA/DM)
               </span>
-              <div className="text-lg font-bold font-mono text-brand-accent00 flex items-center gap-1">
+              <div className="text-lg font-bold font-mono text-primary flex items-center gap-1">
                 <MetricTicker value={analytics?.totalInquiries ?? 0} />
                 <span className="text-2xs text-muted-foreground font-normal">leads</span>
               </div>
@@ -323,7 +323,7 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                           className={cn(
                             "text-3xs uppercase font-semibold px-1.5 py-0.5",
                             plat.accountStatus === "terhubung"
-                              ? "bg-brand-accent00/10 text-brand-accent00 border-border/4000/30"
+                              ? "bg-primary/10 text-primary border-primary/30"
                               : "bg-muted text-muted-foreground border-border/40"
                           )}
                         >
@@ -341,13 +341,13 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                         <div className="space-y-0.5">
                           <span className="text-3xs text-muted-foreground uppercase">ER Rate</span>
                           <p className="text-xs font-bold font-mono text-primary">
-                            {plat.engagementRate}%
+                            <MetricTicker value={plat.engagementRate} decimalSeparator="." />%
                           </p>
                         </div>
                         <div className="space-y-0.5">
                           <span className="text-3xs text-muted-foreground uppercase">Inquiries</span>
-                          <p className="text-xs font-bold font-mono text-brand-accent00">
-                            {plat.totalInquiries}
+                          <p className="text-xs font-bold font-mono text-primary">
+                            <MetricTicker value={plat.totalInquiries} />
                           </p>
                         </div>
                       </div>
@@ -420,14 +420,14 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                 </div>
                 <div>
                   <span className="text-3xs text-muted-foreground block">DM Inquiries</span>
-                  <span className="text-xs font-bold font-mono text-brand-accent00">
+                  <span className="text-xs font-bold font-mono text-primary">
                     <MetricTicker value={igInsights?.dmInquiries ?? 0} />
                   </span>
                 </div>
                 <div>
                   <span className="text-3xs text-muted-foreground block">Rata-rata ER</span>
                   <span className="text-xs font-bold font-mono text-pink-400">
-                    {igInsights?.avgEngagementRate ?? 0}%
+                    <MetricTicker value={igInsights?.avgEngagementRate ?? 0} decimalSeparator="." />%
                   </span>
                 </div>
               </div>
@@ -463,7 +463,7 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                   <span className="text-muted-foreground">Skor Potensi Viral (Share Ratio):</span>
                   <span className={cn(
                     "font-bold font-mono",
-                    (ttInsights?.viralPotentialScore ?? 0) >= 60 ? "text-brand-accent00" : "text-cyan-400"
+                    (ttInsights?.viralPotentialScore ?? 0) >= 60 ? "text-primary" : "text-cyan-400"
                   )}>
                     {ttInsights?.viralPotentialScore ?? 0} / 100
                   </span>
@@ -473,7 +473,7 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                     style={{ width: `${Math.min(100, Math.max(5, ttInsights?.viralPotentialScore ?? 0))}%` }}
                     className={cn(
                       "h-full transition-all rounded-full",
-                      (ttInsights?.viralPotentialScore ?? 0) >= 60 ? "bg-brand-accent00" : "bg-cyan-500"
+                      (ttInsights?.viralPotentialScore ?? 0) >= 60 ? "bg-primary" : "bg-cyan-500"
                     )}
                   />
                 </div>
@@ -495,7 +495,7 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
                 </div>
                 <div>
                   <span className="text-3xs text-muted-foreground block">WA Inquiries</span>
-                  <span className="text-xs font-bold font-mono text-brand-accent00">
+                  <span className="text-xs font-bold font-mono text-primary">
                     <MetricTicker value={ttInsights?.waInquiries ?? 0} />
                   </span>
                 </div>

@@ -37,7 +37,7 @@ type ThemeColor = "cobalt" | "emerald" | "indigo" | "monochrome"
 
 const THEME_OPTIONS: { id: ThemeColor; label: string; bgClass: string; borderClass: string }[] = [
   { id: "cobalt", label: "Cobalt Blue", bgClass: "bg-blue-600", borderClass: "border-blue-500" },
-  { id: "emerald", label: "Emerald Growth", bgClass: "bg-brand-accent00", borderClass: "border-border/4000" },
+  { id: "emerald", label: "Emerald Growth", bgClass: "bg-emerald-600", borderClass: "border-emerald-500" },
   { id: "indigo", label: "Royal Indigo", bgClass: "bg-indigo-600", borderClass: "border-indigo-500" },
   { id: "monochrome", label: "Monochrome", bgClass: "bg-zinc-800", borderClass: "border-zinc-700" },
 ]

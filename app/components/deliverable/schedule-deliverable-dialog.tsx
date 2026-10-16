@@ -118,7 +118,7 @@ export function ScheduleDeliverableDialog({
         <DialogHeader className="border-b border-border/40 pb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-brand-accent00/10 text-brand-accent00 dark:text-brand-accent00 flex items-center justify-center">
+              <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                 <Icons.calendar className="size-4" />
               </div>
               <div>
@@ -130,7 +130,7 @@ export function ScheduleDeliverableDialog({
                 </DialogDescription>
               </div>
             </div>
-            <Badge variant="outline" className="text-xs border-border/4000/30 text-brand-accent00 bg-brand-accent00/10">
+            <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/10">
               <Icons.check className="size-3 mr-1" /> Siap Terbit
             </Badge>
           </div>
@@ -303,7 +303,7 @@ export function ScheduleDeliverableDialog({
               variant="default"
               size="sm"
               isLoading={scheduleMutation.isPending}
-              className="h-8 text-xs bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 font-medium gap-1.5 shadow-xs"
+              className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-1.5 shadow-xs"
             >
               <Icons.calendar className="size-3.5" />
               Jadwalkan Sekarang

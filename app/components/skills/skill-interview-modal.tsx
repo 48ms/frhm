@@ -263,7 +263,7 @@ export function SkillInterviewModal({
               </Badge>
             )}
             {isSaved ? (
-              <Badge variant="secondary" className="bg-brand-accent00/10 text-brand-accent00 border-border/4000/20 gap-1.5 px-3 py-1">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 gap-1.5 px-3 py-1">
                 <Icons.check className="size-3.5" /> Tersimpan ke Klien
               </Badge>
             ) : isDone ? (
@@ -420,7 +420,7 @@ export function SkillInterviewModal({
                     onClick={handleFinalizeAndSave}
                     disabled={saveMutation.isPending}
                     isLoading={saveMutation.isPending}
-                    className="h-7 text-xs gap-1 bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 font-medium shadow-xs"
+                    className="h-7 text-xs gap-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-xs"
                   >
                     <Icons.check className="size-3" /> Finalisasi & Simpan
                   </Button>
@@ -459,7 +459,7 @@ export function SkillInterviewModal({
                       </p>
                     </div>
                     {isDone ? (
-                      <Badge className="bg-brand-accent00/15 border border-border/4000/30 text-brand-accent00 dark:text-brand-accent00 text-2xs">Lengkap</Badge>
+                      <Badge className="bg-primary/15 border border-primary/30 text-primary text-2xs">Lengkap</Badge>
                     ) : (
                       <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-2xs">
                         Draft In Progress

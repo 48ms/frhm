@@ -12,6 +12,7 @@ import { serializeComposerParams } from "@/lib/searchparams"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/animate-ui/components/radix/tabs"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
+import { Checkbox } from "@/components/animate-ui/components/radix/checkbox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -503,7 +504,9 @@ export function AiStudioClient() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-foreground">
                 <span>Jumlah Ide yang Dihasilkan:</span>
-                <span className="text-primary font-extrabold">{ideaCount} Ide</span>
+                <span className="text-primary font-extrabold inline-flex items-center gap-1">
+                  <MetricTicker value={ideaCount} /> Ide
+                </span>
               </div>
               <Slider
                 min={3}
@@ -649,7 +652,7 @@ export function AiStudioClient() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground">
-                  Frekuensi Post per Minggu: <span className="text-primary font-extrabold">{batchPostsPerWeek}x</span>
+                  Frekuensi Post per Minggu: <span className="text-primary font-extrabold inline-flex items-center"><MetricTicker value={batchPostsPerWeek} />x</span>
                 </label>
                 <Slider
                   min={1}
@@ -761,7 +764,7 @@ export function AiStudioClient() {
                     className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <Icons.check className="size-4" />
-                    Jadwalkan ({batchPosts.filter((p) => p.selected).length}) ke Kalender
+                    <span>Jadwalkan (<MetricTicker value={batchPosts.filter((p) => p.selected).length} />) ke Kalender</span>
                   </Button>
                 </div>
               </div>
@@ -771,15 +774,16 @@ export function AiStudioClient() {
                   <thead>
                     <tr className="border-b border-border/40 bg-secondary/30">
                       <th className="p-3 w-10 text-center">
-                        <input
-                          type="checkbox"
-                          checked={batchPosts.length > 0 && batchPosts.every((p) => p.selected)}
-                          onChange={(e) => {
-                            const val = e.target.checked
-                            setBatchPosts(batchPosts.map((p) => ({ ...p, selected: val })))
-                          }}
-                          className="rounded cursor-pointer"
-                        />
+                        <div className="flex items-center justify-center">
+                          <Checkbox
+                            checked={batchPosts.length > 0 && batchPosts.every((p) => p.selected)}
+                            onCheckedChange={(checked) => {
+                              const val = Boolean(checked)
+                              setBatchPosts(batchPosts.map((p) => ({ ...p, selected: val })))
+                            }}
+                            aria-label="Pilih semua postingan batch"
+                          />
+                        </div>
                       </th>
                       <th className="p-3 font-bold text-foreground">Waktu Jadwal</th>
                       <th className="p-3 font-bold text-foreground">Platform</th>
@@ -791,17 +795,18 @@ export function AiStudioClient() {
                     {batchPosts.map((post, idx) => (
                       <tr key={idx} className="hover:bg-muted/30 transition-colors">
                         <td className="p-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={post.selected}
-                            onChange={(e) => {
-                              const checked = e.target.checked
-                              setBatchPosts(
-                                batchPosts.map((p, i) => (i === idx ? { ...p, selected: checked } : p))
-                              )
-                            }}
-                            className="rounded cursor-pointer"
-                          />
+                          <div className="flex items-center justify-center">
+                            <Checkbox
+                              checked={post.selected}
+                              onCheckedChange={(checked) => {
+                                const isChecked = Boolean(checked)
+                                setBatchPosts(
+                                  batchPosts.map((p, i) => (i === idx ? { ...p, selected: isChecked } : p))
+                                )
+                              }}
+                              aria-label={`Pilih postingan ${post.title}`}
+                            />
+                          </div>
                         </td>
                         <td className="p-3 whitespace-nowrap font-medium text-foreground">
                           {post.scheduled_at ? format(new Date(post.scheduled_at), "dd MMM yyyy, HH:mm") : "-"}
@@ -1104,8 +1109,8 @@ export function AiStudioClient() {
                         {dnaMetrics.score === 100 ? "Optimal untuk AI" : dnaMetrics.score >= 60 ? "Cukup Lengkap" : "Perlu Dilengkapi"}
                       </Badge>
                     </div>
-                    <p className="text-2xs text-muted-foreground mt-0.5">
-                      {dnaMetrics.filledCount} dari {dnaMetrics.checks.length} pilar identitas telah terisi.
+                    <p className="text-2xs text-muted-foreground mt-0.5 inline-flex items-center gap-1">
+                      <MetricTicker value={dnaMetrics.filledCount} /> dari {dnaMetrics.checks.length} pilar identitas telah terisi.
                     </p>
                   </div>
                 </div>

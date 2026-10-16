@@ -61,11 +61,11 @@ export function ClientManager() {
           <div
             key={client.id}
             data-client-id={client.id}
-            className="p-6 rounded-2xl bg-card border border-border/50 hover:border-brand-accent/60 transition-all flex flex-col justify-between"
+            className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/60 transition-all flex flex-col justify-between"
           >
             <div className="flex items-center gap-4 mb-4">
               <div
-                className="w-12 h-12 rounded-xl bg-brand-accent/10 flex items-center justify-center font-bold text-lg text-brand-accent"
+                className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-lg text-primary"
                 aria-hidden
               >
                 {client.name.charAt(0).toUpperCase()}
@@ -115,7 +115,7 @@ export function ClientManager() {
         <Button
           variant="outline"
           onClick={openCreateClient}
-          className="p-6 h-auto min-h-32 rounded-2xl border-2 border-dashed border-border/50 hover:border-brand-accent/50 hover:bg-brand-accent/5 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          className="p-6 h-auto min-h-32 rounded-2xl border-2 border-dashed border-border/50 hover:border-primary/50 hover:bg-primary/5 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center" aria-hidden>
             <Icons.add className="size-6 text-muted-foreground" />

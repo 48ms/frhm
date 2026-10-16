@@ -317,7 +317,7 @@ export function ErpDashboardClient() {
                         <Button
                           size="sm"
                           onClick={() => setSchedulingDeliverable(d)}
-                          className="h-7 text-xs px-2.5 rounded-lg bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 font-medium gap-1 shadow-xs"
+                          className="h-7 text-xs px-2.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-1 shadow-xs"
                         >
                           <Icons.calendar className="size-3" /> Jadwalkan
                         </Button>

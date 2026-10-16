@@ -194,7 +194,7 @@ export function DispatchNotificationDialog({
                   className={cn(
                     "p-3 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3",
                     hasWhatsApp
-                      ? "bg-brand-accent00/10 border-border/4000/30 text-brand-accent50 dark:text-brand-accent00"
+                      ? "bg-primary/10 border-primary/30 text-primary"
                       : "bg-card hover:bg-muted/30 border-border/60 text-muted-foreground"
                   )}
                 >
@@ -205,7 +205,7 @@ export function DispatchNotificationDialog({
                   />
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
-                      <Icons.whatsapp className="size-4 text-brand-accent00" />
+                      <Icons.whatsapp className="size-4 text-primary" />
                       <span>WhatsApp</span>
                     </div>
                     {target.client.contactPhone ? (
@@ -287,7 +287,7 @@ export function DispatchNotificationDialog({
                 >
                   {copied ? (
                     <>
-                      <Icons.check className="size-3 text-brand-accent00" /> Tersalin
+                      <Icons.check className="size-3 text-primary" /> Tersalin
                     </>
                   ) : (
                     <>
@@ -318,7 +318,7 @@ export function DispatchNotificationDialog({
                     >
                       <div className="flex items-center gap-2">
                         {r.channel === "whatsapp" ? (
-                          <Icons.whatsapp className="size-3.5 text-brand-accent00" />
+                          <Icons.whatsapp className="size-3.5 text-primary" />
                         ) : (
                           <Icons.telegram className="size-3.5 text-sky-500" />
                         )}
@@ -326,7 +326,7 @@ export function DispatchNotificationDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         {r.success ? (
-                          <span className="text-brand-accent00 text-1xs font-semibold flex items-center gap-1">
+                          <span className="text-primary text-1xs font-semibold flex items-center gap-1">
                             <Icons.circleCheck className="size-3" />
                             {r.status === "ready" ? "Tautan Siap" : "Terkirim"}
                           </span>
@@ -341,7 +341,7 @@ export function DispatchNotificationDialog({
                             href={r.clickUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-brand-accent00 hover:bg-brand-accent00 text-brand-accent0 dark:text-brand-accent50 text-2xs font-semibold transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-2xs font-semibold transition-colors shadow-xs"
                           >
                             <Icons.whatsapp className="size-3" />
                             Buka di WhatsApp

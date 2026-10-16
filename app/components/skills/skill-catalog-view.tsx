@@ -202,7 +202,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                     >
                       {isAssigned ? (
                         <>
-                          <Icons.check className="size-3 text-brand-accent00" /> Aktif
+                          <Icons.check className="size-3 text-primary" /> Aktif
                         </>
                       ) : (
                         "+ Tugaskan"
@@ -285,7 +285,7 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                           {skill.category}
                         </Badge>
                         {clientStatus === "selesai" ? (
-                          <span className="text-2xs font-medium text-brand-accent00 bg-brand-accent00/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-2xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Icons.check className="size-2.5" /> Selesai
                           </span>
                         ) : clientStatus === "jalan" ? (
