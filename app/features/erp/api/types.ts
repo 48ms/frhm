@@ -41,3 +41,12 @@ export type KOL = {
   notes: string | null
   created_at: string | null
 }
+
+export type CreateExpenseInput = {
+  client_id: string
+  budget_id?: string | null
+  amount: number
+  category?: string | null
+  description?: string | null
+  expense_date?: string | null
+}

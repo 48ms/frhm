@@ -26,6 +26,7 @@ import type { ContentProduction, ContentStage } from "@/features/content-product
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CampaignModal } from "./campaign-modal"
 import { CampaignDetailModal } from "./campaign-detail-modal"
+import { CreateExpenseForm } from "@/components/expenses/create-expense-form"
 import { StitchAiHookModal } from "@/components/dashboard-stitch/ai-hook-modal"
 import { PageContainer } from "@/components/layout/page-container"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
@@ -348,6 +349,7 @@ export function CampaignsBoard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [detail, setDetail] = useState<Campaign | null>(null)
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false)
 
   // Deep-link `?new=1` (mis. dari tombol "Create Campaign" di header global):
   // buka modal create sekali saat param muncul, lalu bersihkan agar refresh
@@ -1059,12 +1061,37 @@ export function CampaignsBoard() {
                 </Button>
               ))}
             </div>
-            <h4 className="text-lg font-bold font-sans text-foreground">
-              Budget Allocation by Category
-            </h4>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {budget ? `Recorded expenses for ${formatMonth(budget.month)}.` : "No budget set for the current cycle."}
-            </p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h4 className="text-lg font-bold font-sans text-foreground">
+                  Budget Allocation by Category
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {budget ? `Recorded expenses for ${formatMonth(budget.month)}.` : "No budget set for the current cycle."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpenseFormOpen((v) => !v)}
+                className="shrink-0 h-8 text-xs rounded-xl border-border/50 gap-1.5 cursor-pointer"
+              >
+                <Icons.add className="size-3.5" />
+                Catat Expense
+              </Button>
+            </div>
+
+            {expenseFormOpen && (
+              <div className="mt-4">
+                <CreateExpenseForm
+                  clientId={activeClientId}
+                  budgetId={budget?.id ?? null}
+                  onSuccess={() => setExpenseFormOpen(false)}
+                />
+              </div>
+            )}
+
             {/* Progress Stack Breakdown */}
             {categorySplit.length ? (
               <>

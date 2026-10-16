@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs } from './service'
+import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense } from './service'
 
 const mockQueryBuilder = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
+  insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
   single: vi.fn(),
 }
 
@@ -17,7 +19,11 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/logger', () => ({
-  logger: { error: vi.fn() }
+  logger: { error: vi.fn(), warn: vi.fn() }
+}))
+
+vi.mock('@/lib/audit/log', () => ({
+  logAudit: vi.fn(),
 }))
 
 describe('ERP Service', () => {
@@ -26,6 +32,8 @@ describe('ERP Service', () => {
     mockQueryBuilder.select.mockReturnThis()
     mockQueryBuilder.eq.mockReturnThis()
     mockQueryBuilder.order.mockReturnThis()
+    mockQueryBuilder.insert.mockReturnThis()
+    mockQueryBuilder.update.mockReturnThis()
   })
 
   const readTests = [
@@ -58,6 +66,56 @@ describe('ERP Service', () => {
       const result = await fn('client-1')
       expect(result).toEqual([])
       expect(logger.error).toHaveBeenCalled()
+    })
+  })
+
+  describe('createExpense', () => {
+    it('inserts expense and returns success with data', async () => {
+      const inserted = { id: 'exp-1', client_id: 'c1', amount: 500000, category: 'Ads' }
+      mockQueryBuilder.single.mockResolvedValue({ data: inserted, error: null })
+
+      const res = await createExpense({ client_id: 'c1', amount: 500000, category: 'Ads' })
+
+      expect(res.success).toBe(true)
+      expect(res.data).toEqual(inserted)
+      expect(mockSupabase.from).toHaveBeenCalledWith('expenses')
+      expect(mockQueryBuilder.insert).toHaveBeenCalled()
+    })
+
+    it('returns failure with error message when insert fails', async () => {
+      mockQueryBuilder.single.mockResolvedValue({ data: null, error: { message: 'RLS denied' } })
+
+      const res = await createExpense({ client_id: 'c1', amount: 100 })
+
+      expect(res.success).toBe(false)
+      expect(res.error).toBe('RLS denied')
+    })
+
+    it('syncs budget remaining_balance when budget_id is provided', async () => {
+      // First call (insert expense) resolves via single()
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: { id: 'exp-2', client_id: 'c1', amount: 200000, category: 'KOL' }, error: null })
+        // Second call (read budget) resolves via single()
+        .mockResolvedValueOnce({ data: { remaining_balance: 1000000 }, error: null })
+
+      const res = await createExpense({ client_id: 'c1', budget_id: 'b1', amount: 200000 })
+
+      expect(res.success).toBe(true)
+      expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ remaining_balance: 800000 })
+      )
+    })
+
+    it('clamps remaining_balance at zero when expense exceeds budget', async () => {
+      mockQueryBuilder.single
+        .mockResolvedValueOnce({ data: { id: 'exp-3', client_id: 'c1', amount: 5000000, category: 'Ads' }, error: null })
+        .mockResolvedValueOnce({ data: { remaining_balance: 100000 }, error: null })
+
+      await createExpense({ client_id: 'c1', budget_id: 'b1', amount: 5000000 })
+
+      expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ remaining_balance: 0 })
+      )
     })
   })
 })

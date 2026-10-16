@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
-import type { ClientBudget, Expense, AdSpendLog, KOL } from "./types"
+import { logAudit } from "@/lib/audit/log"
+import type { ClientBudget, Expense, AdSpendLog, KOL, CreateExpenseInput } from "./types"
 
 /**
  * Service Layer for ERP financial & partner data.
@@ -80,4 +81,64 @@ export async function getKOLs(clientId: string): Promise<KOL[]> {
     return []
   }
   return (data ?? []) as KOL[]
+}
+
+/**
+ * Mencatat expense baru untuk client.
+ * Setelah insert, `remaining_balance` pada `client_budgets` terkait juga
+ * dikurangi (jika budget_id diberikan) agar angka di UI tetap konsisten
+ * dengan total expenses yang ditampilkan.
+ */
+export async function createExpense(
+  input: CreateExpenseInput
+): Promise<{ success: boolean; data?: Expense; error?: string }> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .insert({
+      client_id: input.client_id,
+      budget_id: input.budget_id || null,
+      amount: input.amount,
+      category: input.category || null,
+      description: input.description || null,
+      expense_date: input.expense_date || new Date().toISOString(),
+    })
+    .select("*")
+    .single()
+
+  if (error) {
+    logger.error("createExpense failed", { error })
+    return { success: false, error: error.message }
+  }
+
+  // Sinkronkan saldo budget terkait (read-modify-write, nilai faktual dari DB).
+  if (input.budget_id) {
+    const { data: budgetRow } = await supabase
+      .from("client_budgets")
+      .select("remaining_balance")
+      .eq("id", input.budget_id)
+      .single()
+
+    if (budgetRow && typeof budgetRow.remaining_balance === "number") {
+      const nextBalance = Math.max(0, budgetRow.remaining_balance - input.amount)
+      const { error: budgetErr } = await supabase
+        .from("client_budgets")
+        .update({ remaining_balance: nextBalance, updated_at: new Date().toISOString() })
+        .eq("id", input.budget_id)
+
+      if (budgetErr) {
+        logger.warn("createExpense budget sync failed", { error: budgetErr.message })
+      }
+    }
+  }
+
+  void logAudit({
+    action: "expense.create",
+    entityType: "expense",
+    entityId: data.id,
+    summary: `Recorded expense ${data.amount} (${data.category ?? "uncategorized"})`,
+  })
+
+  return { success: true, data: data as Expense }
 }

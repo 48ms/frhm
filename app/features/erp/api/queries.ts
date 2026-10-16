@@ -1,5 +1,7 @@
-import { queryOptions, useMutation } from "@tanstack/react-query"
-import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs } from "./service"
+import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { getClientBudgets, getExpenses, getAdSpendLogs, getKOLs, createExpense } from "./service"
+import type { CreateExpenseInput } from "./types"
 
 export const erpKeys = {
   all: ["erp"] as const,
@@ -57,6 +59,30 @@ export function useSendTelegramTest() {
         throw new Error(data?.error || "Gagal mengirim notifikasi Telegram.")
       }
       return data as { success: boolean; chatId: string; message: string }
+    },
+  })
+}
+
+/**
+ * Hook mutasi untuk mencatat expense baru.
+ * Menginvalidasi cache `erp` (expenses + budgets) agar breakdown budget di
+ * campaigns-board langsung menampilkan angka faktual terbaru.
+ */
+export function useCreateExpense() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: CreateExpenseInput) => createExpense(input),
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Pengeluaran berhasil dicatat!")
+        void queryClient.invalidateQueries({ queryKey: erpKeys.all })
+      } else {
+        toast.error(res.error || "Gagal mencatat pengeluaran")
+      }
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan")
     },
   })
 }
