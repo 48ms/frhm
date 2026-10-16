@@ -383,10 +383,15 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - Ditunjang unit test [expenses-ledger-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/expenses/expenses-ledger-view.test.tsx) (4/4 passed).
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
-  - `npx vitest run`: 93/93 test suites PASS (548 tests passed, 0 failed).
+  - `npx vitest run`: 94/94 test suites PASS (550 tests passed, 0 failed).
   - Kepatuhan Desain Sistem: 100% Radix UI Primitives, Animate UI, semantic HSL tokens, Service Layer 3-lapis.
 
-
-
-
-
+- [x] **Penyempurnaan Dashboard Overview: Perbaikan Visual Gap & Multi-Channel Performance Breakdown (2026-10-17)**
+  - Mengeliminasi visual gap / layout stretching berlebih pada kartu [performance-chart.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/performance-chart.tsx) dengan melepas `h-full` kaku dan menambahkan `items-start` pada container grid [layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/dashboard/layout.tsx).
+  - Mengintegrasikan seksi **Performa Saluran Media Sosial (Multi-Channel Performance Breakdown)** di bawah grafik dinamika engagement:
+    - Menampilkan kartu performa per kanal terhubung (YouTube, Instagram, TikTok, LinkedIn, Twitter/X).
+    - Metrik faktual per kanal dari PostgreSQL Supabase: Reach / Views (`<MetricTicker>`), Engagement Rate (%), dan Total Postingan.
+    - Status badge akun terhubung real-time.
+    - Fallback onboarding empty-state jika belum ada saluran terhubung untuk memandu user/klien menghubungkan akun pertama mereka.
+  - Server prefetching multi-account analytics di [dashboard-prefetcher.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/dashboard-prefetcher.tsx) (`analyticsQueries.multiAccount(clientId, "30d")`).
+  - Ditunjang unit test komprehensif [performance-chart.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/performance-chart.test.tsx) (2/2 passed).

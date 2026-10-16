@@ -41,6 +41,7 @@ const prefetchDashboardState = cache(async (clientId: string) => {
     queryClient.prefetchQuery(scheduledPostQueries.listByClient(clientId)),
     queryClient.prefetchQuery(deliverableQueries.listByClient(clientId)),
     queryClient.prefetchQuery(analyticsQueries.listLatestPrediction(clientId)),
+    queryClient.prefetchQuery(analyticsQueries.multiAccount(clientId, "30d")),
   ])
 
   return dehydrate(queryClient)

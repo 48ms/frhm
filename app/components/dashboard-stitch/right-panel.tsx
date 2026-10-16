@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
-function getPlatformMeta(platform: string) {
+export function getPlatformMeta(platform: string) {
   const p = (platform || "").toLowerCase()
   if (p.includes("instagram")) {
     return {
@@ -41,7 +41,7 @@ function getPlatformMeta(platform: string) {
   if (p.includes("youtube")) {
     return {
       label: "YouTube",
-      icon: Icons.video,
+      icon: Icons.youtube,
       bg: "bg-[hsl(var(--platform-youtube,0_85%_50%))]",
     }
   }
