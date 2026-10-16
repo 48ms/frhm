@@ -121,8 +121,8 @@ export function ConnectChannelModal({
       })
       // Redirect user to Ayrshare OAuth URL
       window.location.href = url
-    } catch (err: any) {
-      toast.error(err.message || 'Error connecting to provider')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error connecting to provider')
       setLoadingPlatform(null)
     }
   }

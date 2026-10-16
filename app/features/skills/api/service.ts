@@ -194,8 +194,8 @@ export async function assignPackToClient(
     }
 
     return { success: true, count: rows.length }
-  } catch (err: any) {
-    return { success: false, count: 0, error: err.message ?? "Gagal menugaskan pack" }
+  } catch (err: unknown) {
+    return { success: false, count: 0, error: err instanceof Error ? err.message : "Gagal menugaskan pack" }
   }
 }
 
@@ -261,8 +261,8 @@ export async function saveSkillOutput(
     await updateClientSkillStatus(clientId, skillId, "selesai")
 
     return { success: true, id: data.id }
-  } catch (err: any) {
-    return { success: false, error: err.message ?? "Gagal menyimpan output" }
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Gagal menyimpan output" }
   }
 }
 
@@ -393,12 +393,13 @@ RULES:
       output: result?.output || null,
       file: result?.file || null,
     }
-  } catch (err: any) {
-    logger.error("skills.executeSkillChat.failed", { skillId, error: err.message })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("skills.executeSkillChat.failed", { skillId, error: msg })
     return {
       reply: "Terjadi kendala saat memproses respons AI. Silakan coba kembali.",
       done: false,
-      error: err.message,
+      error: msg,
     }
   }
 }
@@ -566,13 +567,14 @@ You MUST return valid JSON ONLY with this exact schema:
         ? { promptTokens: usage.promptTokens, completionTokens: usage.completionTokens }
         : undefined,
     }
-  } catch (err: any) {
-    logger.error("skills.executeGenericSkill.failed", { skillId, clientId, error: err.message })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("skills.executeGenericSkill.failed", { skillId, clientId, error: msg })
     return {
       success: false,
       title: "",
       content: "",
-      error: err.message || "Gagal mengeksekusi generic skill runner",
+      error: msg || "Gagal mengeksekusi generic skill runner",
     }
   }
 }

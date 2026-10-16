@@ -292,9 +292,9 @@ Output JSON: { "who": "...", "audience": "...", "voice": "...", "pov": "...", "p
     }
 
     return { profile: parsed.data }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error("generateBrandProfile failed", { error })
-    return { error: error.message || "Failed to generate brand profile" }
+    return { error: error instanceof Error ? error.message : "Failed to generate brand profile" }
   }
 }
 

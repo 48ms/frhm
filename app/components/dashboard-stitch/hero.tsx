@@ -31,8 +31,8 @@ export function DashboardStitchHero() {
         queryClient.invalidateQueries({ queryKey: socialKeys.all }),
       ])
       toast.success("Data dasbor berhasil diperbarui")
-    } catch (err: any) {
-      toast.error(err?.message || "Gagal menyinkronkan data")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyinkronkan data")
     } finally {
       setIsSyncing(false)
     }

@@ -156,9 +156,10 @@ export async function promoteSkillOutputToDeliverable(
     })
 
     return { success: true, deliverable: deliverable as Deliverable }
-  } catch (err: any) {
-    logger.error("promoteSkillOutputToDeliverable.exception", { error: err.message })
-    return { success: false, error: err.message ?? "Gagal mempromosikan dokumen" }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("promoteSkillOutputToDeliverable.exception", { error: msg })
+    return { success: false, error: msg ?? "Gagal mempromosikan dokumen" }
   }
 }
 
@@ -212,9 +213,10 @@ export async function updateDeliverableStatus(
     })
 
     return { success: true }
-  } catch (err: any) {
-    logger.error("updateDeliverableStatus.exception", { error: err.message })
-    return { success: false, error: err.message ?? "Gagal memperbarui status" }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("updateDeliverableStatus.exception", { error: msg })
+    return { success: false, error: msg ?? "Gagal memperbarui status" }
   }
 }
 
@@ -267,8 +269,9 @@ export async function getDeliverableById(
       comments: (comments ?? []) as any[],
       feedback: (feedback ?? []) as any[],
     }
-  } catch (err: any) {
-    logger.error("getDeliverableById.exception", { error: err.message })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("getDeliverableById.exception", { error: msg })
     return null
   }
 }
@@ -378,14 +381,15 @@ export async function submitDeliverableReview(
           parseMode: "HTML",
         })
       }
-    } catch (tgErr: any) {
-      logger.warn("submitDeliverableReview.telegramFailed", { error: tgErr?.message })
+    } catch (tgErr: unknown) {
+      logger.warn("submitDeliverableReview.telegramFailed", { error: tgErr instanceof Error ? tgErr.message : String(tgErr) })
     }
 
     return { success: true, deliverable: updatedDeliverable as Deliverable }
-  } catch (err: any) {
-    logger.error("submitDeliverableReview.exception", { error: err.message })
-    return { success: false, error: err.message ?? "Terjadi kesalahan saat menyimpan review" }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("submitDeliverableReview.exception", { error: msg })
+    return { success: false, error: msg ?? "Terjadi kesalahan saat menyimpan review" }
   }
 }
 
@@ -469,14 +473,15 @@ export async function scheduleApprovedDeliverable(
           parseMode: "HTML",
         })
       }
-    } catch (tgErr: any) {
-      logger.warn("scheduleApprovedDeliverable.telegramFailed", { error: tgErr?.message })
+    } catch (tgErr: unknown) {
+      logger.warn("scheduleApprovedDeliverable.telegramFailed", { error: tgErr instanceof Error ? tgErr.message : String(tgErr) })
     }
 
     return { success: true, scheduledPost: scheduledPost as ScheduledPost }
-  } catch (err: any) {
-    logger.error("scheduleApprovedDeliverable.exception", { error: err.message })
-    return { success: false, error: err.message ?? "Terjadi kesalahan saat menjadwalkan deliverable" }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error("scheduleApprovedDeliverable.exception", { error: msg })
+    return { success: false, error: msg ?? "Terjadi kesalahan saat menjadwalkan deliverable" }
   }
 }
 

@@ -329,8 +329,8 @@ export function DashboardStitchConnectedHub() {
                   try {
                     await disconnectChannelMutate(disconnectId)
                     toast.success("Saluran berhasil diputuskan")
-                  } catch (err: any) {
-                    toast.error(err?.message || "Gagal memutuskan saluran")
+                  } catch (err: unknown) {
+                    toast.error(err instanceof Error ? err.message : "Gagal memutuskan saluran")
                   } finally {
                     setDisconnectId(null)
                   }

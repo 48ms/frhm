@@ -251,9 +251,9 @@ Please execute the METER framework audit. Provide the JSON report matching the s
     }
 
     return { report }
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.error("Audit Performance Error", { error: err })
-    return { error: err.message || "Terjadi kesalahan saat mengaudit performa." }
+    return { error: err instanceof Error ? err.message : "Terjadi kesalahan saat mengaudit performa." }
   }
 }
 
@@ -582,7 +582,7 @@ export async function getMultiAccountAnalytics(
       },
       lastSyncedAt: latestTimestamp,
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.error("getMultiAccountAnalytics error", { error: err })
     return { ...emptyResult, clientName: "Error loading analytics" }
   }
@@ -666,8 +666,8 @@ export async function syncMultiAccountSocialData(
           }
         }
       }
-    } catch (wsErr: any) {
-      logger.warn("WoopSocial sync warning (continuing)", { error: wsErr.message })
+    } catch (wsErr: unknown) {
+      logger.warn("WoopSocial sync warning (continuing)", { error: wsErr instanceof Error ? wsErr.message : String(wsErr) })
     }
   }
 

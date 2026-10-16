@@ -112,9 +112,9 @@ export function MultiAccountAggregator({ clientId }: MultiAccountAggregatorProps
       } else {
         toast.error("Gagal menyinkronkan akun sosial")
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Gagal sinkronisasi", {
-        description: err.message || "Terjadi kesalahan saat memanggil bridge.",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan saat memanggil bridge.",
       })
     }
   }

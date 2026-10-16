@@ -78,8 +78,8 @@ export function SkillInterviewModal({
             setMcpFeedback(res.error || "Gagal memanggil MCP tool")
           }
         },
-        onError: (err: any) => {
-          setMcpFeedback(err?.message || "Error saat eksekusi MCP")
+        onError: (err: unknown) => {
+          setMcpFeedback(err instanceof Error ? err.message : "Error saat eksekusi MCP")
         },
       }
     )

@@ -124,7 +124,7 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
         // memblokir UI — data optimistik sudah tampil lebih dulu).
         queryClient.invalidateQueries({ queryKey: dashboardKeys.clients() })
         queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
-      } catch (e: any) {
+      } catch (e: unknown) {
         setErr(e instanceof Error ? e.message : 'Terjadi kesalahan')
       }
     }

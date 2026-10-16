@@ -257,11 +257,11 @@ export async function executeWoopSocialTool(
           toolName,
         }
     }
-  } catch (err: any) {
-    logger.error("mcp.woopsocial.execution_error", { toolName, error: err.message })
+  } catch (err: unknown) {
+    logger.error("mcp.woopsocial.execution_error", { toolName, error: err instanceof Error ? err.message : String(err) })
     return {
       success: false,
-      error: err.message ?? "Terjadi kesalahan internal pada eksekusi MCP",
+      error: err instanceof Error ? err.message : "Terjadi kesalahan internal pada eksekusi MCP",
       toolName,
     }
   }

@@ -47,8 +47,8 @@ export async function POST(request: Request) {
   let payload
   try {
     payload = bodySchema.parse(await request.json())
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Invalid payload" }, { status: 400 })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Invalid payload" }, { status: 400 })
   }
 
   // Persist tiket ke DB agar user/klien bisa melihat histori & statusnya.

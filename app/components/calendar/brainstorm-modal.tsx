@@ -96,8 +96,8 @@ export function BrainstormModal({
       toast.success("Ide Konten Siap!", {
         description: `${result.ideas?.length || count} ide berhasil diracik menggunakan framework SPARK.`
       })
-    } catch (err: any) {
-      toast.error(err.message || "Gagal generate ide")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal generate ide")
     }
   }
 
@@ -123,8 +123,8 @@ export function BrainstormModal({
           description: res.evaluation.overallApproved ? "Tren direkomendasikan (GO)" : "Tren tidak direkomendasikan (NO-GO)",
         })
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal mengaudit tren")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengaudit tren")
     }
   }
 
@@ -146,8 +146,8 @@ export function BrainstormModal({
 
       toast.success("Ide berhasil ditambahkan ke kalender!")
       setIdeas(prev => prev.filter((_, i) => i !== index))
-    } catch (error: any) {
-      toast.error(error.message || "Gagal menyimpan ide")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan ide")
     }
   }
 
@@ -172,8 +172,8 @@ export function BrainstormModal({
       toast.success("Tren berhasil ditambahkan sebagai draft jadwal!")
       setTrendResult(null)
       setTrendDesc("")
-    } catch (error: any) {
-      toast.error(error.message || "Gagal menyimpan tren ke kalender")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan tren ke kalender")
     }
   }
 

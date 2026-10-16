@@ -119,9 +119,10 @@ export async function POST(request: Request) {
 
       results.push({ client_id: client.id, status: 'synced', totalFollowers })
 
-    } catch (err: any) {
-      logger.error(`Failed to sync analytics for client ${client.id}`, { error: err.message })
-      results.push({ client_id: client.id, status: 'error', error: err.message })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logger.error(`Failed to sync analytics for client ${client.id}`, { error: msg })
+      results.push({ client_id: client.id, status: 'error', error: msg })
     }
   }
 

@@ -126,8 +126,8 @@ Memberikan solusi relevan dan berdampak bagi audiens.
     if (packRes.success) {
       seededSkills = packRes.count
     }
-  } catch (packErr: any) {
-    logger.warn("createNewClient assignPack error", { error: packErr?.message || String(packErr) })
+  } catch (packErr: unknown) {
+    logger.warn("createNewClient assignPack error", { error: packErr instanceof Error ? packErr.message : String(packErr) })
   }
 
   return {

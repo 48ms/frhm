@@ -53,8 +53,8 @@ export function ErpDashboardClient() {
       toast.success("Notifikasi Telegram berhasil dikirim.", {
         description: `Pesan uji coba terkirim ke chat ${data.chatId}.`,
       })
-    } catch (err: any) {
-      toast.error(err?.message || "Gagal mengirim notifikasi Telegram.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengirim notifikasi Telegram.")
     }
   }
   const clientPosts = posts || []

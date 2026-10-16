@@ -175,8 +175,8 @@ export function AnalyticsView() {
           description: `Kesehatan: ${res.report.overallHealth} (Signal Score: ${res.report.signalScore}/100)`
         })
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal mengaudit performa konten.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengaudit performa konten.")
     }
   }
 
