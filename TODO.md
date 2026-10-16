@@ -299,5 +299,43 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx vitest run`: 85/85 test suites lulus (502 tests passed, 0 failed).
     - `npx tsc --noEmit`: 0 error.
     - `npx playwright test e2e/admin-full-walkthrough.spec.ts`: 1 suite (1 comprehensive test) passed (100% lulus dalam 25.5s).
+- ✅ **Paket A: Client Portal Hardening & Boundary Protection (2026-10-16)**:
+  - **Executive Read-Only Calendar:**
+    - Membuat [client-calendar-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-calendar-view.tsx) khusus bagi partner klien eksekutif.
+    - Menghilangkan seluruh aksi mutasi agensi (drag & drop, tombol buat postingan, hapus, slot interaktif kosong, dan menu AI Copilot).
+    - Mengintegrasikan modal pratinjau konten visual Radix Dialog (thumbnail media, teks caption utuh, badge channel, rilis WIB, dan tombol kontak hotline jika butuh revisi jadwal).
+    - Terpasang di [app/app/client/calendar/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/calendar/page.tsx) dengan Server Component prefetching TanStack Query.
+    - Dilengkapi unit test [client-calendar-view.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-calendar-view.test.tsx) 100% PASS.
+  - **URL State Synchronization (`nuqs`):**
+    - Mendefinisikan parser di [searchparams.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/searchparams.ts) (`clientReviewSearchParams`, `clientReviewParamsCache`, `serializeClientReviewParams`).
+    - Migrasi penuh dari `useState` lokal ke `useQueryStates` di [client-review-hub.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-review-hub.tsx).
+    - Server parsing di [app/app/client/review/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/review/page.tsx) mematuhi keselarasan parser server & client.
+    - Dynamic tab counter menggunakan `<MetricTicker>`.
+  - **Eliminasi Hard Browser Reload (SPA Link) & Header Admin Bridge:**
+    - Mengganti tag `<a>` polos di [client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) dan [client-dashboard-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-dashboard-view.tsx) dengan Next.js `<Link>`.
+    - Menambahkan tombol "← Admin Studio" di [client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) khusus saat ditinjau oleh pengguna berstatus admin (`isAdmin={identity.role === 'admin'}`).
+  - **Pembersihan Copywriting FAQ & Isolasi Link Admin:**
+    - [support-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/support/support-view.tsx): Disesuaikan ke bahasa Indonesia profesional ramah partner bisnis (FAQ seputar alur review deliverable, SLA revisi 1x24 jam, penanganan posting mendadak, dan unduh aset).
+    - [analytics-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/analytics/analytics-view.tsx): Deteksi portal klien mengarahkan link rekomendasi ke `/client/support` ("Request Konten") alih-alih `/admin/composer`.
+    - [library-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/library/library-client.tsx): Menyembunyikan tombol mutasi dan hapus media agensi bagi portal klien; menyediakan tombol "Download Aset Resolusi Penuh".
+  - **Git Commit:** `444d33d` (`feat(client-portal): complete Package A hardening...`).
+- ✅ **Paket B: Admin Bridge & Support Ticket Management (2026-10-16)**:
+  - **Kontrak Tipe & Lapisan Service 3-Lapis (`features/support/api/`)**:
+    - [types.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/support/api/types.ts): Kontrak `AdminSupportTicket` (dengan relasi join brand name) dan `UpdateSupportTicketInput`.
+    - [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/support/api/service.ts): Menerapkan `getAllSupportTickets()` dan `updateSupportTicket()` dengan validasi `assertAdmin()` dan integrasi database `support_tickets`.
+    - [queries.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/support/api/queries.ts): Query key factories `supportTicketQueries.listAll()`, custom hooks `useAllSupportTickets()`, dan `useUpdateSupportTicket()` dengan invalidasi TanStack Query otomatis.
+  - **Inbox Tiket Dukungan Admin Komprehensif**:
+    - [admin-support-tickets-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/support/admin-support-tickets-dialog.tsx): Desain dual-pane berbasis Radix Dialog & Tabs, badge prioritas semantik HSL, indikator "Butuh Respons" dinamis via `<MetricTicker>`, filter tab status instan, dan form tanggapan admin dengan tombol aksi `Tandai Diproses` serta `Kirim & Selesaikan`.
+    - Unit test [admin-support-tickets-dialog.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/support/admin-support-tickets-dialog.test.tsx) 5/5 PASS.
+  - **Admin Bridge & Quick Client Portal Preview**:
+    - [client-manager.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.tsx): Menambahkan komponen `SupportTicketsHeaderButton` di header dengan dynamic badge counter tiket aktif (`<MetricTicker>`), dan tombol "Portal Klien" (`Icons.externalLink`) di setiap kartu brand untuk pratinjau langsung portal klien.
+    - [admin/clients/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/clients/page.tsx): Prefetch server-side paralel TanStack Query v5 `Promise.all([socialQueries.listClientsWithChannels(), supportTicketQueries.listAll()])` dan menyematkan `SupportTicketsHeaderButton` di `pageHeaderAction`.
+    - Unit test [client-manager.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.test.tsx) diperbarui (8/8 PASS).
+  - **Git Commit:** `521f33a` (`feat(admin-support): implement admin support ticket inbox and quick client portal preview bridge`).
+- 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
+  - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+  - `npx vitest run`: 88/88 test suites PASS (512 tests passed, 0 failed).
+  - `npx playwright test e2e/client-portal.spec.ts`: 3/3 tests PASS (layout portal, modal akses klien, tiket dukungan inbox & portal bridge).
+
 
 
