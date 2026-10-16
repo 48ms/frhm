@@ -1,6 +1,8 @@
-import * as React from "react"
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { SupportView } from "@/components/support/support-view"
+import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
+import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
 
@@ -9,12 +11,21 @@ export const metadata: Metadata = {
   description: "Pusat bantuan langsung, pengajuan tiket request mendesak, dan koordinasi dengan tim Frhm.",
 }
 
-export default function ClientSupportPage() {
+export default async function ClientSupportPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const searchParams = await props.searchParams
+  const parsedClientId = typeof searchParams.clientId === "string" ? searchParams.clientId : null
+  const clientId = await resolveClientId(parsedClientId)
+
   return (
-    <React.Suspense
+    <Suspense
       fallback={<div className="p-8 text-muted-foreground text-sm">Memuat Hotline Bantuan...</div>}
     >
-      <SupportView />
-    </React.Suspense>
+      <DashboardPrefetcher clientId={clientId}>
+        <SupportView />
+      </DashboardPrefetcher>
+    </Suspense>
   )
 }
+

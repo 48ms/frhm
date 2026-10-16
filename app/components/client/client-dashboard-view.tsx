@@ -77,7 +77,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
             type="button"
             size="sm"
             onClick={() => router.push(`/client/review?clientId=${clientId}`)}
-            className="shrink-0 rounded-full font-bold text-xs bg-amber-500 text-slate-950 hover:bg-amber-400 cursor-pointer"
+            className="shrink-0 rounded-full font-bold text-xs bg-amber-500 text-primary-foreground hover:bg-amber-400 cursor-pointer"
           >
             Tinjau Sekarang ({pendingReview.length})
           </Button>

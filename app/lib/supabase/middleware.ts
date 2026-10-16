@@ -93,12 +93,16 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
+    const effectiveClientId = userProfile?.role === 'admin'
+      ? (requestedClientId || userProfile?.client_id || '')
+      : (userProfile?.client_id || '')
+
     // Hand the resolved identity to layouts via request headers.
     requestHeaders.set(USER_HEADERS.id, user.id)
     requestHeaders.set(USER_HEADERS.email, user.email ?? '')
     requestHeaders.set(USER_HEADERS.role, userProfile?.role ?? '')
     requestHeaders.set(USER_HEADERS.name, userProfile?.full_name ?? '')
-    requestHeaders.set(USER_HEADERS.clientId, userProfile?.client_id ?? '')
+    requestHeaders.set(USER_HEADERS.clientId, effectiveClientId)
     supabaseResponse = buildNextResponse()
 
     // If user is logged in and visits auth page, redirect based on role

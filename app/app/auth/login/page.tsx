@@ -148,20 +148,27 @@ function LoginForm() {
         // Storage full or blocked, non-fatal, continue to the redirect.
       }
 
-      // If user came to login without an explicit target parameter, resolve destination by role
+      // Resolve destination based on user profile and role
       const explicitTarget = searchParams.get('next') ?? searchParams.get('redirect')
       let destination = redirect
-      if (!explicitTarget && data?.user) {
+      if (data?.user) {
         const { data: profile } = await supabase
           .from('users')
-          .select('role')
+          .select('role, client_id')
           .eq('id', data.user.id)
           .single()
 
         if (profile?.role === 'client') {
-          destination = '/client/dashboard'
+          const clientTarget = profile.client_id
+            ? `/client/dashboard?clientId=${profile.client_id}`
+            : '/client/dashboard'
+          destination = explicitTarget && explicitTarget.startsWith('/client')
+            ? explicitTarget
+            : clientTarget
         } else if (profile?.role === 'admin') {
-          destination = '/admin/dashboard'
+          destination = explicitTarget && !explicitTarget.startsWith('/client')
+            ? explicitTarget
+            : (explicitTarget || '/admin/dashboard')
         } else {
           destination = '/waitlist'
         }

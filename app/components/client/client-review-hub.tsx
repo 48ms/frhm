@@ -186,7 +186,7 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
                         size="sm"
                         onClick={() => handleApprove(item)}
                         disabled={updateStatusMutation.isPending}
-                        className="rounded-xl text-xs font-semibold bg-[hsl(var(--success))] text-slate-950 hover:bg-[hsl(var(--success))]/90 cursor-pointer"
+                        className="rounded-xl text-xs font-semibold bg-[hsl(var(--success))] text-primary-foreground hover:bg-[hsl(var(--success))]/90 cursor-pointer"
                       >
                         <Icons.check className="size-3.5 mr-1" />
                         Setujui

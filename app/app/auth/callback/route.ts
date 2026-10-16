@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       if (user) {
         const { data: profile } = await supabase
           .from('users')
-          .select('role')
+          .select('role, client_id')
           .eq('id', user.id)
           .single()
 
@@ -48,9 +48,14 @@ export async function GET(request: NextRequest) {
             summary: `Login berhasil (${profile.role})`,
             request,
           })
-          const defaultTarget = profile.role === 'client' ? '/client/dashboard' : '/admin/dashboard'
+          const defaultTarget = profile.role === 'client'
+            ? (profile.client_id ? `/client/dashboard?clientId=${profile.client_id}` : '/client/dashboard')
+            : '/admin/dashboard'
           const explicitRedirect = searchParams.get('redirect')
-          const destination = explicitRedirect ? safeRedirect(explicitRedirect, defaultTarget) : defaultTarget
+          let destination = explicitRedirect ? safeRedirect(explicitRedirect, defaultTarget) : defaultTarget
+          if (profile.role === 'client' && !destination.startsWith('/client')) {
+            destination = defaultTarget
+          }
           const url = new URL(destination, request.url)
           return NextResponse.redirect(url)
         }
