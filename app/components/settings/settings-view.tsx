@@ -98,6 +98,49 @@ function WorkspaceTab() {
   const [proQuality, setProQuality] = React.useState(true)
   const [retention, setRetention] = React.useState("365")
 
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem("frhm_workspace_config")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.agencyName) setAgencyName(parsed.agencyName)
+        if (parsed.slug) setSlug(parsed.slug)
+        if (parsed.timezone) setTimezone(parsed.timezone)
+        if (parsed.currency) setCurrency(parsed.currency)
+        if (typeof parsed.strictGate === "boolean") setStrictGate(parsed.strictGate)
+        if (typeof parsed.aiCaption === "boolean") setAiCaption(parsed.aiCaption)
+        if (typeof parsed.proQuality === "boolean") setProQuality(parsed.proQuality)
+        if (parsed.retention) setRetention(parsed.retention)
+      }
+    } catch {
+      // fallback to defaults
+    }
+  }, [])
+
+  const handleSaveWorkspace = React.useCallback(() => {
+    try {
+      const config = {
+        agencyName,
+        slug,
+        timezone,
+        currency,
+        strictGate,
+        aiCaption,
+        proQuality,
+        retention,
+        updatedAt: new Date().toISOString(),
+      }
+      localStorage.setItem("frhm_workspace_config", JSON.stringify(config))
+      toast.success("Konfigurasi workspace FRHM berhasil disimpan!", {
+        description: `Preferensi untuk ${agencyName} telah diperbarui secara lokal dan aktif.`,
+      })
+    } catch (err) {
+      toast.error("Gagal menyimpan konfigurasi", {
+        description: err instanceof Error ? err.message : undefined,
+      })
+    }
+  }, [agencyName, slug, timezone, currency, strictGate, aiCaption, proQuality, retention])
+
   return (
     <div className="space-y-8">
       {/* Section 1.1: Agency Workspace Profile */}
@@ -301,6 +344,24 @@ function WorkspaceTab() {
             </RadioGroup>
           </div>
         </div>
+      </div>
+
+      {/* Workspace Save Actions */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/40 shadow-sm">
+        <div>
+          <h3 className="text-sm font-bold text-foreground">Simpan Preferensi Workspace</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Preferensi zona waktu, mata uang, dan aturan guardrail konten akan diterapkan ke seluruh sesi operator Frhm.
+          </p>
+        </div>
+        <Button
+          type="button"
+          onClick={handleSaveWorkspace}
+          className="admin-pill admin-pill-primary px-6 py-2.5 flex items-center gap-2 cursor-pointer shadow-md shrink-0 border-0"
+        >
+          <Icons.save className="size-4 text-[hsl(var(--admin-lime))]" />
+          <span>Simpan Konfigurasi</span>
+        </Button>
       </div>
     </div>
   )

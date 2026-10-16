@@ -80,19 +80,19 @@ export function ClientReviewHub({ clientId }: ClientReviewHubProps) {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <Tabs value={filter} onValueChange={(val) => void setReviewState({ status: val as any })}>
           <TabsList aria-label="Deliverable filter tabs" className="h-auto p-1 bg-muted/60 rounded-full border border-border/30">
-            <TabsTrigger value="all" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+            <TabsTrigger value="all" onClick={() => void setReviewState({ status: "all" })} className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5 cursor-pointer min-h-11">
               <span>Semua</span>
               <span className="opacity-80">(<MetricTicker value={deliverables.length} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="sent" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+            <TabsTrigger value="sent" onClick={() => void setReviewState({ status: "sent" })} className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5 cursor-pointer min-h-11">
               <span>Menunggu Review</span>
               <span className="opacity-80">(<MetricTicker value={pendingCount} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="revision_requested" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+            <TabsTrigger value="revision_requested" onClick={() => void setReviewState({ status: "revision_requested" })} className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5 cursor-pointer min-h-11">
               <span>Perlu Revisi</span>
               <span className="opacity-80">(<MetricTicker value={revisionCount} />)</span>
             </TabsTrigger>
-            <TabsTrigger value="approved" className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5">
+            <TabsTrigger value="approved" onClick={() => void setReviewState({ status: "approved" })} className="rounded-full text-xs font-semibold px-4 py-2 flex items-center gap-1.5 cursor-pointer min-h-11">
               <span>Disetujui</span>
               <span className="opacity-80">(<MetricTicker value={approvedCount} />)</span>
             </TabsTrigger>

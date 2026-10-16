@@ -548,6 +548,7 @@ export function AdminCalendarClient() {
               <TabsTrigger
                 key={v}
                 value={v}
+                onClick={() => setViewMode(v as any)}
                 className="px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 data-[state=active]:text-on-secondary data-[state=active]:font-extrabold min-h-11"
               >
                 {v === "list" && <Icons.activity className="size-4" />}
@@ -607,6 +608,7 @@ export function AdminCalendarClient() {
                 <TabsTrigger
                   key={p}
                   value={p}
+                  onClick={() => setPlatformFilter(p as any)}
                   className="px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 capitalize cursor-pointer data-[state=active]:text-card min-h-11"
                 >
                   {p === "all" ? "All (5)" : p}

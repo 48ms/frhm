@@ -320,13 +320,13 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
             onValueChange={(val) => void setCalendarState({ view: val as typeof viewMode })}
           >
             <TabsList className="h-auto p-1 bg-muted/60 rounded-full border border-border/30">
-              <TabsTrigger value="month" className="rounded-full text-xs font-semibold px-3 py-1">
+              <TabsTrigger value="month" onClick={() => void setCalendarState({ view: "month" })} className="rounded-full text-xs font-semibold px-3 py-1 cursor-pointer min-h-11">
                 Bulan
               </TabsTrigger>
-              <TabsTrigger value="week" className="rounded-full text-xs font-semibold px-3 py-1">
+              <TabsTrigger value="week" onClick={() => void setCalendarState({ view: "week" })} className="rounded-full text-xs font-semibold px-3 py-1 cursor-pointer min-h-11">
                 Minggu
               </TabsTrigger>
-              <TabsTrigger value="list" className="rounded-full text-xs font-semibold px-3 py-1">
+              <TabsTrigger value="list" onClick={() => void setCalendarState({ view: "list" })} className="rounded-full text-xs font-semibold px-3 py-1 cursor-pointer min-h-11">
                 Daftar
               </TabsTrigger>
             </TabsList>

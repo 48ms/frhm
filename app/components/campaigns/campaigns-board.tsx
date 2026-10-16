@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import Link from "next/link"
 import { useQueryStates } from "nuqs"
 import { campaignsSearchParams } from "@/lib/searchparams"
 import { useQuery } from "@tanstack/react-query"
@@ -532,6 +533,64 @@ export function CampaignsBoard() {
     }
   }
 
+  const handleExportCampaignDeck = React.useCallback(() => {
+    if (!campaigns.length) {
+      toast.info("Belum ada data kampanye untuk diekspor.")
+      return
+    }
+
+    const headers = ["Nama Kampanye", "Status", "Tanggal Mulai", "Tanggal Berakhir", "Total Deliverable", "Catatan"]
+    const rows = campaigns.map((c) => {
+      const status = getCampaignStatus(c)
+      const count = productions.length
+      return [
+        `"${(c.name || "").replace(/"/g, '""')}"`,
+        `"${status}"`,
+        `"${c.start_date || "-"}"`,
+        `"${c.end_date || "-"}"`,
+        `"${count}"`,
+        `"${(c.notes || "").replace(/"/g, '""')}"`,
+      ].join(",")
+    })
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `FRHM-Campaign-Deck-${activeClient.name.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast.success("Campaign deck berhasil diekspor!", {
+      description: `Format CSV dengan ${campaigns.length} kampanye untuk ${activeClient.name}.`,
+    })
+  }, [campaigns, productions, activeClient.name])
+
+  const handleToggleFlightStatus = React.useCallback(async () => {
+    if (!featured) return
+    const isPaused = featured.notes?.includes("[FLIGHT_PAUSED]")
+    const newNotes = isPaused
+      ? (featured.notes?.replace("[FLIGHT_PAUSED]", "").trim() ?? "")
+      : `${featured.notes ? featured.notes + " " : ""}[FLIGHT_PAUSED]`
+
+    try {
+      await updateCampaign.mutateAsync({
+        id: featured.id,
+        patch: { notes: newNotes },
+      })
+      toast.success(isPaused ? "Flight kampanye dilanjutkan!" : "Flight kampanye berhasil dijeda!", {
+        description: `Status kampanye "${featured.name}" telah diperbarui.`,
+      })
+    } catch (err) {
+      toast.error("Gagal mengubah status flight kampanye", {
+        description: err instanceof Error ? err.message : undefined,
+      })
+    }
+  }, [featured, updateCampaign])
+
   return (
     <PageContainer
       pageTitle="Campaigns Orchestration"
@@ -555,13 +614,16 @@ export function CampaignsBoard() {
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span
-            aria-disabled="true"
-            className="admin-pill admin-pill-ghost flex items-center gap-2 border opacity-60"
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleExportCampaignDeck}
+            className="admin-pill admin-pill-ghost flex items-center gap-2 border cursor-pointer hover:bg-muted/60"
           >
             <Icons.download className="size-4" />
-            Export Campaign Deck (Coming soon)
-          </span>
+            Export Campaign Deck
+          </Button>
           <Button
             type="button"
             onClick={openCreate}
@@ -896,21 +958,40 @@ export function CampaignsBoard() {
                   >
                     Manage Deliverables
                   </Button>
-                  <span
-                    aria-disabled="true"
+                  <Link
+                    href={`/admin/library?clientId=${activeClientId}`}
                     title="Creative assets live in the Media Library."
-                    className="admin-pill admin-pill-ghost border border-border/50 opacity-60"
+                    className="admin-pill admin-pill-ghost border border-border/50 hover:bg-muted/60 transition-colors inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                   >
-                    View Creative Assets (Coming soon)
-                  </span>
+                    <Icons.image className="size-3.5 text-foreground" />
+                    <span>View Creative Assets</span>
+                  </Link>
                 </div>
-                <span
-                  aria-disabled="true"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-muted-foreground bg-muted/50 text-xs font-semibold border border-border opacity-60"
-                >
-                  <Icons.play className="size-4" />
-                  <span>Pause Flight (Coming soon)</span>
-                </span>
+                {featured?.notes?.includes("[FLIGHT_PAUSED]") ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToggleFlightStatus}
+                    disabled={!featured || updateCampaign.isPending}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-foreground bg-secondary/40 text-xs font-semibold border border-border/50 hover:bg-secondary/70 transition-colors cursor-pointer"
+                  >
+                    <Icons.play className="size-4 text-[hsl(var(--admin-lime))]" />
+                    <span>Resume Flight</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToggleFlightStatus}
+                    disabled={!featured || updateCampaign.isPending}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-foreground bg-secondary/40 text-xs font-semibold border border-border/50 hover:bg-secondary/70 transition-colors cursor-pointer"
+                  >
+                    <Icons.pause className="size-4 text-[hsl(var(--warning))]" />
+                    <span>Pause Flight</span>
+                  </Button>
+                )}
               </div>
             </div>
           </section>
@@ -1438,12 +1519,14 @@ export function CampaignsBoard() {
                   <Icons.arrowRight className="size-4 -rotate-90" />
                 </Button>
               </div>
-              <span
-                aria-disabled="true"
-                className="w-full mt-4 py-3 rounded-full bg-muted/50 text-muted-foreground text-xs font-semibold text-center border border-border opacity-60"
+              <Button
+                type="button"
+                onClick={() => setAiHookOpen(true)}
+                className="w-full mt-4 py-3 rounded-full bg-[hsl(var(--admin-lime))] text-[hsl(var(--admin-lime-ink))] text-xs font-bold flex items-center justify-center gap-2 hover:opacity-90 shadow-sm cursor-pointer transition-all border-0"
               >
-                Generate Creative Angles (Coming soon)
-              </span>
+                <Icons.sparkles className="size-4" />
+                <span>Generate Creative Angles</span>
+              </Button>
             </div>
           </div>
         </div>

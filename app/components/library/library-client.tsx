@@ -334,6 +334,7 @@ export function LibraryClient() {
               <TabsTrigger
                 key={f}
                 value={f}
+                onClick={() => void setLibraryState({ fileType: f })}
                 className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground min-h-11"
               >
                 {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
