@@ -58,7 +58,8 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
         </div>
       }
     >
-      {/* 1. Action Banner (If deliverables are awaiting review) */}
+      <div className="flex flex-col gap-6">
+        {/* 1. Action Banner (If deliverables are awaiting review) */}
       {pendingReview.length > 0 && (
         <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-start gap-3.5">
@@ -134,18 +135,17 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
           <div className="text-3xl font-extrabold text-foreground tracking-tight">
             <MetricTicker value={channels.length} />
           </div>
-          <p className="text-2xs text-muted-foreground font-medium">
-            Akun Instagram, TikTok, YouTube aktif
+          <p className="text-2xs text-muted-foreground font-medium capitalize truncate">
+            {channels.length > 0 ? `${channels.map(c => c.platform).join(", ")} terhubung` : "Belum ada saluran terhubung"}
           </p>
         </div>
       </div>
 
-      {/* 3. Master Two-Column Workspace Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* LEFT COLUMN: Primary Creative & Publishing Pipeline (lg:col-span-2 space-y-6) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Card 1: Deliverables Review Pipeline (Top priority for client!) */}
-          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+      {/* 3. ROW 1: Antrean Materi & Ulasan Kreatif (2 cols) + Kanal Brand Aktif (1 col) — Identical Row Height */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Card 1: Deliverables Review Pipeline */}
+        <div className="lg:col-span-2 flex flex-col">
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs flex-1 flex flex-col justify-between space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base text-foreground">Antrean Materi &amp; Ulasan Kreatif</h3>
@@ -160,13 +160,34 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
             </div>
 
             {deliverables.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-xs space-y-2 rounded-xl bg-muted/20 border border-dashed border-border/30">
-                <Icons.layers className="size-7 mx-auto text-muted-foreground/50" />
-                <p className="font-semibold text-foreground text-xs">Belum ada deliverable yang dipublikasikan</p>
-                <p className="text-2xs max-w-sm mx-auto">Materi kreatif baru dari tim Frhm akan otomatis muncul di sini untuk Anda tinjau.</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center rounded-xl bg-muted/20 border border-dashed border-border/30 space-y-3">
+                <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-2xs">
+                  <Icons.layers className="size-5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-bold text-sm text-foreground">Semua Materi Telah Ditinjau</p>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Materi kreatif baru dari tim Frhm akan otomatis muncul di sini untuk Anda periksa dan beri persetujuan instan.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Link
+                    href={`/client/review?clientId=${clientId}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-7 px-3 gap-1.5")}
+                  >
+                    <Icons.layers className="size-3 text-primary" />
+                    <span>Buka Review Hub</span>
+                  </Link>
+                  <Link
+                    href={`/client/support?clientId=${clientId}`}
+                    className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full text-xs font-semibold h-7 px-3 text-primary hover:underline")}
+                  >
+                    <span>Request Konten Baru &rarr;</span>
+                  </Link>
+                </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 flex-1">
                 {deliverables.slice(0, 3).map((d) => {
                   const isSent = d.status === "sent"
                   const isApproved = d.status === "approved"
@@ -224,62 +245,11 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
               </div>
             )}
           </div>
-
-          {/* Card 2: Upcoming Scheduled Posts */}
-          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-base text-foreground">Postingan Tayang Terdekat</h3>
-                <p className="text-xs text-muted-foreground">Jadwal publikasi multi-platform dalam waktu dekat</p>
-              </div>
-              <Link
-                href={`/client/calendar?clientId=${clientId}`}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-8 px-3.5")}
-              >
-                Lihat Kalender
-              </Link>
-            </div>
-
-            {upcomingPosts.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-xs space-y-2 rounded-xl bg-muted/20 border border-dashed border-border/30">
-                <Icons.calendar className="size-7 mx-auto text-muted-foreground/50" />
-                <p className="font-semibold text-foreground text-xs">Belum ada postingan terjadwal terdekat</p>
-                <p className="text-2xs max-w-sm mx-auto">Materi yang telah disetujui akan otomatis tersusun pada kalender publikasi ini.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingPosts.map((post: ScheduledPost) => (
-                  <div
-                    key={post.id}
-                    className="p-3.5 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between gap-4 hover:border-primary/40 transition-all"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="size-9 rounded-xl bg-background border border-border/50 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0 shadow-2xs">
-                        {post.platform.slice(0, 2)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">
-                          {post.content ? post.content.slice(0, 70) + "..." : post.title || "Tanpa caption"}
-                        </p>
-                        <p className="text-2xs text-muted-foreground mt-0.5">
-                          Jadwal: {format(new Date(post.scheduled_at), "eeee, dd MMMM yyyy HH:mm", { locale: idLocale })} WIB
-                        </p>
-                      </div>
-                    </div>
-                    <span className="shrink-0 px-2.5 py-1 rounded-full text-2xs font-bold uppercase bg-primary/10 text-primary border border-primary/20">
-                      {post.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* RIGHT COLUMN: Brand Channels & Direct Hotline (lg:col-span-1 space-y-6) */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Card 1: Connected Brand Channels & Platform Integrations */}
-          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
+        {/* Card 2: Connected Brand Channels & Platform Integrations */}
+        <div className="lg:col-span-1 flex flex-col">
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs flex-1 flex flex-col justify-between space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base text-foreground">Kanal Brand Aktif</h3>
@@ -293,8 +263,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
               </Link>
             </div>
 
-            {/* Platform list: shows connected accounts + remaining core platforms */}
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 flex-1 flex flex-col justify-center">
               {/* Connected accounts */}
               {channels.map((ch) => {
                 const p = ch.platform.toLowerCase()
@@ -339,7 +308,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
               })}
 
               {/* Complementary unlinked platforms to fill height harmoniously and show readiness */}
-              {["instagram", "tiktok"].filter(p => !channels.some(c => c.platform.toLowerCase() === p)).slice(0, 3 - channels.length).map((plat) => {
+              {["instagram", "tiktok"].filter(p => !channels.some(c => c.platform.toLowerCase() === p)).slice(0, Math.max(0, 3 - channels.length)).map((plat) => {
                 const PlatformIcon = plat === "instagram" ? Icons.instagram : Icons.tiktok
                 return (
                   <div
@@ -371,35 +340,123 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
               })}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Card 2: Quick Contact & Hotline */}
-          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
-            <div className="flex items-start gap-3.5">
-              <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Icons.chat className="size-5" />
-              </div>
+      {/* 4. ROW 2: Postingan Tayang Terdekat (2 cols) + Hotline Agensi Frhm (1 col) — Identical Row Height */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Card 3: Upcoming Scheduled Posts */}
+        <div className="lg:col-span-2 flex flex-col">
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs flex-1 flex flex-col justify-between space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-foreground">Direct Agency Hotline</h3>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  Ada event promosi mendadak atau butuh materi tambahan? Ajukan tiket dukungan langsung ke tim Frhm.
-                </p>
+                <h3 className="font-bold text-base text-foreground">Postingan Tayang Terdekat</h3>
+                <p className="text-xs text-muted-foreground">Jadwal publikasi multi-platform dalam waktu dekat</p>
               </div>
+              <Link
+                href={`/client/calendar?clientId=${clientId}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-8 px-3.5")}
+              >
+                Lihat Kalender
+              </Link>
             </div>
 
-            <div className="pt-2 border-t border-border/30 space-y-2">
-              <Link
-                href={`/client/support?clientId=${clientId}`}
-                className={cn(
-                  buttonVariants({ variant: "default" }),
-                  "w-full rounded-xl font-semibold text-xs shadow-xs h-9 cursor-pointer"
-                )}
-              >
-                <Icons.message className="size-3.5 mr-2" />
-                <span>Buat Tiket Dukungan</span>
-              </Link>
-              <p className="text-3xs text-center text-muted-foreground">
-                Terkoneksi langsung ke Telegram Admin Frhm
-              </p>
+            {upcomingPosts.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center rounded-xl bg-muted/20 border border-dashed border-border/30 space-y-3">
+                <div className="size-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-2xs">
+                  <Icons.calendar className="size-5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-bold text-sm text-foreground">Kalender Publikasi Siap</p>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Belum ada postingan dalam antrean tayang 7 hari ke depan. Begitu materi di Review Hub disetujui, jadwal publikasi otomatis tersusun di sini.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Link
+                    href={`/client/calendar?clientId=${clientId}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full text-xs font-semibold h-7 px-3 gap-1.5")}
+                  >
+                    <Icons.calendar className="size-3 text-primary" />
+                    <span>Buka Kalender Publikasi</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 flex-1">
+                {upcomingPosts.map((post: ScheduledPost) => (
+                  <div
+                    key={post.id}
+                    className="p-3.5 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between gap-4 hover:border-primary/40 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="size-9 rounded-xl bg-background border border-border/50 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0 shadow-2xs">
+                        {post.platform.slice(0, 2)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-foreground truncate">
+                          {post.content ? post.content.slice(0, 70) + "..." : post.title || "Tanpa caption"}
+                        </p>
+                        <p className="text-2xs text-muted-foreground mt-0.5">
+                          Jadwal: {format(new Date(post.scheduled_at), "eeee, dd MMMM yyyy HH:mm", { locale: idLocale })} WIB
+                        </p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 px-2.5 py-1 rounded-full text-2xs font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                      {post.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 4: Quick Contact & Hotline */}
+        <div className="lg:col-span-1 flex flex-col">
+          <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs flex-1 flex flex-col justify-between space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base text-foreground">Hotline Agensi Frhm</h3>
+                <p className="text-xs text-muted-foreground">Dukungan &amp; koordinasi langsung</p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20">
+                <span className="size-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
+                Tim Standby
+              </span>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-between space-y-3">
+              <div className="p-3.5 rounded-xl bg-muted/30 border border-border/30 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                  <Icons.chat className="size-4 text-primary" />
+                  <span>Koordinasi Cepat</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Ada perubahan jadwal, event promosi mendadak, atau butuh materi tambahan? Ajukan tiket dukungan langsung ke tim Frhm.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between text-2xs text-muted-foreground px-1">
+                  <span>SLA Tanggapan:</span>
+                  <span className="font-semibold text-foreground">&lt; 2 Jam (Urgent)</span>
+                </div>
+
+                <Link
+                  href={`/client/support?clientId=${clientId}`}
+                  className={cn(
+                    buttonVariants({ variant: "default" }),
+                    "w-full rounded-xl font-semibold text-xs shadow-xs h-9 cursor-pointer"
+                  )}
+                >
+                  <Icons.message className="size-3.5 mr-2" />
+                  <span>Buat Tiket Dukungan</span>
+                </Link>
+                <p className="text-3xs text-center text-muted-foreground">
+                  Terkoneksi langsung ke Telegram Admin Frhm
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -443,6 +500,7 @@ export function ClientDashboardView({ clientId }: ClientDashboardViewProps) {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </PageContainer>
   )

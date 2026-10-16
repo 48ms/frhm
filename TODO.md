@@ -442,6 +442,22 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - Tombol putuskan kanal (`Disconnect`) diubah dari `opacity-0` hover-only menjadi `opacity-100 md:opacity-0 md:group-hover:opacity-100` agar 100% dapat dilihat dan disentuh pengguna mobile touch.
     - Halaman Hotline Dukungan: Formulir Tiket diprioritaskan di atas FAQ pada mobile (`order-1 lg:order-2`), dan padding dikompresi ke `p-5 sm:p-8`.
     - Hero Dashboard Stitch ([hero.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/dashboard-stitch/hero.tsx)): Baris badge Workspace + tombol sync diperkuat dengan `flex-wrap`.
+- [x] **Penyempurnaan Total Simetri & Eliminasi Dead Space Client Overview Dashboard (2026-10-17)**
+  - **Arsitektur Grid 2-Baris Presisi (2-Row Structured Grid dengan `items-stretch`)**:
+    - Memecah layout kolom terfragmentasi menjadi dua baris independen berpasangan horizontal:
+      - **Row 1**: *Antrean Materi & Ulasan Kreatif* (2 kolom) berpasangan sejajar dengan *Kanal Brand Aktif* (1 kolom). Ketinggian kedua kartu 100% identik dan sejajar garis horizontalnya (`items-stretch` + `flex-1 flex flex-col justify-between`).
+      - **Row 2**: *Postingan Tayang Terdekat* (2 kolom) berpasangan sejajar dengan *Hotline Agensi Frhm* (1 kolom). Ketinggian kedua kartu 100% identik, garis pemisah tengah lurus sempurna, dan garis dasar bawah rata ke pixel.
+    - Membungkus seluruh seksi dengan `<div className="flex flex-col gap-6">` untuk menjamin jarak vertikal seragam 24px (`gap-6`) antar-baris (Banner -> Metrik Tickers -> Row 1 -> Row 2 -> Alur Kolaborasi).
+  - **Eliminasi Hollow Empty States & Peningkatan UX**:
+    - Mengganti kotak dashed abu-abu kosong melompong pada *Antrean Materi* dan *Postingan Terdekat* dengan komponen empty-state fungsional dan padat (ikon branded 44px, tipografi terstruktur, panduan alur, serta tombol CTA kontekstual ke Review Hub, Request Konten, dan Kalender Publikasi).
+    - Memperbaiki Hotline Agensi Frhm: menyertakan indikator status *"Tim Standby"* dengan animasi pulse, kartu koordinasi cepat, dan SLA tanggapan darurat < 2 jam.
+  - **Data Faktual & Anti Mismatch**:
+    - Mengganti teks hardcoded pada kartu ke-4 metrik ("Akun Instagram, TikTok, YouTube aktif") menjadi kalkulasi dinamis faktual dari array kanal PostgreSQL Supabase (`channels.map(c => c.platform).join(", ")`).
+    - Membatasi slot fallback platform kanal menggunakan `Math.max(0, 3 - channels.length)` untuk mencegah kalkulasi negatif pada array slice.
+  - **Verifikasi Kualitas (Verification Loop)**:
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
+
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
