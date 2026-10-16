@@ -44,6 +44,14 @@ vi.mock("@/lib/logger", () => ({
   },
 }))
 
+vi.mock("@/lib/auth/guard", () => ({
+  assertClientAccess: vi.fn().mockResolvedValue({
+    userId: "test-user-1",
+    role: "admin",
+    clientId: "client-1",
+  }),
+}))
+
 vi.mock("@/lib/ai/server", () => ({
   resolveProvider: (...args: unknown[]) => mockResolveProvider(...args),
   loadSkillBundle: (...args: unknown[]) => mockLoadSkillBundle(...args),

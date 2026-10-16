@@ -48,6 +48,14 @@ vi.mock("@/lib/logger", () => ({
   },
 }))
 
+vi.mock("@/lib/auth/guard", () => ({
+  assertClientAccess: vi.fn().mockResolvedValue({
+    userId: "test-user-1",
+    role: "admin",
+    clientId: "client-1",
+  }),
+}))
+
 vi.mock("@/lib/ai/server", () => ({
   resolveProvider: (...args: unknown[]) => mockResolveProvider(...args),
   loadSkillBundle: (...args: unknown[]) => mockLoadSkillBundle(...args),
@@ -463,6 +471,19 @@ describe("Skills Feature Service Layer", () => {
 
     expect(res.success).toBe(false)
     expect(res.error).toContain("tidak ditemukan di database")
+  })
+
+  it("executeGenericSkill rejects when assertClientAccess fails (cross-tenant)", async () => {
+    const { assertClientAccess } = await import("@/lib/auth/guard")
+    vi.mocked(assertClientAccess).mockRejectedValueOnce(new Error("Forbidden: Anda tidak memiliki akses ke klien ini"))
+
+    await expect(
+      executeGenericSkill({
+        clientId: "client-other",
+        skillId: "carousel-writer",
+        prompt: "Test",
+      })
+    ).rejects.toThrow("Forbidden: Anda tidak memiliki akses ke klien ini")
   })
 })
 

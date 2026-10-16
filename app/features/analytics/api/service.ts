@@ -5,6 +5,7 @@ import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from 
 import { chatJson } from "@/lib/ai/providers"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
+import { assertClientAccess } from "@/lib/auth/guard"
 import { getBridgeKey } from "@/lib/bridge/config"
 import { listSocialAccounts } from "@/lib/bridge/woopsocial"
 import {
@@ -120,6 +121,7 @@ export async function auditPerformanceAndIterate(
 ): Promise<AuditPerformanceResponse> {
   try {
     const { clientId, period } = AuditPerformanceInputSchema.parse(input)
+    await assertClientAccess(clientId)
     const supabase = await createClient()
 
     // 1. Ambil data faktual dari DB
@@ -595,6 +597,7 @@ export async function syncMultiAccountSocialData(
   input: SyncMultiAccountInput
 ): Promise<SyncMultiAccountResult> {
   const { clientId, source } = SyncMultiAccountInputSchema.parse(input)
+  await assertClientAccess(clientId)
   const supabase = await createClient()
 
   const { data: client, error: clientErr } = await supabase

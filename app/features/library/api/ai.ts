@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { assertClientAccess } from '@/lib/auth/guard'
 import type { Provider } from '@/lib/ai/providers'
 import { resolveProvider } from '@/lib/ai/server'
 import { logAiUsage } from '@/lib/ai/usage'
@@ -10,31 +11,6 @@ import { env } from '@/lib/env'
 export interface CaptionResult {
   caption: string
   error?: string
-}
-
-/**
- * Auth mirror of the library service guard: the caller must hold a session and
- * either be an admin or own the target client. Kept local so this module has no
- * import cycle with service.ts.
- */
-async function assertCanUseClient(clientId: string): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized: no session')
-
-  const { data: profile, error } = await supabase
-    .from('users')
-    .select('role, client_id')
-    .eq('id', user.id)
-    .single()
-  if (error) throw new Error(`Failed to load profile: ${error.message}`)
-
-  const isAdmin = profile?.role === 'admin'
-  if (!isAdmin && profile?.client_id !== clientId) {
-    throw new Error('Forbidden: caller cannot access this client')
-  }
 }
 
 /**
@@ -50,7 +26,7 @@ export async function generateAssetCaption(
   assetType: string
 ): Promise<CaptionResult> {
   try {
-    await assertCanUseClient(clientId)
+    await assertClientAccess(clientId)
   } catch (err) {
     return { caption: '', error: err instanceof Error ? err.message : 'Authorization failed' }
   }

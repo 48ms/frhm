@@ -3,6 +3,7 @@
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { assertClientAccess } from "@/lib/auth/guard"
 import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from "@/lib/ai/server"
 import { chatJsonDetailed, chatDetailed } from "@/lib/ai/providers"
 import { logAiUsage } from "@/lib/ai/usage"
@@ -78,6 +79,9 @@ async function recordCopilotUsage(
 }
 
 async function buildSystemPrompt(supabase: any, clientId: string, skillId: string, instruction: string): Promise<string | null> {
+  if (clientId) {
+    await assertClientAccess(clientId)
+  }
   const provider = await resolveProvider(supabase)
   if (!provider) return null
 

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { mediaAdapter } from '@/lib/media/adapter'
 import { logAudit } from '@/lib/audit/log'
+import { assertClientAccess } from '@/lib/auth/guard'
 import type {
   Asset,
   AssetFileType,
@@ -57,26 +58,8 @@ function normalizeTags(input: string[]): string[] {
  * Returns the auth user id so callers can attribute audit rows.
  */
 async function authorizeFor(clientId: string): Promise<{ userId: string; isAdmin: boolean }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized: no session')
-
-  const { data: profile, error } = await supabase
-    .from('users')
-    .select('role, client_id')
-    .eq('id', user.id)
-    .single()
-
-  if (error) throw new Error(`Failed to load profile: ${error.message}`)
-
-  const isAdmin = profile?.role === 'admin'
-  if (!isAdmin && profile?.client_id !== clientId) {
-    throw new Error('Forbidden: caller cannot access this client')
-  }
-
-  return { userId: user.id, isAdmin }
+  const { userId, role } = await assertClientAccess(clientId)
+  return { userId, isAdmin: role === 'admin' }
 }
 
 export async function listAssets(filters: AssetListFilters): Promise<Asset[]> {

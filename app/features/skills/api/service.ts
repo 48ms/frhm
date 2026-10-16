@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createSupabaseServiceClient } from "@/lib/supabase/service"
 import { logger } from "@/lib/logger"
+import { assertClientAccess } from "@/lib/auth/guard"
 import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from "@/lib/ai/server"
 import { chatJson, chatJsonDetailed } from "@/lib/ai/providers"
 import { logAiUsage } from "@/lib/ai/usage"
@@ -163,6 +164,7 @@ export async function assignPackToClient(
   packId: string
 ): Promise<{ success: boolean; count: number; error?: string }> {
   if (!clientId || !packId) return { success: false, count: 0, error: "Client ID dan Pack ID diperlukan" }
+  await assertClientAccess(clientId)
   const service = createSupabaseServiceClient()
 
   try {
@@ -207,6 +209,7 @@ export async function updateClientSkillStatus(
   notes?: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!clientId || !skillId) return { success: false, error: "Client ID dan Skill ID diperlukan" }
+  await assertClientAccess(clientId)
   const service = createSupabaseServiceClient()
 
   const { error } = await service
@@ -234,6 +237,7 @@ export async function updateClientSkillStatus(
 export async function saveSkillOutput(
   input: SaveSkillOutputInput
 ): Promise<{ success: boolean; id?: string; error?: string }> {
+  await assertClientAccess(input.clientId)
   const service = createSupabaseServiceClient()
 
   try {
@@ -296,6 +300,7 @@ export async function executeSkillChat(input: {
 }): Promise<SkillChatResponse> {
   const start = Date.now()
   const { clientId, skillId, messages } = input
+  await assertClientAccess(clientId)
   const supabase = await createClient()
   const provider = await resolveProvider(supabase)
 
@@ -447,6 +452,7 @@ export async function executeGenericSkill(
 ): Promise<GenericSkillRunResult> {
   const start = Date.now()
   const { clientId, skillId, prompt, parameters = {}, autoSave = false } = input
+  await assertClientAccess(clientId)
   const supabase = await createClient()
   const provider = await resolveProvider(supabase)
 

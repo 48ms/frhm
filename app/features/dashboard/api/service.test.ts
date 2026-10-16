@@ -34,6 +34,9 @@ const mockSupabase = { from: vi.fn((table: string) => makeBuilder(table)) }
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn(() => mockSupabase) }))
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn() } }))
 vi.mock('@/lib/audit/log', () => ({ logAudit: vi.fn() }))
+vi.mock('@/lib/auth/guard', () => ({
+  assertAdmin: vi.fn().mockResolvedValue({ userId: 'admin-1' }),
+}))
 vi.mock('@/features/skills/api/service', () => ({
   assignPackToClient: vi.fn(async () => ({ success: true, count: 5 })),
 }))
@@ -130,6 +133,13 @@ describe('Dashboard Service', () => {
     it('throws when the client insert fails', async () => {
       push('clients', { data: null, error: { message: 'duplicate key' } })
       await expect(createNewClient({ name: 'Acme' })).rejects.toThrow('duplicate key')
+    })
+
+    it('rejects when assertAdmin fails (non-admin caller)', async () => {
+      const { assertAdmin } = await import('@/lib/auth/guard')
+      vi.mocked(assertAdmin).mockRejectedValueOnce(new Error('Forbidden: hanya administrator yang memiliki akses'))
+
+      await expect(createNewClient({ name: 'Hacked Client' })).rejects.toThrow('Forbidden: hanya administrator yang memiliki akses')
     })
   })
 })

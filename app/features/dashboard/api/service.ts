@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
+import { assertAdmin } from "@/lib/auth/guard"
 import type { DashboardProfile, CreateClientInput, CreateClientResult } from "./types"
 import { assignPackToClient } from "@/features/skills/api/service"
 
@@ -28,6 +29,7 @@ export async function getClients(): Promise<Array<{ id: string; name: string; co
 }
 
 export async function createNewClient(input: CreateClientInput): Promise<CreateClientResult> {
+  await assertAdmin()
   const supabase = await createClient()
 
   // 1. Insert ke clients (telegram_chat_id punya kolom asli, niche disimpan di brand_profile.niche)

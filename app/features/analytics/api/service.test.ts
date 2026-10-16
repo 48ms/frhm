@@ -66,6 +66,14 @@ vi.mock("@/lib/logger", () => ({
   },
 }))
 
+vi.mock("@/lib/auth/guard", () => ({
+  assertClientAccess: vi.fn().mockResolvedValue({
+    userId: "test-user-1",
+    role: "admin",
+    clientId: "client-pawon",
+  }),
+}))
+
 vi.mock("@/lib/audit/log", () => ({
   logAudit: (...args: unknown[]) => mockLogAudit(...args),
 }))
@@ -341,5 +349,19 @@ describe("Multi-Account Analytics Aggregator", () => {
         clientId: "client-pawon",
       })
     )
+  })
+
+  it("auditPerformanceAndIterate rejects when caller lacks access to target client", async () => {
+    const { assertClientAccess } = await import("@/lib/auth/guard")
+    vi.mocked(assertClientAccess).mockRejectedValueOnce(
+      new Error("Forbidden: Anda tidak memiliki akses ke klien ini")
+    )
+
+    const res = await auditPerformanceAndIterate({
+      clientId: "client-other",
+      period: "30d",
+    })
+
+    expect(res.error).toContain("Forbidden: Anda tidak memiliki akses ke klien ini")
   })
 })
