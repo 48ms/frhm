@@ -17,7 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/animate-ui/components/radix/accordion"
 import { PageContainer } from "@/components/layout/page-container"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 
 /**
@@ -170,10 +170,26 @@ export function SupportView() {
     <PageContainer
       pageTitle="Hotline Dukungan & Kemitraan"
       pageDescription={`Koordinasi langsung, permintaan revisi darurat, dan konsultasi strategi konten untuk ${activeClient?.name ?? "brand Anda"}.`}
-      className="pb-20 space-y-8"
+      className="pb-12"
+      pageHeaderAction={
+        <div className="flex items-center gap-2">
+          <a
+            href="https://wa.me/6281234567890?text=Halo%20Tim%20Frhm,%20saya%20ingin%20berkoordinasi%20terkait%20kebutuhan%20brand."
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "rounded-full gap-1.5 text-xs font-semibold"
+            )}
+          >
+            <Icons.chat className="size-3.5 text-success" />
+            <span>Hotline WhatsApp</span>
+          </a>
+        </div>
+      }
     >
-
-      {/* Quick Help Channels */}
+      <div className="flex flex-col gap-6">
+        {/* Quick Help Channels */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {CHANNELS.map((c) => (
           <div
@@ -378,6 +394,7 @@ export function SupportView() {
             })}
           </motion.div>
         )}
+      </div>
       </div>
     </PageContainer>
   )

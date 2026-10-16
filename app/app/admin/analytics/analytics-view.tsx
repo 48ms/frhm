@@ -185,7 +185,7 @@ export function AnalyticsView() {
 
   if (metricsLoading) {
     return (
-      <div className="space-y-6" data-testid="analytics-loading">
+      <div className="flex flex-col gap-6" data-testid="analytics-loading">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
             <Card key={i} className="admin-card-glass">
@@ -221,7 +221,7 @@ export function AnalyticsView() {
   }
 
   return (
-    <div className="space-y-6" data-testid="analytics-loaded">
+    <div className="flex flex-col gap-6" data-testid="analytics-loaded">
       {/* 4 KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="admin-card-glass">

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
   KBarAnimator,
@@ -14,7 +14,7 @@ import {
 } from 'kbar';
 import { Kbd } from '@/components/ui/kbd';
 import { Icons } from '@/components/icons';
-import { adminNavStitch } from '@/config/nav-config';
+import { adminNavStitch, clientNav } from '@/config/nav-config';
 import RenderResults from './render-result';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { socialQueries } from '@/features/social-accounts/api/queries';
@@ -23,8 +23,10 @@ import { useActiveDashboard } from '@/components/dashboard-stitch/dashboard-data
 
 export function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isClientRoute = pathname?.startsWith('/client');
   const queryClient = useQueryClient();
-  const { setClientId } = useActiveDashboard();
+  const { clientId, setClientId } = useActiveDashboard();
   
   // Ambil data klien langsung via TanStack Query (AMAN dari useSearchParams bailout jika di luar searchParams context)
   const { data: rawClients } = useQuery({
@@ -37,22 +39,37 @@ export function KBar({ children }: { children: React.ReactNode }) {
       router.push(url);
     };
 
-    // Build actions from the flat adminNavStitch (source of truth for sidebar).
-    const navActions: Action[] = adminNavStitch
-      .filter((item) => item.url && item.url !== '#')
-      .map((item) => {
-        const IconComponent = item.icon ? Icons[item.icon as keyof typeof Icons] : undefined;
-        return {
-          id: `nav-${item.url}`,
-          name: item.title,
-          shortcut: item.shortcut,
-          keywords: `${item.title}`.toLowerCase(),
-          section: 'Navigasi',
-          subtitle: `Buka halaman ${item.title}`,
-          icon: IconComponent ? <IconComponent className='size-4' /> : undefined,
-          perform: () => navigateTo(item.url)
-        };
-      });
+    // Build actions based on current route context (Client Portal vs Admin Studio)
+    const navActions: Action[] = isClientRoute
+      ? clientNav.map((item) => {
+          const IconComponent = item.icon ? Icons[item.icon as keyof typeof Icons] : undefined;
+          const targetUrl = `${item.url}${clientId ? `?clientId=${clientId}` : ''}`;
+          return {
+            id: `client-nav-${item.url}`,
+            name: item.title,
+            shortcut: item.shortcut,
+            keywords: `${item.title} partner portal klien`.toLowerCase(),
+            section: 'Navigasi Partner Portal',
+            subtitle: `Buka ${item.title}`,
+            icon: IconComponent ? <IconComponent className='size-4' /> : undefined,
+            perform: () => navigateTo(targetUrl),
+          };
+        })
+      : adminNavStitch
+          .filter((item) => item.url && item.url !== '#')
+          .map((item) => {
+            const IconComponent = item.icon ? Icons[item.icon as keyof typeof Icons] : undefined;
+            return {
+              id: `nav-${item.url}`,
+              name: item.title,
+              shortcut: item.shortcut,
+              keywords: `${item.title}`.toLowerCase(),
+              section: 'Navigasi',
+              subtitle: `Buka halaman ${item.title}`,
+              icon: IconComponent ? <IconComponent className='size-4' /> : undefined,
+              perform: () => navigateTo(item.url)
+            };
+          });
 
     // Dynamic Client Switcher Actions via URL searchParam mutation
     const clientActions: Action[] = (rawClients || []).map((client) => ({
@@ -69,34 +86,60 @@ export function KBar({ children }: { children: React.ReactNode }) {
         // Prefetch profil dilakukan paralel agar tidak ada flash of zeros.
         void queryClient.prefetchQuery(dashboardQueries.profile(client.id));
         void setClientId(client.id);
+        if (isClientRoute && pathname) {
+          navigateTo(`${pathname}?clientId=${client.id}`);
+        }
       }
     }));
 
-    const extraNavActions: Action[] = [
-      {
-        id: 'nav-/admin/settings',
-        name: 'Agency Settings',
-        shortcut: ['g', 't'],
-        keywords: 'settings konfigurasi agensi workspace billing api',
-        section: 'Navigasi',
-        subtitle: 'Buka pengaturan agensi, integrasi, dan hak akses',
-        icon: <Icons.settings className='size-4' />,
-        perform: () => navigateTo('/admin/settings'),
-      },
-      {
-        id: 'nav-/admin/support',
-        name: 'Support & Helpdesk',
-        shortcut: ['g', 'h'],
-        keywords: 'support bantuan help ticket cs contact',
-        section: 'Navigasi',
-        subtitle: 'Buka pusat bantuan dan tiket dukungan teknis',
-        icon: <Icons.help className='size-4' />,
-        perform: () => navigateTo('/admin/support'),
-      },
-    ];
+    const extraNavActions: Action[] = isClientRoute
+      ? [
+          {
+            id: 'nav-/admin/dashboard',
+            name: 'Buka Admin Studio',
+            shortcut: ['g', 's'],
+            keywords: 'admin studio dashboard agensi kembali kelola',
+            section: 'Navigasi',
+            subtitle: 'Beralih ke konsol administrasi Frhm Studio',
+            icon: <Icons.arrowLeft className='size-4' />,
+            perform: () => navigateTo('/admin/dashboard'),
+          },
+        ]
+      : [
+          {
+            id: 'nav-/client/dashboard',
+            name: 'Buka Client Partner Portal',
+            shortcut: ['g', 'p'],
+            keywords: 'client partner portal pratinjau overview ulas',
+            section: 'Navigasi',
+            subtitle: 'Pratinjau tampilan portal klien aktif',
+            icon: <Icons.dashboard className='size-4' />,
+            perform: () => navigateTo(`/client/dashboard${clientId ? `?clientId=${clientId}` : ''}`),
+          },
+          {
+            id: 'nav-/admin/settings',
+            name: 'Agency Settings',
+            shortcut: ['g', 't'],
+            keywords: 'settings konfigurasi agensi workspace billing api',
+            section: 'Navigasi',
+            subtitle: 'Buka pengaturan agensi, integrasi, dan hak akses',
+            icon: <Icons.settings className='size-4' />,
+            perform: () => navigateTo('/admin/settings'),
+          },
+          {
+            id: 'nav-/admin/support',
+            name: 'Support & Helpdesk',
+            shortcut: ['g', 'h'],
+            keywords: 'support bantuan help ticket cs contact',
+            section: 'Navigasi',
+            subtitle: 'Buka pusat bantuan dan tiket dukungan teknis',
+            icon: <Icons.help className='size-4' />,
+            perform: () => navigateTo('/admin/support'),
+          },
+        ];
 
     return [...navActions, ...extraNavActions, ...clientActions];
-  }, [router, rawClients, queryClient, setClientId]);
+  }, [router, pathname, isClientRoute, clientId, rawClients, queryClient, setClientId]);
 
   return (
     <KBarProvider actions={actions}>

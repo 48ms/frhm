@@ -210,7 +210,8 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
         </div>
       }
     >
-      {/* 1. Header Metrics Bar */}
+      <div className="flex flex-col gap-6">
+        {/* 1. Header Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex items-center justify-between">
           <div className="space-y-0.5">
@@ -256,7 +257,7 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
       </div>
 
       {/* 2. Controls & Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Navigation & Month Picker */}
         <div className="flex items-center gap-2">
           <Button
@@ -568,6 +569,7 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
           )}
         </div>
       )}
+      </div>
 
       {/* 4. Executive Content Preview Modal (Radix Dialog) */}
       <Dialog open={Boolean(selectedPost)} onOpenChange={(open) => !open && setSelectedPost(null)}>

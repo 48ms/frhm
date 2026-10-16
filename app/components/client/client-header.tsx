@@ -5,7 +5,8 @@ import Link from "next/link"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { ThemeSelector } from "@/components/theme-selector"
-import { buttonVariants } from "@/components/ui/button"
+import { useKBar } from "kbar"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
 
@@ -22,6 +23,8 @@ export function ClientHeader({
   userName,
   isAdmin,
 }: ClientHeaderProps) {
+  const { query } = useKBar()
+
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 px-4 w-full md:h-14 md:px-6 border-b border-border/40 bg-background/85 backdrop-blur-xl">
       <div className="flex items-center gap-3">
@@ -74,6 +77,18 @@ export function ClientHeader({
           <span className="hidden xs:inline">Hotline Support</span>
           <span className="xs:hidden">Support</span>
         </Link>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Cari dan Perintah"
+          onClick={() => query.toggle()}
+          className="size-8 rounded-full text-foreground transition-all hover:bg-muted active:scale-95 inline-flex cursor-pointer"
+          title="Buka Command Menu (Ctrl+K)"
+        >
+          <Icons.search className="size-4" />
+        </Button>
 
         <ThemeSelector />
       </div>

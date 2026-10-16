@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { useQueryStates } from "nuqs"
 import { librarySearchParams, serializeCalendarParams } from "@/lib/searchparams"
@@ -305,22 +306,39 @@ export function LibraryClient() {
           ? `Gudang penyimpanan foto dan video promosi resmi untuk ${activeClient.name}. Anda dapat mengunduh materi resolusi penuh kapan pun diperlukan.`
           : `Aset media untuk ${activeClient.name}. File diupload ke Cloudinary dan tersimpan di storage client ini.`
       }
+      pageHeaderAction={
+        isClientPortal ? (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/client/support?clientId=${clientId}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-full gap-1.5 text-xs font-semibold"
+              )}
+            >
+              <Icons.chat className="size-3.5 text-primary" />
+              <span>Request Aset Baru</span>
+            </Link>
+          </div>
+        ) : undefined
+      }
     >
-      {/* Upload Zone */}
-      <div className="rounded-xl border border-dashed border-border p-6">
-        <FileUploader
-          onUpload={handleDrop}
-          maxSize={25 * 1024 * 1024}
-          accept={{
-            "image/*": [],
-            "video/*": [],
-          }}
-          disabled={uploading}
-        />
-      </div>
+      <div className="flex flex-col gap-6">
+        {/* Upload Zone */}
+        <div className="rounded-xl border border-dashed border-border p-6">
+          <FileUploader
+            onUpload={handleDrop}
+            maxSize={25 * 1024 * 1024}
+            accept={{
+              "image/*": [],
+              "video/*": [],
+            }}
+            disabled={uploading}
+          />
+        </div>
 
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Filter Tabs */}
         <Tabs
           value={libraryState.fileType}
@@ -567,7 +585,7 @@ export function LibraryClient() {
       </DndContext>
 
       {/* Brand Asset Specification & Best Practices (Especially helpful in Client Portal) */}
-      <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4 mt-8">
+      <div className="p-6 rounded-2xl bg-card border border-border/40 shadow-xs space-y-4">
         <div>
           <h3 className="font-bold text-base text-foreground">Panduan Format &amp; Spesifikasi Aset Media</h3>
           <p className="text-xs text-muted-foreground">Rekomendasi rasio dan standar resolusi untuk hasil promosi media sosial optimal</p>
@@ -604,6 +622,7 @@ export function LibraryClient() {
             </p>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Asset detail lightbox */}

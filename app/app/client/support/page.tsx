@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { SupportView } from "@/components/support/support-view"
 import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
+import { supportParamsCache } from "@/lib/searchparams"
 
 export const dynamic = "force-dynamic"
 
@@ -14,8 +15,7 @@ export const metadata: Metadata = {
 export default async function ClientSupportPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const searchParams = await props.searchParams
-  const parsedClientId = typeof searchParams.clientId === "string" ? searchParams.clientId : null
+  const { clientId: parsedClientId } = supportParamsCache.parse(await props.searchParams)
   const clientId = await resolveClientId(parsedClientId)
 
   return (

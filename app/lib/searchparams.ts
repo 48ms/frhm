@@ -169,3 +169,15 @@ export const clientReviewSearchParams = {
 export const clientReviewParamsCache = createSearchParamsCache(clientReviewSearchParams)
 export const serializeClientReviewParams = createSerializer(clientReviewSearchParams)
 
+// -------------------------------------------------------------
+// 11. Support & Helpdesk (/client/support & /admin/support)
+// -------------------------------------------------------------
+export const supportSearchParams = {
+  clientId: parseAsString.withDefault(""),
+  topic: parseAsString.withDefault(""),
+}
+
+export const supportParamsCache = createSearchParamsCache(supportSearchParams)
+export const serializeSupportParams = createSerializer(supportSearchParams)
+
+

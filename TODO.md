@@ -472,8 +472,33 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx tsc --noEmit`: 0 error (100% clean typecheck).
     - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
 
+- [x] **Penyelarasan Menyeluruh 6 Halaman Portal Klien & Audit Mapping Parameter URL (2026-10-17)**
+  - **Audit Komprehensif 6 Rute Portal Klien ([/client/*](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/))**:
+    - Memverifikasi 6 rute portal klien aktif:
+      1. `/client/dashboard`: Overview eksekutif, metrik ringkasan, antrean ulasan, dan postingan terdekat.
+      2. `/client/calendar`: Kalender rilis konten read-only bulanan/mingguan dengan filter platform dan modal detail visual.
+      3. `/client/review`: Workspace ulasan draf 2-kolom dengan 4 kartu metrik SLA, dialog persetujuan/revisi Radix UI.
+      4. `/client/analytics`: Agregasi jangkauan multi-platform, tren audiens faktual, METER audit AI summary, dan tombol aksi "Konsultasi Analitik".
+      5. `/client/assets`: Gudang aset media resolusi tinggi resmi brand dengan tombol "Request Aset Baru".
+      6. `/client/support`: Pusat bantuan darurat, pembuatan tiket kendala, FAQ kemitraan, dan tombol "Hotline WhatsApp".
+  - **Standardisasi Spacing & Eliminasi Visual Gap (`flex flex-col gap-6`)**:
+    - Mengeliminasi perbedaan margin ad-hoc (`mt-4`, `mt-8`, `space-y-8`, `pt-2`) di seluruh halaman klien.
+    - Menyeragamkan seluruh halaman portal klien untuk dibungkus dalam `<div className="flex flex-col gap-6">`, menjamin jarak vertikal seragam 24px (`gap-6`) yang simetris dari header hingga footer.
+    - Menyelaraskan layout `AnalyticsView` dari `space-y-6` ke `flex flex-col gap-6` untuk mencegah margin collapsing.
+  - **Penyelarasan Mapping State URL & Nuqs Cache ([searchparams.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/searchparams.ts))**:
+    - Menambahkan `supportSearchParams`, `supportParamsCache`, dan `serializeSupportParams` ke `lib/searchparams.ts` guna menggantikan parsing ad-hoc pada `ClientSupportPage` sesuai aturan mutlak AGENTS.md §4.
+    - Seluruh 6 halaman klien kini menggunakan prefetcher server-side `DashboardPrefetcher` dan resolver `resolveClientId` yang stabil.
+  - **Integrasi Command Menu (KBar) Route-Aware ([index.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/kbar/index.tsx))**:
+    - Memperbaiki celah mapping pada Command Bar (KBar): ketika pengguna membuka KBar di rute portal klien (`/client/*`), KBar kini secara otomatis menampilkan navigasi khusus `clientNav` (Overview, Calendar, Review, Analytics, Brand Assets, Support) lengkap dengan parameter `clientId`.
+    - Menambahkan tombol aksi navigasi kembali ("Buka Admin Studio") bagi admin saat sedang meninjau portal klien.
+    - Menambahkan tombol pencarian cepat (Search / Command Menu) di [client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) agar pengguna dapat membuka KBar dengan klik/tap langsung selain via shortcut `Ctrl+K`.
+  - **Verifikasi Kualitas (Verification Loop)**:
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
+
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
   - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
   - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
+
 
