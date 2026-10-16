@@ -34,7 +34,8 @@ Plus: Analytics, Notifications (in-app + Telegram), Support tickets.
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript strict · Tailwind v4 + Radix UI + Motion · Supabase (PostgreSQL + RLS) · TanStack Query · Zod · Vitest + Playwright · Vercel.
+Next.js 16 (App Router) · TypeScript strict · Tailwind v4
+ Supabase (PostgreSQL + RLS) 
 
 ## Jalan cepat
 
@@ -73,17 +74,12 @@ Tiap fitur adalah SSOT-nya sendiri: `features/<domain>/api/service.ts` untuk dat
 | `npm test` | Unit test (Vitest) |
 | `npx playwright test` | E2E (dev server harus jalan) |
 
-421 unit test + suite E2E untuk route guard, login, dan alur approval.
 
 ## Peran
 
 - **Admin** — `/admin/*`, kelola semua klien.
 - **Client** — `/client/*`, hanya datanya sendiri, bisa minta revisi / approve.
 - **Unassigned** — dialihkan ke `/waitlist` sampai admin assign role.
-
-## Deploy
-
-Vercel + environment variables (lihat `app/.env.example`). Jangan commit `.env.local` — sudah di-`.gitignore`.
 
 ## Lisensi
 
