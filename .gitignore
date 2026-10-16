@@ -78,3 +78,18 @@ scratch_*.ts
 # Editor/OS junk
 *.bak
 *.orig
+
+# Build/report artifacts (non-source)
+*.tsbuildinfo
+sidebar-verify-report.json
+audit-errors-social.log
+frhm-integration.html
+
+# Performance audit (internal notes, not needed in repo)
+performance-audit*.md
+
+# Audit/verify screenshots (covered by *.png but explicit for clarity)
+dashboard-audit.png
+login-stuck.png
+sidebar-verify.png
+social-accounts-audit.png
