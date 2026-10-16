@@ -115,7 +115,7 @@ export function ClientAccessDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl bg-card border border-border/80 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Icons.users className="size-5 text-primary" />
