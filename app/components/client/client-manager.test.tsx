@@ -46,6 +46,16 @@ vi.mock("@/components/ai/brand-brain-editor-dialog", () => ({
     open ? <div data-testid="brand-brain-dialog">Brand Brain Modal for {clientName}</div> : null,
 }))
 
+vi.mock("./edit-client-dialog", () => ({
+  EditClientDialog: ({ open, client }: { open: boolean; client: any }) =>
+    open ? <div data-testid="edit-client-dialog">Edit Modal for {client?.name}</div> : null,
+}))
+
+vi.mock("./delete-client-dialog", () => ({
+  DeleteClientDialog: ({ open, client }: { open: boolean; client: any }) =>
+    open ? <div data-testid="delete-client-dialog">Delete Modal for {client?.name}</div> : null,
+}))
+
 import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 
 function renderClientManager() {
@@ -163,5 +173,25 @@ describe("ClientManager & Clients Page Components", () => {
     // Clicking it opens the dialog
     fireEvent.click(ticketsBtn)
     expect(screen.getByTestId("support-tickets-dialog")).toBeDefined()
+  })
+
+  it("opens EditClientDialog when Edit button is clicked", () => {
+    renderClientManager()
+
+    const editBtn = screen.getByRole("button", { name: /Edit Taraju Coffee/i })
+    fireEvent.click(editBtn)
+
+    expect(screen.getByTestId("edit-client-dialog")).toBeDefined()
+    expect(screen.getByText("Edit Modal for Taraju Coffee")).toBeDefined()
+  })
+
+  it("opens DeleteClientDialog when Delete button is clicked", () => {
+    renderClientManager()
+
+    const deleteBtn = screen.getByRole("button", { name: /Hapus Taraju Coffee/i })
+    fireEvent.click(deleteBtn)
+
+    expect(screen.getByTestId("delete-client-dialog")).toBeDefined()
+    expect(screen.getByText("Delete Modal for Taraju Coffee")).toBeDefined()
   })
 })

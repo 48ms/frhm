@@ -149,6 +149,7 @@ export type Icon = React.ComponentType<IconProps>;
 export const Icons = {
   // General
   alertCircle: IconAlertCircle,
+  alertTriangle: IconAlertTriangle,
   warning: IconAlertTriangle,
   arrowRight: IconArrowRight,
   arrowLeft: IconArrowLeft,
@@ -339,6 +340,7 @@ export const Icons = {
   layers2: IconLayersLinked,
   bookOpen: IconBooks,
   keyRound: IconKey,
+  dotsVertical: IconDotsVertical,
 
   // Reference-specific mappings (Luminous Space admin)
   // NOTE: add/dashboard/help/search/send/settings already exist above.

@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 89 test suites passed (516/516 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 91 test suites passed (526/526 tests), Playwright E2E passed (client-portal.spec.ts), `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -147,6 +147,12 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - [x] Unit tests Vitest: 8 unit tests di [middleware.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/supabase/middleware.test.ts) dan 7 unit tests di [route.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/admin/client-users/route.test.ts) (15 tests passed).
   - [x] Playwright E2E tests: [client-portal.spec.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/e2e/client-portal.spec.ts) (2/2 passed) menguji layout navigation portal klien, route reachability 6 halaman, dan dialog akses klien admin.
   - [x] `tsc --noEmit` 0 error & Next.js production build sukses 100%.
+- [x] **6.6. Redesain Halaman Clients & CRUD Lengkap (Create, Read, Update, Delete)**:
+  - [x] **Service Layer 3-Lapis (`features/clients/`):** Menyediakan `updateClient` dan `deleteClient` dengan assertAdmin, validasi Zod, cascade clean-up, dan audit logging.
+  - [x] **Optimistic TanStack Query Hooks:** `useUpdateClient` & `useDeleteClient` dengan rollback instan saat gagal.
+  - [x] **Dialog CRUD:** `EditClientDialog` ([edit-client-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/edit-client-dialog.tsx)) dan `DeleteClientDialog` ([delete-client-dialog.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/delete-client-dialog.tsx)) dengan pengaman ketik nama klien persis.
+  - [x] **Redesain UI Kartu Klien:** Menyisipkan Radix UI `DropdownMenu` (3 titik), bar statistik portofolio atas dengan Animate UI `<MetricTicker>`, badges niche/industri, dan card layout yang lega tanpa teks berdesakan.
+  - [x] **Unit Tests:** 18 tests lulus di [service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/clients/api/service.test.ts), [client-manager.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-manager.test.tsx), dan [client-crud-dialogs.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-crud-dialogs.test.tsx).
 
 ---
 
