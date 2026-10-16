@@ -35,4 +35,12 @@ describe("DisconnectDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /Disconnect @x/i }))
     expect(onConfirm).toHaveBeenCalled()
   })
+
+  it("disables buttons and shows loading state when isLoading is true", () => {
+    render(<DisconnectDialog open handle="@x" onConfirm={vi.fn()} onClose={vi.fn()} isLoading />)
+    const disconnectBtn = screen.getByRole("button", { name: /Disconnect @x/i })
+    const keepBtn = screen.getByRole("button", { name: /Keep account/i })
+    expect(disconnectBtn).toBeDisabled()
+    expect(keepBtn).toBeDisabled()
+  })
 })

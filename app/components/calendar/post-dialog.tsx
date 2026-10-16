@@ -1107,7 +1107,7 @@ function SocialFeedCard({
             <img src={mediaUrl} alt="TikTok Preview" className="absolute inset-0 w-full h-full object-cover" />
           )
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-b from-neutral-900 to-black flex items-center justify-center p-6 text-center text-xs text-neutral-400">
+          <div className="absolute inset-0 bg-gradient-to-b from-card to-background flex items-center justify-center p-6 text-center text-xs text-muted-foreground">
             Preview Media Vertikal TikTok 9:16
           </div>
         )}

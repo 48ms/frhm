@@ -88,17 +88,17 @@ Pillar 5: E2E Playwright & Edge Cases
 ### 🎨 PILLAR 4: Radix UI Accessibility, Animate UI & Theme Integrity
 *Tujuan: Kepatuhan mutlak ARIA, interaksi spring motion mulus, dan konsistensi warna semantik.*
 
-- [ ] **4.1. Kepatuhan Radix UI Primitives**:
-  - [ ] Pastikan tidak ada modal, dropdown, select, atau tooltip ad-hoc yang dibuat dari div mentah tanpa primitives Radix UI.
-  - [ ] Audit focus trapping, escape key dismiss, dan roving tabindex pada seluruh dialog/sheet/menu.
-- [ ] **4.2. Dinamisasi Metrik Animate UI (`<MetricTicker>` / `<SlidingNumber>`)**:
-  - [ ] Sisir seluruh angka metrik di dashboard overview, analytics view, kampanye, dan ERP.
-  - [ ] Pastikan tidak ada nilai `NaN` atau angka statis tanpa animasi hitungan mundur/maju yang mulus.
-- [ ] **4.3. Konsistensi Tema & Rasio Kontras HSL**:
-  - [ ] Uji kontras teks dan background di mode Gelap dan Terang pada seluruh preset tema (`default`, `supabase`, `vercel`, `claude`).
-  - [ ] Pastikan tidak ada warna Tailwind hardcoded seperti `bg-slate-900` atau `text-[#123456]` di komponen fitur.
-- [ ] **4.4. Zero Layout-Shift Button Loading**:
-  - [ ] Pastikan seluruh tombol submit menggunakan prop `isLoading={isPending}` dengan teknik CSS Grid overlap agar dimensi tombol tidak melompat saat proses kirim.
+- [x] **4.1. Kepatuhan Radix UI Primitives**:
+  - [x] Pastikan tidak ada modal, dropdown, select, atau tooltip ad-hoc yang dibuat dari div mentah tanpa primitives Radix UI.
+  - [x] Audit focus trapping, escape key dismiss, dan roving tabindex pada seluruh dialog/sheet/menu.
+- [x] **4.2. Dinamisasi Metrik Animate UI (`<MetricTicker>` / `<SlidingNumber>`)**:
+  - [x] Sisir seluruh angka metrik di dashboard overview, analytics view, kampanye, dan ERP.
+  - [x] Pastikan tidak ada nilai `NaN` atau angka statis tanpa animasi hitungan mundur/maju yang mulus.
+- [x] **4.3. Konsistensi Tema & Rasio Kontras HSL**:
+  - [x] Uji kontras teks dan background di mode Gelap dan Terang pada seluruh preset tema (`default`, `supabase`, `vercel`, `claude`).
+  - [x] Pastikan tidak ada warna Tailwind hardcoded seperti `bg-slate-900` atau `text-[#123456]` di komponen fitur (termasuk eliminasi `text-white` pada button destructive, login OAuth, right panel, dan calendar post card).
+- [x] **4.4. Zero Layout-Shift Button Loading**:
+  - [x] Pastikan seluruh tombol submit menggunakan prop `isLoading={isPending}` dengan teknik CSS Grid overlap agar dimensi tombol tidak melompat saat proses kirim (termasuk penambahan `isLoading` pada `DisconnectDialog`).
 
 ---
 

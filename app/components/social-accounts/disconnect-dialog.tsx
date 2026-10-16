@@ -14,6 +14,7 @@ export interface DisconnectDialogProps {
   handle: string
   onConfirm: () => void
   onClose: () => void
+  isLoading?: boolean
 }
 
 /**
@@ -21,7 +22,7 @@ export interface DisconnectDialogProps {
  *
  * Uses Radix UI Dialog & Button primitives for accessibility and smooth interactions.
  */
-export function DisconnectDialog({ open, handle, onConfirm, onClose }: DisconnectDialogProps) {
+export function DisconnectDialog({ open, handle, onConfirm, onClose, isLoading = false }: DisconnectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
       <DialogContent className="max-w-sm bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6">
@@ -48,6 +49,7 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
             variant="outline"
             size="sm"
             onClick={onClose}
+            disabled={isLoading}
             className="rounded-full text-xs font-semibold"
           >
             Keep account
@@ -57,6 +59,8 @@ export function DisconnectDialog({ open, handle, onConfirm, onClose }: Disconnec
             variant="destructive"
             size="sm"
             onClick={onConfirm}
+            isLoading={isLoading}
+            disabled={isLoading}
             className="rounded-full text-xs font-bold"
           >
             Disconnect {handle}

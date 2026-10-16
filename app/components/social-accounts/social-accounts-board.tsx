@@ -373,6 +373,7 @@ export function ClientChannelsBoard() {
         handle={pendingDisconnect?.handle ?? ""}
         onConfirm={confirmDisconnect}
         onClose={() => setPendingDisconnect(null)}
+        isLoading={disconnectMutation.isPending}
       />
     </div>
   )

@@ -1010,7 +1010,7 @@ export function AdminCalendarClient() {
                             <div
                               className={cn(
                                 "relative rounded-lg overflow-hidden h-20 mb-2 bg-card/60 flex items-center",
-                                p.platform === "linkedin" ? "bg-[hsl(var(--platform-linkedin))] text-white" : ""
+                                p.platform === "linkedin" ? "bg-[hsl(var(--platform-linkedin))] text-primary-foreground" : ""
                               )}
                             >
                               <div className="p-2 h-full flex items-center">
@@ -1145,7 +1145,7 @@ export function AdminCalendarClient() {
                   <span className="text-2xs text-secondary-foreground font-bold">
                     Next Flight Countdown
                   </span>
-                  <p suppressHydrationWarning className="text-2xl font-bold tracking-tight text-white mt-0.5 tabular-nums">
+                  <p suppressHydrationWarning className="text-2xl font-bold tracking-tight text-foreground mt-0.5 tabular-nums">
                     {release ? release.label : "-"}
                   </p>
                   <p className="text-1xs text-on-secondary-container mt-1 flex items-center gap-1.5 truncate">
@@ -1158,7 +1158,7 @@ export function AdminCalendarClient() {
                 </div>
               </div>
               {/* Fast Action Buttons */}
-              <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 relative z-10">
+              <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-border/30 relative z-10">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button

@@ -528,7 +528,7 @@ function LoginForm() {
                     onClick={() => void handleOAuth('facebook')}
                     disabled={googleLoading}
                     aria-label='Login with Facebook'
-                    className='flex size-9 items-center justify-center rounded-full bg-lum-secondary text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
+                    className='flex size-9 items-center justify-center rounded-full bg-lum-secondary text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <Icons.facebook className='size-4' />
                   </button>
@@ -537,7 +537,7 @@ function LoginForm() {
                     onClick={() => void handleOAuth('linkedin_oidc')}
                     disabled={googleLoading}
                     aria-label='Login with LinkedIn'
-                    className='flex size-9 items-center justify-center rounded-full bg-[hsl(var(--platform-linkedin))] text-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
+                    className='flex size-9 items-center justify-center rounded-full bg-[hsl(var(--platform-linkedin))] text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <Icons.linkedin className='size-4' />
                   </button>

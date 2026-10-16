@@ -244,7 +244,7 @@ export function ScheduleDeliverableDialog({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Judul postingan di kalender..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                 required
               />
             </div>
@@ -258,7 +258,7 @@ export function ScheduleDeliverableDialog({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Caption atau narasi postingan..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all resize-none font-sans focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all resize-none font-sans focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>
@@ -274,7 +274,7 @@ export function ScheduleDeliverableDialog({
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 placeholder="https://... (link gambar/video)"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
             <div>
@@ -286,7 +286,7 @@ export function ScheduleDeliverableDialog({
                 value={campaignTag}
                 onChange={(e) => setCampaignTag(e.target.value)}
                 placeholder="#growth-campaign"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus: focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             </div>
           </div>

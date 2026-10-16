@@ -130,7 +130,7 @@ export function DashboardStitchConnectedHub() {
           {/* Client Info Capsule — read-only. Switching lives in the sidebar WorkspaceSwitcher. */}
           <div className="w-full flex items-center justify-between p-3 rounded-2xl bg-muted/60 border border-border/40">
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-brand-accent text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                 {client.name.charAt(0).toUpperCase()}
               </div>
               <div className="truncate text-left space-y-0.5">
@@ -177,7 +177,7 @@ export function DashboardStitchConnectedHub() {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm font-bold group-hover:scale-105 transition-transform shrink-0",
+                      "w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground shadow-sm font-bold group-hover:scale-105 transition-transform shrink-0",
                       meta.bg
                     )}>
                       <PlatformIcon className="size-5" />
