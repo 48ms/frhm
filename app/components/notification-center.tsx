@@ -55,6 +55,11 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
 
   // Faktual: Fitur notifikasi di database / realtime belum diimplementasikan, state mulai kosong
   const [notifications, setNotifications] = React.useState<NotificationItem[]>([]);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const count = initialCount > 0 ? initialCount : unreadCount;
@@ -149,7 +154,7 @@ export function NotificationCenter({ role: _role = 'admin', initialCount = 0 }: 
         </div>
 
         <ScrollArea className='h-[300px]'>
-          {filteredNotifications.length === 0 ? (
+          {mounted && filteredNotifications.length === 0 ? (
             <div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
               <Icons.notification className='size-8 text-muted-foreground/30 mb-2' />
               <p className='text-sm font-medium text-muted-foreground'>Tidak ada notifikasi</p>
