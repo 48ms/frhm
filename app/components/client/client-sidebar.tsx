@@ -147,10 +147,11 @@ export function ClientSidebar({
                     <MotionLink
                       href={targetUrl}
                       aria-label={item.title}
+                      aria-current={active ? "page" : undefined}
                       whileHover="hover"
                       initial="idle"
                       className={cn(
-                        "relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11 group",
+                        "relative flex items-center justify-center size-10 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group",
                         active
                           ? "text-primary-foreground font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"

@@ -26,80 +26,104 @@ const springTransition = {
 const iconVariants: Record<string, Variants> = {
   rocket: {
     idle: { x: 0, y: 0, rotate: 0, scale: 1 },
-    hover: { x: 2.5, y: -2.5, rotate: -10, scale: 1.12, transition: springTransition },
+    active: { scale: 1.08, rotate: -4, transition: springTransition },
+    hover: { x: 2.5, y: -2.5, rotate: -12, scale: 1.18, transition: springTransition },
   },
   auto_awesome: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: 25, scale: 1.2, transition: springTransition },
+    active: { scale: 1.1, rotate: 8, transition: springTransition },
+    hover: { rotate: 30, scale: 1.25, transition: springTransition },
   },
   sparkles: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: 25, scale: 1.2, transition: springTransition },
+    active: { scale: 1.1, rotate: 8, transition: springTransition },
+    hover: { rotate: 30, scale: 1.25, transition: springTransition },
   },
   layers: {
     idle: { y: 0, scale: 1 },
-    hover: { y: -2.5, scale: 1.1, transition: springTransition },
+    active: { y: -1, scale: 1.08, transition: springTransition },
+    hover: { y: -3, scale: 1.16, transition: springTransition },
   },
   hub: {
     idle: { scale: 1, rotate: 0 },
-    hover: { scale: 1.15, rotate: 8, transition: springTransition },
+    active: { scale: 1.08, rotate: 4, transition: springTransition },
+    hover: { scale: 1.18, rotate: 12, transition: springTransition },
   },
   calendar_month: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: [-4, 4, 0], scale: 1.1, transition: { duration: 0.35, ease: "easeInOut" } },
+    active: { scale: 1.06, rotate: 2, transition: springTransition },
+    hover: { rotate: [-6, 6, -3, 3, 0], scale: 1.15, transition: { duration: 0.45, ease: "easeInOut" } },
   },
   calendar: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: [-4, 4, 0], scale: 1.1, transition: { duration: 0.35, ease: "easeInOut" } },
+    active: { scale: 1.06, rotate: 2, transition: springTransition },
+    hover: { rotate: [-6, 6, -3, 3, 0], scale: 1.15, transition: { duration: 0.45, ease: "easeInOut" } },
   },
   monitoring: {
     idle: { y: 0, scale: 1 },
-    hover: { y: -2, scale: 1.12, transition: springTransition },
+    active: { y: -1, scale: 1.08, transition: springTransition },
+    hover: { y: -3, scale: 1.16, transition: springTransition },
   },
   dashboard: {
     idle: { scale: 1, y: 0 },
-    hover: { scale: 1.12, y: -1.5, transition: springTransition },
+    active: { scale: 1.08, y: -1, transition: springTransition },
+    hover: { scale: 1.16, y: -2.5, transition: springTransition },
   },
   media: {
     idle: { scale: 1, rotate: 0 },
-    hover: { scale: 1.12, rotate: 4, transition: springTransition },
+    active: { scale: 1.06, rotate: 3, transition: springTransition },
+    hover: { scale: 1.16, rotate: 8, transition: springTransition },
   },
   settings: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: 60, scale: 1.1, transition: springTransition },
+    active: { scale: 1.08, rotate: 20, transition: springTransition },
+    hover: { rotate: 90, scale: 1.18, transition: springTransition },
   },
   bot: {
     idle: { y: 0, scale: 1 },
-    hover: { y: -2.5, scale: 1.12, transition: springTransition },
+    active: { y: -1, scale: 1.08, transition: springTransition },
+    hover: { y: -3, scale: 1.16, transition: springTransition },
   },
   help: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: [0, -10, 10, 0], scale: 1.1, transition: { duration: 0.3 } },
+    active: { scale: 1.06, transition: springTransition },
+    hover: { rotate: [0, -12, 12, 0], scale: 1.15, transition: { duration: 0.35 } },
   },
   campaign: {
     idle: { scale: 1, rotate: 0 },
-    hover: { scale: 1.15, rotate: -6, transition: springTransition },
+    active: { scale: 1.08, rotate: -4, transition: springTransition },
+    hover: { scale: 1.2, rotate: -10, transition: springTransition },
   },
   building: {
     idle: { y: 0, scale: 1 },
-    hover: { y: -2, scale: 1.1, transition: springTransition },
+    active: { y: -1, scale: 1.06, transition: springTransition },
+    hover: { y: -2.5, scale: 1.15, transition: springTransition },
   },
   mapPin: {
     idle: { y: 0, scale: 1 },
-    hover: { y: -3, scale: 1.12, transition: springTransition },
+    active: { y: -1.5, scale: 1.08, transition: springTransition },
+    hover: { y: -4, scale: 1.2, transition: springTransition },
   },
   messageSquare: {
     idle: { scale: 1, rotate: 0 },
-    hover: { scale: 1.12, rotate: -4, transition: springTransition },
+    active: { scale: 1.06, rotate: -2, transition: springTransition },
+    hover: { scale: 1.16, rotate: -6, transition: springTransition },
   },
   add: {
     idle: { rotate: 0, scale: 1 },
-    hover: { rotate: 90, scale: 1.15, transition: springTransition },
+    active: { scale: 1.08, rotate: 45, transition: springTransition },
+    hover: { rotate: 90, scale: 1.2, transition: springTransition },
+  },
+  arrowRight: {
+    idle: { x: 0, scale: 1 },
+    active: { x: 1, scale: 1.05, transition: springTransition },
+    hover: { x: 3.5, scale: 1.15, transition: springTransition },
   },
   // Default fallback for any icon without custom physics
   default: {
     idle: { scale: 1, y: 0 },
-    hover: { scale: 1.12, y: -1, transition: springTransition },
+    active: { scale: 1.06, y: -0.5, transition: springTransition },
+    hover: { scale: 1.15, y: -2, transition: springTransition },
   },
 }
 
@@ -118,11 +142,13 @@ export function AnimatedIcon({
 
   return (
     <motion.span
-      className={cn("inline-flex items-center justify-center shrink-0 origin-center", className)}
+      className={cn("inline-flex items-center justify-center shrink-0 origin-center select-none", className)}
       variants={animateOnHover ? selectedVariants : undefined}
-      initial="idle"
-      animate={isActive ? "idle" : undefined}
+      initial={false}
+      animate={isActive ? "active" : "idle"}
       whileHover={animateOnHover ? "hover" : undefined}
+      whileTap={{ scale: 0.92 }}
+      transition={springTransition}
       {...(props as any)}
     >
       <IconCmp className={cn("size-5 transition-colors", iconClassName)} />

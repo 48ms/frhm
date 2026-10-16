@@ -155,7 +155,7 @@ export function AppSidebar({ user, className, ...props }: React.ComponentProps<t
                       whileHover="hover"
                       initial="idle"
                       className={cn(
-                        "relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-11 group",
+                        "relative flex items-center justify-center size-10 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group",
                         active
                           ? "text-[hsl(var(--admin-lime-ink))] font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
