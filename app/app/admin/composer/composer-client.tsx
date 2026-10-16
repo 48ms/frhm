@@ -976,51 +976,65 @@ export function ComposerClient() {
 
                   {/* Right: Platform Destinations (Factual) */}
                   <div className="z-10 flex flex-col gap-4">
-                    {connectedChannels.map((channel) => {
-                      const optPlatform = channel.platform.toLowerCase()
-                      const isSelected = platforms.includes(optPlatform)
-                      const IconComp = Icons[optPlatform as keyof typeof Icons] || Icons.hub
+                    {connectedChannels.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed rounded-2xl border-border/60 bg-muted/20 max-w-xs">
+                        <Icons.hub className="size-8 text-muted-foreground mb-2" />
+                        <p className="text-xs font-bold text-foreground">Belum ada akun sosial terhubung</p>
+                        <p className="text-2xs text-muted-foreground mb-3">Hubungkan akun Instagram atau TikTok klien untuk rilis otomatis.</p>
+                        <Link href="/admin/social-accounts">
+                          <Button size="sm" variant="outline" className="gap-1.5 text-xs rounded-xl">
+                            <Icons.add className="size-3.5 text-primary" />
+                            Hubungkan Akun
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      connectedChannels.map((channel) => {
+                        const optPlatform = channel.platform.toLowerCase()
+                        const isSelected = platforms.includes(optPlatform)
+                        const IconComp = Icons[optPlatform as keyof typeof Icons] || Icons.hub
 
-                      return (
-                        <div
-                          key={channel.id}
-                          className={cn(
-                            "flex items-center gap-4 relative cursor-pointer p-3 rounded-2xl border transition-all duration-300",
-                            isSelected ? "bg-card border-primary/50 shadow-md" : "bg-card/40 border-border/40 grayscale opacity-70 hover:grayscale-0 hover:opacity-100"
-                          )}
-                          onClick={() => togglePlatform(optPlatform)}
-                        >
-                          <div className={cn(
-                            "absolute -left-4 w-3 h-3 rounded-full -translate-x-full transition-all",
-                            isSelected ? "bg-[hsl(var(--success))] scale-100 shadow-[0_0_8px_hsl(var(--success)/0.5)]" : "bg-transparent scale-0"
-                          )} />
-                          
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/40 bg-muted flex items-center justify-center text-muted-foreground">
-                            {channel.avatar_url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={channel.avatar_url} alt={channel.handle || "Avatar"} className="w-full h-full object-cover" />
-                            ) : (
-                              <IconComp className="size-6" />
+                        return (
+                          <div
+                            key={channel.id}
+                            className={cn(
+                              "flex items-center gap-4 relative cursor-pointer p-3 rounded-2xl border transition-all duration-300",
+                              isSelected ? "bg-card border-primary/50 shadow-md" : "bg-card/40 border-border/40 grayscale opacity-70 hover:grayscale-0 hover:opacity-100"
                             )}
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-card flex items-center justify-center shadow-sm border border-border p-0.5 text-foreground">
-                               <IconComp className="w-full h-full" />
+                            onClick={() => togglePlatform(optPlatform)}
+                          >
+                            <div className={cn(
+                              "absolute -left-4 w-3 h-3 rounded-full -translate-x-full transition-all",
+                              isSelected ? "bg-[hsl(var(--success))] scale-100 shadow-[0_0_8px_hsl(var(--success)/0.5)]" : "bg-transparent scale-0"
+                            )} />
+                            
+                            <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border/40 bg-muted flex items-center justify-center text-muted-foreground">
+                              {channel.avatar_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={channel.avatar_url} alt={channel.handle || "Avatar"} className="w-full h-full object-cover" />
+                              ) : (
+                                <IconComp className="size-6" />
+                              )}
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-card flex items-center justify-center shadow-sm border border-border p-0.5 text-foreground">
+                                 <IconComp className="w-full h-full" />
+                              </div>
+                            </div>
+
+                            <div className="min-w-0 pr-4">
+                              <span className={cn(
+                                "block text-sm font-bold truncate",
+                                isSelected ? "text-[hsl(var(--admin-on-surface))]" : "text-[hsl(var(--admin-outline))]"
+                              )}>
+                                {channel.handle || "Akun Terhubung"}
+                              </span>
+                              <span className="text-2xs text-muted-foreground font-semibold">
+                                {channel.platform}
+                              </span>
                             </div>
                           </div>
-
-                          <div className="min-w-0 pr-4">
-                            <span className={cn(
-                              "block text-sm font-bold truncate",
-                              isSelected ? "text-[hsl(var(--admin-on-surface))]" : "text-[hsl(var(--admin-outline))]"
-                            )}>
-                              {channel.handle || "Akun Terhubung"}
-                            </span>
-                            <span className="text-2xs text-muted-foreground font-semibold">
-                              {channel.platform}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })
+                    )}
                   </div>
                 </div>
 

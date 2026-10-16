@@ -35,6 +35,7 @@ vi.mock("@/features/copilot/api/queries", () => ({
 
 vi.mock("@/features/social-accounts/api/queries", () => ({
   useDisconnectChannel: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useConnectChannel: () => ({ mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false }),
 }))
 
 vi.mock("motion/react", async (importOriginal) => {

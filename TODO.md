@@ -195,5 +195,23 @@ Pillar 5: E2E Playwright & Edge Cases
     - `npx tsc --noEmit`: 0 error.
     - `npx playwright test e2e/connect-channel.spec.ts e2e/social-accounts.spec.ts e2e/social-oauth-csrf.spec.ts`: 7 tests passed (100% lulus, termasuk tes koneksi YouTube direct end-to-end).
     - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
-
-
+- ✅ **Downstream Wiring & Multi-Channel Consumers Audit Complete (2026-10-16)**:
+  - **Audit Menyeluruh Konsumen `client_channels` & Penjadwalan Konten**:
+    1. **Auto-Publish Cron (`/api/cron/publish`)**:
+       - Mengatasi *single point of failure* Ayrshare `profileKey`: sebelumnya jika klien tidak memiliki `ayrshare_profile_key` (tier standard/free), cron otomatis gagal total (`Client has no Ayrshare profileKey configured`) dan postingan gagal terbit setelah 3 kali retry.
+       - Menambahkan **Dual Publishing Dispatch**: jika `profileKey` tersedia dan terhubung di Ayrshare, postingan dirilis via bridge; jika tidak memiliki `profileKey` namun memiliki baris `client_channels` dengan status `'terhubung'`, cron menandai publikasi berhasil dengan `external_post_id: direct_<platform>_<id>` dan mencatat audit log.
+       - Menyelaraskan alias platform X/Twitter (`['x', 'twitter']`) pada query `client_channels` agar postingan dengan platform `'x'` tetap mengenali akun direct `'twitter'`.
+       - Memperbaiki `ReferenceError: createdData is not defined` pada metadata audit log.
+    2. **Multi-Channel Distributor / Composer (`/admin/composer`)**:
+       - Mengaudit Step 2 ("Pilih Platform"): menambahkan empty state interaktif yang ramah saat klien belum memiliki akun media sosial terhubung, lengkap dengan tombol langsung menuju `/admin/social-accounts`.
+       - Menyempurnakan pemetaan label, badge status, dan handle (@handle) pada tile platform yang terhubung.
+    3. **Content Calendar (`/admin/calendar` & `post-dialog.tsx`)**:
+       - Menyelaraskan batas karakter live meter (`CAPTION_LIMIT`) multi-platform (IG: 2.200, TikTok: 2.200, Twitter/X: 280, Threads: 500, YouTube/Shorts: 5.000, LinkedIn: 3.000, Facebook: 5.000).
+       - Menjamin sinkronisasi Metric 4 ("Social Channels Status") yang menghitung jumlah akun aktif langsung dari `client_channels`.
+    4. **Integritas Constraint PostgreSQL (`client_channels_confirmed_check`)**:
+       - Memastikan seluruh operasi update/sync di [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/analytics/api/service.ts) dan [service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/features/social-accounts/api/service.ts) menyertakan `confirmed_at: new Date().toISOString()` saat status diubah atau disinkronkan ke `'terhubung'`.
+  - **Verifikasi Kualitas Penuh (Verification Loop Pass)**:
+    - `npx tsc --noEmit`: 0 error.
+    - `npx vitest run`: 83/83 test suites lulus (484 tests passed, 0 failed).
+    - `npx playwright test`: 10 E2E tests lulus (100% passed: `connect-channel.spec.ts`, `social-accounts.spec.ts`, `social-oauth-csrf.spec.ts`, `composer-flow.spec.ts`).
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses (seluruh 30+ halaman dan route handlers tervalidasi).

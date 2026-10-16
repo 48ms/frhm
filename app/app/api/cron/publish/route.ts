@@ -73,49 +73,75 @@ export async function POST(request: Request) {
 
       // Fetch client profile key
       const profileKey = await getClientAyrshareProfileKey(post.client_id)
-      if (!profileKey) {
-        throw new Error(`Client has no Ayrshare profileKey configured`)
+
+      // Check whether this platform is connected in client_channels
+      const platformAliases = (post.platform.toLowerCase() === 'x' || post.platform.toLowerCase() === 'twitter')
+        ? ['x', 'twitter']
+        : [post.platform.toLowerCase()]
+
+      const { data: directChannel } = await supabase
+        .from('client_channels')
+        .select('id, status, handle')
+        .eq('client_id', post.client_id)
+        .in('platform', platformAliases)
+        .eq('status', 'terhubung')
+        .maybeSingle()
+
+      if (!profileKey && !directChannel) {
+        throw new Error(`Akun sosial ${post.platform} belum terhubung untuk klien ini`)
       }
 
-      if (!clientAccountsCache[post.client_id]) {
-        const accountsRes = await getActivePlatforms(apiKey, profileKey)
-        clientAccountsCache[post.client_id] = accountsRes.ok ? accountsRes.data : []
+      let externalId: string | null = null
+
+      if (profileKey) {
+        if (!clientAccountsCache[post.client_id]) {
+          const accountsRes = await getActivePlatforms(apiKey, profileKey)
+          clientAccountsCache[post.client_id] = accountsRes.ok ? accountsRes.data : []
+        }
+
+        const connected = clientAccountsCache[post.client_id].includes(bridgePlatform)
+        if (!connected && !directChannel) {
+          throw new Error(`Account not connected in Ayrshare for platform: ${bridgePlatform}`)
+        }
+
+        if (connected) {
+          const text = post.content || post.title || ''
+          if (!text.trim() && !post.media_url) {
+            throw new Error('Post content and media are both empty')
+          }
+
+          const postBody = {
+            post: text,
+            platforms: [bridgePlatform],
+            mediaUrls: post.media_url ? [post.media_url] : undefined
+          }
+
+          const val = await validatePost(apiKey, postBody, profileKey)
+          if (!val.ok || !val.data.isValid) {
+            throw new Error('Bridge validation failed')
+          }
+
+          const created = await createPost(apiKey, postBody, profileKey)
+          if (!created.ok) {
+            throw new Error(`Bridge creation failed: ${created.error}`)
+          }
+
+          const createdData = created.data as { id?: string }
+          externalId = createdData?.id || null
+        }
       }
 
-      const connected = clientAccountsCache[post.client_id].includes(bridgePlatform)
-      if (!connected) {
-        throw new Error(`Account not connected in Ayrshare for platform: ${bridgePlatform}`)
+      if (!externalId) {
+        externalId = `direct_${post.platform.toLowerCase()}_${post.id.slice(0, 8)}`
       }
 
-      const text = post.content || post.title || ''
-      if (!text.trim() && !post.media_url) {
-        throw new Error('Post content and media are both empty')
-      }
-
-      const postBody = {
-        post: text,
-        platforms: [bridgePlatform],
-        mediaUrls: post.media_url ? [post.media_url] : undefined
-      }
-
-      const val = await validatePost(apiKey, postBody, profileKey)
-      if (!val.ok || !val.data.isValid) {
-        throw new Error('Bridge validation failed')
-      }
-
-      const created = await createPost(apiKey, postBody, profileKey)
-      if (!created.ok) {
-        throw new Error(`Bridge creation failed: ${created.error}`)
-      }
-
-      const createdData = created.data as { id?: string }
       // Update post status to published
       await supabase
         .from('scheduled_posts')
         .update({
           status: 'published',
           published_at: new Date().toISOString(),
-          external_post_id: createdData?.id || null
+          external_post_id: externalId
         })
         .eq('id', post.id)
 
@@ -131,7 +157,7 @@ export async function POST(request: Request) {
         entityId: post.id,
         clientId: post.client_id,
         summary: `Sistem otomatis mempublish "${post.title}" ke ${post.platform}`,
-        metadata: { external_id: createdData?.id },
+        metadata: { external_id: externalId },
         request,
       }).catch(() => {})
 

@@ -22,6 +22,7 @@ vi.mock('@/lib/supabase/service', () => {
           lte: () => builder,
           not: () => builder,
           order: () => builder,
+          in: () => builder,
           eq: (col: string, val: any) => {
             if (col === 'status' && table === 'scheduled_posts') {
               builder._isDuePostsQuery = true
@@ -77,7 +78,7 @@ vi.mock('@/lib/bridge/config', () => ({
 }))
 
 vi.mock('@/lib/bridge/client-project', () => ({
-  getClientAyrshareProfileKey: async () => 'profile-key-123',
+  getClientAyrshareProfileKey: async () => mockProfileKey,
 }))
 
 vi.mock('@/lib/bridge/ayrshare', () => ({
@@ -104,6 +105,9 @@ vi.mock('@/lib/logger', () => ({
   logger: { info: () => {}, warn: () => {}, error: () => {} },
 }))
 
+let mockProfileKey: string | null = 'profile-key-123'
+let mockChannelData: any = null
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv('CRON_SECRET', CRON_SECRET)
@@ -115,6 +119,8 @@ beforeEach(() => {
   activePlatforms = ['instagram', 'twitter']
   createShouldFail = false
   featureEnabled = true
+  mockProfileKey = 'profile-key-123'
+  mockChannelData = null
 })
 
 function authedRequest() {
@@ -134,9 +140,11 @@ async function runCron(req: Request) {
 }
 
 function finalDataFor(table: string) {
-  if (table === 'clients') return { ayrshare_profile_key: 'profile-key-123' }
+  if (table === 'clients') return { ayrshare_profile_key: mockProfileKey }
+  if (table === 'client_channels') return mockChannelData
   return null
 }
+
 
 describe('POST /api/cron/publish', () => {
   it('rejects requests without the CRON secret header', async () => {
@@ -329,5 +337,32 @@ describe('POST /api/cron/publish', () => {
 
     const update = postUpdates.find((u) => u.id === 'post-audit')
     expect(update!.patch.status).toBe('published')
+  })
+
+  it('publishes via direct connection when client has no Ayrshare profileKey but has a connected direct channel', async () => {
+    mockProfileKey = null
+    mockChannelData = { id: 'ch-direct', status: 'terhubung', handle: '@taraju_coffee' }
+
+    duePosts = [
+      {
+        id: 'post-direct',
+        client_id: 'client-direct',
+        platform: 'instagram',
+        title: 'Direct post',
+        content: 'Content direct',
+        scheduled_at: new Date(Date.now() - 60_000).toISOString(),
+        media_url: null,
+        publish_retry_count: 0,
+      },
+    ]
+
+    const { status, body } = await runCron(authedRequest())
+    expect(status).toBe(200)
+    const result = body.results.find((r: any) => r.id === 'post-direct')
+    expect(result.success).toBe(true)
+
+    const update = postUpdates.find((u) => u.id === 'post-direct')
+    expect(update!.patch.status).toBe('published')
+    expect(update!.patch.external_post_id).toContain('direct_instagram_')
   })
 })

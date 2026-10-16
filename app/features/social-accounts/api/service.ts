@@ -182,6 +182,7 @@ export async function syncChannel(channelId: string): Promise<void> {
       .from("client_channels")
       .update({
         status: "terhubung",
+        confirmed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", channelId)
@@ -236,6 +237,7 @@ export async function syncChannel(channelId: string): Promise<void> {
           avatar_url,
           handle,
           status: "terhubung",
+          confirmed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", channelId)

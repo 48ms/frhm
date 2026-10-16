@@ -684,11 +684,13 @@ export async function syncMultiAccountSocialData(
     accountsFound = Math.max(accountsFound, currentChannels.length)
     if (accountsSynced === 0) {
       for (const ch of currentChannels) {
+        const nextStatus = ch.status === "gagal" ? "gagal" : "terhubung"
         await supabase
           .from("client_channels")
           .update({
             updated_at: new Date().toISOString(),
-            status: ch.status === "gagal" ? "gagal" : "terhubung",
+            status: nextStatus,
+            ...(nextStatus === "terhubung" ? { confirmed_at: new Date().toISOString() } : {}),
           })
           .eq("id", ch.id)
         accountsSynced += 1
