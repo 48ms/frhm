@@ -32,8 +32,16 @@ export function WorkspaceSwitcher({
   const queryClient = useQueryClient()
   const [open, setOpen] = React.useState(false)
 
+  const [searchQuery, setSearchQuery] = React.useState("")
+
   // Fallback if not found
   const activeClient = clients.find((c) => c.id === clientId) ?? clients[0]
+
+  const filteredClients = React.useMemo(() => {
+    if (!searchQuery.trim()) return clients
+    const q = searchQuery.toLowerCase().trim()
+    return clients.filter((c) => c.name.toLowerCase().includes(q))
+  }, [clients, searchQuery])
 
   // OPTIMISTIC PREFETCH: saat kursor menyentuh salah satu klien, kita siapkan
   // data profilnya di cache SEBELUM klik. Karena query profil tidak suspend
@@ -111,42 +119,66 @@ export function WorkspaceSwitcher({
             Switch Workspace
           </DropdownMenuLabel>
 
+          {clients.length > 3 && (
+            <div className="px-1.5 pb-1.5 pt-0.5">
+              <div className="relative">
+                <Icons.search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Cari workspace..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="w-full h-7 pl-8 pr-2.5 text-xs rounded-lg bg-muted/60 border border-border/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand-accent/50"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="max-h-[260px] overflow-y-auto no-scrollbar space-y-0.5">
-            {clients.map((c) => {
-              const isSelected = c.id === clientId
-              return (
-                <DropdownMenuItem
-                  key={c.id}
-                  onMouseEnter={() => prefetchProfile(c.id)}
-                  onFocus={() => prefetchProfile(c.id)}
-                  onClick={() => {
-                    setClientId(c.id)
-                    setOpen(false)
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
-                    isSelected
-                      ? "bg-brand-accent/15 border border-brand-accent/30 font-semibold"
-                      : "hover:bg-muted border border-transparent"
-                  )}
-                >
-                  <div className="w-7 h-7 rounded-lg bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-2xs shrink-0">
-                    {c.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="truncate leading-tight flex-1 min-w-0">
-                    <span className="block text-xs font-bold text-foreground truncate">
-                      {c.name}
-                    </span>
-                    <span className="block text-2xs text-muted-foreground flex items-center gap-1">
-                      <MetricTicker value={c.channels?.length || 0} /> channels
-                    </span>
-                  </div>
-                  {isSelected && (
-                    <Icons.check className="size-4 text-brand-accent shrink-0 ml-auto" />
-                  )}
-                </DropdownMenuItem>
-              )
-            })}
+            {filteredClients.length === 0 ? (
+              <div className="p-3 text-center text-2xs text-muted-foreground">
+                Tidak ada workspace &quot;{searchQuery}&quot;
+              </div>
+            ) : (
+              filteredClients.map((c) => {
+                const isSelected = c.id === clientId
+                return (
+                  <DropdownMenuItem
+                    key={c.id}
+                    onMouseEnter={() => prefetchProfile(c.id)}
+                    onFocus={() => prefetchProfile(c.id)}
+                    onClick={() => {
+                      setClientId(c.id)
+                      setOpen(false)
+                      setSearchQuery("")
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 p-2 rounded-xl transition-all cursor-pointer text-left",
+                      isSelected
+                        ? "bg-brand-accent/15 border border-brand-accent/30 font-semibold"
+                        : "hover:bg-muted border border-transparent"
+                    )}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-brand-accent text-primary-foreground flex items-center justify-center font-bold text-2xs shrink-0">
+                      {c.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="truncate leading-tight flex-1 min-w-0">
+                      <span className="block text-xs font-bold text-foreground truncate">
+                        {c.name}
+                      </span>
+                      <span className="block text-2xs text-muted-foreground flex items-center gap-1">
+                        <MetricTicker value={c.channels?.length || 0} /> channels
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <Icons.check className="size-4 text-brand-accent shrink-0 ml-auto" />
+                    )}
+                  </DropdownMenuItem>
+                )
+              })
+            )}
           </div>
 
           <DropdownMenuSeparator className="my-1 border-border/40" />

@@ -66,6 +66,51 @@ export async function createNewClient(input: CreateClientInput): Promise<CreateC
     summary: `Created client "${clientData.name}"`,
   })
 
+  // 1b. Auto-provision or link initial client portal user in public.users
+  if (input.contact_email) {
+    const cleanEmail = input.contact_email.toLowerCase().trim()
+    try {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('email', cleanEmail)
+        .single()
+
+      if (existingUser) {
+        if (existingUser.role !== 'admin') {
+          await supabase
+            .from('users')
+            .update({
+              client_id: clientData.id,
+              role: 'client',
+            })
+            .eq('id', existingUser.id)
+        }
+      } else {
+        await supabase
+          .from('users')
+          .insert({
+            email: cleanEmail,
+            full_name: input.name,
+            role: 'client',
+            client_id: clientData.id,
+          })
+      }
+
+      void logAudit({
+        action: 'client.user_assigned',
+        entityType: 'client_user',
+        entityId: clientData.id,
+        summary: `Auto-linked client user ${cleanEmail} to client "${clientData.name}"`,
+        metadata: { clientId: clientData.id, email: cleanEmail },
+      })
+    } catch (userProvisionErr: unknown) {
+      logger.warn('createNewClient user auto-provision non-fatal error', {
+        error: userProvisionErr instanceof Error ? userProvisionErr.message : String(userProvisionErr),
+      })
+    }
+  }
+
   // 2. Setup profil analitik default
   const { error: profileErr } = await supabase
     .from("dashboard_profiles")
