@@ -40,8 +40,16 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: PRODUCT_NAME,
-  description: "Client dashboard for social media deliverables",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://frhm.agency'),
+  title: {
+    default: `${PRODUCT_NAME} — Platform Digital Marketing & Otomatisasi Konten`,
+    template: `%s | ${PRODUCT_NAME}`,
+  },
+  description: "Platform operasional pemasaran digital cerdas, otomatisasi jadwal multi-channel, dan persetujuan konten terpadu.",
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
