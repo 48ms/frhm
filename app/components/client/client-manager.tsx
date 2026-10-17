@@ -92,7 +92,7 @@ export function AddClientHeaderButton() {
 }
 
 export function ClientManager() {
-  const [{ q }, setClientsState] = useQueryStates(clientsSearchParams, { shallow: true })
+  const [{ q, onboarding }, setClientsState] = useQueryStates(clientsSearchParams, { shallow: true })
   const { data: clientsData } = useQuery({
     ...socialQueries.listClientsWithChannels(),
     placeholderData: [],
@@ -151,6 +151,32 @@ export function ClientManager() {
 
   return (
     <div className="space-y-6">
+      {/* Onboarding Callout Banner (jika belum ada klien atau parameter ?onboarding=true) */}
+      {(onboarding === "true" || clients.length === 0) && (
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-semibold bg-primary/15 text-primary">
+              <Icons.sparkles className="size-3" />
+              <span>Workspace Baru Siap Dikonfigurasi</span>
+            </div>
+            <h3 className="text-base font-bold text-foreground">
+              Selamat Datang di Platform Frhm!
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-xl">
+              Anda belum memiliki workspace klien aktif. Tambahkan klien pertama Anda sekarang untuk mulai menghubungkan channel media sosial, menyusun ide konten, dan memantau analitik.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={openCreateClient}
+            className="gap-2 cursor-pointer shadow-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+          >
+            <Icons.add className="size-4" />
+            <span>+ Buat Klien Pertama</span>
+          </Button>
+        </div>
+      )}
+
       {/* 1. Header Portfolio Metrics Bar (Animate UI MetricTicker) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex items-center justify-between">

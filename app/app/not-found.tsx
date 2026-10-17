@@ -30,8 +30,14 @@ export default function NotFound() {
           </Link>
           <Button
             variant="outline"
-            onClick={() => window.history.back()}
-            className="h-11 rounded-xl gap-2"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                window.history.back()
+              } else {
+                window.location.href = "/admin/clients"
+              }
+            }}
+            className="h-11 rounded-xl gap-2 cursor-pointer"
           >
             <Icons.refresh className="size-4" />
             Kembali

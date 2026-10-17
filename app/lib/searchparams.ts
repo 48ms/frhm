@@ -151,6 +151,7 @@ export const serializeAnalyticsParams = createSerializer(analyticsSearchParams)
 // -------------------------------------------------------------
 export const clientsSearchParams = {
   q: parseAsString.withDefault(""),
+  onboarding: parseAsString.withDefault(""),
 }
 
 export const clientsParamsCache = createSearchParamsCache(clientsSearchParams)

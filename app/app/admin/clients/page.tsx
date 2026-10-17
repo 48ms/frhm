@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default async function ClientsPage(
   props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
 ) {
-  const { q } = clientsParamsCache.parse(await props.searchParams)
+  const { q, onboarding } = clientsParamsCache.parse(await props.searchParams)
   const queryClient = getQueryClient()
 
   // 1. Server-side data prefetching (Aturan #3 TanStack Query v5)
