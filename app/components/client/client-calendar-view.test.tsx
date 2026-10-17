@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ClientCalendarView } from "./client-calendar-view"
+import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -18,6 +19,8 @@ vi.mock("@/components/dashboard-stitch/dashboard-data", () => ({
   }),
 }))
 
+const mockMutate = vi.fn()
+
 vi.mock("@/features/scheduled-posts/api/queries", () => ({
   useScheduledPosts: () => ({
     data: [
@@ -32,12 +35,25 @@ vi.mock("@/features/scheduled-posts/api/queries", () => ({
         media_url: "https://example.com/promo.jpg",
         created_at: new Date().toISOString(),
       },
+      {
+        id: "post-2",
+        client_id: "c-test-1",
+        title: "Kisah Petani Kopi Taraju",
+        content: "Di balik secangkir arabika Jawa Barat ada ketulusan petani lokal.",
+        platform: "tiktok",
+        scheduled_at: new Date(Date.now() + 172800000).toISOString(),
+        status: "draft",
+        media_url: null,
+        created_at: new Date().toISOString(),
+      },
     ],
     isLoading: false,
   }),
+  useUpdateScheduledPost: () => ({
+    mutate: mockMutate,
+    isPending: false,
+  }),
 }))
-
-import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 
 describe("ClientCalendarView", () => {
   function renderWithProviders(ui: React.ReactElement) {
@@ -72,5 +88,25 @@ describe("ClientCalendarView", () => {
     expect(screen.getByText(/Materi promosi yang dijadwalkan/)).toBeInTheDocument()
     expect(screen.getByText(/Dapatkan diskon 20%/)).toBeInTheDocument()
     expect(screen.getByText("Request Revisi Jadwal")).toBeInTheDocument()
+  })
+
+  it("shows Setujui Konten button for draft posts and triggers approval mutation", () => {
+    renderWithProviders(<ClientCalendarView clientId="c-test-1" />)
+
+    const draftPost = screen.getByText("Kisah Petani Kopi Taraju")
+    fireEvent.click(draftPost)
+
+    const approveBtn = screen.getByRole("button", { name: /Setujui Konten Ini/i })
+    expect(approveBtn).toBeInTheDocument()
+
+    fireEvent.click(approveBtn)
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "post-2",
+        clientId: "c-test-1",
+        status: "scheduled",
+      }),
+      expect.anything()
+    )
   })
 })

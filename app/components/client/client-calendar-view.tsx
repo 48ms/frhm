@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { useQueryStates } from "nuqs"
 import { calendarSearchParams, serializeCalendarParams } from "@/lib/searchparams"
-import { useScheduledPosts } from "@/features/scheduled-posts/api/queries"
+import { useScheduledPosts, useUpdateScheduledPost } from "@/features/scheduled-posts/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 import { PageContainer } from "@/components/layout/page-container"
@@ -22,6 +22,7 @@ import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ti
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { id as idLocale } from "date-fns/locale"
+import { toast } from "sonner"
 
 const PLATFORM_META: Record<
   string,
@@ -110,8 +111,26 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
   const viewMode = calendarState.view
 
   const { data: posts = [], isLoading } = useScheduledPosts(effectiveClientId)
+  const updatePostMutation = useUpdateScheduledPost()
   const [selectedPost, setSelectedPost] = React.useState<ScheduledPost | null>(null)
   const [cursor, setCursor] = React.useState(() => new Date())
+
+  const handleApproveSelectedPost = () => {
+    if (!selectedPost) return
+    updatePostMutation.mutate(
+      {
+        id: selectedPost.id,
+        clientId: effectiveClientId,
+        status: "scheduled",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Konten berhasil disetujui dan dijadwalkan!")
+          setSelectedPost((prev) => (prev ? { ...prev, status: "scheduled" } : null))
+        },
+      }
+    )
+  }
 
   const filteredPosts = React.useMemo(() => {
     if (platformFilter === "all") return posts
@@ -636,7 +655,7 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/40">
             <Link
               href={`/client/support?clientId=${effectiveClientId}`}
               onClick={() => setSelectedPost(null)}
@@ -649,13 +668,27 @@ export function ClientCalendarView({ clientId }: ClientCalendarViewProps) {
               <span>Request Revisi Jadwal</span>
             </Link>
 
-            <Button
-              size="sm"
-              onClick={() => setSelectedPost(null)}
-              className="rounded-xl text-xs font-semibold"
-            >
-              Tutup
-            </Button>
+            <div className="flex items-center gap-2">
+              {selectedPost?.status === "draft" && (
+                <Button
+                  size="sm"
+                  onClick={handleApproveSelectedPost}
+                  disabled={updatePostMutation.isPending}
+                  className="rounded-xl text-xs font-semibold bg-[hsl(var(--success))] text-primary-foreground hover:bg-[hsl(var(--success))]/90 cursor-pointer"
+                >
+                  <Icons.check className="size-3.5 mr-1" />
+                  <span>Setujui Konten Ini</span>
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                onClick={() => setSelectedPost(null)}
+                className="rounded-xl text-xs font-semibold"
+              >
+                Tutup
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

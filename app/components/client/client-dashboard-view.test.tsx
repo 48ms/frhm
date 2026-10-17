@@ -104,6 +104,10 @@ describe("ClientDashboardView", () => {
     expect(screen.getByText("Kanal Brand Aktif")).toBeInTheDocument()
     expect(screen.getByText("@tarajucoffee")).toBeInTheDocument()
 
+    // METER Signal Audit & Strategic Recommendations
+    expect(screen.getByText(/Audit Sinyal Mingguan & Rekomendasi METER/)).toBeInTheDocument()
+    expect(screen.getByText(/3 Rekomendasi Taktis Pekan Ini/)).toBeInTheDocument()
+
     // 3-Step Collaboration Guidance
     expect(screen.getByText(/Alur Kolaborasi Konten Bersama Frhm/)).toBeInTheDocument()
     expect(screen.getByText(/Produksi & Riset Kreatif/)).toBeInTheDocument()
