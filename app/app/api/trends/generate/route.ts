@@ -14,6 +14,7 @@ import { z } from 'zod'
 import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 // Validasi body inbound: trendTopic wajib, trendSnippet opsional tapi harus string
 // jika ada, providerId harus UUID valid (di-validasi juga oleh query DB, tapi Zod

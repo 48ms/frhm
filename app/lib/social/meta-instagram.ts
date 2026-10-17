@@ -113,7 +113,11 @@ export async function getConnectedInstagramAccounts(userAccessToken: string): Pr
 
   if (!res.ok) {
     logger.error('Failed to fetch Facebook Pages from Meta', { error: data })
-    throw new Error(data?.error?.message || 'Gagal mengambil data halaman dari Meta Graph API')
+    const isTokenExpired = data?.error?.code === 190 || data?.error?.error_subcode === 463
+    const message = isTokenExpired
+      ? 'Sesi otorisasi Meta telah kedaluwarsa atau dicabut (OAuth code 190). Silakan hubungkan ulang akun Instagram.'
+      : data?.error?.message || 'Gagal mengambil data halaman dari Meta Graph API'
+    throw new Error(message)
   }
 
   const pages = data.data || []

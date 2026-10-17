@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/audit/log'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   // Fail-closed cron auth

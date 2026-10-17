@@ -13,6 +13,7 @@ import { logger } from '@/lib/logger'
 import { verifyCronSecret } from '@/lib/cron/auth'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 // Vercel Cron Job: GET /api/cron/daily-insight (scheduled harian via cron.yaml atau external)
 export async function GET(request: Request) {

@@ -11,6 +11,7 @@ import { verifyCronSecret } from '@/lib/cron/auth'
 
 // Run dynamically, triggered by external CRON scheduler (Vercel Cron, pg_cron)
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   // Fail-closed cron auth
