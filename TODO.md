@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-17 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 97 test suites passed (555/555 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 98 test suites passed (557/557 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -514,9 +514,14 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx tsc --noEmit`: 0 error (100% clean typecheck).
     - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
 
+- [x] **Client Portal Footer & Layout Rhythm Standardization (2026-10-17)**:
+  - Membuat komponen kedaulatan [components/layout/client-footer.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/layout/client-footer.tsx) khusus Client Portal dengan identitas Frhm Partner Portal, indikator status sistem aktif, dan tautan langsung ke *Kebijakan Review & SLA*, *Jadwal Publikasi*, serta *Hotline Bantuan*.
+  - Mengintegrasikan `<ClientFooter />` dan menyeragamkan ritme container `<main>` di [app/client/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/client/layout.tsx) menjadi `flex flex-col gap-6`.
+  - Ditunjang unit tests [client-footer.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/layout/client-footer.test.tsx) (2/2 PASS).
+
 - 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
   - `npx tsc --noEmit`: 0 error (100% clean typecheck).
-  - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
+  - `npx vitest run`: 98/98 test suites PASS (557 tests passed, 0 failed).
   - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
 
 

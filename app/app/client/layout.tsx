@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { ClientSidebar } from "@/components/client/client-sidebar"
 import { ClientHeader } from "@/components/client/client-header"
 import { SkipLink } from "@/components/ui/skip-link"
+import { ClientFooter } from "@/components/layout/client-footer"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 import "@/app/admin/admin-stage.css"
 
@@ -107,9 +108,10 @@ export default async function ClientLayout({
             />
             <main
               data-slot="client-main"
-              className="mx-auto w-full max-w-[1440px] flex-1 space-y-8 p-4 pb-6 lg:p-8 md:pt-4"
+              className="mx-auto w-full max-w-[1440px] flex-1 flex flex-col gap-6 p-4 pb-6 lg:p-8 md:pt-4"
             >
               {children}
+              <ClientFooter clientId={clientInfo.id} clientName={clientInfo.name} />
             </main>
           </div>
         </SidebarInset>
