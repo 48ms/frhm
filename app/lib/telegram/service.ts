@@ -36,6 +36,18 @@ export function getTelegramBotUsername(): string {
 }
 
 /**
+ * Escape karakter spesial HTML untuk kepatuhan parser Telegram HTML entity.
+ * Menghindari 400 Bad Request saat teks mengandung '&', '<', atau '>'.
+ */
+export function escapeTelegramHtml(text: string | null | undefined): string {
+  if (!text) return ''
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+/**
  * Buat deep link Telegram untuk menghubungkan akun client atau admin.
  * Payload memakai token bertanda tangan HMAC (bukan UUID mentah) agar pihak
  * lain tidak bisa membajak penautan dengan `/start client_<uuid>`.
@@ -209,11 +221,11 @@ export async function notifyClientContentReady(params: {
   const lines = [
     `<b>Konten Baru Siap Direview</b>`,
     ``,
-    `Halo tim <b>${params.clientName}</b>,`,
+    `Halo tim <b>${escapeTelegramHtml(params.clientName)}</b>,`,
     `Materi konten baru telah selesai diproduksi dan siap untuk Anda tinjau:`,
     ``,
-    `<b>Judul:</b> ${params.title}`,
-    params.campaignTag ? `<b>Kampanye:</b> ${params.campaignTag}` : '',
+    `<b>Judul:</b> ${escapeTelegramHtml(params.title)}`,
+    params.campaignTag ? `<b>Kampanye:</b> ${escapeTelegramHtml(params.campaignTag)}` : '',
     ``,
     `Silakan buka portal Frhm untuk memberikan persetujuan atau catatan revisi.`,
   ].filter(Boolean).join('\n')
@@ -249,7 +261,7 @@ export async function notifyClientContentReady(params: {
  * Notifikasi untuk admin saat klien menyetujui atau meminta revisi konten.
  */
 export async function notifyAdminClientFeedback(params: {
-  adminChatId: string
+  adminChatId?: string
   adminId?: string
   clientName: string
   title: string
@@ -270,13 +282,13 @@ export async function notifyAdminClientFeedback(params: {
   const lineList = [
     `${statusIcon} ${titleHeader}`,
     ``,
-    `<b>Brand:</b> ${params.clientName}`,
-    `<b>Konten:</b> ${params.title}`,
-    params.campaignTag ? `<b>Kampanye:</b> ${params.campaignTag}` : '',
+    `<b>Brand:</b> ${escapeTelegramHtml(params.clientName)}`,
+    `<b>Konten:</b> ${escapeTelegramHtml(params.title)}`,
+    params.campaignTag ? `<b>Kampanye:</b> ${escapeTelegramHtml(params.campaignTag)}` : '',
   ].filter(Boolean)
 
   if (params.notes && !isApproved) {
-    lineList.push(``, `<b>Catatan Revisi:</b>`, `<i>${params.notes}</i>`)
+    lineList.push(``, `<b>Catatan Revisi:</b>`, `<i>${escapeTelegramHtml(params.notes)}</i>`)
   }
 
   lineList.push(``, `Segera periksa rincian pada dashboard admin.`)
@@ -328,18 +340,18 @@ export async function notifyAdminPublishStatus(params: {
   const lines = [
     `${statusIcon} <b>Laporan Publikasi Konten Terjadwal</b>`,
     ``,
-    `<b>Platform:</b> ${params.platform}`,
-    `<b>Konten:</b> ${params.title}`,
+    `<b>Platform:</b> ${escapeTelegramHtml(params.platform)}`,
+    `<b>Konten:</b> ${escapeTelegramHtml(params.title)}`,
   ]
 
   if (params.clientName) {
-    lines.push(`<b>Brand:</b> ${params.clientName}`)
+    lines.push(`<b>Brand:</b> ${escapeTelegramHtml(params.clientName)}`)
   }
   if (params.campaignTag) {
-    lines.push(`<b>Kampanye:</b> ${params.campaignTag}`)
+    lines.push(`<b>Kampanye:</b> ${escapeTelegramHtml(params.campaignTag)}`)
   }
   if (isSuccess && params.externalPostId) {
-    lines.push(`<b>Post ID:</b> <code>${params.externalPostId}</code>`)
+    lines.push(`<b>Post ID:</b> <code>${escapeTelegramHtml(params.externalPostId)}</code>`)
   }
   if (isSuccess && params.publishedAt) {
     lines.push(`<b>Waktu Publikasi:</b> ${new Date(params.publishedAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`)
@@ -347,7 +359,7 @@ export async function notifyAdminPublishStatus(params: {
 
   if (!isSuccess) {
     lines.push(``, `—`, ``)
-    lines.push(`<b>Penyebab Kendala:</b>`, `<code>${params.error || 'Unknown error'}</code>`)
+    lines.push(`<b>Penyebab Kendala:</b>`, `<code>${escapeTelegramHtml(params.error || 'Unknown error')}</code>`)
     if (params.scheduledAt) {
       lines.push(`<b>Jadwal Asli:</b> ${new Date(params.scheduledAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`)
     }
@@ -392,10 +404,10 @@ export async function notifyZeroMetricsEscalation(params: {
   const lines = [
     `[ESKALASI] <b>Metrik Nol 24 Jam Pasca-Publish</b>`,
     ``,
-    `<b>Brand:</b> ${params.clientName}`,
-    `<b>Konten:</b> ${params.title}`,
-    `<b>Platform:</b> ${params.platform}`,
-    params.campaignTag ? `<b>Kampanye:</b> ${params.campaignTag}` : '',
+    `<b>Brand:</b> ${escapeTelegramHtml(params.clientName)}`,
+    `<b>Konten:</b> ${escapeTelegramHtml(params.title)}`,
+    `<b>Platform:</b> ${escapeTelegramHtml(params.platform)}`,
+    params.campaignTag ? `<b>Kampanye:</b> ${escapeTelegramHtml(params.campaignTag)}` : '',
     `<b>Dipublikasikan:</b> ${new Date(params.publishedAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB`,
     ``,
     `Postingan sudah tayang <b>24 jam</b> lalu tapi <b>metrik masih 0</b> (reach, likes, comments, shares, saves, clicks).`,
@@ -452,12 +464,12 @@ export async function notifyClientReminder(params: {
   const lines = [
     `🔔 <b>Pengingat Jadwal Tayang</b>`,
     ``,
-    `Halo tim <b>${params.clientName}</b>,`,
+    `Halo tim <b>${escapeTelegramHtml(params.clientName)}</b>,`,
     `Terdapat postingan yang dijadwalkan tayang pada <b>${dateStr}</b>:`,
     ``,
-    `<b>Judul:</b> ${params.title}`,
-    `<b>Platform:</b> ${params.platform}`,
-    params.campaignTag ? `<b>Kampanye:</b> ${params.campaignTag}` : '',
+    `<b>Judul:</b> ${escapeTelegramHtml(params.title)}`,
+    `<b>Platform:</b> ${escapeTelegramHtml(params.platform)}`,
+    params.campaignTag ? `<b>Kampanye:</b> ${escapeTelegramHtml(params.campaignTag)}` : '',
     ``,
     `Silakan pastikan aset final sudah siap.`,
   ].filter(Boolean).join('\n')
@@ -505,8 +517,8 @@ export async function notifyBudgetThresholdAlert(params: {
   const lines = [
     `${alertIcon} ${titleHeader}`,
     ``,
-    `<b>Brand / Klien:</b> ${params.clientName}`,
-    `<b>Nominal Biaya Baru:</b> ${formatRupiah(params.expenseAmount)} ${params.category ? `(${params.category})` : ''}`,
+    `<b>Brand / Klien:</b> ${escapeTelegramHtml(params.clientName)}`,
+    `<b>Nominal Biaya Baru:</b> ${formatRupiah(params.expenseAmount)} ${params.category ? `(${escapeTelegramHtml(params.category)})` : ''}`,
     `<b>Total Alokasi Budget:</b> ${formatRupiah(params.totalBudget)}`,
     `<b>Sisa Saldo:</b> ${formatRupiah(params.remainingBalance)}`,
     `<b>Realisasi Anggaran:</b> <b>${params.spentPercentage.toFixed(1)}%</b>`,

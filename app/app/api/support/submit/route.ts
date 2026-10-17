@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { sendTelegramMessage } from "@/lib/telegram/service"
+import { sendTelegramMessage, escapeTelegramHtml } from "@/lib/telegram/service"
 import { logAudit } from "@/lib/audit/log"
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/middleware/rate-limit"
 import { z } from "zod"
@@ -82,13 +82,13 @@ export async function POST(request: Request) {
     const text = [
       `🚨 <b>New Support Request</b>`,
       ``,
-      `<b>From:</b> ${userProfile?.full_name || user.email} (${userProfile?.role})`,
-      `<b>Client ID:</b> ${resolvedClientId || "N/A"}`,
-      `<b>Priority:</b> ${payload.priority}`,
-      `<b>Subject:</b> ${payload.subject}`,
+      `<b>From:</b> ${escapeTelegramHtml(userProfile?.full_name || user.email)} (${escapeTelegramHtml(userProfile?.role)})`,
+      `<b>Client ID:</b> ${escapeTelegramHtml(resolvedClientId || "N/A")}`,
+      `<b>Priority:</b> ${escapeTelegramHtml(payload.priority)}`,
+      `<b>Subject:</b> ${escapeTelegramHtml(payload.subject)}`,
       ``,
       `<b>Message:</b>`,
-      `<i>${payload.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</i>`,
+      `<i>${escapeTelegramHtml(payload.message)}</i>`,
     ].join("\n")
 
     await sendTelegramMessage({
