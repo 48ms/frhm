@@ -2,14 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConnectChannelModal } from "./connect-channel-modal"
+import * as socialService from "@/features/social-accounts/api/service"
 
 // Toast adalah efek samping; kita cek panggilannya, bukan tampilannya.
 vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn(), info: vi.fn(), loading: vi.fn() },
 }))
 
-const fetchMock = vi.fn()
-vi.stubGlobal("fetch", fetchMock)
+vi.mock("@/features/social-accounts/api/service", () => ({
+  requestOAuthUrl: vi.fn(),
+}))
 
 function renderModal(overrides: Partial<React.ComponentProps<typeof ConnectChannelModal>> = {}) {
   const queryClient = new QueryClient({
@@ -28,11 +30,10 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof ConnectChann
   )
 }
 
-
 describe("ConnectChannelModal — OAuth flow", () => {
   beforeEach(() => {
-    fetchMock.mockReset()
-    fetchMock.mockResolvedValue({ json: async () => ({ url: "https://oauth.example/authorize" }) })
+    vi.mocked(socialService.requestOAuthUrl).mockReset()
+    vi.mocked(socialService.requestOAuthUrl).mockResolvedValue({ url: "https://oauth.example/authorize" })
   })
 
   it("menampilkan grid platform yang bisa dihubungkan", () => {
@@ -52,31 +53,28 @@ describe("ConnectChannelModal — OAuth flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /Instagram/i }))
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/api/social/oauth-url",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ clientId: "client-test", platform: "Instagram" }),
-        })
-      )
+      expect(socialService.requestOAuthUrl).toHaveBeenCalledWith({
+        clientId: "client-test",
+        platform: "Instagram",
+      })
     })
   })
 
   it("tidak memanggil server saat tidak ada client aktif (fail-closed)", () => {
     renderModal({ client: undefined, clientId: "" })
     fireEvent.click(screen.getByRole("button", { name: /Instagram/i }))
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(socialService.requestOAuthUrl).not.toHaveBeenCalled()
   })
 
   it("menampilkan toast error saat server tidak mengembalikan URL", async () => {
     const { toast } = await import("sonner")
-    fetchMock.mockResolvedValue({ json: async () => ({ error: "provider down" }) })
+    vi.mocked(socialService.requestOAuthUrl).mockRejectedValue(new Error("provider down"))
 
     renderModal()
     fireEvent.click(screen.getByRole("button", { name: /Instagram/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled()
+      expect(toast.error).toHaveBeenCalledWith("provider down")
     })
   })
 })

@@ -14,6 +14,9 @@ import {
   type ConnectDirectChannelInput,
   type SocialPlatform,
 } from "./types"
+import { cookies } from "next/headers"
+import { createSocialOAuthSession } from "@/lib/social/oauth-session"
+import { OAUTH_STATE_COOKIE, OAUTH_STATE_TTL_SECONDS } from "@/lib/social/oauth-state"
 import { brandProfileToMarkdown } from "@/lib/brand-context"
 
 /**
@@ -361,16 +364,18 @@ Output JSON: { "who": "...", "audience": "...", "voice": "...", "pov": "...", "p
   }
 }
 
-/** Meminta OAuth authorization URL untuk platform sosial tertentu via API handler */
+/** Meminta OAuth authorization URL untuk platform sosial tertentu secara server-side */
 export async function requestOAuthUrl(params: { clientId: string; platform: string }): Promise<{ url: string }> {
-  const res = await fetch('/api/social/oauth-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
+  const { url, stateToken } = await createSocialOAuthSession(params)
+  const cookieStore = await cookies()
+  cookieStore.set({
+    name: OAUTH_STATE_COOKIE,
+    value: stateToken,
+    httpOnly: true,
+    secure: env.server.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: OAUTH_STATE_TTL_SECONDS,
   })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok || !data.url) {
-    throw new Error(data.error || 'Failed to get OAuth URL')
-  }
-  return { url: data.url }
+  return { url }
 }
