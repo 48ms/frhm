@@ -21,6 +21,9 @@ export const ScheduledPostSchema = z.object({
   reserved_until: z.string().optional().nullable(),
   priority: z.string().optional().nullable(),
   campaign_tag: z.string().optional().nullable(),
+  published_at: z.string().optional().nullable(),
+  external_post_id: z.string().optional().nullable(),
+  publish_retry_count: z.number().optional().nullable(),
   created_at: z.string(),
 })
 

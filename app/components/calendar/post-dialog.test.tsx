@@ -12,6 +12,7 @@ const listAssetsMock = vi.fn()
 const deletePostMock = vi.fn()
 const createPostMock = vi.fn()
 const updatePostMock = vi.fn()
+const publishPostMock = vi.fn()
 
 vi.mock('@/features/library/api/service', () => ({
   listAssets: (...args: unknown[]) => listAssetsMock(...args),
@@ -21,6 +22,7 @@ vi.mock('@/features/scheduled-posts/api/queries', () => ({
   useCreateScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => createPostMock(...args) }),
   useUpdateScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => updatePostMock(...args) }),
   useDeleteScheduledPost: () => ({ mutateAsync: (...args: unknown[]) => deletePostMock(...args) }),
+  usePublishScheduledPostNow: () => ({ mutateAsync: (...args: unknown[]) => publishPostMock(...args), isPending: false }),
 }))
 
 vi.mock('@/components/social-accounts/use-dialog-a11y', () => ({
@@ -36,6 +38,8 @@ beforeEach(() => {
   createPostMock.mockResolvedValue({ success: true })
   updatePostMock.mockReset()
   updatePostMock.mockResolvedValue({ success: true })
+  publishPostMock.mockReset()
+  publishPostMock.mockResolvedValue({ success: true })
 })
 
 describe('PostDialog', () => {
@@ -527,6 +531,52 @@ describe('PostDialog', () => {
           status: 'draft',
         })
       )
+    })
+  })
+
+  it('triggers immediate publishing when clicking Terbitkan Sekarang', async () => {
+    const onSave = vi.fn()
+    const onClose = vi.fn()
+
+    renderWithProviders(
+      <PostDialog
+        isOpen={true}
+        onClose={onClose}
+        clientId="client-shell"
+        onSave={onSave}
+        editingPost={{
+          id: 'post-1',
+          client_id: 'client-shell',
+          deliverable_id: null,
+          title: 'Launch teaser',
+          content: 'Body copy',
+          platform: 'instagram',
+          scheduled_at: '2026-10-01T09:00:00.000Z',
+          status: 'scheduled',
+          notes: null,
+          is_reserved: false,
+          is_placeholder: false,
+          reserved_for: null,
+          reserved_until: null,
+          created_at: new Date().toISOString(),
+        }}
+      />
+    )
+
+    const publishBtn = screen.getByRole('button', { name: /Terbitkan Sekarang/i })
+    expect(publishBtn).toBeInTheDocument()
+
+    fireEvent.click(publishBtn)
+
+    await waitFor(() => {
+      expect(publishPostMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'post-1',
+          clientId: 'client-shell',
+        })
+      )
+      expect(onSave).toHaveBeenCalled()
+      expect(onClose).toHaveBeenCalled()
     })
   })
 })

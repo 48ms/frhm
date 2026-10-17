@@ -39,7 +39,7 @@ import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { PlatformIcon } from './platform-icon'
 import { type ScheduledPost } from '@/features/scheduled-posts/api/types'
-import { useCreateScheduledPost, useUpdateScheduledPost, useDeleteScheduledPost } from '@/features/scheduled-posts/api/queries'
+import { useCreateScheduledPost, useUpdateScheduledPost, useDeleteScheduledPost, usePublishScheduledPostNow } from '@/features/scheduled-posts/api/queries'
 import { useCurrentUser } from '@/lib/auth/use-current-user'
 import { toast } from 'sonner'
 import { useDialogA11y } from '@/components/social-accounts/use-dialog-a11y'
@@ -136,6 +136,7 @@ export function PostDialog({
   const { authorName } = useCurrentUser()
   const { mutateAsync: updatePost } = useUpdateScheduledPost()
   const { mutateAsync: deletePost } = useDeleteScheduledPost()
+  const publishNowMutation = usePublishScheduledPostNow()
 
   // AI Co-pilot mutations
   const { mutateAsync: generateCaptionMutate, isPending: isGeneratingCaption } = useGenerateCaption()
@@ -398,6 +399,20 @@ export function PostDialog({
       const msg = err instanceof Error ? err.message : 'Gagal menghapus post.'
       setError(msg)
       toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePublishNow = async () => {
+    if (!editingPost) return
+    setLoading(true)
+    try {
+      await publishNowMutation.mutateAsync({ id: editingPost.id, clientId })
+      onSave()
+      onClose()
+    } catch {
+      // Error is caught and toasted by mutation
     } finally {
       setLoading(false)
     }
@@ -1122,6 +1137,19 @@ export function PostDialog({
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              )}
+
+              {editingPost && editingPost.status !== 'published' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePublishNow}
+                  disabled={loading || publishNowMutation.isPending}
+                  className="h-9 px-3 text-[hsl(var(--success))] border-[hsl(var(--success))]/30 hover:bg-[hsl(var(--success))]/10 cursor-pointer text-xs font-semibold gap-1.5"
+                >
+                  <Icons.send className="size-3.5" />
+                  <span>{publishNowMutation.isPending ? 'Menerbitkan...' : 'Terbitkan Sekarang'}</span>
+                </Button>
               )}
 
               <div className="hidden sm:flex items-center gap-2">

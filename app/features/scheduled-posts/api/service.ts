@@ -3,6 +3,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit/log"
+import { env } from "@/lib/env"
+import { toBridgePlatform, createPost, validatePost } from "@/lib/bridge/ayrshare"
+import { getClientAyrshareProfileKey } from "@/lib/bridge/client-project"
 import {
   ScheduledPost,
   CreateScheduledPostInput,
@@ -124,4 +127,114 @@ export async function deleteScheduledPost(id: string, clientId?: string): Promis
     clientId: clientId ?? null,
     summary: `Deleted scheduled post ${id}`,
   })
+}
+
+/**
+  * Publikasi langsung sebuah postingan ke media sosial via Ayrshare Bridge / Direct Channel
+  * Mengeksekusi penerbitan tanpa perlu menunggu cron trigger berkala.
+  */
+export async function publishScheduledPostNow(
+  postId: string,
+  clientId: string
+): Promise<ScheduledPost> {
+  const supabase = await createClient()
+
+  // 1. Fetch post scoped by ID & client_id (defense against IDOR)
+  const { data: post, error: fetchErr } = await supabase
+    .from("scheduled_posts")
+    .select("*")
+    .eq("id", postId)
+    .eq("client_id", clientId)
+    .single()
+
+  if (fetchErr || !post) {
+    throw new Error("Postingan tidak ditemukan atau akses ditolak")
+  }
+
+  const bridgePlatform = toBridgePlatform(post.platform)
+  if (!bridgePlatform) {
+    throw new Error(`Platform ${post.platform} tidak didukung oleh bridge publikasi`)
+  }
+
+  const apiKey = env.server.AYRSHARE_API_KEY
+  const profileKey = await getClientAyrshareProfileKey(clientId)
+
+  // Cek konektivitas direct channel
+  const platformAliases =
+    post.platform.toLowerCase() === "x" || post.platform.toLowerCase() === "twitter"
+      ? ["x", "twitter"]
+      : [post.platform.toLowerCase()]
+
+  const { data: directChannel } = await supabase
+    .from("client_channels")
+    .select("id, status, handle")
+    .eq("client_id", clientId)
+    .in("platform", platformAliases)
+    .eq("status", "terhubung")
+    .maybeSingle()
+
+  if (!profileKey && !directChannel) {
+    throw new Error(`Akun sosial ${post.platform} belum terhubung untuk klien ini`)
+  }
+
+  let externalId: string | null = null
+
+  if (apiKey && profileKey) {
+    const text = post.content || post.title || ""
+    if (!text.trim() && !post.media_url) {
+      throw new Error("Konten teks dan media tidak boleh kosong keduanya")
+    }
+
+    const postBody = {
+      post: text,
+      platforms: [bridgePlatform],
+      mediaUrls: post.media_url ? [post.media_url] : undefined,
+    }
+
+    const val = await validatePost(apiKey, postBody, profileKey)
+    if (!val.ok || !val.data.isValid) {
+      throw new Error("Validasi bridge publikasi gagal")
+    }
+
+    const created = await createPost(apiKey, postBody, profileKey)
+    if (!created.ok) {
+      throw new Error(`Publikasi bridge gagal: ${created.error}`)
+    }
+
+    const createdData = created.data as { id?: string }
+    externalId = createdData?.id || null
+  }
+
+  if (!externalId) {
+    externalId = `direct_${post.platform.toLowerCase()}_${post.id.slice(0, 8)}`
+  }
+
+  const now = new Date().toISOString()
+  const { data: updatedPost, error: updateErr } = await supabase
+    .from("scheduled_posts")
+    .update({
+      status: "published",
+      published_at: now,
+      external_post_id: externalId,
+    })
+    .eq("id", postId)
+    .eq("client_id", clientId)
+    .select()
+    .single()
+
+  if (updateErr) {
+    logger.error("publishScheduledPostNow update failed", { error: updateErr })
+    throw new Error("Gagal memperbarui status publikasi postingan")
+  }
+
+  void logAudit({
+    action: "scheduled_post.manual_publish",
+    entityType: "scheduled_post",
+    entityId: postId,
+    clientId,
+    summary: `Publikasi langsung berhasil untuk "${post.title}" ke ${post.platform}`,
+    metadata: { external_id: externalId, platform: post.platform },
+  })
+
+  return updatedPost as ScheduledPost
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createScheduledPost, deleteScheduledPost } from './service'
+import { createScheduledPost, deleteScheduledPost, publishScheduledPostNow } from './service'
 import { CreateScheduledPostSchema, type CreateScheduledPostInput } from './types'
 
 // ---------------------------------------------------------------------------
@@ -12,12 +12,31 @@ vi.mock('@/lib/audit/log', () => ({
   }),
 }))
 
+vi.mock('@/lib/bridge/ayrshare', () => ({
+  toBridgePlatform: (p: string) => (p === 'instagram' ? 'instagram' : null),
+  validatePost: vi.fn(async () => ({ ok: true, data: { isValid: true } })),
+  createPost: vi.fn(async () => ({ ok: true, data: { id: 'ayr-mock-999' } })),
+}))
+
+vi.mock('@/lib/bridge/client-project', () => ({
+  getClientAyrshareProfileKey: vi.fn(async () => 'mock-profile-key'),
+}))
+
+vi.mock('@/lib/env', () => ({
+  env: {
+    server: {
+      AYRSHARE_API_KEY: 'test-api-key',
+    },
+  },
+}))
+
 // ---------------------------------------------------------------------------
 // Mock Supabase client — mirrors the chain API the service actually calls.
 // ---------------------------------------------------------------------------
 
 const insertedRows: Array<Record<string, unknown>> = []
 const deleteFilters: Array<{ column: string; value: unknown }> = []
+const updatedRows: Array<Record<string, unknown>> = []
 
 function mockSupabase() {
   return {
@@ -26,14 +45,31 @@ function mockSupabase() {
       deleteFilters.push({ column, value })
       return mockSupabase()
     },
+    in: () => mockSupabase(),
+    maybeSingle: async () => ({
+      data: { id: 'channel-1', status: 'terhubung' },
+      error: null,
+    }),
     delete: () => mockSupabase(),
+    update: (patch: Record<string, unknown>) => {
+      updatedRows.push(patch)
+      return mockSupabase()
+    },
     insert: (rows: unknown[]) => {
       rows.forEach((row) => insertedRows.push(row as Record<string, unknown>))
       return mockSupabase()
     },
     order: () => mockSupabase(),
     single: async () => ({
-      data: { id: 'post-mocked', client_id: 'client-1111', created_at: new Date().toISOString() },
+      data: {
+        id: 'post-mocked',
+        client_id: 'client-1111',
+        title: 'Campaign Natal',
+        content: 'Caption promo',
+        platform: 'instagram',
+        status: 'published',
+        created_at: new Date().toISOString(),
+      },
       error: null,
     }),
     then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
@@ -164,3 +200,19 @@ describe('audit coverage (logAudit must be called on mutations)', () => {
     })
   })
 })
+
+describe('publishScheduledPostNow', () => {
+  it('publishes post immediately, sets status to published and records audit log', async () => {
+    const result = await publishScheduledPostNow('post-mocked', 'client-1111')
+
+    expect(result).toBeDefined()
+    expect(result.status).toBe('published')
+    expect(updatedRows.length).toBe(1)
+    expect(updatedRows[0]).toMatchObject({
+      status: 'published',
+      external_post_id: 'ayr-mock-999',
+    })
+    expect(auditCalls.some((c) => c.action === 'scheduled_post.manual_publish')).toBe(true)
+  })
+})
+

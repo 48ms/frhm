@@ -5,7 +5,8 @@ import {
   getAllScheduledPosts,
   createScheduledPost,
   updateScheduledPost,
-  deleteScheduledPost
+  deleteScheduledPost,
+  publishScheduledPostNow
 } from "./service"
 import type { CreateScheduledPostInput, UpdateScheduledPostInput } from "./types"
 
@@ -142,6 +143,41 @@ export function useDeleteScheduledPost() {
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
+    },
+  })
+}
+
+export function usePublishScheduledPostNow() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, clientId }: { id: string; clientId: string }) =>
+      publishScheduledPostNow(id, clientId),
+    onMutate: async ({ id, clientId }) => {
+      await queryClient.cancelQueries({ queryKey: postKeys.list(clientId) })
+      const previousPosts = queryClient.getQueryData(postKeys.list(clientId))
+      queryClient.setQueryData(postKeys.list(clientId), (old: any[]) =>
+        Array.isArray(old)
+          ? old.map((p) =>
+              p.id === id
+                ? { ...p, status: "published", published_at: new Date().toISOString() }
+                : p
+            )
+          : []
+      )
+      return { previousPosts, clientId }
+    },
+    onError: (err: unknown, variables, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData(postKeys.list(variables.clientId), context.previousPosts)
+      }
+      toast.error(err instanceof Error ? err.message : "Gagal mempublikasikan postingan")
+    },
+    onSuccess: (data) => {
+      toast.success(`Postingan "${data.title}" berhasil diterbitkan ke ${data.platform}!`)
+    },
+    onSettled: (_, __, variables) => {
+      queryClient.invalidateQueries({ queryKey: postKeys.list(variables.clientId) })
+      queryClient.invalidateQueries({ queryKey: postKeys.all })
     },
   })
 }
