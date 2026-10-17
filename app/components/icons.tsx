@@ -220,6 +220,7 @@ export const Icons = {
   whatsapp: IconBrandWhatsapp,
   telegram: IconBrandTelegram,
   logo: IconCommand,
+  command: IconCommand,
 
   // Communication
   chat: IconMessage,
@@ -290,6 +291,7 @@ export const Icons = {
   trendingDown: IconTrendingDown,
   trendingUp: IconTrendingUp,
   barChart: IconChartBar,
+  chart: IconChartBar,
   coin: IconCoin,
   layers: IconStack2,
   eyeOff: IconEyeOff,

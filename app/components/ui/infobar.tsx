@@ -12,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/animate-ui/components/radix/sheet"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui/components/radix/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +27,8 @@ export type HelpfulLink = {
 export type DescriptiveSection = {
   title: string
   description: string
+  badge?: string
+  icon?: keyof typeof Icons
   links?: HelpfulLink[]
 }
 
@@ -212,22 +215,33 @@ export function InfobarTrigger({
   const context = React.useContext(InfobarContext)
   if (!context) return null
 
-  const { toggleInfobar } = context
+  const { toggleInfobar, open } = context
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className={cn("size-9", className)}
-      aria-label="Toggle info panel"
-      onClick={(event) => {
-        onClick?.(event)
-        toggleInfobar()
-      }}
-      {...props}
-    >
-      <Icons.chevronsRight className="size-4" />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("size-9 rounded-xl hover:bg-muted/80 text-muted-foreground hover:text-foreground cursor-pointer transition-colors", className)}
+          aria-label={open ? "Tutup panel panduan" : "Panduan & Bantuan Halaman (Ctrl+I)"}
+          onClick={(event) => {
+            onClick?.(event)
+            toggleInfobar()
+          }}
+          {...props}
+        >
+          {open ? (
+            <Icons.chevronRight className="size-4" />
+          ) : (
+            <Icons.help className="size-4 text-foreground/80" />
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="text-xs">
+        {open ? "Tutup Panduan (Ctrl+I)" : "Panduan & Bantuan (Ctrl+I)"}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
