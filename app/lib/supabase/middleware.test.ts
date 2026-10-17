@@ -130,4 +130,15 @@ describe('updateSession (Middleware Auth & RBAC Gate)', () => {
     expect(res.headers.get('X-Frame-Options')).toBe('DENY')
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
+
+  it('allows user with no role to view /auth/login so they can switch accounts or sign in without being trapped in waitlist loop', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u-unknown-1', email: 'stranger@gmail.com' } } })
+    mockSingle.mockResolvedValue({ data: null })
+
+    const req = new NextRequest('http://localhost:3000/auth/login')
+    const res = await updateSession(req)
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-Frame-Options')).toBe('DENY')
+  })
 })

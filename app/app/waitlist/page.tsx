@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Icons } from '@/components/icons'
+import { WaitlistSignoutButton } from './waitlist-signout-button'
 
 // Always render per-request , never cache RSC payload (avoids stale session/role state)
 export const dynamic = 'force-dynamic'
@@ -21,14 +21,16 @@ export default async function WaitlistPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('role')
+    .select('role, client_id')
     .eq('id', user.id)
     .single()
 
-  if (profile?.role) {
-    // No /client/* portal exists — all roles land on the shared admin routes,
-    // scoped by ?clientId= for non-admins (see middleware tenant guard).
+  if (profile?.role === 'admin') {
     redirect('/admin/dashboard')
+  }
+
+  if (profile?.role === 'client' && profile?.client_id) {
+    redirect(`/client/dashboard?clientId=${profile.client_id}`)
   }
 
   return (
@@ -49,12 +51,7 @@ export default async function WaitlistPage() {
           <p><span className="text-foreground/70 font-medium">User ID:</span> <span className="font-mono">{user.id.slice(0, 8)}...</span></p>
         </div>
         <div className="flex flex-col gap-3">
-          <Link
-            href="/auth/login"
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-input bg-background px-6 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            Kembali ke Login
-          </Link>
+          <WaitlistSignoutButton />
         </div>
       </div>
     </div>

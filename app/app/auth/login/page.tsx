@@ -99,7 +99,8 @@ function LoginForm() {
     parseAsStringEnum(['login', 'signup']).withDefault('login')
   )
 
-  const [authError, setAuthError] = useState<string | null>(null)
+  const errorParam = searchParams.get('error') || searchParams.get('error_description')
+  const [authError, setAuthError] = useState<string | null>(errorParam)
   const [signupNotice, setSignupNotice] = useState<string | null>(null)
   const [googleLoading, setGoogleLoading] = useState(false)
   // Remember me persists the last email locally (never the password) so the

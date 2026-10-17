@@ -26,9 +26,23 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const redirect = safeRedirect(searchParams.get('redirect'), '/admin/dashboard')
-  if (searchParams.get('code')) {
+  const oauthError = searchParams.get('error_description') || searchParams.get('error')
+  const code = searchParams.get('code')
+
+  if (oauthError) {
+    void logAudit({
+      action: 'auth.oauth.error',
+      summary: `OAuth error dari provider: ${oauthError}`,
+      request,
+    })
+    const loginUrl = new URL('/auth/login', request.url)
+    loginUrl.searchParams.set('error', oauthError)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(searchParams.get('code')!)
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
@@ -66,6 +80,8 @@ export async function GET(request: NextRequest) {
           summary: 'Login berhasil tapi user tidak punya role',
           request,
         })
+        const waitlistUrl = new URL('/waitlist', request.url)
+        return NextResponse.redirect(waitlistUrl)
       }
     } else {
       void logAudit({
@@ -73,9 +89,12 @@ export async function GET(request: NextRequest) {
         summary: `Login gagal: ${error.message}`,
         request,
       })
+      const loginUrl = new URL('/auth/login', request.url)
+      loginUrl.searchParams.set('error', error.message || 'Gagal autentikasi dengan penyedia pihak ketiga')
+      return NextResponse.redirect(loginUrl)
     }
   }
 
-  const url = new URL('/waitlist', request.url)
+  const url = new URL('/auth/login', request.url)
   return NextResponse.redirect(url)
 }

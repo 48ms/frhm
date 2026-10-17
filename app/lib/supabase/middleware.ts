@@ -29,6 +29,25 @@ export async function updateSession(request: NextRequest) {
   // finally return (next or redirect) so a refreshed session is never dropped.
   let pendingCookies: { name: string; value: string; options?: Record<string, unknown> }[] = []
 
+  const applySecurityHeaders = (res: NextResponse) => {
+    res.headers.set('X-Frame-Options', 'DENY')
+    res.headers.set('X-Content-Type-Options', 'nosniff')
+    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    res.headers.set(
+      'Content-Security-Policy',
+      [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https: blob:",
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://app.ayrshare.com https://api.woopsocial.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
+        "frame-ancestors 'none'",
+      ].join('; ')
+    )
+    return res
+  }
+
   const applyCookies = (res: NextResponse) => {
     for (const { name, value, options } of pendingCookies) {
       res.cookies.set(name, value, options as never)
@@ -107,15 +126,18 @@ export async function updateSession(request: NextRequest) {
 
     // If user is logged in and visits auth page, redirect based on role
     if (isAuthPage) {
-      const url = request.nextUrl.clone()
-      if (userProfile?.role === 'client') {
+      if (userProfile?.role === 'client' && userProfile.client_id) {
+        const url = request.nextUrl.clone()
         url.pathname = '/client/dashboard'
+        return applyCookies(NextResponse.redirect(url))
       } else if (userProfile?.role === 'admin') {
+        const url = request.nextUrl.clone()
         url.pathname = '/admin/dashboard'
-      } else {
-        url.pathname = '/waitlist'
+        return applyCookies(NextResponse.redirect(url))
       }
-      return applyCookies(NextResponse.redirect(url))
+      // User with no role or unbound client_id is allowed to view /auth/login
+      // so they can log out, switch accounts, or log in with an authorized user.
+      return applySecurityHeaders(supabaseResponse)
     }
 
     // User without role or profile in public.users -> redirect to waitlist
@@ -155,22 +177,5 @@ export async function updateSession(request: NextRequest) {
     // Admin has full access to /admin/* and can view /client/* for any client
   }
 
-  // Inject security headers
-  supabaseResponse.headers.set('X-Frame-Options', 'DENY')
-  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
-  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  supabaseResponse.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  supabaseResponse.headers.set(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://app.ayrshare.com https://api.woopsocial.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://openrouter.ai https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
-      "frame-ancestors 'none'",
-    ].join('; ')
-  )
-
-  return supabaseResponse
+  return applySecurityHeaders(supabaseResponse)
 }
