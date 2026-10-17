@@ -68,6 +68,7 @@ _archive_dead/
 scratch_*.mjs
 scratch_*.js
 scratch_*.ts
+scratch/
 
 # Agent & tooling folders (kept locally, not part of the product)
 .agents/

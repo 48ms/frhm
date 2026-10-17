@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/animate-ui/components/radix/tabs"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
 import { ShimmeringText } from "@/components/animate-ui/components/texts/shimmering-text"
+import { VisualPromptDialog } from "@/components/ai/visual-prompt-dialog"
 
 const BATCH_CAMPAIGN_PRESETS = [
   {
@@ -86,6 +87,11 @@ export function BatchPlanModal({
   }>>([])
   const [isSaving, setIsSaving] = React.useState(false)
   const [isExportingDeliverable, setIsExportingDeliverable] = React.useState(false)
+  const [visualPromptTarget, setVisualPromptTarget] = React.useState<{
+    title: string
+    visualBrief?: string
+    format?: any
+  } | null>(null)
 
   const { mutateAsync: generateBatchPlanMutate, isPending } = useGenerateBatchPlan()
   const { mutateAsync: createScheduledPostMutate } = useCreateScheduledPost()
@@ -485,9 +491,29 @@ export function BatchPlanModal({
                           )}
 
                           {p.visualBrief && (
-                            <div className="text-3xs text-muted-foreground flex items-center gap-1">
-                              <Icons.photo_camera className="size-3 shrink-0 text-muted-foreground" />
-                              <span className="truncate">Visual: {p.visualBrief}</span>
+                            <div className="flex items-center justify-between text-3xs text-muted-foreground gap-2 pt-0.5">
+                              <div className="flex items-center gap-1 truncate">
+                                <Icons.photo_camera className="size-3 shrink-0 text-muted-foreground" />
+                                <span className="truncate">Visual: {p.visualBrief}</span>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setVisualPromptTarget({
+                                    title: p.title,
+                                    visualBrief: p.visualBrief,
+                                    format: p.format as any,
+                                  })
+                                }}
+                                className="h-5 px-1.5 text-[10px] font-semibold text-primary hover:text-primary hover:bg-primary/10 rounded shrink-0 flex items-center gap-1 cursor-pointer"
+                                title="Rancang Prompt Visual (Ideogram / Flux / Veo)"
+                              >
+                                <Icons.palette className="size-2.5" />
+                                <span>Prompt Visual</span>
+                              </Button>
                             </div>
                           )}
 
@@ -572,6 +598,18 @@ export function BatchPlanModal({
           </div>
         </DialogContent>
       </Dialog>
+
+      {visualPromptTarget && (
+        <VisualPromptDialog
+          open={!!visualPromptTarget}
+          onOpenChange={(open) => !open && setVisualPromptTarget(null)}
+          clientId={clientId || ""}
+          clientName={client?.name || "Klien"}
+          initialTopic={visualPromptTarget.title}
+          initialVisualBrief={visualPromptTarget.visualBrief}
+          initialFormat={visualPromptTarget.format}
+        />
+      )}
     </>
   )
 }

@@ -245,5 +245,23 @@ describe("AiStudioClient", () => {
     const closeBtn = screen.getByRole("button", { name: /Tutup/i })
     fireEvent.click(closeBtn)
   })
+
+  it("opens VisualPromptDialog when Visual Prompter is clicked in Idea Engine", () => {
+    renderWithProviders(<AiStudioClient />)
+
+    const ideasTab = screen.getByRole("tab", { name: /Idea Engine/i })
+    fireEvent.click(ideasTab)
+
+    const visualBtn = screen.getByRole("button", { name: /Visual Prompter/i })
+    expect(visualBtn).toBeInTheDocument()
+    fireEvent.click(visualBtn)
+
+    expect(
+      screen.getByText(/Studio Visual Prompter & Generator Media/i)
+    ).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole("button", { name: /Tutup/i })
+    fireEvent.click(closeBtn)
+  })
 })
 

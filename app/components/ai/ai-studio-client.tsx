@@ -38,6 +38,7 @@ import { VoiceBuilderDialog } from "@/components/ai/voice-builder-dialog"
 import { StitchAiHookModal } from "@/components/dashboard-stitch/ai-hook-modal"
 import { ReelsScriptDialog } from "@/components/ai/reels-script-dialog"
 import { CarouselDialog } from "@/components/ai/carousel-dialog"
+import { VisualPromptDialog } from "@/components/ai/visual-prompt-dialog"
 import { useSkillDetail } from "@/features/skills/api/queries"
 
 const STUDIO_TABS = [
@@ -154,6 +155,12 @@ export function AiStudioClient() {
   const [isHookModalOpen, setIsHookModalOpen] = React.useState(false)
   const [isReelsScriptOpen, setIsReelsScriptOpen] = React.useState(false)
   const [isCarouselOpen, setIsCarouselOpen] = React.useState(false)
+  const [isVisualPromptOpen, setIsVisualPromptOpen] = React.useState(false)
+  const [visualPromptTarget, setVisualPromptTarget] = React.useState<{
+    title: string
+    visualBrief?: string
+    format?: any
+  } | null>(null)
   const [activeScriptTopic, setActiveScriptTopic] = React.useState("")
   const { data: interviewSkillDetail } = useSkillDetail(activeInterviewSkillId || "")
 
@@ -525,6 +532,22 @@ export function AiStudioClient() {
                 >
                   <Icons.layers className="size-3.5 text-primary" />
                   Carousel Studio
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setVisualPromptTarget({
+                      title: ideaTopic || "",
+                      visualBrief: "",
+                      format: "Single",
+                    })
+                    setIsVisualPromptOpen(true)
+                  }}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-8"
+                >
+                  <Icons.palette className="size-3.5 text-primary" />
+                  Visual Prompter
                 </Button>
                 {generatedIdeas.length > 0 && (
                   <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -980,9 +1003,29 @@ export function AiStudioClient() {
                               </p>
                             )}
                             {post.visualBrief && (
-                              <p className="text-3xs text-muted-foreground line-clamp-1">
-                                📷 {post.visualBrief}
-                              </p>
+                              <div className="flex items-center justify-between gap-1 pt-0.5">
+                                <p className="text-3xs text-muted-foreground line-clamp-1 truncate flex-1">
+                                  📷 {post.visualBrief}
+                                </p>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setVisualPromptTarget({
+                                      title: post.title,
+                                      visualBrief: post.visualBrief,
+                                      format: post.format as any,
+                                    })
+                                    setIsVisualPromptOpen(true)
+                                  }}
+                                  className="h-5 px-1.5 text-[10px] font-semibold text-primary hover:text-primary hover:bg-primary/10 rounded shrink-0 flex items-center gap-1 cursor-pointer"
+                                  title="Rancang Prompt Visual (Ideogram / Flux / Veo)"
+                                >
+                                  <Icons.palette className="size-2.5" />
+                                  <span>Prompt Visual</span>
+                                </Button>
+                              </div>
                             )}
                             {post.cta && (
                               <p className="text-3xs text-primary font-semibold truncate">
@@ -1572,6 +1615,19 @@ export function AiStudioClient() {
         onOpenChange={setIsCarouselOpen}
         clientId={clientId || ""}
         clientName={client?.name || "Klien"}
+      />
+
+      <VisualPromptDialog
+        open={isVisualPromptOpen}
+        onOpenChange={(open) => {
+          setIsVisualPromptOpen(open)
+          if (!open) setVisualPromptTarget(null)
+        }}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
+        initialTopic={visualPromptTarget?.title || ideaTopic || ""}
+        initialVisualBrief={visualPromptTarget?.visualBrief || ""}
+        initialFormat={visualPromptTarget?.format || "Single"}
       />
     </PageContainer>
   )
