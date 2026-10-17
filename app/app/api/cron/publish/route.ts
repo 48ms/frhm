@@ -246,3 +246,8 @@ export async function POST(request: Request) {
     results
   })
 }
+
+// Vercel Cron triggers endpoints exclusively using HTTP GET
+export async function GET(request: Request) {
+  return POST(request)
+}

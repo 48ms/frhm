@@ -45,7 +45,7 @@ function extractUsage(j: AiResponse | undefined): AiUsage | null {
   return { promptTokens, completionTokens }
 }
 
-const TIMEOUT_MS = 120_000
+const TIMEOUT_MS = 25_000
 
 /** Merge system into first user message when model ignores system prompt. */
 function mergeSystemIntoMessages(system: string, messages: ChatMessage[]): ChatMessage[] {
@@ -94,7 +94,8 @@ async function post(url: string, headers: Record<string, string>, body: unknown)
 
     let j: AiResponse = {}
     try {
-      j = JSON.parse(text)
+      const cleanText = text.replace(/\s*data:\s*\[DONE\]\s*$/i, '').trim()
+      j = JSON.parse(cleanText)
     } catch {
       /* leave j empty; caller reports the status */
     }
@@ -188,16 +189,56 @@ function firstJsonObject(s: string): string | null {
   return null
 }
 
+function firstJsonArray(s: string): string | null {
+  let depth = 0
+  let start = -1
+  let inStr = false
+  let esc = false
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) {
+      if (esc) esc = false
+      else if (ch === '\\') esc = true
+      else if (ch === '"') inStr = false
+      continue
+    }
+    if (ch === '"') { inStr = true; continue }
+    if (ch === '[') { if (depth === 0) start = i; depth++ }
+    else if (ch === ']') {
+      depth--
+      if (depth === 0 && start >= 0) return s.slice(start, i + 1)
+    }
+  }
+  return null
+}
+
 function parseJsonLoose<T>(raw: string): T | null {
+  if (!raw || !raw.trim()) return null
   const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
   const candidate = (fence ? fence[1] : raw).trim()
-  const obj = firstJsonObject(candidate)
-  if (!obj) return null
+  
+  // 1. Direct JSON parse attempt
   try {
-    return JSON.parse(obj) as T
-  } catch {
-    return null
+    return JSON.parse(candidate) as T
+  } catch {}
+
+  // 2. First balanced object { ... }
+  const obj = firstJsonObject(candidate)
+  if (obj) {
+    try {
+      return JSON.parse(obj) as T
+    } catch {}
   }
+
+  // 3. First balanced array [ ... ]
+  const arr = firstJsonArray(candidate)
+  if (arr) {
+    try {
+      return JSON.parse(arr) as T
+    } catch {}
+  }
+
+  return null
 }
 
 /**

@@ -132,7 +132,7 @@ export function BatchPlanModal({
         return
       }
 
-      if (res.plan && res.plan.posts.length > 0) {
+      if (res.plan && Array.isArray(res.plan.posts) && res.plan.posts.length > 0) {
         setGeneratedPosts(
           res.plan.posts.map((p) => ({ ...p, selected: true }))
         )

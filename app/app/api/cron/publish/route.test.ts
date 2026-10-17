@@ -171,6 +171,18 @@ describe('POST /api/cron/publish', () => {
     expect(body).toHaveProperty('processed', 0)
   })
 
+  it('supports GET requests identically for Vercel Cron invocation', async () => {
+    const { GET } = await import('./route')
+    const req = new Request('http://localhost/api/cron/publish', {
+      method: 'GET',
+      headers: {
+        authorization: `Bearer ${CRON_SECRET}`,
+      },
+    })
+    const res = await GET(req)
+    expect(res.status).toBe(200)
+  })
+
   it('publishes a due post to Ayrshare and marks it published in the DB', async () => {
     duePosts = [
       {

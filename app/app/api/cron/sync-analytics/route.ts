@@ -134,3 +134,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ message: 'Sync complete', results })
 }
+
+// Vercel Cron triggers endpoints exclusively using HTTP GET
+export async function GET(request: Request) {
+  return POST(request)
+}

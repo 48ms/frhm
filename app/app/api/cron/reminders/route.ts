@@ -152,3 +152,8 @@ export async function POST(request: Request) {
     remindersSent: sentCount
   })
 }
+
+// Vercel Cron triggers endpoints exclusively using HTTP GET
+export async function GET(request: Request) {
+  return POST(request)
+}

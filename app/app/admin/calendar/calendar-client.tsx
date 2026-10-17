@@ -622,14 +622,14 @@ export function AdminCalendarClient() {
       {/* Top Metric Strip / Flight Pace Bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Metric 1: Scheduled Flights */}
-        <div className="bg-card/60 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+        <div className="bg-card/60 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden" suppressHydrationWarning>
           <div className="space-y-1">
             <span className="text-2xs text-muted-foreground font-bold">
               Scheduled Flights (Month)
             </span>
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-2" suppressHydrationWarning>
               <MetricTicker value={`${filteredPosts.length} Posts`} className="text-2xl font-bold text-card-foreground" />
-              <span className="inline-flex items-center text-xs font-bold text-primary bg-primary-container/40 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center text-xs font-bold text-primary bg-primary-container/40 px-2 py-0.5 rounded-full" suppressHydrationWarning>
                 <MetricTicker value={`${filteredPosts.filter((p) => p.status === "published").length}`} className="mr-1" /> published
               </span>
             </div>
@@ -640,12 +640,12 @@ export function AdminCalendarClient() {
         </div>
 
         {/* Metric 2: Slots Status */}
-        <div className="bg-card/60 rounded-2xl p-4 space-y-2">
+        <div className="bg-card/60 rounded-2xl p-4 space-y-2" suppressHydrationWarning>
           <div className="flex justify-between items-center">
             <span className="text-2xs text-muted-foreground font-bold">
               Slots Status Pipeline
             </span>
-            <span className="text-2xs text-secondary font-bold flex items-center gap-1">
+            <span className="text-2xs text-secondary font-bold flex items-center gap-1" suppressHydrationWarning>
               <MetricTicker value={filteredPosts.length} /> TOTAL
             </span>
           </div>

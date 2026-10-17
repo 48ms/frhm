@@ -45,7 +45,7 @@ export function useCreateScheduledPost() {
       await queryClient.cancelQueries({ queryKey: postKeys.list(input.client_id) })
       const previousPosts = queryClient.getQueryData(postKeys.list(input.client_id))
       const optimisticPost = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         client_id: input.client_id,
         title: input.title,
         content: input.content,

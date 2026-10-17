@@ -97,7 +97,7 @@ export function useCreateExpense() {
       const previousBudgets = queryClient.getQueryData<ClientBudget[]>(erpKeys.budgets(input.client_id))
 
       const optimisticExpense: Expense = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         client_id: input.client_id,
         budget_id: input.budget_id ?? null,
         amount: input.amount,
@@ -167,7 +167,7 @@ export function useAddAdSpendLog() {
       const previousLogs = queryClient.getQueryData<AdSpendLog[]>(erpKeys.adSpend(input.client_id))
 
       const optimisticLog: AdSpendLog = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         client_id: input.client_id,
         campaign_name: input.campaign_name,
         spend: input.spend,

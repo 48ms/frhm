@@ -28,7 +28,7 @@ export function useCreateCampaign() {
         campaignKeys.byClient(input.client_id)
       )
       const optimisticCampaign: import("./types").Campaign = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         client_id: input.client_id,
         name: input.name,
         type: input.type,
