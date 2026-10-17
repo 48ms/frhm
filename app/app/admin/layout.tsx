@@ -83,6 +83,7 @@ export default async function AdminLayout({
               name: displayName,
               email: identity.email,
               avatar: "",
+              role: identity.role,
             }}
           />
           <SidebarInset id="main-content" className="min-h-svh flex-1">

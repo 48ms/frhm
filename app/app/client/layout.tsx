@@ -86,6 +86,7 @@ export default async function ClientLayout({
   const userInfo = {
     name: identity.fullName || identity.email || "Client Partner",
     email: identity.email,
+    role: identity.role,
   }
 
   return (

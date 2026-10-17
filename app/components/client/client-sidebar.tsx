@@ -33,6 +33,7 @@ export type ClientUserInfo = {
   name: string
   email: string
   avatar?: string
+  role?: string
 }
 
 interface ClientSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -182,6 +183,7 @@ export function ClientSidebar({
             name: user.name,
             email: user.email,
             avatar: user.avatar || "",
+            role: user.role,
           }}
         />
       </SidebarFooter>

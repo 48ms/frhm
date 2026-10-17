@@ -30,6 +30,7 @@ export type AppUser = {
   name: string
   email: string
   avatar: string
+  role?: string
 }
 
 export function AppSidebar({ user, className, ...props }: React.ComponentProps<typeof Sidebar> & { user: AppUser }) {

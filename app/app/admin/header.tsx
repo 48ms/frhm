@@ -28,7 +28,6 @@ export function AdminHeader({
 }: AdminHeaderProps) {
   const router = useRouter()
   const { query } = useKBar()
-  const initials = (userName?.charAt(0) || "A").toUpperCase()
 
   // Quick Export: navigasi ke kalender dengan modal export terbuka (backing nyata
   // = CalendarExportModal yang men-download CSV/TSV dari data scheduled_posts).
@@ -97,16 +96,6 @@ export function AdminHeader({
         >
           <Icons.search className="size-4 sm:hidden" />
           <Icons.apps className="hidden sm:block size-[22px]" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onSignOut}
-          className="admin-avatar flex size-8 shrink-0 items-center justify-center rounded-full focus: focus:ring-2 focus:ring-ring cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          aria-label="Sign out"
-        >
-          <span className="text-xs font-bold">{initials}</span>
         </Button>
       </div>
     </header>
