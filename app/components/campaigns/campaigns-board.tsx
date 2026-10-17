@@ -634,7 +634,7 @@ export function CampaignsBoard() {
           </Button>
         </div>
       }
-      className="space-y-8"
+      className="flex flex-col gap-6"
     >
 
       {/* Segmented Navigation Filters & Search */}
@@ -1532,17 +1532,6 @@ export function CampaignsBoard() {
         </div>
       </div>
 
-      {/* Global Footer */}
-      <footer className="pt-6 pb-4 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-foreground">FRHM © 2026.</span>
-          <span>All rights reserved. Creative Media Operations Platform.</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-foreground font-medium">
-          <span className="w-2 h-2 rounded-full bg-[hsl(var(--admin-lime))]" />
-          <span>System Status</span>
-        </div>
-      </footer>
 
       <CampaignModal
         open={modalOpen}

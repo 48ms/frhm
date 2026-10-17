@@ -17,14 +17,12 @@ export default async function AdminCalendarPage(
   const { clientId: parsedClientId } = calendarParamsCache.parse(await props.searchParams)
   const clientId = await resolveClientId(parsedClientId)
   return (
-    <div className="space-y-6">
-      <Suspense
-        fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat kalender...</div>}
-      >
-        <DashboardPrefetcher clientId={clientId}>
-          <AdminCalendarClient />
-        </DashboardPrefetcher>
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat kalender...</div>}
+    >
+      <DashboardPrefetcher clientId={clientId}>
+        <AdminCalendarClient />
+      </DashboardPrefetcher>
+    </Suspense>
   )
 }

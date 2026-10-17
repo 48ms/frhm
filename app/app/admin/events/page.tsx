@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { EventsBoard } from "@/components/events/events-board"
 import { searchParamsCache } from "@/features/dashboard/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
+import { DashboardPrefetcher } from "@/components/dashboard-stitch/dashboard-prefetcher"
 import { PageContainer } from "@/components/layout/page-container"
 
 export const dynamic = "force-dynamic"
@@ -20,13 +21,15 @@ export default async function EventsPage(
 
   return (
     <Suspense fallback={<div className="p-10 animate-pulse text-muted-foreground">Memuat events...</div>}>
-      <PageContainer
-        pageTitle="Events & Aktivasi"
-        pageDescription="Jadwal event dan aktivasi offline klien"
-        className="space-y-6 max-w-[1440px] w-full mx-auto"
-      >
-        <EventsBoard clientId={clientId} />
-      </PageContainer>
+      <DashboardPrefetcher clientId={clientId}>
+        <PageContainer
+          pageTitle="Events & Aktivasi"
+          pageDescription="Jadwal event dan aktivasi offline klien"
+          className="flex flex-col gap-6 max-w-[1440px] w-full mx-auto"
+        >
+          <EventsBoard clientId={clientId} />
+        </PageContainer>
+      </DashboardPrefetcher>
     </Suspense>
   )
 }

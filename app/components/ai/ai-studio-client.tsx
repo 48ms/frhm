@@ -408,10 +408,10 @@ export function AiStudioClient() {
           </Button>
         </div>
       }
-      className="pb-20 space-y-6"
+      className="pb-20 flex flex-col gap-6"
     >
       {/* Studio Nav Tabs */}
-      <Tabs value={localTab} onValueChange={handleTabChange} className="space-y-6">
+      <Tabs value={localTab} onValueChange={handleTabChange} className="flex flex-col gap-6">
         <TabsList
           aria-label="AI Studio tabs"
           className="flex items-center gap-1.5 p-1 bg-secondary/40 rounded-full border border-border/20 w-max h-auto overflow-x-auto max-w-full"

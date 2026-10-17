@@ -180,4 +180,19 @@ export const supportSearchParams = {
 export const supportParamsCache = createSearchParamsCache(supportSearchParams)
 export const serializeSupportParams = createSerializer(supportSearchParams)
 
+// -------------------------------------------------------------
+// 12. Events & Offline Activation (/admin/events)
+// -------------------------------------------------------------
+export const EVENT_STATUSES = ["all", "upcoming", "ongoing", "completed", "cancelled"] as const
+
+export const eventsSearchParams = {
+  clientId: parseAsString.withDefault(""),
+  status: parseAsStringEnum([...EVENT_STATUSES]).withDefault("all"),
+  q: parseAsString.withDefault(""),
+}
+
+export const eventsParamsCache = createSearchParamsCache(eventsSearchParams)
+export const serializeEventsParams = createSerializer(eventsSearchParams)
+
+
 

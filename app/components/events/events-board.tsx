@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useQueryStates } from "nuqs"
+import { eventsSearchParams, type EVENT_STATUSES } from "@/lib/searchparams"
 import {
   eventQueries,
   useCreateEvent,
@@ -92,9 +94,11 @@ export function EventsBoard({ clientId }: { clientId: string }) {
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null)
   const [deletingEvent, setDeletingEvent] = useState<EventItem | null>(null)
 
-  // Filter & Search
-  const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  // Filter & Search (synchronized with URL state via nuqs)
+  const [{ status: filterStatus, q: searchQuery }, setQueryParams] = useQueryStates(
+    eventsSearchParams,
+    { shallow: true }
+  )
 
   // Form states for Create
   const [createName, setCreateName] = useState("")
@@ -209,7 +213,7 @@ export function EventsBoard({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Top Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-xs flex flex-col justify-between">
@@ -245,14 +249,14 @@ export function EventsBoard({ clientId }: { clientId: string }) {
             <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setQueryParams({ q: e.target.value || null })}
               placeholder="Cari nama event, lokasi, deskripsi..."
               className="pl-9 h-10 text-xs bg-card border-border/60 rounded-xl"
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => setQueryParams({ q: null })}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <Icons.close className="size-3.5" />
@@ -272,7 +276,7 @@ export function EventsBoard({ clientId }: { clientId: string }) {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setFilterStatus(tab.id)}
+                onClick={() => setQueryParams({ status: tab.id as (typeof EVENT_STATUSES)[number] })}
                 className={cn(
                   "px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap",
                   filterStatus === tab.id
@@ -312,8 +316,7 @@ export function EventsBoard({ clientId }: { clientId: string }) {
           {searchQuery || filterStatus !== "all" ? (
             <Button
               onClick={() => {
-                setSearchQuery("")
-                setFilterStatus("all")
+                setQueryParams({ q: null, status: "all" })
               }}
               variant="outline"
               size="sm"

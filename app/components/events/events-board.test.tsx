@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 import { EventsBoard } from "./events-board"
 
 const mockEvents = [
@@ -61,12 +62,19 @@ vi.mock("@/features/events/api/queries", () => ({
 }))
 
 describe("EventsBoard Component with full CRUD", () => {
+  const renderEventsBoard = (clientId = "c-1") =>
+    render(
+      <NuqsTestingAdapter>
+        <EventsBoard clientId={clientId} />
+      </NuqsTestingAdapter>
+    )
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it("renders metric counters and event list properly", () => {
-    render(<EventsBoard clientId="c-1" />)
+    renderEventsBoard("c-1")
 
     expect(screen.getByText("Grand Launching Surabaya")).toBeDefined()
     expect(screen.getByText("Influencer Gathering")).toBeDefined()
@@ -75,7 +83,7 @@ describe("EventsBoard Component with full CRUD", () => {
   })
 
   it("filters events by search query", async () => {
-    render(<EventsBoard clientId="c-1" />)
+    renderEventsBoard("c-1")
 
     const searchInput = screen.getByPlaceholderText(/Cari nama event/i)
     fireEvent.change(searchInput, { target: { value: "Surabaya" } })
@@ -87,7 +95,7 @@ describe("EventsBoard Component with full CRUD", () => {
   })
 
   it("opens create event dialog when clicking Tambah Event", () => {
-    render(<EventsBoard clientId="c-1" />)
+    renderEventsBoard("c-1")
 
     const addButtons = screen.getAllByRole("button", { name: /Tambah Event/i })
     fireEvent.click(addButtons[0])
@@ -96,7 +104,7 @@ describe("EventsBoard Component with full CRUD", () => {
   })
 
   it("triggers create mutation upon form submission", () => {
-    render(<EventsBoard clientId="c-1" />)
+    renderEventsBoard("c-1")
 
     const addButtons = screen.getAllByRole("button", { name: /Tambah Event/i })
     fireEvent.click(addButtons[0])

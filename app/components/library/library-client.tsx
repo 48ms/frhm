@@ -320,7 +320,17 @@ export function LibraryClient() {
               <span>Request Aset Baru</span>
             </Link>
           </div>
-        ) : undefined
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/composer?clientId=${clientId}`}
+              className="admin-pill admin-pill-primary flex items-center gap-2 text-xs font-semibold py-2 px-3.5"
+            >
+              <Icons.send className="size-3.5 text-[hsl(var(--admin-lime))]" />
+              <span>Buka di Composer</span>
+            </Link>
+          </div>
+        )
       }
     >
       <div className="flex flex-col gap-6">

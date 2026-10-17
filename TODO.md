@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
-**Terakhir diperbarui:** 2026-10-16 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 93 test suites passed (548/548 tests), Playwright E2E passed, `tsc --noEmit` 0 error, Turbopack Next.js build sukses 100%.
+**Terakhir diperbarui:** 2026-10-17 oleh Antigravity (Siklus Verifikasi ECC)  
+**Status Repositori:** Clean, 97 test suites passed (555/555 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -492,6 +492,24 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - Memperbaiki celah mapping pada Command Bar (KBar): ketika pengguna membuka KBar di rute portal klien (`/client/*`), KBar kini secara otomatis menampilkan navigasi khusus `clientNav` (Overview, Calendar, Review, Analytics, Brand Assets, Support) lengkap dengan parameter `clientId`.
     - Menambahkan tombol aksi navigasi kembali ("Buka Admin Studio") bagi admin saat sedang meninjau portal klien.
     - Menambahkan tombol pencarian cepat (Search / Command Menu) di [client-header.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/client/client-header.tsx) agar pengguna dapat membuka KBar dengan klik/tap langsung selain via shortcut `Ctrl+K`.
+  - **Verifikasi Kualitas (Verification Loop)**:
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).
+
+- [x] **Audit Mendalam 13 Rute Studio Admin & Eliminasi Gap Arsitektur (2026-10-17)**
+  - **Audit Komprehensif 13 Rute Studio Admin**:
+    - Menyisir seluruh halaman kerja admin: `/admin/dashboard`, `/admin/clients`, `/admin/erp`, `/admin/ai`, `/admin/social-accounts`, `/admin/composer`, `/admin/campaigns`, `/admin/events`, `/admin/calendar`, `/admin/analytics`, `/admin/library`, `/admin/settings`, `/admin/support`.
+  - **Temuan Gap Fungsional & Kepatuhan Arsitektur AGENTS.md**:
+    1. **Duplicate Footer:** [components/campaigns/campaigns-board.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/campaigns/campaigns-board.tsx) memiliki tag `<footer>` hardcoded sekunder; dihapus demi mematuhi Single Source of Truth `<AdminFooter />` global dari [admin/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/layout.tsx).
+    2. **Pelanggaran Rule 4 (URL State `nuqs`):** [components/events/events-board.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/events/events-board.tsx) sebelumnya menggunakan `useState` lokal untuk `searchQuery` dan `filterStatus`. Dimigrasikan sepenuhnya ke `useQueryStates(eventsSearchParams, { shallow: true })` lengkap dengan `eventsParamsCache` dan `serializeEventsParams` di [lib/searchparams.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/searchparams.ts). Test suite [events-board.test.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/events/events-board.test.tsx) diperbarui dengan `<NuqsTestingAdapter>` (4/4 PASS).
+    3. **Missing Server Prefetcher:** [app/admin/support/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/support/page.tsx) dan [app/admin/events/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/events/page.tsx) kini dibungkus `<DashboardPrefetcher clientId={clientId}>` dengan resolusi `clientId` stabil untuk mencegah client fetch waterfall.
+    4. **Hardcoded Mock Timestamp:** [components/settings/settings-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/settings/settings-view.tsx) sebelumnya menampilkan string statis `"Last synced: Today at 14:32 WIB"`. Diganti dengan perhitungan dinamis faktual dari `activeClient?.updated_at`.
+    5. **Navigasi Cepat Antar Modul (PageHeaderAction):**
+       - [app/admin/composer/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/composer/page.tsx): Ditambahkan tombol cepat "Lihat Kalender Konten" (`/admin/calendar`).
+       - [app/admin/analytics/page.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/analytics/page.tsx): Ditambahkan tombol cepat "Buat Konten Baru" (`/admin/composer`).
+       - [components/library/library-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/library/library-client.tsx): Ditambahkan tombol cepat "Buka di Composer" (`/admin/composer`).
+    6. **Standarisasi Layout Rhythm 24px (`flex flex-col gap-6`):**
+       - Mengganti ad-hoc `space-y-6` / `space-y-8` di [admin/dashboard/layout.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/dashboard/layout.tsx), [campaigns-board.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/campaigns/campaigns-board.tsx), [settings-view.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/settings/settings-view.tsx), [ai-studio-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/ai/ai-studio-client.tsx), [calendar-client.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/admin/calendar/calendar-client.tsx), dan [events-board.tsx](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/components/events/events-board.tsx).
   - **Verifikasi Kualitas (Verification Loop)**:
     - `npx tsc --noEmit`: 0 error (100% clean typecheck).
     - `npx vitest run`: 97/97 test suites PASS (555 tests passed, 0 failed).

@@ -42,6 +42,17 @@ export function SettingsView() {
 
   const activeTab = TABS.some((t) => t.id === tab) ? tab : "workspace"
 
+  const lastSyncedText = React.useMemo(() => {
+    if (!activeClient?.updated_at) return "Workspace aktif & tersinkron"
+    try {
+      const d = new Date(activeClient.updated_at)
+      if (isNaN(d.getTime())) return "Workspace aktif & tersinkron"
+      return `Tersinkron: ${d.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB`
+    } catch {
+      return "Workspace aktif & tersinkron"
+    }
+  }, [activeClient?.updated_at])
+
   return (
     <PageContainer
       pageTitle="Agency Configuration & Settings"
@@ -49,10 +60,10 @@ export function SettingsView() {
       pageHeaderAction={
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card/80 backdrop-blur-md px-3 py-2 rounded-full border border-border/30">
           <Icons.refresh className="size-4 text-primary" />
-          <span>Last synced: Today at 14:32 WIB</span>
+          <span>{lastSyncedText}</span>
         </div>
       }
-      className="pb-20 space-y-8"
+      className="pb-20 flex flex-col gap-6"
     >
 
       {/* Tab Navigation */}

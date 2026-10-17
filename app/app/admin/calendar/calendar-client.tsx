@@ -493,7 +493,7 @@ export function AdminCalendarClient() {
           </Button>
         </div>
       }
-      className="space-y-6"
+      className="flex flex-col gap-6"
     >
       {/* Loading state — digate dengan `mounted` agar SSR dan render hidrasi
           pertama menghasilkan markup identik. React Query tidak menjamin
