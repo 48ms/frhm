@@ -36,57 +36,124 @@ export interface BrandFileMeta {
 export const STANDARD_BRAND_FILES: BrandFileMeta[] = [
   {
     path: 'brand-profile.md',
-    title: 'Brand Profile & Foundation',
+    title: 'Brand Profile & Foundation (10 Kanonikal)',
     shortLabel: 'Brand Profile',
-    description: 'Identitas inti brand, target audiens, positioning, dan kredibilitas.',
-    defaultTemplate: `# Brand Profile
+    description: '10 pilar kanonikal upstream: Identity, Positioning, Audience, Voice, Proof, Offers, Channels, Operational Defaults, Guardrails, Show-Don\'t-Tell.',
+    defaultTemplate: `# Brand Profile — [Nama Brand]
+<!-- version: 1.0 · review: quarterly or on rebrand/pivot · type: [b2b-saas | ecommerce | local | creator] -->
 
-## Who We Are
-[Jelaskan entitas bisnis, filosofi, dan nilai inti brand]
+## Identity
+- **What it is (one sentence):** [Jelaskan entitas bisnis dalam 1 kalimat lugas yang langsung dipahami orang asing]
+- **Category:** [Kategori industri / segmen pasar yang dimasuki]
+- **Founded / location:** [Tahun berdiri & lokasi operasional utama]
 
-## Audience Persona
-[Spesifikasikan target audiens, demografi, masalah utama, dan aspirasi]
+## Positioning
+- **What's different:** [Satu keunikan nyata yang tidak dimiliki alternatif atau kompetitor lain]
+- **Why believe it:** [Alasan kredibel mengapa audiens harus percaya]
+- **Point of view:** [1–3 keyakinan atau prinsip kuat yang dibela oleh brand]
+- **Won't say:** [Narasi atau klaim yang tabu dan dihindari]
 
-## Voice & Guardrails
-### Tone of Voice
-[Karakter gaya bahasa: santai, bersahabat, percaya diri, edukatif]
+## Audience
+### Segment 1 — [Segmen Utama]
+- **Who:** [Identitas & profesi audiens sasaran utama]
+- **Cares about:** [Masalah mendesak & impian/tujuan utama mereka]
+- **Believes / objects:** [Keraguan atau resistensi yang biasa mereka miliki]
+- **Where:** [Platform sosial tempat mereka paling aktif & pola konsumsi]
+- **Sophistication:** [Tingkat pemahaman: Pemula ↔ Pakar]
 
-### Point of View
-[Sudut pandang unik brand dalam memandang industri atau solusi]
+### Segment 2 — [Segmen Sekunder / Buyer]
+- **Who:** [Pembeli pengambil keputusan vs pengikut konten]
+- **Transformation:** [Kondisi sebelum ➔ Kondisi setelah menggunakan solusi brand]
 
-### Proof & Credibility
-- [Pencapaian, sertifikasi, jumlah pelanggan, hasil nyata]
+## Voice
+- **Dimensions:** Formality 2/5 · Warmth 4/5 · Authority 4/5 · Energy 3/5 · Humor 2/5 · Polish 4/5
+- **We sound ___, never ___:** [2–4 pasangan kontras, misal: Hangat dan solutif, tidak pernah menggurui atau bombastis]
+- **Words we use:** [Kosakata khas, istilah produk, panggilan audiens]
+- **Words we ban:** [Jargon klise AI, janji palsu, frasa kaku yang dilarang]
+- **How we handle hard things:** [Cara merespons komplain, kenaikan harga, atau kendala teknis]
+- **Signature devices:** [Gaya pembuka kalimat, ritme baris, kebijakan emoji & hashtag]
+- **Voice by platform:** [Penyesuaian nada: LinkedIn lebih berwawasan, TikTok santai, Instagram visual & hook-first]
+- **Pronunciation guide:** [Cara pengucapan nama brand / produk yang benar secara fonetik]
 
-### Do's and Don'ts (Guardrails)
-[Larangan umum, pantangan keras, batasan klaim (verify-quarterly)]
+## Proof
+- **Numbers:** [Jumlah pelanggan, persentase pertumbuhan, data faktual (verify-quarterly)]
+- **Named customers / logos:** [Daftar klien publik, testimoni berizin, mitra strategis]
+- **Outcomes / case results:** [Hasil nyata transformasi sebelum vs sesudah]
+- **Credentials / track record:** [Tahun pengalaman, penghargaan, sertifikasi resmi]
+- **Social proof:** [Rating ulasan, testimoni otentik, ukuran komunitas]
+- **Usage rights note:** [Hak penggunaan UGC dan testimoni: izin organik vs iklan berbayar]
 
-## Content Pillars
-- Edukasi & Problem Solving
-- Brand Story & BTS
-- Social Proof & Komunitas
-- Promosi & Solusi Produk
+## Offers & CTAs
+- **Primary CTA:** [Aksi utama yang diharapkan dari audiens, e.g. Hubungi WhatsApp / Kunjungi Toko]
+- **Secondary CTAs:** [Aksi ringan: Simpan postingan, bagikan via DM, tinggalkan tanggapan]
+- **Lead magnets / offers:** [Penawaran bernilai tinggi, panduan gratis, voucher, atau trial]
+- **Hard-sell rules:** [Aturan batas promosi: maksimal 20% dari total kalender postingan]
+
+## Channels
+- **Active platforms:** [Instagram, TikTok, LinkedIn, YouTube, X]
+- **Posting cadence:** [Target frekuensi post per minggu per platform]
+- **Handles / links:** [Akun resmi, website, link-in-bio]
+- **Languages / markets:** [Bahasa utama, dialek, atau target demografi geografis]
+
+## Operational Defaults (AI & Media Policy)
+- **AI & synthetic media policy:** [Transparansi AI: aturan label AI, apakah avatar diperbolehkan, izin klon suara]
+- **Accessibility defaults:** [Alt text pada tiap gambar, video ramah sound-off, kontras warna terbaca jelas]
+- **Visual identity pointer:** [Arahkan ke kit desain: logo, palet warna semantik, dan tipografi]
+
+## Guardrails
+- **Banned words/topics:** [Daftar topik tabu, isu politik praktis, sentimen provokatif]
+- **Compliance / legal:** [Klaim yang membutuhkan disclaimer legal (verify-quarterly)]
+- **Competitor rules:** [Aturan penyebutan kompetitor: tidak menjelekkan, fokus pada keunggulan sendiri]
+- **Sensitivity:** [SOP penanganan krisis dan batas privasi klien]
+
+## Show, Don't Tell — Example Posts
+- **Loves:** [3–5 contoh postingan yang disukai + 1 baris alasan mengapa sangat on-brand]
+- **Hates:** [1–2 contoh postingan yang dibenci + 1 baris alasan mengapa melanggar karakter brand]
 `,
   },
   {
     path: 'voice.md',
-    title: 'Brand Voice & Tone Guide',
+    title: 'Brand Voice & Tone Guide (6-Layer)',
     shortLabel: 'Voice & Tone',
-    description: 'Panduan gaya bahasa, register emosi, pemilihan kata, dan larangan frasa klise.',
+    description: 'Panduan gaya bahasa berbasis bukti nyata dari 6 lapisan dekonstruksi suara upstream.',
     defaultTemplate: `# Brand Voice & Tone Guide
+<!-- Derived from real writing evidence · framework: 6-layer deconstruction -->
 
-## Persona Suara
-- **Karakter**: Hangat, berpengetahuan, memberdayakan, tidak menggurui.
-- **Register Bahasa**: Kasual profesional, santai bersahabat, sopan dan to-the-point.
+## The Voice Fingerprint (5–7 Reproducible Signatures)
+1. **Ritme Kalimat Dinamis:** [Kombinasi kalimat pendek tegas diikuti satu kalimat elaborasi yang berbobot]
+2. **Kosakata Konkret & Nyata:** [Menggunakan contoh empiris dibanding konsep abstrak]
+3. **Pembuka Memikat (Hook-First):** [Membuka konten dengan rasa ingin tahu atau fakta tanpa basa-basi]
+4. **Sentuhan Empati:** [Mengakui tantangan nyata audiens sebelum menawarkan jalan keluar]
+5. **Penutup Satu Aksi:** [Mengakhiri dengan satu aksi jelas tanpa memecah perhatian pembaca]
 
-## Aturan Gaya Penulisan (Writing Rules)
-- Hindari kalimat berbelit-belit dan pembuka klise (e.g. "Di era digital saat ini...").
-- Gunakan kalimat aktif dan pemilihan kata konkret yang relatable.
-- Dilarang keras menggunakan em dash (—) berlebihan; gunakan koma atau titik.
-- Struktur baris pendek dan mudah dipindai di layar ponsel (skimmable).
+## The Negative Space (Hard Nevers)
+- TIDAK PERNAH menggunakan salam pembuka klise ("Halo kawan-kawan semua", "Di era modern saat ini").
+- TIDAK PERNAH membuat klaim bombastis tanpa bukti ("Paling hebat sejagad", "Dijamin kaya instan").
+- TIDAK PERNAH menggunakan em-dash (—) berlebihan di setiap kalimat.
+- TIDAK PERNAH merendahkan kompetitor atau menyudutkan pembaca.
 
-## Perbendaharaan Kata (Vocabulary)
-- **Kata Disukai**: Sahabat, solusi nyata, proses otentik, langkah praktis.
-- **Kata Dilarang**: Jargon korporat kaku, klaim absolut tanpa bukti, kata-kata bombastis murahan.
+## The Tone Map (Platform Shifts)
+- **LinkedIn:** [Fokus pada wawasan strategis, pembelajaran di balik layar bisnis, dan data industri]
+- **Instagram:** [Fokus pada visual kuat, hook penentu di baris pertama, cerita personal, dan materi yang layak disimpan/dibagikan]
+- **TikTok:** [Fokus pada gaya bicara santai, ritme dinamis, humor relevan, dan kedekatan komunitas]
+- **X / Twitter:** [Fokus pada ketajaman gagasan, ringkas, observasi langsung, dan thread bernilai tinggi]
+
+## Do / Don't Rewrites (3–5 Pasangan)
+- **Generic (Don't):** "Kami adalah penyedia solusi terbaik untuk kebutuhan bisnis Anda."
+- **On-Voice (Do):** "Alat praktis agar tim Anda menghemat 5 jam kerja rutin per minggu tanpa repot."
+- **Why:** Konkret, menyebut manfaat spesifik, dan membuang klaim kosong.
+
+- **Generic (Don't):** "Segera beli produk kami sekarang juga sebelum kehabisan diskon besar!"
+- **On-Voice (Do):** "Batch produksi minggu ini tinggal 20 paket. Amankan pesanan Anda sebelum kehabisan."
+- **Why:** Alasan kelangkaan yang masuk akal dan tidak terkesan murahan.
+
+## Calibration Anchors (Kutipan Sampel Asli)
+- *"[Kutipan 1 dari tulisan atau ucapan asli founder/brand yang menjadi tolok ukur]"*
+- *"[Kutipan 2 yang merepresentasikan ritme dan pilihan kata ideal]"*
+
+## Operational Rules for AI & Writers
+- Baca panduan ini bersama brand-profile.md sebelum menyusun kalimat apa pun.
+- Uji setiap naskah dengan pertanyaan: "Apakah ini terdengar seperti manusia otentik atau AI generik?".
 `,
   },
   {

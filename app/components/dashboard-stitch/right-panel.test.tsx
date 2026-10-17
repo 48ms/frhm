@@ -1,6 +1,7 @@
 import React from "react"
 import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RightPanel } from "./right-panel"
 
 const CLIENT_NAME = "Frhm Alpha Tester"
@@ -56,7 +57,14 @@ vi.mock("motion/react", async (importOriginal) => {
 
 describe("RightPanel (G4: client name truncation)", () => {
   it("renders full client name in sentences, not substring(0,5)", () => {
-    render(<RightPanel />)
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RightPanel />
+      </QueryClientProvider>
+    )
 
     // Kalimat verification note: "Channels belong to <name>"
     expect(screen.getByText(/Channels belong to/)).toBeInTheDocument()
@@ -65,5 +73,19 @@ describe("RightPanel (G4: client name truncation)", () => {
     // Tidak boleh ada teks "Frhm" tanpa "Alpha" (truncation artifact)
     const truncated = screen.queryByText("Frhm", { exact: true })
     expect(truncated).toBeNull()
+  })
+
+  it("renders 3 Rekomendasi Mingguan widget with METER Closed-Loop badge", () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RightPanel />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByText("3 Rekomendasi Mingguan")).toBeInTheDocument()
+    expect(screen.getByText("METER Closed-Loop")).toBeInTheDocument()
   })
 })

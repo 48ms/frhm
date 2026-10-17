@@ -307,6 +307,40 @@ describe("Copilot Social Media Skills Integration", () => {
       expect(mockLoadSkillBundle).toHaveBeenCalledWith(expect.anything(), "batch-content-plan")
     })
 
+    it("successfully creates an upstream Post Brief with intent, pillar, format, hook, visualBrief, and cta", async () => {
+      mockChatJson.mockResolvedValueOnce({
+        posts: [
+          {
+            title: "Post 1: Edukasi Resep Teh",
+            platform: "instagram",
+            scheduled_at: "2026-10-20T10:00:00Z",
+            content: "Tahukah Anda rahasia seduhan teh herbal tanpa rasa pahit berlebih?",
+            pillar: "Edukasi & Otoritas",
+            intent: "educate",
+            format: "Carousel",
+            hook: "Jangan buang seduhan pertama sebelum tahu 1 rahasia ini.",
+            visualBrief: "Ideogram 4:5 visual breakdown 5 slide",
+            cta: "Simpan postingan ini agar tidak lupa",
+            notes: "Repurposed from customer FAQ",
+          },
+        ],
+      })
+
+      const res = await generateBatchPlan({
+        clientId: "client-1",
+        period: "7 days",
+        goals: "Meningkatkan engagement edukasi",
+        postsPerWeek: 1,
+        platforms: ["instagram"],
+      })
+
+      expect(res.error).toBeUndefined()
+      expect(res.plan?.posts[0].intent).toBe("educate")
+      expect(res.plan?.posts[0].format).toBe("Carousel")
+      expect(res.plan?.posts[0].hook).toContain("Jangan buang seduhan")
+      expect(res.plan?.posts[0].cta).toBe("Simpan postingan ini agar tidak lupa")
+    })
+
     it("returns friendly rate limit message when AI throws 429 rate limit error", async () => {
       mockChatJsonDetailed.mockRejectedValueOnce(new Error("OpenAI 429: Too Many Requests - rate limit exceeded"))
 

@@ -39,6 +39,7 @@ import {
   type BrandFileKey,
 } from "@/features/brand-files/api/types"
 import { compileBrandContext } from "@/lib/brand-context"
+import { VoiceBuilderDialog } from "@/components/ai/voice-builder-dialog"
 
 interface BrandBrainEditorDialogProps {
   open: boolean
@@ -127,6 +128,7 @@ export function BrandBrainEditorDialog({
 
   const [confirmExitOpen, setConfirmExitOpen] = React.useState(false)
   const [auditOpen, setAuditOpen] = React.useState(false)
+  const [voiceBuilderOpen, setVoiceBuilderOpen] = React.useState(false)
 
   const handleSafeClose = () => {
     if (isModified) {
@@ -136,7 +138,7 @@ export function BrandBrainEditorDialog({
     }
   }
 
-  // Quick AI Brand DNA Audit Logic
+  // Quick AI Brand DNA Audit Logic — Upstream Ground Truth
   const auditDna = React.useMemo(() => {
     const text = currentContent.toLowerCase()
     const issues: string[] = []
@@ -151,13 +153,25 @@ export function BrandBrainEditorDialog({
       score -= 15
     }
     if (activePath === "brand-profile.md") {
-      if (!text.includes("who") && !text.includes("siapa") && !text.includes("brand")) {
-        issues.push("Definisi identitas brand (Who We Are) belum terdeteksi.")
+      if (!text.includes("who") && !text.includes("siapa") && !text.includes("brand") && !text.includes("identity")) {
+        issues.push("Definisi identitas brand (Identity / Who We Are) belum terdeteksi.")
         score -= 20
       }
-      if (!text.includes("audiens") && !text.includes("target")) {
+      if (!text.includes("audiens") && !text.includes("audience") && !text.includes("target")) {
         issues.push("Target audiens belum dijelaskan secara spesifik.")
         score -= 20
+      }
+      if (!text.includes("positioning") && !text.includes("diferensiasi") && !text.includes("point of view")) {
+        issues.push("Positioning & Point of View disarankan untuk dilengkapi.")
+        score -= 10
+      }
+      if (!text.includes("proof") && !text.includes("bukti") && !text.includes("kredibilitas")) {
+        issues.push("Bukti nyata & kredibilitas (Proof) disarankan untuk ditambahkan.")
+        score -= 10
+      }
+      if (!text.includes("operational") && !text.includes("ai") && !text.includes("defaults")) {
+        issues.push("Operational Defaults (AI & synthetic media policy) disarankan untuk disetel.")
+        score -= 5
       }
     } else if (activePath === "guardrails.md") {
       if (!text.includes("jangan") && !text.includes("dilarang") && !text.includes("never")) {
@@ -165,9 +179,13 @@ export function BrandBrainEditorDialog({
         score -= 25
       }
     } else if (activePath === "voice.md") {
-      if (!text.includes("tone") && !text.includes("nada") && !text.includes("gaya")) {
-        issues.push("Panduan nada bicara (Tone of Voice) belum didefinisikan.")
+      if (!text.includes("tone") && !text.includes("nada") && !text.includes("gaya") && !text.includes("fingerprint")) {
+        issues.push("Panduan nada bicara (Tone of Voice / Fingerprint) belum didefinisikan.")
         score -= 20
+      }
+      if (!text.includes("negative") && !text.includes("never") && !text.includes("tidak pernah")) {
+        issues.push("Negative Space (Hard Nevers) disarankan untuk didefinisikan secara tegas.")
+        score -= 10
       }
     }
 
@@ -574,18 +592,33 @@ export function BrandBrainEditorDialog({
                     </Button>
                   </div>
 
-                  {!currentContent.trim() && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleUseTemplate}
-                      className="h-6 text-2xs text-primary font-bold cursor-pointer"
-                    >
-                      <Icons.sparkles className="size-3 mr-1" />
-                      Gunakan Template Baku
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {activePath === "voice.md" && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setVoiceBuilderOpen(true)}
+                        className="h-6 px-2 text-2xs font-bold text-primary bg-primary/10 border-primary/25 hover:bg-primary/20 cursor-pointer"
+                      >
+                        <Icons.sparkles className="size-3 mr-1" />
+                        Ekstrak Suara (Voice Builder)
+                      </Button>
+                    )}
+
+                    {!currentContent.trim() && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleUseTemplate}
+                        className="h-6 text-2xs text-primary font-bold cursor-pointer"
+                      >
+                        <Icons.sparkles className="size-3 mr-1" />
+                        Gunakan Template Baku
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <Textarea
                   value={currentContent}
@@ -931,6 +964,18 @@ export function BrandBrainEditorDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Voice Builder Wizard Dialog */}
+      <VoiceBuilderDialog
+        open={voiceBuilderOpen}
+        onOpenChange={setVoiceBuilderOpen}
+        clientId={clientId}
+        clientName={clientName}
+        onSaved={(content) => {
+          handleContentChange(content)
+          toast.success("Voice Guide berhasil dimuat ke editor.")
+        }}
+      />
     </Dialog>
   )
 }

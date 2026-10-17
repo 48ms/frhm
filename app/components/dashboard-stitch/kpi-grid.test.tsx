@@ -68,7 +68,7 @@ describe("DashboardStitchKpis (Data Integrity & Design)", () => {
   })
 
   it("renders N/A badge with neutral muted style, not destructive/error red", () => {
-    const { container } = render(<DashboardStitchKpis />)
+    render(<DashboardStitchKpis />)
     
     const naBadges = screen.getAllByText("N/A")
     expect(naBadges.length).toBeGreaterThan(0)
@@ -81,4 +81,13 @@ describe("DashboardStitchKpis (Data Integrity & Design)", () => {
       expect(badge.className).toMatch(/bg-muted|border-border|text-muted-foreground/)
     }
   })
+
+  it("renders METER signal focus bar highlighting Saves & Sends over vanity", () => {
+    render(<DashboardStitchKpis />)
+    expect(screen.getByText(/METER Signal Focus/)).toBeInTheDocument()
+    expect(screen.getByText(/Saves & Sends/)).toBeInTheDocument()
+    expect(screen.getByText(/Shares & Completion/)).toBeInTheDocument()
+    expect(screen.getByText(/Dwell & ER by reach/)).toBeInTheDocument()
+  })
 })
+

@@ -45,10 +45,12 @@ export async function generateAssetCaption(
     api_key: env.server.AI_DEFAULT_API_KEY || 'ollama',
   }
 
-  const system = `Kamu copywriter media sosial.
-Tulis DUA opsi caption pendek dan menarik untuk gambar yang dikirim.
-Pakai bahasa Indonesia santai tapi rapi, masing-masing sertakan 3 hashtag relevan.
-Balas HANYA teks captionnya, tanpa pembuka atau penutup.`
+  const system = `Kamu copywriter media sosial profesional yang mematuhi prinsip caption-writer:
+1. First-line wins attention: Kalimat pertama harus memikat dan to-the-point di feed sebelum cutoff (...more), tanpa pembuka/salam klise seperti "Halo semuanya".
+2. Value & Action: Buat DUA opsi caption pendek, tajam, dan menarik yang melengkapi visual (bukan sekadar mendeskripsikan apa yang terlihat di gambar).
+3. Mechanics: Bahasa Indonesia santai tapi rapi, masing-masing sertakan 3-5 hashtag relevan dan satu CTA terarah.
+4. Anti-Slop: Dilarang keras menggunakan jargon AI generik ("in today's world", "unleash", "game-changer", "delve").
+Balas HANYA teks captionnya, tanpa kata pengantar atau penutup.`
 
   const base = (provider.base_url || 'https://api.openai.com').replace(/\/$/, '')
   const start = Date.now()

@@ -1,6 +1,6 @@
 import React from "react"
-import { screen, fireEvent } from "@testing-library/react"
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { screen, fireEvent, cleanup } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { AiStudioClient } from "./ai-studio-client"
 import { renderWithProviders } from "@/test/render-with-providers"
 
@@ -84,9 +84,28 @@ vi.mock("@/features/skills/api/queries", () => ({
   },
 }))
 
+vi.mock("@/features/voice-builder/api/queries", () => ({
+  useExtractVoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSaveVoiceGuide: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  voiceBuilderKeys: {
+    all: ["voice-builder"],
+    detail: vi.fn(),
+  },
+}))
+
 describe("AiStudioClient", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.history.replaceState({}, '', '/')
+  })
+
+  afterEach(() => {
+    cleanup()
+    window.history.replaceState({}, '', '/')
+    document.body.innerHTML = ""
+    document.body.removeAttribute("data-scroll-locked")
+    document.body.removeAttribute("aria-hidden")
+    document.body.style.pointerEvents = ""
   })
 
   it("renders page header, client badge, and all four tabs", () => {
@@ -169,6 +188,62 @@ describe("AiStudioClient", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument()
     expect(screen.getByText("brand-profile")).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole("button", { name: /close/i })
+    fireEvent.click(closeBtn)
+  })
+
+  it("opens VoiceBuilderDialog when Ekstrak Suara (Voice Builder) is clicked in Brand Brain tab", () => {
+    renderWithProviders(<AiStudioClient />)
+
+    const brandBrainTab = screen.getByRole("tab", { name: /Brand Brain/i })
+    fireEvent.click(brandBrainTab)
+
+    const voiceBuilderBtn = screen.getByRole("button", { name: /Ekstrak Suara \(Voice Builder\)/i })
+    expect(voiceBuilderBtn).toBeInTheDocument()
+    fireEvent.click(voiceBuilderBtn)
+
+    expect(screen.getByText("Voice Builder Architecture")).toBeInTheDocument()
+    expect(screen.getByText(/Target Karakter Suara:/i)).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole("button", { name: /Tutup/i })
+    fireEvent.click(closeBtn)
+  })
+
+  it("opens ReelsScriptDialog when Reels Script is clicked in Idea Engine", () => {
+    renderWithProviders(<AiStudioClient />)
+
+    const ideasTab = screen.getByRole("tab", { name: /Idea Engine/i })
+    fireEvent.click(ideasTab)
+
+    const reelsBtn = screen.getByRole("button", { name: /Reels Script/i })
+    expect(reelsBtn).toBeInTheDocument()
+    fireEvent.click(reelsBtn)
+
+    expect(
+      screen.getByText(/Reels & Short-Form Video Scripting Studio/i)
+    ).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole("button", { name: /Tutup/i })
+    fireEvent.click(closeBtn)
+  })
+
+  it("opens CarouselDialog when Carousel Studio is clicked in Idea Engine", () => {
+    renderWithProviders(<AiStudioClient />)
+
+    const ideasTab = screen.getByRole("tab", { name: /Idea Engine/i })
+    fireEvent.click(ideasTab)
+
+    const carouselBtn = screen.getByRole("button", { name: /Carousel Studio/i })
+    expect(carouselBtn).toBeInTheDocument()
+    fireEvent.click(carouselBtn)
+
+    expect(
+      screen.getByText(/Carousel Slide-by-Slide Generator/i)
+    ).toBeInTheDocument()
+
+    const closeBtn = screen.getByRole("button", { name: /Tutup/i })
+    fireEvent.click(closeBtn)
   })
 })
 

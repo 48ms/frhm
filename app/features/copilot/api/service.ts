@@ -100,19 +100,23 @@ async function buildSystemPrompt(supabase: any, clientId: string, skillId: strin
 [ROLE & TASK]
 ${instruction}
 
-[BRAND CONTEXT]
-The following is the brand profile and identity. Everything you write must adhere to this voice and guardrails.
+[BRAND CONTEXT (FOUNDATION FIRST)]
+The following is the brand profile and identity. Everything you write must adhere strictly to this voice, tone, audience, and guardrails.
 ---
 ${bc}
 ---
 
-[SKILL CAPABILITY]
-The following is the authoritative skill playbook for this task. Strictly adhere to its frameworks, rules, and formats.
+[SKILL CAPABILITY (AUTHORITATIVE PLAYBOOK)]
+The following is the authoritative skill playbook for this task. Strictly adhere to its frameworks, rules, and formats:
 ---
 ${skillMd || "(Skill document not found. Rely on your expert training and the brand context.)"}
 ---
 
-You must output valid JSON only, exactly matching the requested schema. No conversational filler.
+[CORE OPERATIONAL RULES — MUTLAK]
+1. ZERO AI SLOP: Strictly eliminate generic AI clichés ("in today's digital era", "unleash", "delve into", "game-changer", "revolutionary"). Use natural, conversational, professional Indonesian.
+2. ZERO FABRICATION: Never fabricate reach, impressions, follower numbers, or engagement metrics.
+3. PLATFORM-NATIVE CRAFT: Hooks must earn attention in the first line (inside the preview cutoff) or first 3 seconds (video). Captions must complement assets, not narrate them.
+4. Output valid JSON only, exactly matching the requested schema. No conversational filler or markdown blocks outside the JSON.
 `
 }
 
@@ -128,15 +132,30 @@ export async function generateBatchPlan(input: GenerateBatchPlanInput): Promise<
     if (!provider) return { error: "AI Provider belum dikonfigurasi. Hubungi Admin." }
 
     const instruction = `
-You are an elite Social Media Batch Content Planner.
-Plan a full batch of social media content for a period (${period}).
+You are an elite Social Media Batch Content Planner executing the authoritative 'batch-content-plan' system from social-media-skills.
+Plan a full batch of social media content for the requested period (${period}).
 The user can realistically post ${postsPerWeek} times per week across these platforms: ${platforms.join(", ")}.
-The goal for this period is: ${goals}.
+Campaign Goals: ${goals}.
 
-RULES:
-1. Strategy before ideas. Balance the mix, limit direct promotions.
-2. Every planned post must be a specific brief that a writer can execute.
-3. Spread out the posts chronologically. Generate realistic ISO 8601 datetimes.
+RULES & ARCHITECTURE (from batch-content-plan playbook):
+1. STRATEGY BEFORE IDEAS:
+   - Anchor every post to a brand theme or pillar.
+   - Tag each post with exactly one primary INTENT: 'educate', 'entertain', 'inspire', 'connect', or 'promote'.
+   - STRICT BALANCE: 'promote' MUST be a clear minority (maximum ~20% of the entire batch). Give high value, education, and connection first; ask for the sale sparingly.
+2. ROTATE FORMATS:
+   - Rotate formats across the period (Single, Reel, Carousel, Thread, Story) to match intents and avoid monotone feeds.
+3. EVERY ITEM IS A COMPLETE POST BRIEF:
+   - title: Short punchy title/concept
+   - platform: Target platform (instagram, tiktok, linkedin, twitter, etc.)
+   - scheduled_at: Spread chronologically into realistic ISO 8601 datetimes
+   - content: The core idea and draft copy for the post
+   - pillar: Brand theme/pillar
+   - intent: One of 'educate' | 'entertain' | 'inspire' | 'connect' | 'promote'
+   - format: Single | Reel | Carousel | Thread | Story
+   - hook: The opening hook angle (crafted to win the first line / first 3s)
+   - visualBrief: Production asset or creative tool needed (photo, Veo b-roll prompt, Ideogram layout)
+   - cta: Single action ask (save, share, comment, link in bio)
+   - notes: Strategic reasoning or repurposing direction
 `
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "batch-content-plan", instruction)
     if (!systemPrompt) return { error: "Failed to build system prompt" }

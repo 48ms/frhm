@@ -39,6 +39,8 @@ export const ActionableIterationSchema = z.object({
   recommendedPrompt: z.string().describe("Suggested hook or brief prompt to feed into Composer"),
 })
 
+export type ActionableIteration = z.infer<typeof ActionableIterationSchema>
+
 export const AuditPerformanceReportSchema = z.object({
   overallHealth: z.enum(["EXCELLENT", "STABLE", "NEEDS_OPTIMIZATION"]),
   signalScore: z.number().min(0).max(100).describe("Composite score from Saves, Shares, Clicks, and Inquiries"),

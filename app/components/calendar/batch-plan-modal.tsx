@@ -41,6 +41,14 @@ const BATCH_CAMPAIGN_PRESETS = [
   },
 ]
 
+const INTENT_CONFIG = {
+  educate: { label: "Edukasi", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+  entertain: { label: "Hiburan", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
+  inspire: { label: "Inspirasi", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  connect: { label: "Relasi", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  promote: { label: "Promosi", color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
+} as const
+
 export function BatchPlanModal({ 
   open,
   onOpenChange,
@@ -67,6 +75,12 @@ export function BatchPlanModal({
     platform: string
     scheduled_at: string
     content: string
+    pillar?: string
+    intent?: "educate" | "entertain" | "inspire" | "connect" | "promote"
+    format?: string
+    hook?: string
+    visualBrief?: string
+    cta?: string
     notes?: string
     selected: boolean
   }>>([])
@@ -76,6 +90,17 @@ export function BatchPlanModal({
   const { mutateAsync: generateBatchPlanMutate, isPending } = useGenerateBatchPlan()
   const { mutateAsync: createScheduledPostMutate } = useCreateScheduledPost()
   const queryClient = useQueryClient()
+
+  const intentSummary = React.useMemo(() => {
+    const counts: Record<string, number> = { educate: 0, entertain: 0, inspire: 0, connect: 0, promote: 0 }
+    generatedPosts.forEach((p) => {
+      const k = p.intent || "educate"
+      if (counts[k] !== undefined) counts[k]++
+    })
+    const total = generatedPosts.length || 1
+    const promotePct = Math.round((counts.promote / total) * 100)
+    return { counts, total: generatedPosts.length, promotePct }
+  }, [generatedPosts])
 
   const handleGenerate = async () => {
     if (!clientId) {
@@ -184,8 +209,13 @@ export function BatchPlanModal({
         `**Goal Kampanye:**\n${goals}\n\n` +
         `**Daftar Konten Terencana (${selected.length} Post):**\n\n` +
         selected.map((p, i) => (
-          `### ${i + 1}. [${p.platform.toUpperCase()}] ${p.title}\n` +
+          `### ${i + 1}. [${p.platform.toUpperCase()} · ${p.format || 'Single'}] ${p.title}\n` +
+          `- **Pilar:** ${p.pillar || '-'}\n` +
+          `- **Intent:** ${p.intent || 'educate'}\n` +
           `- **Jadwal:** ${p.scheduled_at.split("T")[0]}\n` +
+          (p.hook ? `- **Hook Angle:** "${p.hook}"\n` : "") +
+          (p.visualBrief ? `- **Visual Brief:** ${p.visualBrief}\n` : "") +
+          (p.cta ? `- **Single CTA:** ${p.cta}\n` : "") +
           `- **Draft Copy:**\n> ${p.content.replace(/\n/g, "\n> ")}\n` +
           (p.notes ? `- **Catatan Teknis:** ${p.notes}\n` : "")
         )).join("\n\n")
@@ -354,47 +384,122 @@ export function BatchPlanModal({
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-1">
-                    <span>Review (</span>
+                    <span>Review Post Brief (</span>
                     <MetricTicker value={generatedPosts.length} />
-                    <span> Post)</span>
+                    <span> Konten)</span>
                   </h3>
                   <Button
                     type="button"
                     variant="link"
                     size="sm"
                     onClick={() => setStep("config")}
-                    className="text-xs font-semibold text-brand-accent p-0 h-auto"
+                    className="text-xs font-semibold text-brand-accent p-0 h-auto cursor-pointer"
                   >
                     ← Kembali ke Config
                   </Button>
                 </div>
-                <div className="space-y-2">
+
+                {/* Strategic Intent Mix Bar */}
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40 space-y-1.5">
+                  <div className="flex items-center justify-between text-2xs font-semibold text-muted-foreground">
+                    <span>Komposisi Intent (Aturan: Promosi ≤20%)</span>
+                    {intentSummary.promotePct > 20 && (
+                      <span className="text-rose-500 font-bold flex items-center gap-1">
+                        ⚠️ Promosi {intentSummary.promotePct}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {Object.entries(intentSummary.counts).map(([intentKey, count]) => {
+                      if (count === 0) return null
+                      const cfg = INTENT_CONFIG[intentKey as keyof typeof INTENT_CONFIG]
+                      return (
+                        <span
+                          key={intentKey}
+                          className={cn("text-3xs font-semibold px-2 py-0.5 rounded-full border", cfg?.color)}
+                        >
+                          {cfg?.label || intentKey}: {count}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
                   {generatedPosts.map((p, idx) => (
                     <div
                       key={idx}
-                      onClick={() => toggleSelectPost(idx)}
                       className={cn(
-                        "p-3 rounded-2xl border cursor-pointer flex gap-3 transition-all",
+                        "p-3.5 rounded-2xl border transition-all text-left",
                         p.selected
                           ? "bg-brand-accent/5 border-brand-accent/30 shadow-xs"
                           : "bg-muted/20 border-border/30 opacity-60 hover:opacity-100"
                       )}
                     >
-                      <div
-                        className={cn(
-                          "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors",
-                          p.selected
-                            ? "bg-brand-accent border-brand-accent text-brand-accent-foreground"
-                            : "border-muted-foreground/30"
-                        )}
-                      >
-                        {p.selected && <Icons.check className="size-3" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">{p.title}</p>
-                        <p className="text-2xs text-muted-foreground line-clamp-1">{p.content}</p>
+                      <div className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleSelectPost(idx)}
+                          aria-label={`Pilih postingan ${p.title}`}
+                          className={cn(
+                            "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors cursor-pointer",
+                            p.selected
+                              ? "bg-brand-accent border-brand-accent text-brand-accent-foreground"
+                              : "border-muted-foreground/30 hover:border-brand-accent"
+                          )}
+                        >
+                          {p.selected && <Icons.check className="size-3" />}
+                        </button>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-3xs font-bold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                              {p.platform}
+                            </span>
+                            <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/40">
+                              {p.format || "Single"}
+                            </span>
+                            {p.intent && INTENT_CONFIG[p.intent as keyof typeof INTENT_CONFIG] && (
+                              <span className={cn("text-3xs font-semibold px-2 py-0.5 rounded-full border", INTENT_CONFIG[p.intent as keyof typeof INTENT_CONFIG].color)}>
+                                {INTENT_CONFIG[p.intent as keyof typeof INTENT_CONFIG].label}
+                              </span>
+                            )}
+                            {p.pillar && (
+                              <span className="text-3xs text-muted-foreground truncate max-w-[130px]" title={p.pillar}>
+                                • {p.pillar}
+                              </span>
+                            )}
+                            <span className="text-3xs text-muted-foreground ml-auto">
+                              {p.scheduled_at ? p.scheduled_at.split("T")[0] : ""}
+                            </span>
+                          </div>
+
+                          <p className="text-xs font-bold text-foreground leading-snug">{p.title}</p>
+
+                          {p.hook && (
+                            <div className="text-2xs text-foreground/90 bg-muted/40 p-2 rounded-lg border border-border/30 flex items-start gap-1.5">
+                              <Icons.sparkles className="size-3 text-primary shrink-0 mt-0.5" />
+                              <span className="italic font-medium">Hook: "{p.hook}"</span>
+                            </div>
+                          )}
+
+                          {p.visualBrief && (
+                            <div className="text-3xs text-muted-foreground flex items-center gap-1">
+                              <Icons.photo_camera className="size-3 shrink-0 text-muted-foreground" />
+                              <span className="truncate">Visual: {p.visualBrief}</span>
+                            </div>
+                          )}
+
+                          {p.cta && (
+                            <div className="text-3xs text-primary/90 flex items-center gap-1 font-semibold">
+                              <Icons.arrowRight className="size-3 shrink-0 text-primary" />
+                              <span className="truncate">CTA: {p.cta}</span>
+                            </div>
+                          )}
+
+                          <p className="text-2xs text-muted-foreground line-clamp-2 pt-0.5">{p.content}</p>
+                        </div>
                       </div>
                     </div>
                   ))}

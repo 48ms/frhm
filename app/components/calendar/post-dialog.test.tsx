@@ -412,6 +412,11 @@ describe('PostDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /Live Preview/i }))
     expect(await screen.findByText(/Simulasi Feed INSTAGRAM/i)).toBeInTheDocument()
 
+    // Switch to CHECK Audit
+    fireEvent.click(screen.getByRole('button', { name: /CHECK Audit/i }))
+    expect(await screen.findByText(/CHECK Framework Pre-Flight Audit/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Collect Target Channel/i)).toBeInTheDocument()
+
     // Switch back to Editor
     fireEvent.click(screen.getByRole('button', { name: /Editor/i }))
     expect(await screen.findByLabelText(/Isi Caption/i)).toBeInTheDocument()

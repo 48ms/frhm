@@ -34,6 +34,10 @@ import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialo
 import type { BrandFileKey } from "@/features/brand-files/api/types"
 import { SkillCatalogView } from "@/components/skills/skill-catalog-view"
 import { SkillInterviewModal } from "@/components/skills/skill-interview-modal"
+import { VoiceBuilderDialog } from "@/components/ai/voice-builder-dialog"
+import { StitchAiHookModal } from "@/components/dashboard-stitch/ai-hook-modal"
+import { ReelsScriptDialog } from "@/components/ai/reels-script-dialog"
+import { CarouselDialog } from "@/components/ai/carousel-dialog"
 import { useSkillDetail } from "@/features/skills/api/queries"
 
 const STUDIO_TABS = [
@@ -79,6 +83,14 @@ const BATCH_CAMPAIGN_PRESETS = [
     desc: "Meningkatkan interaksi komunitas melalui Q&A interaktif, polling pilihan audiens, kuis berhadiah, dan cerita otentik tim.",
   },
 ]
+
+const INTENT_CONFIG = {
+  educate: { label: "Edukasi", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
+  entertain: { label: "Hiburan", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
+  inspire: { label: "Inspirasi", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  connect: { label: "Relasi", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  promote: { label: "Promosi", color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
+} as const
 
 const TREND_VIRAL_FORMATS = [
   {
@@ -138,6 +150,11 @@ export function AiStudioClient() {
   const [activeInterviewSkillId, setActiveInterviewSkillId] = useQueryState("skill", parseAsString)
   const [interviewParam, setInterviewParam] = useQueryState("interview", parseAsString)
   const [isInterviewOpen, setIsInterviewOpen] = React.useState(false)
+  const [isVoiceBuilderOpen, setIsVoiceBuilderOpen] = React.useState(false)
+  const [isHookModalOpen, setIsHookModalOpen] = React.useState(false)
+  const [isReelsScriptOpen, setIsReelsScriptOpen] = React.useState(false)
+  const [isCarouselOpen, setIsCarouselOpen] = React.useState(false)
+  const [activeScriptTopic, setActiveScriptTopic] = React.useState("")
   const { data: interviewSkillDetail } = useSkillDetail(activeInterviewSkillId || "")
 
   React.useEffect(() => {
@@ -222,6 +239,12 @@ export function AiStudioClient() {
       platform: string
       scheduled_at: string
       content: string
+      pillar?: string
+      intent?: "educate" | "entertain" | "inspire" | "connect" | "promote"
+      format?: string
+      hook?: string
+      visualBrief?: string
+      cta?: string
       notes?: string
       selected: boolean
     }>
@@ -230,6 +253,17 @@ export function AiStudioClient() {
 
   const { mutateAsync: generateBatchMutate, isPending: isGeneratingBatch } = useGenerateBatchPlan()
   const { mutateAsync: createScheduledPostsBatch, isPending: isCreatingBatch } = useCreateScheduledPostsBatch()
+
+  const batchIntentSummary = React.useMemo(() => {
+    const counts: Record<string, number> = { educate: 0, entertain: 0, inspire: 0, connect: 0, promote: 0 }
+    batchPosts.forEach((p) => {
+      const k = p.intent || "educate"
+      if (counts[k] !== undefined) counts[k]++
+    })
+    const total = batchPosts.length || 1
+    const promotePct = Math.round((counts.promote / total) * 100)
+    return { counts, total: batchPosts.length, promotePct }
+  }, [batchPosts])
 
   const handleGenerateBatch = async () => {
     if (!clientId) {
@@ -258,12 +292,18 @@ export function AiStudioClient() {
           platform: p.platform,
           scheduled_at: p.scheduled_at,
           content: p.content,
+          pillar: p.pillar,
+          intent: p.intent,
+          format: p.format,
+          hook: p.hook,
+          visualBrief: p.visualBrief,
+          cta: p.cta,
           notes: p.notes,
           selected: true,
         }))
         setBatchPosts(mapped)
         toast.success("Batch Plan Berhasil Diracik!", {
-          description: `${mapped.length} postingan siap dijadwalkan ke Content Calendar.`,
+          description: `${mapped.length} postingan Post Brief siap dijadwalkan ke Content Calendar.`,
         })
       }
     } catch (err: unknown) {
@@ -315,12 +355,17 @@ export function AiStudioClient() {
     const summary = batchPosts
       .map(
         (p, i) =>
-          `${i + 1}. [${p.platform.toUpperCase()}] ${p.scheduled_at ? format(new Date(p.scheduled_at), "dd/MM/yyyy HH:mm") : "-"} — ${p.title}\nCaption: ${p.content}`
+          `${i + 1}. [${p.platform.toUpperCase()} · ${p.format || 'Single'}] ${p.scheduled_at ? format(new Date(p.scheduled_at), "dd/MM/yyyy HH:mm") : "-"} — ${p.title}\n` +
+          `- Intent: ${p.intent || 'educate'} | Pilar: ${p.pillar || '-'}\n` +
+          (p.hook ? `- Hook: "${p.hook}"\n` : "") +
+          (p.visualBrief ? `- Visual Brief: ${p.visualBrief}\n` : "") +
+          (p.cta ? `- Single CTA: ${p.cta}\n` : "") +
+          `Caption: ${p.content}`
       )
       .join("\n\n")
     void navigator.clipboard.writeText(summary)
     toast.success("Ringkasan Batch Disalin!", {
-      description: `${batchPosts.length} postingan disalin dalam format teks terstruktur.`,
+      description: `${batchPosts.length} postingan disalin dalam format brief terstruktur.`,
     })
   }
 
@@ -447,13 +492,48 @@ export function AiStudioClient() {
                   Generate ide konten viral yang terikat erat pada pilar dan persona merek klien aktif.
                 </p>
               </div>
-              {generatedIdeas.length > 0 && (
-                <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  <span>Hasil Teracik:</span>
-                  <MetricTicker value={generatedIdeas.length} />
-                  <span>Ide</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsHookModalOpen(true)}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 h-8"
+                >
+                  <Icons.sparkles className="size-3.5" />
+                  Hook Studio
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setActiveScriptTopic(ideaTopic || "")
+                    setIsReelsScriptOpen(true)
+                  }}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-8"
+                >
+                  <Icons.clapperboard className="size-3.5 text-primary" />
+                  Reels Script
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setActiveScriptTopic(ideaTopic || "")
+                    setIsCarouselOpen(true)
+                  }}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-8"
+                >
+                  <Icons.layers className="size-3.5 text-primary" />
+                  Carousel Studio
+                </Button>
+                {generatedIdeas.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <span>Hasil Teracik:</span>
+                    <MetricTicker value={generatedIdeas.length} />
+                    <span>Ide</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -576,6 +656,32 @@ export function AiStudioClient() {
                         Platform: {idea.platform || targetPlatform}
                       </span>
                       <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setActiveScriptTopic(idea.title || idea.hook)
+                            setIsReelsScriptOpen(true)
+                          }}
+                          className="h-8 px-2 text-2xs text-muted-foreground hover:text-foreground rounded-full cursor-pointer flex items-center gap-1"
+                          title="Rancang Naskah Reel 3-Kolom"
+                        >
+                          <Icons.clapperboard className="size-3 text-primary" />
+                          <span className="hidden sm:inline font-semibold">Reel</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setActiveScriptTopic(idea.title || idea.hook)
+                            setIsCarouselOpen(true)
+                          }}
+                          className="h-8 px-2 text-2xs text-muted-foreground hover:text-foreground rounded-full cursor-pointer flex items-center gap-1"
+                          title="Rancang Storyboard Carousel"
+                        >
+                          <Icons.layers className="size-3 text-primary" />
+                          <span className="hidden sm:inline font-semibold">Carousel</span>
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -741,7 +847,7 @@ export function AiStudioClient() {
             <div className="admin-card border border-border/40 bg-card p-6 rounded-2xl shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Matrix Jadwal Konten Terencana</h3>
+                  <h3 className="text-base font-bold text-foreground">Matrix Jadwal Konten Terencana (Post Brief)</h3>
                   <p className="text-xs text-muted-foreground">
                     Periksa draf jadwal di bawah. Centang postingan yang disetujui untuk langsung dijadwalkan ke Kalender.
                   </p>
@@ -769,6 +875,36 @@ export function AiStudioClient() {
                 </div>
               </div>
 
+              {/* Strategic Intent Mix Bar */}
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/40 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-2xs font-bold text-foreground">Komposisi Intent:</span>
+                  {Object.entries(batchIntentSummary.counts).map(([intentKey, count]) => {
+                    if (count === 0) return null
+                    const cfg = INTENT_CONFIG[intentKey as keyof typeof INTENT_CONFIG]
+                    return (
+                      <span
+                        key={intentKey}
+                        className={cn("text-3xs font-semibold px-2.5 py-0.5 rounded-full border", cfg?.color)}
+                      >
+                        {cfg?.label || intentKey}: {count}
+                      </span>
+                    )
+                  })}
+                </div>
+                <div className="text-2xs font-semibold">
+                  {batchIntentSummary.promotePct > 20 ? (
+                    <span className="text-rose-500 font-bold flex items-center gap-1">
+                      ⚠️ Promosi {batchIntentSummary.promotePct}% (Rekomendasi upstream: ≤20%)
+                    </span>
+                  ) : (
+                    <span className="text-emerald-500 font-medium flex items-center gap-1">
+                      ✓ Rasio promosi seimbang ({batchIntentSummary.promotePct}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="overflow-x-auto rounded-xl border border-border/40">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
@@ -786,44 +922,80 @@ export function AiStudioClient() {
                         </div>
                       </th>
                       <th className="p-3 font-bold text-foreground">Waktu Jadwal</th>
-                      <th className="p-3 font-bold text-foreground">Platform</th>
-                      <th className="p-3 font-bold text-foreground">Tema / Judul</th>
+                      <th className="p-3 font-bold text-foreground">Platform & Format</th>
+                      <th className="p-3 font-bold text-foreground">Intent & Pilar</th>
+                      <th className="p-3 font-bold text-foreground">Brief & Hook</th>
                       <th className="p-3 font-bold text-foreground">Draft Caption</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/20">
-                    {batchPosts.map((post, idx) => (
-                      <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                        <td className="p-3 text-center">
-                          <div className="flex items-center justify-center">
-                            <Checkbox
-                              checked={post.selected}
-                              onCheckedChange={(checked) => {
-                                const isChecked = Boolean(checked)
-                                setBatchPosts(
-                                  batchPosts.map((p, i) => (i === idx ? { ...p, selected: isChecked } : p))
-                                )
-                              }}
-                              aria-label={`Pilih postingan ${post.title}`}
-                            />
-                          </div>
-                        </td>
-                        <td className="p-3 whitespace-nowrap font-medium text-foreground">
-                          {post.scheduled_at ? format(new Date(post.scheduled_at), "dd MMM yyyy, HH:mm") : "-"}
-                        </td>
-                        <td className="p-3 whitespace-nowrap">
-                          <Badge variant="outline" className="capitalize text-2xs font-bold bg-primary/5 text-primary border-primary/20">
-                            {post.platform}
-                          </Badge>
-                        </td>
-                        <td className="p-3 font-semibold text-foreground max-w-[200px] truncate">
-                          {post.title}
-                        </td>
-                        <td className="p-3 text-muted-foreground max-w-[320px] truncate">
-                          {post.content}
-                        </td>
-                      </tr>
-                    ))}
+                    {batchPosts.map((post, idx) => {
+                      const intentCfg = post.intent ? INTENT_CONFIG[post.intent as keyof typeof INTENT_CONFIG] : null
+                      return (
+                        <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                          <td className="p-3 text-center align-top">
+                            <div className="flex items-center justify-center pt-1">
+                              <Checkbox
+                                checked={post.selected}
+                                onCheckedChange={(checked) => {
+                                  const isChecked = Boolean(checked)
+                                  setBatchPosts(
+                                    batchPosts.map((p, i) => (i === idx ? { ...p, selected: isChecked } : p))
+                                  )
+                                }}
+                                aria-label={`Pilih postingan ${post.title}`}
+                              />
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap font-medium text-foreground align-top">
+                            {post.scheduled_at ? format(new Date(post.scheduled_at), "dd MMM yyyy, HH:mm") : "-"}
+                          </td>
+                          <td className="p-3 whitespace-nowrap align-top space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="outline" className="capitalize text-2xs font-bold bg-primary/5 text-primary border-primary/20">
+                                {post.platform}
+                              </Badge>
+                              <Badge variant="secondary" className="text-3xs font-semibold">
+                                {post.format || "Single"}
+                              </Badge>
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap align-top space-y-1">
+                            {intentCfg && (
+                              <span className={cn("text-3xs font-semibold px-2 py-0.5 rounded-full border inline-block", intentCfg.color)}>
+                                {intentCfg.label}
+                              </span>
+                            )}
+                            {post.pillar && (
+                              <p className="text-3xs text-muted-foreground truncate max-w-[120px]" title={post.pillar}>
+                                {post.pillar}
+                              </p>
+                            )}
+                          </td>
+                          <td className="p-3 font-semibold text-foreground max-w-[240px] align-top space-y-1">
+                            <p className="font-bold text-xs truncate">{post.title}</p>
+                            {post.hook && (
+                              <p className="text-3xs text-foreground/80 italic line-clamp-1">
+                                Hook: "{post.hook}"
+                              </p>
+                            )}
+                            {post.visualBrief && (
+                              <p className="text-3xs text-muted-foreground line-clamp-1">
+                                📷 {post.visualBrief}
+                              </p>
+                            )}
+                            {post.cta && (
+                              <p className="text-3xs text-primary font-semibold truncate">
+                                🎯 CTA: {post.cta}
+                              </p>
+                            )}
+                          </td>
+                          <td className="p-3 text-muted-foreground max-w-[300px] align-top">
+                            <p className="line-clamp-2 text-2xs">{post.content}</p>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1064,6 +1236,15 @@ export function AiStudioClient() {
                 >
                   <Icons.sparkles className="size-3.5" />
                   Wawancara AI Brand Profile
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsVoiceBuilderOpen(true)}
+                  className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer bg-primary/5 text-primary border-primary/25 hover:bg-primary/15"
+                >
+                  <Icons.sparkles className="size-3.5" />
+                  Ekstrak Suara (Voice Builder)
                 </Button>
                 <Button
                   size="sm"
@@ -1361,6 +1542,34 @@ export function AiStudioClient() {
           job: "Rancang profil brand komprehensif bersama AI",
           allowed_tools: null,
         } : null)}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
+      />
+
+      <VoiceBuilderDialog
+        open={isVoiceBuilderOpen}
+        onOpenChange={setIsVoiceBuilderOpen}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
+      />
+
+      <StitchAiHookModal
+        open={isHookModalOpen}
+        onOpenChange={setIsHookModalOpen}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
+      />
+
+      <ReelsScriptDialog
+        open={isReelsScriptOpen}
+        onOpenChange={setIsReelsScriptOpen}
+        clientId={clientId || ""}
+        clientName={client?.name || "Klien"}
+      />
+
+      <CarouselDialog
+        open={isCarouselOpen}
+        onOpenChange={setIsCarouselOpen}
         clientId={clientId || ""}
         clientName={client?.name || "Klien"}
       />

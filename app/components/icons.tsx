@@ -142,6 +142,7 @@ import {
   IconMail,
   IconCloud,
   IconShieldCheck,
+  IconTable,
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -196,6 +197,7 @@ export const Icons = {
   bot: IconRobot,
   kanban: IconLayoutKanban,
   panelLeft: IconLayoutSidebar,
+  table: IconTable,
 
   // User
   user: IconUser,
@@ -248,6 +250,7 @@ export const Icons = {
 
   // Actions
   add: IconPlus,
+  plus: IconPlus,
   edit: IconEdit,
   delete: IconTrash,
   upload: IconUpload,

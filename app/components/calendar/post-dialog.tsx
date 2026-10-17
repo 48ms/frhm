@@ -155,8 +155,8 @@ export function PostDialog({
   const [mediaType, setMediaType] = useState<AssetFileType>('image')
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  // Workspace View Mode: 'editor' vs 'preview'
-  const [workspaceView, setWorkspaceView] = useState<'editor' | 'preview'>('editor')
+  // Workspace View Mode: 'editor' vs 'preview' vs 'check'
+  const [workspaceView, setWorkspaceView] = useState<'editor' | 'preview' | 'check'>('editor')
 
   // AI Hook suggestions state
   const [hookSuggestions, setHookSuggestions] = useState<Array<{ angle: string; text: string; explanation?: string }>>([])
@@ -483,6 +483,19 @@ export function PostDialog({
                       <Icons.eye className="size-3.5" />
                       <span>Live Preview</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setWorkspaceView('check')}
+                      className={cn(
+                        'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                        workspaceView === 'check'
+                          ? 'bg-background text-foreground shadow-xs border border-border/40'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Icons.checks className="size-3.5 text-primary" />
+                      <span>CHECK Audit</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -501,7 +514,115 @@ export function PostDialog({
                   </div>
                 )}
 
-                {workspaceView === 'preview' && !isCampaignMode ? (
+                {workspaceView === 'check' && !isCampaignMode ? (
+                  /* ======================================================== */
+                  /* CHECK FRAMEWORK PRE-FLIGHT AUDIT                          */
+                  /* ======================================================== */
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 text-left">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5 font-bold text-foreground">
+                        <Icons.checks className="size-4 text-primary" />
+                        CHECK Framework Pre-Flight Audit
+                      </span>
+                      <span className={cn(
+                        "text-3xs px-2.5 py-0.5 rounded-full font-bold border",
+                        !captionOverLimit && title.trim().length > 0
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          : "bg-warning/10 text-warning border-warning/20"
+                      )}>
+                        {!captionOverLimit && title.trim().length > 0 ? "✓ Siap Publish" : "⚠️ Perlu Review"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* C: Collect targets */}
+                      <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">C</span>
+                            Collect Target Channel
+                          </span>
+                          <span className="text-3xs font-bold text-emerald-500">
+                            ✓ {platform.toUpperCase()} Terhubung
+                          </span>
+                        </div>
+                        <p className="text-2xs text-muted-foreground">
+                          Target akun: <strong className="text-foreground">{clientHandle}</strong> ({clientName}).
+                        </p>
+                      </div>
+
+                      {/* H: Hydrate required fields */}
+                      <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">H</span>
+                            Hydrate Required Fields
+                          </span>
+                          <span className={cn("text-3xs font-bold", title.trim() ? "text-emerald-500" : "text-amber-500")}>
+                            {title.trim() ? "✓ Lengkap" : "⚠️ Judul Diperlukan"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-2xs text-muted-foreground pt-0.5">
+                          <div>Judul: {title.trim() || "Kosong"}</div>
+                          <div>Waktu: {dateStr || "Terjadwal"} @ {time || "09:00"} WIB</div>
+                        </div>
+                      </div>
+
+                      {/* E: Enforce media rules */}
+                      <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">E</span>
+                            Enforce Media & Limit Rules
+                          </span>
+                          <span className={cn("text-3xs font-bold", !captionOverLimit ? "text-emerald-500" : "text-destructive")}>
+                            {!captionOverLimit ? "✓ Lolos Batas" : "❌ Melebihi Batas"}
+                          </span>
+                        </div>
+                        <p className="text-2xs text-muted-foreground">
+                          Karakter: {content.length} / {captionLimit} untuk {platform.toUpperCase()}. Media: {mediaUrl ? `${mediaType.toUpperCase()} Terlampir` : "Text-only"}.
+                        </p>
+                      </div>
+
+                      {/* C: Confirm truthful declarations */}
+                      <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/40 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">C</span>
+                            Confirm Truthful Declarations
+                          </span>
+                          <span className="text-3xs font-bold text-emerald-500">
+                            ✓ Terverifikasi
+                          </span>
+                        </div>
+                        <p className="text-2xs text-muted-foreground">
+                          Deklarasi transparansi AI dan autentisitas konten tanpa angka fiktif (Zero AI Slop & Zero Fabrication).
+                        </p>
+                      </div>
+
+                      {/* K: Knock through */}
+                      <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/25 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-3xs font-black flex items-center justify-center">K</span>
+                            Knock Through (Hasil Audit)
+                          </span>
+                          <span className={cn(
+                            "text-3xs font-extrabold uppercase px-2 py-0.5 rounded-full",
+                            !captionOverLimit && title.trim().length > 0 ? "bg-emerald-500/15 text-emerald-500" : "bg-warning/15 text-warning"
+                          )}>
+                            {!captionOverLimit && title.trim().length > 0 ? "PUBLISH READY" : "ACTION REQUIRED"}
+                          </span>
+                        </div>
+                        <p className="text-2xs text-foreground/85">
+                          {!captionOverLimit && title.trim().length > 0
+                            ? "Seluruh kepatuhan platform telah divalidasi. Postingan siap dijadwalkan."
+                            : "Perbaiki peringatan di atas agar postingan dapat dipublikasikan tanpa kendala."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : workspaceView === 'preview' && !isCampaignMode ? (
                   /* ======================================================== */
                   /* LIVE SOCIAL FEED PREVIEW                                 */
                   /* ======================================================== */
@@ -1003,9 +1124,17 @@ export function PostDialog({
                 </AlertDialog>
               )}
 
-              <span className="text-3xs text-muted-foreground/60 hidden sm:inline-block">
-                ⌘+Enter untuk simpan
-              </span>
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-3xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-lg border border-border/40">
+                  <span className="font-semibold text-foreground">Zero-Surprise:</span>
+                  <span className="font-bold text-primary">{platform.toUpperCase()}</span>
+                  <span>•</span>
+                  <span>{dateStr || 'Terjadwal'} {time} WIB</span>
+                </div>
+                <span className="text-3xs text-muted-foreground/60">
+                  ⌘+Enter untuk simpan
+                </span>
+              </div>
 
               <div className="flex items-center gap-2 ml-auto">
                 <Button

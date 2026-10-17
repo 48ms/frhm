@@ -109,7 +109,13 @@ export const BatchPlanPostSchema = z.object({
   title: z.string(),
   platform: z.string(),
   scheduled_at: z.string().describe("ISO datetime string"),
-  content: z.string().describe("The post brief or caption"),
+  content: z.string().describe("The core idea and draft copy for the post"),
+  pillar: z.string().optional().describe("Brand theme / pillar this post belongs to"),
+  intent: z.enum(["educate", "entertain", "inspire", "connect", "promote"]).default("educate").describe("The job this post does; promote capped at ~20% of batch"),
+  format: z.string().default("Single").describe("Format: Single, Reel, Carousel, Thread, Story"),
+  hook: z.string().optional().describe("Opening hook angle"),
+  visualBrief: z.string().optional().describe("Production asset or creative tool needed (photo, Veo b-roll, Ideogram layout)"),
+  cta: z.string().optional().describe("Single action call to action"),
   notes: z.string().optional(),
 })
 

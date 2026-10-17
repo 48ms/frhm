@@ -54,6 +54,15 @@ vi.mock("@/features/brand-files/api/queries", () => ({
   })),
 }))
 
+vi.mock("@/features/voice-builder/api/queries", () => ({
+  useExtractVoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSaveVoiceGuide: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  voiceBuilderKeys: {
+    all: ["voice-builder"],
+    detail: vi.fn(),
+  },
+}))
+
 function renderDialog(props: Partial<React.ComponentProps<typeof BrandBrainEditorDialog>> = {}) {
   return renderWithProviders(
     <BrandBrainEditorDialog
@@ -182,5 +191,16 @@ describe("BrandBrainEditorDialog", () => {
   it("does not show Hapus Dokumen button for core brand-profile.md file", () => {
     renderDialog({ initialPath: "brand-profile.md" })
     expect(screen.queryByRole("button", { name: /Hapus Dokumen/i })).toBeNull()
+  })
+
+  it("shows and opens VoiceBuilderDialog when on Voice & Tone tab", () => {
+    renderDialog({ initialPath: "voice.md" })
+
+    const voiceBuilderBtn = screen.getByRole("button", { name: /Ekstrak Suara \(Voice Builder\)/i })
+    expect(voiceBuilderBtn).toBeInTheDocument()
+    fireEvent.click(voiceBuilderBtn)
+
+    expect(screen.getByText("Voice Builder Architecture")).toBeInTheDocument()
+    expect(screen.getByText(/Target Karakter Suara:/i)).toBeInTheDocument()
   })
 })

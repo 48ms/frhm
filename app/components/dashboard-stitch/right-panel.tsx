@@ -22,6 +22,7 @@ import {
 } from "@/components/animate-ui/components/radix/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { MetricTicker } from "@/components/animate-ui/components/texts/metric-ticker"
+import { WeeklyRecommendations } from "./weekly-recommendations"
 
 export function getPlatformMeta(platform: string) {
   const p = (platform || "").toLowerCase()
@@ -347,6 +348,13 @@ export function DashboardStitchConnectedHub() {
           </Button>
         </div>
       </div>
+
+      {/* 3 Rekomendasi Mingguan Widget (METER Closed-Loop) */}
+      <WeeklyRecommendations
+        clientId={clientId}
+        clientName={client.name}
+        onOpenHookModal={() => setAiOpen(true)}
+      />
 
       <AlertDialog open={Boolean(disconnectId)} onOpenChange={(open) => !open && setDisconnectId(null)}>
         <AlertDialogContent className="max-w-sm bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/40 p-6 shadow-2xl space-y-6 text-center">

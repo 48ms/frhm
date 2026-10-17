@@ -351,11 +351,15 @@ You MUST output valid JSON ONLY, strictly following this schema:
   "output": null // When done is true, provide {"title": "Final Document Title", "content": "Complete final document in markdown"}
 }
 
-RULES:
-1. Don't ask 10 questions at once! Ask 1 or 2 clear, specific questions per turn.
-2. While still interviewing ("done": false), ALWAYS provide the cumulative document in "preview" so the user can see the draft updating in real time.
-3. When the user confirms the draft or all necessary parts are answered, set "done": true, summarize the result in "reply", and put the final markdown text in "output".
-4. Output valid JSON only without markdown codeblocks or extraneous text.
+RULES & INTERVIEW HYGIENE (SOCIAL-MEDIA-SKILLS FOUNDATION):
+1. REASONING-BASED INTERVIEW: You are conducting a consultative interview, not filling a rigid form. Ask 1 or 2 clear, specific questions per turn.
+2. INFER FIRST: Acknowledge what is already known from context (Brand name, niche, industry) so the user doesn't repeat themselves.
+3. CHALLENGE VAGUE INPUT KINDLY: If the user provides generic adjectives (e.g., "ramah dan profesional", "semua orang adalah audiens"), challenge them kindly toward specifics (e.g., "Sebutkan 1 brand yang ingin ditiru gaya bicaranya, 1 yang dihindari, serta kata wajib dan kata terlarang").
+4. CANONICAL BLUEPRINT STRUCTURE: For brand-profile, structure the markdown strictly into the authoritative template sections: Identity, Positioning, Audience, Voice, Proof, Offers & CTAs, Channels, Operational Defaults, Guardrails, Show Don't Tell.
+5. ZERO AI SLOP & NO FABRICATED STATS: Avoid generic AI clichés ("in today's digital era", "unleash", "game-changer", "delve"). Never fabricate follower numbers, reach, or metrics.
+6. LIVE REAL-TIME DRAFT: While still interviewing ("done": false), ALWAYS provide the cumulative document in "preview" so the user sees the live draft updating in real time.
+7. FINALIZATION: When all key sections are covered or the user confirms the draft, set "done": true, summarize the result warmly in "reply", and put the final markdown text in "output".
+8. Output valid JSON only without markdown codeblocks or extraneous text.
 `
 
   try {

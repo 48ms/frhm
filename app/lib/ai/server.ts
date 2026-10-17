@@ -85,7 +85,34 @@ export async function loadSkillBundle(
     .select('path, content')
     .eq('skill_id', skillId)
 
-  if (!data || data.length === 0) return null
+  if (!data || data.length === 0) {
+    // Resilient fallback to local cloned social-media-skills repository
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const localDir = path.resolve(process.cwd(), '..', 'social-media-skills', 'skills', skillId)
+      if (fs.existsSync(localDir)) {
+        const skillMdPath = path.join(localDir, 'SKILL.md')
+        const skillMd = fs.existsSync(skillMdPath) ? fs.readFileSync(skillMdPath, 'utf8') : ''
+        const refDir = path.join(localDir, 'references')
+        const refSections: string[] = []
+        if (fs.existsSync(refDir)) {
+          const files = fs.readdirSync(refDir)
+          for (const file of files) {
+            if (file.endsWith('.md')) {
+              const content = fs.readFileSync(path.join(refDir, file), 'utf8')
+              refSections.push(`### [Reference: references/${file}]\n${content}`)
+            }
+          }
+        }
+        if (refSections.length === 0) return skillMd || null
+        return `${skillMd}\n\n---\n## Authoritative Playbook References & Rules\n\n${refSections.join('\n\n---\n\n')}`
+      }
+    } catch {
+      // ignore
+    }
+    return null
+  }
 
   const skillFile = data.find((f: { path: string }) => f.path === 'SKILL.md')
   const skillMd = skillFile?.content ?? ''

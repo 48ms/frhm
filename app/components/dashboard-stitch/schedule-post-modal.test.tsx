@@ -156,4 +156,23 @@ describe("SchedulePostModal", () => {
       expect(handleClose).toHaveBeenCalled()
     })
   })
+
+  it("switches to CHECK Pre-Flight tab and displays CHECK validation audit and zero-surprise recap", () => {
+    renderWithProviders(<SchedulePostModal open={true} client={mockClient} onClose={vi.fn()} />)
+
+    const titleInput = screen.getByLabelText(/Judul Postingan \/ Konsep/i)
+    fireEvent.change(titleInput, { target: { value: "Peluncuran Menu Ayam Bakar" } })
+
+    const checkTab = screen.getByRole("tab", { name: /CHECK Pre-Flight/i })
+    fireEvent.keyDown(checkTab, { key: "Enter" })
+    fireEvent.click(checkTab)
+
+    expect(screen.getByText(/CHECK Framework Pre-Flight Audit/i)).toBeDefined()
+    expect(screen.getByText(/Collect Targets/i)).toBeDefined()
+    expect(screen.getByText(/Hydrate Required Fields/i)).toBeDefined()
+    expect(screen.getByText(/Enforce Media & Limit Rules/i)).toBeDefined()
+    expect(screen.getByText(/Confirm Truthful Declarations/i)).toBeDefined()
+    expect(screen.getByText(/Knock Through/i)).toBeDefined()
+    expect(screen.getByText(/Zero-Surprise: Draft Kalender/i)).toBeDefined()
+  })
 })

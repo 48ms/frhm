@@ -123,6 +123,28 @@ Setiap fitur baru atau refactor wajib mematuhi pemisahan 3 lapis:
 ### 17. Desain Sistem & Konsistensi Tema
 - **Variabel CSS Dinamis:** Dilarang menggunakan warna *hardcoded* absolut Tailwind (seperti `bg-[#ff0000]` atau `bg-slate-900`). Seluruh pewarnaan wajib menggunakan variabel desain sistem HSL (misal: `bg-primary`, `text-muted-foreground`, `bg-card`) demi memastikan 100% kepatuhan pada adaptasi mode terang/gelap (Dark Mode) tanpa mengorbankan rasio kontras.
 
+### 18. Standar Mutlak AI & Social Media Skills (Upstream Ground Truth — MUTLAK)
+Seluruh kapabilitas AI, interview, playbook runner, dan pembuat konten di Frhm **WAJIB** tunduk pada fondasi aturan resmi `social-media-skills` (`https://github.com/social-media-skills/skills`):
+1. **Foundation First (Wajib Baca `brand-profile.md` & `voice.md` Sebelum Menulis)**:
+   - Dilarang keras membuat konten, ide, script video, atau kalender generic AI sludge. Seluruh skill AI wajib mengonsumsi `brand-profile.md` dan `voice.md` klien terlebih dahulu sebelum menghasilkan respons.
+2. **Alur Wawancara Brand Profile (Reasoning-Based Interview, Bukan Form Kaku)**:
+   - Sesuai standar resmi `social-media-skills/skills/brand-profile`:
+     - **Langkah 1**: Periksa apakah `brand-profile.md` sudah ada. Jika sudah ada dan mutakhir (kurang dari 1 kuartal / belum ada pivot), jangan wawancara ulang dari nol; rangkum profil dalam 1–2 kalimat dan lanjutkan ke kebutuhan pengguna.
+     - **Langkah 2**: Kumpulkan bahan dan inferensi dari data klien yang sudah ada (nama brand, niche, website/social handle) sebelum mengajukan pertanyaan.
+     - **Langkah 3**: Ajukan pertanyaan dalam batch kecil yang terfokus (1–2 pertanyaan per giliran wawancara), bukan kuesioner panjang sekaligus.
+     - **Langkah 4 (Challenge Vague Input)**: Tantang jawaban abstrak/samar secara santun. Jika pengguna menjawab "profesional tapi santai", minta sebutkan 1 brand yang ingin ditiru, 1 brand yang dihindari, serta daftar kata wajib dan kata terlarang (*banned words*).
+     - **Langkah 5 (Canonical Template Structure)**: Seluruh output wajib terstruktur rapi mematuhi kanonikal template: `## Identity`, `## Positioning`, `## Audience`, `## Voice`, `## Proof`, `## Offers & CTAs`, `## Channels`, `## Operational defaults` (kebijakan AI/synthetic media, accessibility), `## Guardrails`, `## Show, don't tell — example posts`.
+3. **Kebenaran Faktual Metrik (Zero Fabricated Numbers)**:
+   - Dilarang keras mengarang angka tayangan, reach, benchmark, atau metrik pertumbuhan.
+   - Metrik platform yang dinamis wajib diberi tag `(verify-quarterly)`.
+   - Analitik lifetime post bersumber dari platform/bridge riil; arahkan pengguna ke dashboard native untuk metrik yang tidak tersimpan.
+4. **Kedaulatan Pengguna (Explicit Human Confirmation)**:
+   - Tidak ada konten yang boleh dijadwalkan, dipublikasikan, atau dihapus ke media sosial tanpa persetujuan eksplisit dari pengguna.
+5. **Anti-Slop AI Hygiene**:
+   - Dilarang menggunakan frasa klise AI generik (*"in today's fast-paced digital world"*, *"game-changer"*, *"delve into"*, *"unleash"*).
+   - Konten wajib berorientasi pada daya tahan perhatian nyata: hook 3 detik pada Reels/TikTok, "see more" tap berbobot pada LinkedIn, dan interaksi percakapan asli pada Threads/X.
+
+
 ---
 <!-- BEGIN:nextjs-agent-rules -->
 

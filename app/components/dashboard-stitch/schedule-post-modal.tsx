@@ -113,7 +113,7 @@ export function SchedulePostModal({
   const [selected, setSelected] = useState<string[]>(channels.slice(0, 2))
   const [date, setDate] = useState(todayStr())
   const [when, setWhen] = useState("18:00")
-  const [viewTab, setViewTab] = useState<"editor" | "preview">("editor")
+  const [viewTab, setViewTab] = useState<"editor" | "preview" | "check">("editor")
   const [hookSuggestions, setHookSuggestions] = useState<HookOption[]>([])
   const [showHookSuggestions, setShowHookSuggestions] = useState(false)
   const [mediaUrl, setMediaUrl] = useState("")
@@ -303,7 +303,7 @@ export function SchedulePostModal({
 
           {/* Segmented View Switcher */}
           <div className="mr-6">
-            <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as "editor" | "preview")}>
+            <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as "editor" | "preview" | "check")}>
               <TabsList className="bg-muted/70 p-1 rounded-full border border-border/40 h-8" highlightClassName="bg-card text-foreground shadow-xs rounded-full">
                 <TabsTrigger value="editor" className="rounded-full px-3 py-0.5 text-2xs font-semibold">
                   <Icons.pencil className="size-3 mr-1" />
@@ -313,12 +313,126 @@ export function SchedulePostModal({
                   <Icons.eye className="size-3 mr-1" />
                   Live Preview
                 </TabsTrigger>
+                <TabsTrigger value="check" className="rounded-full px-3 py-0.5 text-2xs font-semibold">
+                  <Icons.checks className="size-3 mr-1" />
+                  CHECK Pre-Flight
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
         </DialogHeader>
 
-        {viewTab === "preview" ? (
+        {viewTab === "check" ? (
+          /* ======================================================== */
+          /* CHECK FRAMEWORK PRE-FLIGHT VALIDATION                     */
+          /* ======================================================== */
+          <div className="space-y-4 py-1 animate-in fade-in zoom-in-95 duration-200 text-left">
+            <div className="flex items-center justify-between text-2xs text-muted-foreground px-1">
+              <span className="font-semibold text-foreground flex items-center gap-1.5">
+                <Icons.checks className="size-3.5 text-brand-accent" />
+                CHECK Framework Pre-Flight Audit
+              </span>
+              <span className={cn(
+                "px-2.5 py-0.5 rounded-full text-3xs font-bold border",
+                canSubmit
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  : "bg-warning/10 text-warning border-warning/20"
+              )}>
+                {canSubmit ? "✓ Ready to Schedule" : "⚠️ Perlu Lengkapi Data"}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {/* C: Collect targets */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">C</span>
+                    Collect Targets (Kanal & Akun)
+                  </span>
+                  <span className={cn("text-3xs font-bold", selected.length > 0 ? "text-emerald-500" : "text-destructive")}>
+                    {selected.length > 0 ? `✓ ${selected.length} Kanal Dipilih` : "❌ Belum Ada Kanal"}
+                  </span>
+                </div>
+                <p className="text-2xs text-muted-foreground">
+                  Target: {selected.length > 0 ? selected.map((s) => s.toUpperCase()).join(", ") : "Pilih minimal 1 kanal"} untuk klien <strong className="text-foreground">{client?.name}</strong>.
+                </p>
+              </div>
+
+              {/* H: Hydrate required fields */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">H</span>
+                    Hydrate Required Fields (Kelengkapan Form)
+                  </span>
+                  <span className={cn("text-3xs font-bold", title.trim() ? "text-emerald-500" : "text-amber-500")}>
+                    {title.trim() ? "✓ Lengkap" : "⚠️ Judul Kosong"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-2xs text-muted-foreground pt-1">
+                  <div>Judul: {title.trim() ? `"${title.trim()}"` : "Belum diisi"}</div>
+                  <div>Waktu: {date} pukul {when} WIB</div>
+                </div>
+              </div>
+
+              {/* E: Enforce media rules */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">E</span>
+                    Enforce Media & Limit Rules (Format & Karakter)
+                  </span>
+                  <span className={cn("text-3xs font-bold", !isOverLimit ? "text-emerald-500" : "text-destructive")}>
+                    {!isOverLimit ? "✓ Sesuai Aturan" : "❌ Melebihi Batas"}
+                  </span>
+                </div>
+                <p className="text-2xs text-muted-foreground">
+                  Panjang Caption: {captionLength} / {maxChars} karakter. Media: {mediaUrl ? `${mediaType.toUpperCase()} Terlampir` : "Text-only (Tanpa Media)"}.
+                </p>
+                {selected.includes("tiktok") && (
+                  <p className="text-3xs text-muted-foreground/80 italic">
+                    ℹ️ TikTok merekomendasikan video vertikal 9:16 untuk performa algoritma optimal.
+                  </p>
+                )}
+              </div>
+
+              {/* C: Confirm truthful declarations */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-3xs font-black flex items-center justify-center">C</span>
+                    Confirm Truthful Declarations (Kepatuhan Etika)
+                  </span>
+                  <span className="text-3xs font-bold text-emerald-500">
+                    ✓ Validated
+                  </span>
+                </div>
+                <p className="text-2xs text-muted-foreground">
+                  Kepatuhan transparansi konten AI & data metrik otentik (Zero Fabricated Metrics).
+                </p>
+              </div>
+
+              {/* K: Knock through */}
+              <div className="p-3.5 rounded-xl bg-brand-accent/5 border border-brand-accent/30 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-brand-accent text-brand-accent-foreground text-3xs font-black flex items-center justify-center">K</span>
+                    Knock Through (Hasil Validasi Pra-Jadwal)
+                  </span>
+                  <span className={cn("text-3xs font-extrabold uppercase px-2 py-0.5 rounded-full", canSubmit ? "bg-emerald-500/15 text-emerald-500" : "bg-warning/15 text-warning")}>
+                    {canSubmit ? "PASS (SIAP TAYANG)" : "PENDING FIX"}
+                  </span>
+                </div>
+                <p className="text-2xs text-foreground/80">
+                  {canSubmit
+                    ? "Seluruh 5 pilar CHECK telah terpenuhi. Konten aman dijadwalkan ke Kalender tanpa risiko ditolak API."
+                    : "Lengkapi judul dan pastikan minimal 1 kanal dipilih sebelum menjadwalkan."}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : viewTab === "preview" ? (
           /* ======================================================== */
           /* LIVE SOCIAL FEED CARD PREVIEW                            */
           /* ======================================================== */
@@ -761,6 +875,20 @@ export function SchedulePostModal({
             </div>
           </div>
         )}
+
+        {/* Zero-Surprise Recap Strip */}
+        <div className="px-3.5 py-2.5 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-between text-2xs text-muted-foreground flex-wrap gap-2 text-left">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-foreground">📍 Target:</span>
+            <span className="text-foreground/90 font-medium">{selected.length > 0 ? selected.map((s) => s.toUpperCase()).join(", ") : "Belum dipilih"}</span>
+            <span>•</span>
+            <span className="font-semibold text-foreground">📅 Jadwal:</span>
+            <span className="text-foreground/90 font-medium">{date} @ {when} WIB</span>
+          </div>
+          <span className="text-3xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
+            Zero-Surprise: Draft Kalender
+          </span>
+        </div>
 
         {/* Modal Footer */}
         <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/20">

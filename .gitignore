@@ -45,6 +45,7 @@ build/
 # Embedded third-party repos (not part of this project)
 /animate-ui/
 /anti-slop/
+/social-media-skills/
 
 # Windows reserved-name artifacts
 app/nul
