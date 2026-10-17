@@ -5,6 +5,8 @@ import type { Provider } from './providers'
 import { logger } from '@/lib/logger'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { brandProfileToMarkdown } from '@/lib/brand-context'
+import fs from 'fs'
+import path from 'path'
 import { env } from '@/lib/env'
 
 export async function serverSupabase() {
@@ -88,8 +90,6 @@ export async function loadSkillBundle(
   if (!data || data.length === 0) {
     // Resilient fallback to local cloned social-media-skills repository
     try {
-      const fs = require('fs')
-      const path = require('path')
       const localDir = path.resolve(process.cwd(), '..', 'social-media-skills', 'skills', skillId)
       if (fs.existsSync(localDir)) {
         const skillMdPath = path.join(localDir, 'SKILL.md')
