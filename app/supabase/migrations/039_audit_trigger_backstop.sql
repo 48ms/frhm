@@ -7,6 +7,12 @@
 CREATE OR REPLACE FUNCTION public.prevent_audit_log_mutation()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Allow foreign key cascading ON DELETE SET NULL on client_id
+  IF TG_OP = 'UPDATE' AND OLD.client_id IS NOT NULL AND NEW.client_id IS NULL AND
+     OLD.id = NEW.id AND OLD.action = NEW.action AND OLD.summary = NEW.summary THEN
+    RETURN NEW;
+  END IF;
+
   RAISE EXCEPTION 'audit_log is immutable — direct UPDATE/DELETE is not allowed';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -60,7 +66,11 @@ BEGIN
     v_action := TG_TABLE_NAME || '.delete';
     v_old := to_jsonb(OLD);
     BEGIN v_entity_id := (OLD.id)::uuid; EXCEPTION WHEN OTHERS THEN v_entity_id := NULL; END;
-    BEGIN v_client_id := (OLD.client_id)::uuid; EXCEPTION WHEN OTHERS THEN v_client_id := NULL; END;
+    IF TG_TABLE_NAME = 'clients' THEN
+      v_client_id := NULL;
+    ELSE
+      BEGIN v_client_id := (OLD.client_id)::uuid; EXCEPTION WHEN OTHERS THEN v_client_id := NULL; END;
+    END IF;
   END IF;
 
   INSERT INTO public.audit_log (
