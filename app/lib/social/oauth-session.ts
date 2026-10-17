@@ -97,6 +97,29 @@ export async function createSocialOAuthSession(
     throw new Error('OAuth state secret not configured')
   }
 
+  const normalizedPlatform = platform.toLowerCase()
+
+  // 1. Official Meta Instagram Graph API
+  if (normalizedPlatform === 'instagram' && env.server.META_APP_ID) {
+    const { getMetaInstagramOAuthUrl } = await import('@/lib/social/meta-instagram')
+    const redirectUrl = getMetaInstagramOAuthUrl(stateToken)
+
+    void logAudit({
+      actorId: user.id,
+      action: 'social.oauth_initiated',
+      entityType: 'social_account',
+      clientId,
+      summary: `Initiated official Meta Instagram OAuth for client ${clientId}`,
+      metadata: { platform: 'instagram', provider: 'meta_graph_api' },
+    })
+
+    return {
+      url: redirectUrl,
+      stateToken,
+    }
+  }
+
+  // 2. Generic Ayrshare or bridge fallback for other platforms
   const baseUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3004'
   const callbackUrl = new URL(baseUrl + '/api/social/callback')
   callbackUrl.searchParams.set('clientId', clientId)

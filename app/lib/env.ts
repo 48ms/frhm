@@ -35,6 +35,9 @@ const serverEnvSchema = clientEnvSchema.extend({
   AI_DEFAULT_BASE_URL: z.string().optional(),
   AI_DEFAULT_API_KEY: z.string().optional(),
   LOG_LEVEL: z.string().optional(),
+  META_APP_ID: z.string().optional(),
+  META_APP_SECRET: z.string().optional(),
+  META_REDIRECT_URI: z.string().optional(),
 })
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>
@@ -105,6 +108,9 @@ function getServerEnv(): ServerEnv {
     AI_DEFAULT_BASE_URL: process.env.AI_DEFAULT_BASE_URL,
     AI_DEFAULT_API_KEY: process.env.AI_DEFAULT_API_KEY,
     LOG_LEVEL: process.env.LOG_LEVEL,
+    META_APP_ID: process.env.META_APP_ID,
+    META_APP_SECRET: process.env.META_APP_SECRET,
+    META_REDIRECT_URI: process.env.META_REDIRECT_URI,
   })
 
   if (!result.success) {
@@ -131,6 +137,9 @@ function getServerEnv(): ServerEnv {
         AI_DEFAULT_BASE_URL: process.env.AI_DEFAULT_BASE_URL,
         AI_DEFAULT_API_KEY: process.env.AI_DEFAULT_API_KEY,
         LOG_LEVEL: process.env.LOG_LEVEL,
+        META_APP_ID: process.env.META_APP_ID,
+        META_APP_SECRET: process.env.META_APP_SECRET,
+        META_REDIRECT_URI: process.env.META_REDIRECT_URI,
       }
     }
     console.error("❌ Invalid server environment variables:", result.error.format())
