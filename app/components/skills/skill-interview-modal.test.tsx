@@ -222,5 +222,39 @@ describe("SkillInterviewModal Component", () => {
     expect(screen.getByText(/Output Langsung Playbook/)).toBeDefined()
     expect(screen.getByText(/Finalisasi & Simpan/i)).toBeDefined()
   })
+
+  it("auto-saves document automatically when interview completes (res.done === true)", () => {
+    mockMutateChat.mockImplementation(({}, { onSuccess }) => {
+      onSuccess({
+        reply: "Wawancara selesai dan terpetakan.",
+        done: true,
+        output: {
+          title: "Blueprint Final",
+          content: "### Blueprint Lengkap\nAnalisis lengkap.",
+        },
+      })
+    })
+
+    render(
+      <SkillInterviewModal
+        open={true}
+        onOpenChange={vi.fn()}
+        skill={fakeSkill}
+        clientId="c-100"
+        clientName="Taraju Coffee"
+      />
+    )
+
+    expect(mockMutateSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: "c-100",
+        skillId: "competitor-analysis",
+        title: "Blueprint Final",
+        content: "### Blueprint Lengkap\nAnalisis lengkap.",
+        status: "selesai",
+      }),
+      expect.any(Object)
+    )
+  })
 })
 

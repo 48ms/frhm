@@ -156,13 +156,45 @@ export function SkillInterviewModal({
             if (res.preview) setLivePreview(res.preview)
             if (res.done) {
               setIsDone(true)
-              if (res.output) setFinalOutput(res.output)
+              if (res.output) {
+                setFinalOutput(res.output)
+                autoSaveDocument(res.output, true)
+              }
             }
           },
         }
       )
     }
   }, [open, skill?.id, clientId])
+
+  const autoSaveDocument = React.useCallback(
+    (doc: { title?: string; content: string }, isFinal: boolean = false) => {
+      if (!skill || !clientId || !doc.content) return
+      saveMutation.mutate(
+        {
+          clientId,
+          skillId: skill.id,
+          title: doc.title || skill.name,
+          content: doc.content,
+          stage: skill.category,
+          status: isFinal ? "selesai" : "draft",
+        },
+        {
+          onSuccess: () => {
+            setIsSaved(true)
+          },
+        }
+      )
+    },
+    [clientId, skill, saveMutation]
+  )
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && !isSaved && activeDoc?.content && skill && clientId) {
+      autoSaveDocument(activeDoc, isDone)
+    }
+    onOpenChange(newOpen)
+  }
 
   const handleSend = () => {
     if (!inputVal.trim() || !skill || chatMutation.isPending) return
@@ -184,7 +216,10 @@ export function SkillInterviewModal({
           }
           if (res.done) {
             setIsDone(true)
-            if (res.output) setFinalOutput(res.output)
+            if (res.output) {
+              setFinalOutput(res.output)
+              autoSaveDocument(res.output, true)
+            }
           }
         },
       }
@@ -209,9 +244,11 @@ export function SkillInterviewModal({
       {
         onSuccess: (res) => {
           if (res.success && res.content) {
-            setLivePreview({ title: res.title, content: res.content })
-            setFinalOutput({ title: res.title, content: res.content })
+            const finalDoc = { title: res.title, content: res.content }
+            setLivePreview(finalDoc)
+            setFinalOutput(finalDoc)
             setIsDone(true)
+            autoSaveDocument(finalDoc, true)
             setMessages((prev) => [
               ...prev,
               {
@@ -238,22 +275,7 @@ export function SkillInterviewModal({
     if (!skill || !clientId) return
     const docToSave = finalOutput || livePreview
     if (!docToSave?.content) return
-
-    saveMutation.mutate(
-      {
-        clientId,
-        skillId: skill.id,
-        title: docToSave.title || skill.name,
-        content: docToSave.content,
-        stage: skill.category,
-        status: "draft",
-      },
-      {
-        onSuccess: () => {
-          setIsSaved(true)
-        },
-      }
-    )
+    autoSaveDocument(docToSave, true)
   }
 
   const handleSendToComposer = () => {
@@ -293,7 +315,7 @@ export function SkillInterviewModal({
       : []
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-6xl xl:max-w-7xl w-[96vw] h-[90vh] max-h-[920px] p-0 flex flex-col overflow-hidden bg-card/95 backdrop-blur-2xl border-border/50 shadow-2xl rounded-3xl">
         {/* Header Strip */}
         <DialogHeader className="px-6 py-3.5 border-b border-border/40 flex flex-row items-center justify-between space-y-0 bg-muted/20 shrink-0">

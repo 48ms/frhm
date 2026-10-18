@@ -54,6 +54,13 @@ vi.mock("@/features/brand-files/api/queries", () => ({
   })),
 }))
 
+vi.mock("@/features/skills/api/queries", () => ({
+  useClientSkillOutputs: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
+}))
+
 vi.mock("@/features/voice-builder/api/queries", () => ({
   useExtractVoice: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useSaveVoiceGuide: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -202,5 +209,40 @@ describe("BrandBrainEditorDialog", () => {
 
     expect(screen.getByText("Voice Builder Architecture")).toBeInTheDocument()
     expect(screen.getByText(/Target Karakter Suara:/i)).toBeInTheDocument()
+  })
+
+  it("displays AI interview draft banner when fresher skill output exists and applies content on click", async () => {
+    const { useClientSkillOutputs } = await import("@/features/skills/api/queries")
+    vi.mocked(useClientSkillOutputs).mockReturnValue({
+      data: [
+        {
+          id: "out-1",
+          client_id: "c-1",
+          skill_id: "brand-profile",
+          title: "Brand Profile Interview",
+          content: "## Identity\nBrand dari AI Interview Terbaru",
+          status: "final",
+          created_at: new Date().toISOString(),
+          stage: null,
+        },
+      ],
+      isLoading: false,
+    } as any)
+
+    renderDialog({ initialPath: "brand-profile.md" })
+
+    expect(screen.getByText(/Draf Wawancara AI Tersedia:/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Ditemukan draf dari sesi wawancara AI \(Brand Profile Interview\)/i)
+    ).toBeInTheDocument()
+
+    const applyBtn = screen.getByRole("button", { name: /Terapkan ke Editor/i })
+    expect(applyBtn).toBeInTheDocument()
+    fireEvent.click(applyBtn)
+
+    const textarea = screen.getByPlaceholderText(
+      /Mulai tulis dokumen brand-profile.md di sini/i
+    )
+    expect((textarea as HTMLTextAreaElement).value).toBe("## Identity\nBrand dari AI Interview Terbaru")
   })
 })

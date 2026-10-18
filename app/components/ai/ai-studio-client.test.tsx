@@ -74,6 +74,7 @@ vi.mock("@/features/skills/api/queries", () => ({
   useSkillDetail: () => ({ data: null, isLoading: false }),
   useSkills: () => ({ data: [], isLoading: false }),
   useSkillPacks: () => ({ data: [], isLoading: false }),
+  useClientSkillOutputs: () => ({ data: [], isLoading: false }),
   skillKeys: {
     all: ["skills"],
     list: vi.fn(),

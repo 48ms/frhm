@@ -428,10 +428,10 @@ export function AiStudioClient() {
 
   const dnaMetrics = React.useMemo(() => {
     const checks = [
-      { key: "who", label: "Siapa Kami (Who)", filled: Boolean(bp?.who?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "who", label: "Siapa Kami (Who)", filled: Boolean(bp?.who?.trim() || bp?.identity?.trim()), file: "brand-profile.md" as BrandFileKey },
       { key: "audience", label: "Target Audiens", filled: Boolean(bp?.audience?.trim()), file: "brand-profile.md" as BrandFileKey },
       { key: "voice", label: "Gaya Bahasa (Voice)", filled: Boolean(bp?.voice?.trim()), file: "voice.md" as BrandFileKey },
-      { key: "pov", label: "Sudut Pandang (POV)", filled: Boolean(bp?.pov?.trim()), file: "brand-profile.md" as BrandFileKey },
+      { key: "pov", label: "Sudut Pandang (POV)", filled: Boolean(bp?.pov?.trim() || bp?.positioning?.trim()), file: "brand-profile.md" as BrandFileKey },
       { key: "proof", label: "Bukti Kredibilitas", filled: Boolean(bp?.proof?.trim()), file: "brand-profile.md" as BrandFileKey },
       { key: "guardrails", label: "Pantangan (Guardrails)", filled: Boolean(bp?.guardrails?.trim()), file: "guardrails.md" as BrandFileKey },
       { key: "pillars", label: "Pilar Konten", filled: Boolean(bp?.pillars && bp.pillars.length > 0), file: "content-pillars.md" as BrandFileKey },
@@ -1405,7 +1405,7 @@ export function AiStudioClient() {
                   </Button>
                 </div>
                 <p className="text-xs text-foreground font-medium">
-                  {bp?.who || "Belum dikonfigurasi. Atur identitas di Settings > Brand Profile."}
+                  {bp?.who || bp?.identity || "Belum dikonfigurasi. Atur identitas di Settings > Brand Profile."}
                 </p>
               </div>
 
@@ -1468,7 +1468,7 @@ export function AiStudioClient() {
                   </Button>
                 </div>
                 <p className="text-xs text-foreground font-medium">
-                  {bp?.pov || "Belum dikonfigurasi."}
+                  {bp?.pov || bp?.positioning || "Belum dikonfigurasi."}
                 </p>
               </div>
 

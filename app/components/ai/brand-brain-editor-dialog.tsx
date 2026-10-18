@@ -34,6 +34,7 @@ import {
   useVerifyClientFile,
   useDeleteClientFile,
 } from "@/features/brand-files/api/queries"
+import { useClientSkillOutputs } from "@/features/skills/api/queries"
 import {
   STANDARD_BRAND_FILES,
   type BrandFileKey,
@@ -59,6 +60,7 @@ export function BrandBrainEditorDialog({
   initialPath = "brand-profile.md",
 }: BrandBrainEditorDialogProps) {
   const { data: serverFiles = [], isLoading } = useClientFiles(clientId)
+  const { data: skillOutputs = [] } = useClientSkillOutputs(clientId)
   const { mutateAsync: upsertFile, isPending: isSaving } = useUpsertClientFile()
   const { mutateAsync: verifyFile, isPending: isVerifying } = useVerifyClientFile()
   const { mutateAsync: deleteFile, isPending: isDeleting } = useDeleteClientFile()
@@ -67,6 +69,19 @@ export function BrandBrainEditorDialog({
   const [viewMode, setViewMode] = React.useState<ViewMode>("split")
   const [contentBuffer, setContentBuffer] = React.useState<Record<string, string>>({})
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false)
+
+  // Ketika dialog baru dibuka (open transition false -> true), refresh buffer dengan serverFiles terkini
+  const prevOpenRef = React.useRef(open)
+  React.useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      const freshBuffer: Record<string, string> = {}
+      for (const file of serverFiles) {
+        freshBuffer[file.path] = file.content
+      }
+      setContentBuffer(freshBuffer)
+    }
+    prevOpenRef.current = open
+  }, [open, serverFiles])
 
   // Sinkronisasi data server ke buffer lokal saat dialog dibuka atau file dimuat
   React.useEffect(() => {
@@ -106,6 +121,34 @@ export function BrandBrainEditorDialog({
     serverFile !== undefined
       ? currentContent !== serverFile.content
       : currentContent.trim().length > 0
+
+  // Draf output AI yang relevan dengan tab aktif (jika ada interview / AI playbook yang baru dijalankan)
+  const relevantSkillOutput = React.useMemo(() => {
+    if (!skillOutputs || skillOutputs.length === 0) return null
+    if (activePath === "brand-profile.md") {
+      return skillOutputs.find((o) => o.skill_id === "brand-profile") || null
+    }
+    if (activePath === "voice.md") {
+      return (
+        skillOutputs.find(
+          (o) => o.skill_id === "voice-builder" || o.skill_id === "writing-style-and-tone"
+        ) || null
+      )
+    }
+    if (activePath === "content-pillars.md") {
+      return skillOutputs.find((o) => o.skill_id === "content-pillars") || null
+    }
+    if (activePath === "guardrails.md") {
+      return skillOutputs.find((o) => o.skill_id === "guardrails") || null
+    }
+    return null
+  }, [skillOutputs, activePath])
+
+  const hasDifferentSkillOutput = Boolean(
+    relevantSkillOutput &&
+      relevantSkillOutput.content.trim().length > 0 &&
+      relevantSkillOutput.content.trim() !== currentContent.trim()
+  )
 
   // Perhitungan statistik teks
   const charCount = currentContent.length
@@ -461,6 +504,38 @@ export function BrandBrainEditorDialog({
             )}
           </div>
         </div>
+
+        {/* Banner Draf Wawancara AI Tersedia */}
+        {hasDifferentSkillOutput && relevantSkillOutput && (
+          <div className="mx-6 mt-3 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="flex items-center gap-2.5 text-foreground">
+              <Icons.sparkles className="size-4 text-primary shrink-0" />
+              <div>
+                <span className="font-semibold text-primary">Draf Wawancara AI Tersedia:</span>{" "}
+                <span className="text-muted-foreground">
+                  Ditemukan draf dari sesi wawancara AI ({relevantSkillOutput.title}) yang berbeda dari editor ini.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  handleContentChange(relevantSkillOutput.content)
+                  toast.success(
+                    `Draf wawancara "${relevantSkillOutput.title}" berhasil dimuat ke editor. Jangan lupa klik Simpan Dokumen.`
+                  )
+                }}
+                className="h-7 text-xs font-bold rounded-lg cursor-pointer bg-primary text-primary-foreground shadow-sm"
+              >
+                <Icons.check className="size-3.5 mr-1" />
+                Terapkan ke Editor
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Expandable Brand DNA Audit Report */}
         {auditOpen && (

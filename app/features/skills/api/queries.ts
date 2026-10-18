@@ -24,6 +24,8 @@ import type {
   ExecuteGenericSkillInput,
   GenericSkillRunResult,
 } from "./types"
+import { brandFilesKeys } from "@/features/brand-files/api/queries"
+import { socialKeys } from "@/features/social-accounts/api/queries"
 
 
 /**
@@ -172,8 +174,14 @@ export function useSaveSkillOutput() {
     onSuccess: (res, vars) => {
       if (res.success) {
         toast.success("Dokumen berhasil disimpan ke klien!")
-        queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
-        queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.list(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "brand-profile.md") })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "voice.md") })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "content-pillars.md") })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "guardrails.md") })
+        void queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
       } else {
         toast.error(res.error || "Gagal menyimpan dokumen")
       }
@@ -206,9 +214,11 @@ export function useExecuteGenericSkill() {
     onSuccess: (res, vars) => {
       if (res.success) {
         toast.success(`Playbook "${vars.skillId}" berhasil dieksekusi!`)
-        queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
         if (vars.autoSave) {
-          queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+          void queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.list(vars.clientId) })
+          void queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
         }
       } else {
         toast.error(res.error || "Gagal mengeksekusi playbook")
