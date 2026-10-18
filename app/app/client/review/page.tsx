@@ -8,8 +8,8 @@ import { clientReviewParamsCache } from "@/lib/searchparams"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Deliverables Review Hub | Frhm Partner Portal",
-  description: "Daftar materi promosi, draf desain, dan publikasi yang menunggu peninjauan dan persetujuan klien.",
+  title: "Deliverables Review Hub",
+  description: "Pusat ulasan dan persetujuan draf materi promosi, visual poster, dan video kampanye brand Anda.",
 }
 
 export default async function ClientReviewPage(props: {

@@ -21,12 +21,12 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 
   if (!data) {
     return {
-      title: 'Dokumen Tidak Ditemukan | Frhm Review Portal',
+      title: 'Dokumen Tidak Ditemukan',
     };
   }
 
   return {
-    title: `${data.deliverable.title} | Review Dokumen - Frhm`,
+    title: `${data.deliverable.title} - Review Materi`,
     description: `Tinjau dan setujui deliverable ${data.deliverable.title} untuk ${data.client?.name ?? 'Klien'}.`,
   };
 }
