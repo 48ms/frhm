@@ -437,8 +437,8 @@ export function AdminCalendarClient() {
 
   return (
     <PageContainer
-      pageTitle="Multi-Channel Dispatch Schedule"
-      pageDescription="Drag & drop posts across multi-channel publication schedule."
+      pageTitle="Kalender Konten & Jadwal Publikasi"
+      pageDescription="Jadwalkan, kelola draf, dan pantau publikasi multi-kanal media sosial klien secara otomatis."
       pageHeaderAction={
         <div className="flex items-center gap-3">
           <DropdownMenu>
@@ -447,9 +447,9 @@ export function AdminCalendarClient() {
               AI Copilot
               <Icons.chevronDown className="size-3.5 opacity-70" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
+            <DropdownMenuContent align="end" className="w-64 p-2 rounded-xl">
               <DropdownMenuLabel className="text-xs text-on-primary-container font-bold flex items-center gap-2">
-                <Icons.sparkles className="size-3.5" /> Frahma AI Actions
+                <Icons.sparkles className="size-3.5" /> Frhm AI Actions
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -457,8 +457,8 @@ export function AdminCalendarClient() {
                 className="rounded-lg cursor-pointer py-2 text-xs font-medium"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold text-card-foreground">Brainstorm Ideas</span>
-                  <span className="text-2xs text-muted-foreground">Generate single content ideas</span>
+                  <span className="font-bold text-card-foreground">Brainstorm Ide Konten</span>
+                  <span className="text-2xs text-muted-foreground">Hasilkan ide konten individual berbasis AI</span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -466,8 +466,8 @@ export function AdminCalendarClient() {
                 className="rounded-lg cursor-pointer py-2 text-xs font-medium"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold text-card-foreground">Auto-Fill Batch Plan</span>
-                  <span className="text-2xs text-muted-foreground">Generate a full month of posts at once</span>
+                  <span className="font-bold text-card-foreground">Isi Otomatis Batch Plan</span>
+                  <span className="text-2xs text-muted-foreground">Rancang rencana konten sebulan penuh sekaligus</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -477,11 +477,11 @@ export function AdminCalendarClient() {
             variant="outline"
             size="sm"
             onClick={() => setExportOpen(true)}
-            aria-label="Quick Export"
+            aria-label="Ekspor Kalender"
             className="flex items-center gap-1.5 px-3 py-1.5 lg:px-3.5 rounded-full border border-border/50 bg-[hsl(var(--admin-surface-lowest))] text-[hsl(var(--admin-on-surface))] text-xs font-semibold hover:bg-[hsl(var(--admin-surface-high))] transition-all active:scale-95 cursor-pointer h-auto"
           >
             <Icons.download className="size-4" />
-            <span className="hidden sm:inline">Quick Export</span>
+            <span className="hidden sm:inline">Ekspor Kalender</span>
           </Button>
           <Button
             size="sm"
@@ -489,7 +489,7 @@ export function AdminCalendarClient() {
             onClick={() => handleAddPost(new Date())}
           >
             <Icons.send className="size-[18px]" />
-            Schedule New Dispatch
+            Jadwalkan Konten Baru
           </Button>
         </div>
       }
@@ -625,12 +625,12 @@ export function AdminCalendarClient() {
         <div className="bg-card/60 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden" suppressHydrationWarning>
           <div className="space-y-1">
             <span className="text-2xs text-muted-foreground font-bold">
-              Scheduled Flights (Month)
+              Total Konten Terjadwal
             </span>
             <div className="flex items-baseline gap-2" suppressHydrationWarning>
-              <MetricTicker value={`${filteredPosts.length} Posts`} className="text-2xl font-bold text-card-foreground" />
+              <MetricTicker value={`${filteredPosts.length} Konten`} className="text-2xl font-bold text-card-foreground" />
               <span className="inline-flex items-center text-xs font-bold text-primary bg-primary-container/40 px-2 py-0.5 rounded-full" suppressHydrationWarning>
-                <MetricTicker value={`${filteredPosts.filter((p) => p.status === "published").length}`} className="mr-1" /> published
+                <MetricTicker value={`${filteredPosts.filter((p) => p.status === "published").length}`} className="mr-1" /> tayang
               </span>
             </div>
           </div>
@@ -643,7 +643,7 @@ export function AdminCalendarClient() {
         <div className="bg-card/60 rounded-2xl p-4 space-y-2" suppressHydrationWarning>
           <div className="flex justify-between items-center">
             <span className="text-2xs text-muted-foreground font-bold">
-              Slots Status Pipeline
+              Status Pipeline Konten
             </span>
             <span className="text-2xs text-secondary font-bold flex items-center gap-1" suppressHydrationWarning>
               <MetricTicker value={filteredPosts.length} /> TOTAL
@@ -684,14 +684,14 @@ export function AdminCalendarClient() {
         <div className="admin-glass rounded-2xl p-4 flex items-center justify-between ring-1 ring-primary/30">
           <div className="space-y-1">
             <span className="text-2xs text-muted-foreground font-bold">
-              Next Up
+              Jadwal Terdekat
             </span>
             <p suppressHydrationWarning className="text-base font-bold text-card-foreground truncate max-w-[180px]">
-              {release ? release.label : "No flight scheduled"}
+              {release ? release.label : "Belum ada jadwal"}
             </p>
             <p className="text-1xs text-muted-foreground flex items-center gap-1 truncate">
               <Icons.clock className="size-3.5 shrink-0" />
-              {release ? `${release.platform} · ${release.title}` : "Schedule a post to fill this slot"}
+              {release ? `${release.platform} · ${release.title}` : "Jadwalkan postingan untuk mengisi slot ini"}
             </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
@@ -703,10 +703,10 @@ export function AdminCalendarClient() {
         <div className="bg-card/60 rounded-2xl p-4 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-2xs text-muted-foreground font-bold">
-              Social Channels
+              Kanal Sosial Terhubung
             </span>
             <p className="text-base font-bold text-card-foreground flex items-center gap-2">
-              <span className="flex items-center gap-1"><MetricTicker value={connectedCount} /> Connected</span>
+              <span className="flex items-center gap-1"><MetricTicker value={connectedCount} /> Terhubung</span>
               <span
                 className={cn(
                   "w-2.5 h-2.5 rounded-full shrink-0",
@@ -716,8 +716,8 @@ export function AdminCalendarClient() {
             </p>
             <p className="text-1xs text-muted-foreground truncate">
               {connectedCount > 0
-                ? `${connectedPlatforms} ready to publish`
-                : "No social account connected yet"}
+                ? `${connectedPlatforms} siap publikasi`
+                : "Belum ada akun sosial terhubung"}
             </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-card/60 flex items-center justify-center text-card-foreground shrink-0">
@@ -736,7 +736,7 @@ export function AdminCalendarClient() {
             {viewMode === "month" && (
               <div className="min-w-[640px] md:min-w-0">
                 <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-3 pb-3 border-b border-border/30 text-center">
-                  {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
+                  {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
                     <div key={d} className="text-2xs text-muted-foreground font-bold">
                       {d}
                     </div>
@@ -1057,9 +1057,24 @@ export function AdminCalendarClient() {
             {viewMode === "list" && (
               <div className="space-y-2">
                 {filteredPosts.length === 0 ? (
-                  <div className="py-12 text-center space-y-2">
-                    <p className="text-sm font-bold text-card-foreground">No posts match the filters.</p>
-                    <p className="text-xs text-muted-foreground">Adjust your filters or schedule a new post.</p>
+                  <div className="py-12 text-center space-y-3">
+                    <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+                      <Icons.calendar className="size-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-card-foreground">Tidak Ada Jadwal Konten</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Belum ada postingan yang sesuai filter. Jadwalkan konten baru untuk mengisi kalender.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAddPost(new Date())}
+                      className="text-xs font-semibold gap-1.5 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Icons.add className="size-3.5" />
+                      Jadwalkan Konten Sekarang
+                    </Button>
                   </div>
                 ) : (
                   [...filteredPosts]

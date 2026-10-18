@@ -10,8 +10,8 @@ import { Icons } from "@/components/icons"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Composer | Frahma",
-  description: "Create and publish content across multiple platforms simultaneously.",
+  title: "Content Composer",
+  description: "Buat dan publikasikan konten multi-platform secara simultan dalam satu alur kerja.",
 }
 
 export default async function ComposerPage(props: {

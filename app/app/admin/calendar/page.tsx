@@ -7,8 +7,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Content Calendar | Frahma',
-  description: 'Manage, schedule, and automate your multi-channel social media publication calendar.',
+  title: 'Content Calendar',
+  description: 'Kelola, jadwalkan, dan otomatisasi kalender publikasi konten multi-kanal media sosial Frhm.',
 }
 
 export default async function AdminCalendarPage(
