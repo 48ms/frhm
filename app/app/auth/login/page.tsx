@@ -160,12 +160,14 @@ function LoginForm() {
           .single()
 
         if (profile?.role === 'client') {
-          const clientTarget = profile.client_id
-            ? `/client/dashboard?clientId=${profile.client_id}`
-            : '/client/dashboard'
-          destination = explicitTarget && explicitTarget.startsWith('/client')
-            ? explicitTarget
-            : clientTarget
+          if (!profile.client_id) {
+            destination = '/waitlist'
+          } else {
+            const clientTarget = `/client/dashboard?clientId=${profile.client_id}`
+            destination = explicitTarget && explicitTarget.startsWith('/client')
+              ? explicitTarget
+              : clientTarget
+          }
         } else if (profile?.role === 'admin') {
           destination = explicitTarget && !explicitTarget.startsWith('/client')
             ? explicitTarget
@@ -195,7 +197,13 @@ function LoginForm() {
         },
       })
       if (error) {
-        setAuthError(`Gagal mendaftar: ${error.message}`)
+        if (error.message.includes('User already registered')) {
+          setAuthError('Email ini sudah terdaftar. Silakan langsung masuk dengan akun Anda.')
+        } else if (error.message.includes('Password should be at least')) {
+          setAuthError('Password minimal 6 karakter.')
+        } else {
+          setAuthError(`Gagal mendaftar: ${error.message}`)
+        }
         return
       }
       setSignupNotice(
@@ -217,7 +225,11 @@ function LoginForm() {
       })
       if (error) {
         const label = provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : 'LinkedIn'
-        setAuthError(`Gagal masuk dengan ${label}: ${error.message}`)
+        if (error.message.includes('not enabled') || error.message.includes('Unsupported provider')) {
+          setAuthError(`Metode masuk via ${label} belum diaktifkan. Silakan gunakan Google atau Email.`)
+        } else {
+          setAuthError(`Gagal masuk dengan ${label}: ${error.message}`)
+        }
       }
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : 'Terjadi kesalahan jaringan. Coba lagi.')
@@ -299,7 +311,7 @@ function LoginForm() {
                 id='auth-heading'
                 className='font-syne text-2xl font-extrabold tracking-tight text-foreground'
               >
-                Welcome to the space
+                Ruang Kerja Frhm
               </h1>
             </div>
 
@@ -319,20 +331,20 @@ function LoginForm() {
                     value='login'
                     className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-1xs font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_hsl(var(--admin-lime)/0.7)]'
                   >
-                    Log in
+                    Masuk
                   </TabsTrigger>
                   <TabsTrigger
                     value='signup'
                     className='[&_[data-slot=motion-highlight]]:!bg-transparent rounded-full font-syne text-1xs font-bold text-muted-foreground transition-colors data-[state=active]:bg-lum-primary data-[state=active]:text-lum-ink data-[state=active]:!shadow-[0_6px_16px_-4px_hsl(var(--admin-lime)/0.7)]'
                   >
-                    Sign up
+                    Daftar
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Log in */}
                 <TabsContent value='login'>
                   <p className='mt-6 mb-6 text-center font-syne text-xl font-bold text-foreground'>
-                    Log in to your account
+                    Masuk ke akun Anda
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -346,7 +358,7 @@ function LoginForm() {
                       {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
-                            E-mail
+                            Email
                           </FieldLabel>
                           <div className='relative'>
                             <Input
@@ -358,7 +370,7 @@ function LoginForm() {
                               value={field.state.value}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
-                              placeholder='E-mail'
+                              placeholder='Alamat email'
                               aria-invalid={isFieldInvalid(field)}
                               aria-describedby={isFieldInvalid(field) ? `${field.name}-error` : undefined}
                               className='h-12 rounded-full border-border bg-white/95 pr-12 pl-6 font-normal text-foreground transition duration-200 placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand-accent/40 dark:bg-white/5'
@@ -397,13 +409,13 @@ function LoginForm() {
                           name='remember'
                           className='size-4 rounded-md border-border data-[state=checked]:bg-brand-accent'
                         />
-                        <span className='text-xs text-muted-foreground'>Remember me</span>
+                        <span className='text-xs text-muted-foreground'>Ingat saya</span>
                       </label>
                       <Link
                         href='/auth/forgot-password'
                         className='rounded text-xs font-semibold text-brand-accent underline-offset-2 transition-all hover:underline focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
                       >
-                        Forgot password?
+                        Lupa kata sandi?
                       </Link>
                     </div>
 
@@ -416,7 +428,7 @@ function LoginForm() {
                             loadingLabel='Sedang masuk'
                             className='h-12 w-full rounded-full bg-lum-primary font-syne text-1xs font-bold text-lum-ink !shadow-[0_10px_24px_-4px_hsl(var(--admin-lime)/0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
-                            Log in
+                            Masuk ke Akun
                           </LoadingButton>
                         )}
                       </loginForm.Subscribe>
@@ -427,7 +439,7 @@ function LoginForm() {
                 {/* Sign up */}
                 <TabsContent value='signup'>
                   <p className='mt-6 mb-6 text-center font-syne text-xl font-bold text-foreground'>
-                    Create your account
+                    Buat akun baru
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -441,7 +453,7 @@ function LoginForm() {
                       {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
-                            Full name
+                            Nama Lengkap
                           </FieldLabel>
                           <div className='relative'>
                             <Input
@@ -451,7 +463,7 @@ function LoginForm() {
                               value={field.state.value}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
-                              placeholder='Full name'
+                              placeholder='Nama lengkap'
                               aria-invalid={isFieldInvalid(field)}
                               aria-describedby={isFieldInvalid(field) ? `${field.name}-error` : undefined}
                               className='h-12 rounded-full border-border bg-white/95 pr-12 pl-6 font-normal text-foreground transition duration-200 placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand-accent/40 dark:bg-white/5'
@@ -472,7 +484,7 @@ function LoginForm() {
                       {(field) => (
                         <Field>
                           <FieldLabel htmlFor={field.name} className='sr-only'>
-                            E-mail
+                            Email
                           </FieldLabel>
                           <div className='relative'>
                             <Input
@@ -484,7 +496,7 @@ function LoginForm() {
                               value={field.state.value}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
-                              placeholder='E-mail'
+                              placeholder='Alamat email'
                               aria-invalid={isFieldInvalid(field)}
                               aria-describedby={isFieldInvalid(field) ? `${field.name}-error` : undefined}
                               className='h-12 rounded-full border-border bg-white/95 pr-12 pl-6 font-normal text-foreground transition duration-200 placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand-accent/40 dark:bg-white/5'
@@ -524,7 +536,7 @@ function LoginForm() {
                             loadingLabel='Sedang membuat akun'
                             className='h-12 w-full rounded-full bg-lum-primary font-syne text-1xs font-bold text-lum-ink !shadow-[0_10px_24px_-4px_hsl(var(--admin-lime)/0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-lum-primary active:scale-[0.98]'
                           >
-                            Sign up
+                            Daftar Sekarang
                           </LoadingButton>
                         )}
                       </signupForm.Subscribe>
@@ -539,14 +551,14 @@ function LoginForm() {
               {/* Social fast-connect. */}
               <div className='mt-6 text-center'>
                 <span className='mb-3 block font-syne text-1xs text-muted-foreground'>
-                  or you can log in with
+                  atau masuk dengan
                 </span>
                 <div className='flex items-center justify-center gap-3'>
                   <button
                     type='button'
                     onClick={() => void handleOAuth('google')}
                     disabled={googleLoading}
-                    aria-label='Login with Google'
+                    aria-label='Login dengan Google'
                     className='flex size-9 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100 dark:bg-white/5'
                   >
                     <Icons.google className='size-4 text-foreground' />
@@ -555,7 +567,7 @@ function LoginForm() {
                     type='button'
                     onClick={() => void handleOAuth('facebook')}
                     disabled={googleLoading}
-                    aria-label='Login with Facebook'
+                    aria-label='Login dengan Facebook'
                     className='flex size-9 items-center justify-center rounded-full bg-lum-secondary text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <Icons.facebook className='size-4' />
@@ -564,7 +576,7 @@ function LoginForm() {
                     type='button'
                     onClick={() => void handleOAuth('linkedin_oidc')}
                     disabled={googleLoading}
-                    aria-label='Login with LinkedIn'
+                    aria-label='Login dengan LinkedIn'
                     className='flex size-9 items-center justify-center rounded-full bg-[hsl(var(--platform-linkedin))] text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none disabled:opacity-50 disabled:hover:scale-100'
                   >
                     <Icons.linkedin className='size-4' />
@@ -577,7 +589,7 @@ function LoginForm() {
             <div className='pt-2 text-center'>
               {mode === 'login' ? (
                 <p className='text-xs text-muted-foreground'>
-                  Don&apos;t have account yet?{' '}
+                  Belum punya akun?{' '}
                   <button
                     type='button'
                     onClick={() => {
@@ -587,12 +599,12 @@ function LoginForm() {
                     }}
                     className='ml-1 rounded font-bold text-lum-tertiary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
                   >
-                    Sign up
+                    Daftar sekarang
                   </button>
                 </p>
               ) : (
                 <p className='text-xs text-muted-foreground'>
-                  Already have an account?{' '}
+                  Sudah punya akun?{' '}
                   <button
                     type='button'
                     onClick={() => {
@@ -602,7 +614,7 @@ function LoginForm() {
                     }}
                     className='ml-1 rounded font-bold text-lum-tertiary underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand-accent/50 focus-visible:outline-none'
                   >
-                    Log in
+                    Masuk di sini
                   </button>
                 </p>
               )}
