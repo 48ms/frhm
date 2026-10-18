@@ -24,6 +24,6 @@ export function getRequestOrigin(request: Request): string {
     const parsed = new URL(request.url)
     return parsed.origin
   } catch {
-    return 'http://localhost:3000'
+    return 'https://frhm.web.id'
   }
 }

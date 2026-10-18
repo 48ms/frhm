@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
           .eq('id', user.id)
           .single()
 
-        if (profile?.role) {
+        // User role aktif & valid
+        if (profile?.role === 'admin' || (profile?.role === 'client' && profile?.client_id)) {
           void logAudit({
             action: 'auth.login.success',
             actorId: user.id,
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
             request,
           })
           const defaultTarget = profile.role === 'client'
-            ? (profile.client_id ? `/client/dashboard?clientId=${profile.client_id}` : '/client/dashboard')
+            ? `/client/dashboard?clientId=${profile.client_id}`
             : '/admin/dashboard'
           const explicitRedirect = searchParams.get('redirect')
           let destination = explicitRedirect ? safeRedirect(explicitRedirect, defaultTarget) : defaultTarget
@@ -75,11 +76,28 @@ export async function GET(request: NextRequest) {
           const url = new URL(destination, origin)
           return NextResponse.redirect(url)
         }
+
+        // Jika user baru belum punya profil, role, atau client_id belum ditautkan:
+        // Rekam ke public.users agar langsung muncul di antrean approval admin
+        try {
+          const rawMeta = user.user_metadata || {}
+          await supabase.from('users').upsert({
+            id: user.id,
+            role: profile?.role || 'client',
+            client_id: profile?.client_id || null,
+            full_name: rawMeta.full_name || rawMeta.name || (user.email ? user.email.split('@')[0] : 'Pengguna Baru'),
+            avatar_url: rawMeta.avatar_url || rawMeta.picture || null,
+            updated_at: new Date().toISOString(),
+          })
+        } catch {
+          // non-blocking
+        }
+
         void logAudit({
-          action: 'auth.login.no_role',
+          action: 'auth.login.pending_approval',
           actorId: user.id,
           actorName: user.email ?? null,
-          summary: 'Login berhasil tapi user tidak punya role',
+          summary: `Login berhasil tapi akun ${user.email} menunggu approval penetapan role dari admin`,
           request,
         })
         const waitlistUrl = new URL('/waitlist', origin)

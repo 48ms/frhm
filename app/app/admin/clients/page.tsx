@@ -10,6 +10,7 @@ import {
   ClientManagerSkeleton,
   AddClientHeaderButton,
   SupportTicketsHeaderButton,
+  PendingUsersHeaderButton,
 } from "@/components/client/client-manager"
 
 import { clientsParamsCache } from "@/lib/searchparams"
@@ -82,6 +83,7 @@ export default async function ClientsPage(
       infoContent={clientsInfoContent}
       pageHeaderAction={
         <div className="flex items-center gap-2.5">
+          <PendingUsersHeaderButton />
           <SupportTicketsHeaderButton />
           <AddClientHeaderButton />
         </div>

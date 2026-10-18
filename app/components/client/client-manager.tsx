@@ -28,7 +28,35 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/animate-ui
 import Link from "next/link"
 import { useAllSupportTickets } from "@/features/support/api/queries"
 import { AdminSupportTicketsDialog } from "@/components/support/admin-support-tickets-dialog"
+import { usePendingUsers } from "@/features/pending-users/api/queries"
+import { UserApprovalDialog } from "@/components/admin/user-approval-dialog"
 import type { ClientWithChannels } from "@/features/social-accounts/api/types"
+
+export function PendingUsersHeaderButton() {
+  const [open, setOpen] = React.useState(false)
+  const { data } = usePendingUsers()
+  const count = data?.count ?? 0
+
+  if (count === 0) return null
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+        className="gap-2 cursor-pointer shadow-sm font-semibold rounded-xl border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 relative"
+      >
+        <Icons.userCheck className="size-4" />
+        <span>Persetujuan Role</span>
+        <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-2xs font-bold leading-none text-white bg-amber-500 rounded-full animate-pulse">
+          <MetricTicker value={count} />
+        </span>
+      </Button>
+      <UserApprovalDialog open={open} onOpenChange={setOpen} />
+    </>
+  )
+}
 
 export function ClientManagerSkeleton() {
   return (

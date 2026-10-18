@@ -1,6 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NotificationCenter } from './notification-center'
 
 // Mock useRouter
@@ -10,15 +11,60 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+let mockPendingUsersData = {
+  pendingUsers: [] as Array<{
+    id: string
+    email: string
+    fullName: string
+    avatarUrl?: string | null
+    provider: string
+    createdAt: string
+    role: string | null
+    clientId: string | null
+  }>,
+  count: 0,
+  clients: [] as Array<{ id: string; name: string }>,
+}
 
+vi.mock('@/features/pending-users/api/queries', () => ({
+  usePendingUsers: vi.fn(() => ({
+    data: mockPendingUsersData,
+    isLoading: false,
+    refetch: vi.fn(),
+  })),
+  useApproveUserMutation: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  })),
+}))
+
+function renderWithClient(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>
+  )
+}
 
 describe('NotificationCenter Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockPendingUsersData = {
+      pendingUsers: [],
+      count: 0,
+      clients: [],
+    }
   })
 
   it('renders trigger button without false badge when notifications are empty', () => {
-    render(<NotificationCenter role="admin" initialCount={0} />)
+    renderWithClient(<NotificationCenter role="admin" initialCount={0} />)
 
     const button = screen.getByRole('button', { name: /Pusat Notifikasi/i })
     expect(button).toBeInTheDocument()
@@ -28,7 +74,7 @@ describe('NotificationCenter Component', () => {
   })
 
   it('opens popover and shows clean empty state without badge mismatch or dead gap', async () => {
-    render(<NotificationCenter role="admin" initialCount={0} />)
+    renderWithClient(<NotificationCenter role="admin" initialCount={0} />)
 
     const trigger = screen.getByRole('button', { name: /Pusat Notifikasi/i })
     fireEvent.click(trigger)
@@ -39,7 +85,7 @@ describe('NotificationCenter Component', () => {
     expect(screen.queryByText(/1 Baru/i)).not.toBeInTheDocument()
 
     // Tab filter
-    expect(screen.getByText('Semua')).toBeInTheDocument()
+    expect(screen.getByText('Semua (0)')).toBeInTheDocument()
     expect(screen.getByText('Belum Dibaca (0)')).toBeInTheDocument()
 
     // Pesan empty state
@@ -59,7 +105,7 @@ describe('NotificationCenter Component', () => {
       },
     ]
 
-    render(
+    renderWithClient(
       <NotificationCenter
         role="admin"
         initialNotifications={mockNotifications}
@@ -79,5 +125,39 @@ describe('NotificationCenter Component', () => {
     // Item notifikasi
     expect(screen.getByText('Draft Konten Siap Review')).toBeInTheDocument()
     expect(screen.getByText('Materi Reels dari klien Pawon Sengon siap direview.')).toBeInTheDocument()
+  })
+
+  it('displays pending user approval notification and badge when pending users exist', () => {
+    mockPendingUsersData = {
+      pendingUsers: [
+        {
+          id: 'user-bebek-123',
+          email: 'bebekbek9191@gmail.com',
+          fullName: 'Bima Maulana Saputra',
+          provider: 'google',
+          createdAt: new Date().toISOString(),
+          role: null,
+          clientId: null,
+        },
+      ],
+      count: 1,
+      clients: [{ id: 'client-1', name: 'Taraju' }],
+    }
+
+    renderWithClient(<NotificationCenter role="admin" />)
+
+    // Badge must be visible on bell trigger with count 1
+    expect(screen.getByText('1')).toBeInTheDocument()
+
+    const trigger = screen.getByRole('button', { name: /Pusat Notifikasi/i })
+    fireEvent.click(trigger)
+
+    // Notification popover shows "Persetujuan Role (1)"
+    expect(screen.getByText(/Persetujuan Role \(1\)/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/bebekbek9191@gmail\.com/i).length).toBeGreaterThan(0)
+
+    // "Pilih Role" button is present
+    const pilihRoleBtn = screen.getByRole('button', { name: /Pilih Role/i })
+    expect(pilihRoleBtn).toBeInTheDocument()
   })
 })

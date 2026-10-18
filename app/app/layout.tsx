@@ -40,7 +40,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://frhm.agency'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://frhm.web.id'),
   title: {
     default: `${PRODUCT_NAME} — Platform Digital Marketing & Otomatisasi Konten`,
     template: `%s | ${PRODUCT_NAME}`,
