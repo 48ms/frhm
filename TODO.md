@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
 **Terakhir diperbarui:** 2026-10-18 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 117 test suites passed (660/660 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
+**Status Repositori:** Clean, 118 test suites passed (664/664 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -550,6 +550,21 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
     - `npx tsc --noEmit`: 0 error (100% clean typecheck).
     - `npx vitest run`: 117/117 test suites PASS (660 tests passed, 0 failed).
     - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
+
+- [x] **Preservasi Public Origin di Balik Reverse Proxy & Rute Link Notifikasi Portal Klien (2026-10-18)**:
+  - **Eliminasi Kebocoran Internal Host (`localhost:3000`) pada HTTP Redirects:**
+    - Membuat modul sentral [lib/request-origin.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/request-origin.ts) yang mengekstrak public origin dari header proxy (`x-forwarded-host`, `x-forwarded-proto`), fallback aman ke `NEXT_PUBLIC_APP_URL`, dan parsing URL request.
+    - Mencegah kebocoran `localhost:3000` ke header `Location` browser saat aplikasi dideploy di balik Nginx, Docker, atau Cloud Run.
+    - Mengamankan seluruh route handler OAuth (`/api/social/callback`, `/api/social/instagram/callback`) dan autentikasi (`/auth/callback`, `/auth/signout`).
+  - **Hardening Tautan Notifikasi Telegram Bot Klien:**
+    - Memperbarui [app/api/telegram/webhook/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/telegram/webhook/route.ts) agar tombol inline *"Buka Portal Frhm"* mengarah ke rute portal klien mandiri (`/client/dashboard?clientId=${clientId}`) alih-alih rute internal admin agensi (`/admin/erp`).
+    - Memperbarui [lib/telegram/service.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/telegram/service.ts): notifikasi konten siap review mengarah ke `/review/[deliverableId]` atau `/client/review?clientId=${clientId}`, dan pengingat tayang mengarah ke `/client/calendar?clientId=${clientId}`.
+  - **Verifikasi Kualitas (Verification Loop)**:
+    - Unit tests: [request-origin.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/request-origin.test.ts) (4/4 tests passed).
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 118/118 test suites PASS (664 tests passed, 0 failed).
+    - `npm run build`: Kompilasi Turbopack Next.js 16.3.5 100% sukses.
+
 
 
 
