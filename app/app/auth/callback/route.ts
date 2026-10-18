@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit/log'
 import { checkRateLimit } from '@/lib/middleware/rate-limit'
 import { safeRedirect } from '@/lib/safe-redirect'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 const RATE_LIMIT = 5
 const RATE_WINDOW_MS = 60_000 // 5 attempts per minute
@@ -12,6 +13,7 @@ function getIp(req: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
+  const origin = getRequestOrigin(request)
   const ip = getIp(request)
   const limited = checkRateLimit(ip, 'auth/callback', RATE_LIMIT, RATE_WINDOW_MS)
   if (limited.limited) {
@@ -20,7 +22,7 @@ export async function GET(request: NextRequest) {
       summary: `Auth callback rate limited: ${ip}`,
       request,
     })
-    const url = new URL('/waitlist', request.url)
+    const url = new URL('/waitlist', origin)
     return NextResponse.redirect(url)
   }
 
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
       summary: `OAuth error dari provider: ${oauthError}`,
       request,
     })
-    const loginUrl = new URL('/auth/login', request.url)
+    const loginUrl = new URL('/auth/login', origin)
     loginUrl.searchParams.set('error', oauthError)
     return NextResponse.redirect(loginUrl)
   }
@@ -70,7 +72,7 @@ export async function GET(request: NextRequest) {
           if (profile.role === 'client' && !destination.startsWith('/client')) {
             destination = defaultTarget
           }
-          const url = new URL(destination, request.url)
+          const url = new URL(destination, origin)
           return NextResponse.redirect(url)
         }
         void logAudit({
@@ -80,7 +82,7 @@ export async function GET(request: NextRequest) {
           summary: 'Login berhasil tapi user tidak punya role',
           request,
         })
-        const waitlistUrl = new URL('/waitlist', request.url)
+        const waitlistUrl = new URL('/waitlist', origin)
         return NextResponse.redirect(waitlistUrl)
       }
     } else {
@@ -89,12 +91,12 @@ export async function GET(request: NextRequest) {
         summary: `Login gagal: ${error.message}`,
         request,
       })
-      const loginUrl = new URL('/auth/login', request.url)
+      const loginUrl = new URL('/auth/login', origin)
       loginUrl.searchParams.set('error', error.message || 'Gagal autentikasi dengan penyedia pihak ketiga')
       return NextResponse.redirect(loginUrl)
     }
   }
 
-  const url = new URL('/auth/login', request.url)
+  const url = new URL('/auth/login', origin)
   return NextResponse.redirect(url)
 }

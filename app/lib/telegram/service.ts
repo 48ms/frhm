@@ -216,7 +216,9 @@ export async function notifyClientContentReady(params: {
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
   const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const reviewUrl = `${appUrl}/admin/erp`
+  const reviewUrl = params.deliverableId
+    ? `${appUrl}/review/${params.deliverableId}`
+    : `${appUrl}/client/review?clientId=${params.clientId}`
 
   const lines = [
     `<b>Konten Baru Siap Direview</b>`,
@@ -452,7 +454,7 @@ export async function notifyClientReminder(params: {
   campaignTag?: string
 }, options?: { onBlocked?: (recipientType: 'client' | 'admin' | 'user', recipientId?: string) => Promise<void> }) {
   const appUrl = env.server.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const calendarUrl = `${appUrl}/admin/calendar`
+  const calendarUrl = `${appUrl}/client/calendar?clientId=${params.clientId}`
 
   const dateStr = new Date(params.scheduledAt).toLocaleDateString('id-ID', {
     weekday: 'long',

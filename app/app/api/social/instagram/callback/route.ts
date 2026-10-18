@@ -4,6 +4,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { verifyOAuthState, OAUTH_STATE_COOKIE } from '@/lib/social/oauth-state'
 import { exchangeMetaCodeForToken, getConnectedInstagramAccounts } from '@/lib/social/meta-instagram'
 import { logger } from '@/lib/logger'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 function readCookie(req: Request, name: string): string | null {
   const header = req.headers.get('cookie')
@@ -16,6 +17,7 @@ function readCookie(req: Request, name: string): string | null {
 }
 
 export async function GET(req: Request) {
+  const origin = getRequestOrigin(req)
   try {
     const url = new URL(req.url)
     const code = url.searchParams.get('code')
@@ -34,7 +36,7 @@ export async function GET(req: Request) {
         metadata: { hasStateParam: Boolean(stateParam), hasCookie: Boolean(cookieState) },
       })
       return NextResponse.redirect(
-        new URL('/admin/social-accounts?error=invalid_oauth_state', req.url),
+        new URL('/admin/social-accounts?error=invalid_oauth_state', origin),
       )
     }
 
@@ -53,7 +55,7 @@ export async function GET(req: Request) {
       })
 
       const failed = NextResponse.redirect(
-        new URL(`/admin/social-accounts?clientId=${clientId}&error=${encodeURIComponent(msg)}`, req.url),
+        new URL(`/admin/social-accounts?clientId=${clientId}&error=${encodeURIComponent(msg)}`, origin),
       )
       failed.cookies.delete(OAUTH_STATE_COOKIE)
       return failed
@@ -68,7 +70,7 @@ export async function GET(req: Request) {
     if (igAccounts.length === 0) {
       const errMsg = 'Tidak ditemukan akun Instagram Business pada Halaman Facebook Anda. Pastikan akun Instagram bertipe Professional dan sudah terhubung ke Halaman Facebook.'
       const failed = NextResponse.redirect(
-        new URL(`/admin/social-accounts?clientId=${clientId}&error=${encodeURIComponent(errMsg)}`, req.url),
+        new URL(`/admin/social-accounts?clientId=${clientId}&error=${encodeURIComponent(errMsg)}`, origin),
       )
       failed.cookies.delete(OAUTH_STATE_COOKIE)
       return failed
@@ -155,14 +157,14 @@ export async function GET(req: Request) {
     })
 
     const ok = NextResponse.redirect(
-      new URL(`/admin/social-accounts?clientId=${clientId}&success=connected`, req.url),
+      new URL(`/admin/social-accounts?clientId=${clientId}&success=connected`, origin),
     )
     ok.cookies.delete(OAUTH_STATE_COOKIE)
     return ok
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem'
     return NextResponse.redirect(
-      new URL(`/admin/social-accounts?error=${encodeURIComponent(msg)}`, req.url),
+      new URL(`/admin/social-accounts?error=${encodeURIComponent(msg)}`, origin),
     )
   }
 }

@@ -155,7 +155,7 @@ export async function POST(request: Request) {
           [
             {
               text: 'Buka Portal Frhm',
-              url: `${appUrl}/admin/erp`,
+              url: `${appUrl}/client/dashboard?clientId=${clientId}`,
             },
           ],
         ],

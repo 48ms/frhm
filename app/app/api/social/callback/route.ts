@@ -3,6 +3,7 @@ import { logAudit } from '@/lib/audit/log'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { verifyOAuthState, OAUTH_STATE_COOKIE } from '@/lib/social/oauth-state'
 import { env } from '@/lib/env'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 function readCookie(req: Request, name: string): string | null {
   const header = req.headers.get('cookie')
@@ -15,6 +16,7 @@ function readCookie(req: Request, name: string): string | null {
 }
 
 export async function GET(req: Request) {
+  const origin = getRequestOrigin(req)
   try {
     const url = new URL(req.url)
     const platform = url.searchParams.get('platform')
@@ -34,7 +36,7 @@ export async function GET(req: Request) {
         metadata: { platform, hasStateParam: Boolean(stateParam), hasCookie: Boolean(cookieState) },
       })
       return NextResponse.redirect(
-        new URL('/admin/social-accounts?error=invalid_oauth_state', req.url)
+        new URL('/admin/social-accounts?error=invalid_oauth_state', origin)
       )
     }
 
@@ -58,20 +60,20 @@ export async function GET(req: Request) {
       if (error === 'user_cancelled') errorMessage = 'Koneksi dibatalkan oleh pengguna'
 
       const failed = NextResponse.redirect(
-        new URL(`/admin/social-accounts?error=${encodeURIComponent(errorMessage)}`, req.url)
+        new URL(`/admin/social-accounts?error=${encodeURIComponent(errorMessage)}`, origin)
       )
       failed.cookies.delete(OAUTH_STATE_COOKIE)
       return failed
     }
 
     if (!clientId || !signedPlatform) {
-      return NextResponse.redirect(new URL('/admin/social-accounts?error=missing_params', req.url))
+      return NextResponse.redirect(new URL('/admin/social-accounts?error=missing_params', origin))
     }
 
     const apiKey = env.server.AYRSHARE_API_KEY
     if (!apiKey) {
       return NextResponse.redirect(
-        new URL('/admin/social-accounts?error=ayrshare_not_configured', req.url)
+        new URL('/admin/social-accounts?error=ayrshare_not_configured', origin)
       )
     }
 
@@ -153,12 +155,12 @@ export async function GET(req: Request) {
     })
 
     const ok = NextResponse.redirect(
-      new URL(`/admin/social-accounts?clientId=${clientId}&success=connected`, req.url)
+      new URL(`/admin/social-accounts?clientId=${clientId}&success=connected`, origin)
     )
     ok.cookies.delete(OAUTH_STATE_COOKIE)
     return ok
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.redirect(new URL(`/admin/social-accounts?error=${encodeURIComponent(msg)}`, req.url))
+    return NextResponse.redirect(new URL(`/admin/social-accounts?error=${encodeURIComponent(msg)}`, origin))
   }
 }
