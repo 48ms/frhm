@@ -483,11 +483,14 @@ RULES & INTERVIEW HYGIENE (SOCIAL-MEDIA-SKILLS FOUNDATION):
         content: m.content,
       }))
 
-    // If initial empty conversation, trigger opening greeting
+    // If initial empty conversation, trigger opening greeting with infer-first protocol
     if (formattedMessages.length === 0) {
       formattedMessages.push({
         role: "user",
-        content: `Halo! Saya ingin memulai playbook ${skillId} untuk klien ${clientName}. Tolong perkenalkan tujuan playbook ini dan ajukan pertanyaan pertama.`,
+        content:
+          skillId === "brand-profile"
+            ? `Halo! Saya ingin merancang Brand Profile untuk klien "${clientName}". Sudah ada data awal klien. Tolong telaah ringkas apa yang sudah diketahui dari konteks dalam 1-2 kalimat, lalu ajukan 1 atau 2 pertanyaan terfokus pertama untuk membedah positioning dan diferensiasi unik brand ini.`
+            : `Halo! Saya ingin memulai playbook ${skillId} untuk klien "${clientName}". Tolong perkenalkan tujuan playbook ini dan ajukan pertanyaan pertama.`,
       })
     }
 

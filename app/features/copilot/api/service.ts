@@ -334,10 +334,16 @@ export async function generateContentIdeas(input: GenerateIdeasInput): Promise<I
     if (!provider) return { ideas: [], error: "AI Provider belum dikonfigurasi." }
 
     const instruction = `
-You are a world-class Social Media Strategist.
-Generate ${count} distinct, high-quality content ideas based on the provided trend or topic.
-
+You are a world-class Social Media Strategist executing the authoritative 'idea-generation-and-ideation' playbook from social-media-skills.
+Generate ${count} distinct, high-impact content ideas based on the provided trend or topic.
 Topic/Trend constraint: ${trendOrTopic || "General brand pillars"}
+
+RULES (from idea-generation-and-ideation playbook):
+1. STRATEGY-FIRST: Anchor every single idea directly to one of the brand's verified content pillars, audience desires, or positioning angles from the brand context.
+2. HOOK FOCUS: The "hook" property MUST be the exact first line stop-scroll copy tailored to win the tap on "...more" (Instagram/LinkedIn) or the first 3 seconds (Reels/TikTok).
+3. NATIVE FORMATS: Rotate formats realistically ("Carousel", "Reel", "Single Photo", "Thread", "Story") across platforms.
+4. NO AI CLICHES: Never use generic phrases ("in today's digital world", "game-changer", "unleash", "delve into"). Use natural, conversational, professional Indonesian.
+5. OUTPUT: Return valid JSON with "ideas" array matching the requested schema.
 `
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "idea-generation-and-ideation", instruction)
     if (!systemPrompt) return { ideas: [], error: "Failed to build system prompt" }
@@ -373,13 +379,16 @@ export async function generateVideoScript(input: GenerateVideoScriptInput): Prom
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
     const instruction = `
-You are an elite Short-Form Video Scriptwriter.
-Write a script tailored for ${platform} with a target duration of ${duration}.
+You are an elite Short-Form Video Scriptwriter executing the authoritative 'short-form-video-script' and 'reels-script' playbooks from social-media-skills.
+Write a production-ready script tailored for ${platform} with a target duration of ${duration}.
 
-RULES:
-1. Hook (0-3s): Must grab attention immediately visually and audibly.
-2. Value (3s-end): Deliver on the hook without fluff.
-3. Formatting: Output an array of 'scenes'. Each scene must have visual instructions, audio/dialogue, and an estimated duration.
+RULES (from reels-script & short-form-video-script playbooks):
+1. Sound-Off Hook (0-3s): Must grab attention immediately visually on-screen and audibly without any intro pause, logo splash, or generic greeting.
+2. The Friction / Problem Loop (3-8s): Cut straight to the real problem, question, or contrast.
+3. Core Value & The Shift (8-18s): Deliver on the hook promise without fluff, demonstrating the brand's unique method/perspective.
+4. Sensory / Proof Payoff (18-26s): Show tangible proof, satisfaction, or transformation.
+5. Loop Closer & Single CTA (26-30s): Clean seamless loop back to frame 1 with a single CTA (save/share).
+6. Formatting: Output an array of 'scenes'. Each scene must have timecode, visual description, audio/dialogue, and recommended toolRoute ("Veo", "Film it real", "HeyGen", etc.).
 `
     const skillId = (platform ?? "").toLowerCase().includes("tiktok") ? "tiktok-script" :
                     (platform ?? "").toLowerCase().includes("instagram") ? "reels-script" :
@@ -466,14 +475,16 @@ export async function generateHooks(input: GenerateHooksInput): Promise<HooksRes
     if (!provider) return { hooks: [], error: "AI Provider belum dikonfigurasi." }
 
     const instruction = `
-You are a scroll-stopping Hook Writer specialized in modern social feeds.
+You are a scroll-stopping Hook Writer specialized in modern social feeds executing the authoritative 'hook-writer' playbook from social-media-skills.
 Platform: ${platform}.
 Goal: ${goal || "stop the scroll and drive curiosity"}.
 
 RULES (from hook-writer playbook):
 1. The first line is the whole game. Write lines that earn the tap on "...more" or stop the scroll in under 3 seconds.
-2. Provide distinct angles: Curiosity, Contrarian, Direct Value, Story, and Relatable.
-3. No cheesy cliches like "In today's fast-paced world", "Happy Monday!", or forced emoji overload.
+2. For Instagram captions, keep the primary punchline strictly inside the 125-character preview cutoff.
+3. For Video/Reels, keep the spoken/visual hook within 90 characters or 3 seconds of sound-off viewing.
+4. Provide distinct psychological mechanisms across the hooks: Curiosity Gap, Contrarian / Hot Take, High Stakes / Specificity, Relatable Identity, and Direct Value.
+5. NO AI SLOP: Strictly avoid clichés like "In today's fast-paced world", "Happy Monday!", or forced emoji overload.
 `
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "hook-writer", instruction)
     if (!systemPrompt) return { hooks: [], error: "Gagal membangun prompt hook" }
@@ -509,16 +520,16 @@ export async function generateCarousel(input: GenerateCarouselInput): Promise<Ca
     if (!provider) return { error: "AI Provider belum dikonfigurasi." }
 
     const instruction = `
-You are an expert Social Media Carousel Writer & Art Director.
+You are an expert Social Media Carousel Writer & Art Director executing the authoritative 'carousel-writer' playbook from social-media-skills.
 Platform: ${platform}.
 Requested Slides: ${slideCount}.
 
 RULES (from carousel-writer playbook):
-1. Slide 1 (role: hook_cover): Stop the scroll. Must create an open loop or promise high value.
-2. Slides 2 to ${slideCount - 1} (role: content_value): One clear point per slide. Short punchy copy designed for mobile readability.
+1. Slide 1 (role: hook_cover): Stop the scroll! Must create an open loop or promise high concrete value with a mobile-legible headline.
+2. Slides 2 to ${slideCount - 1} (role: content_value): One clear point per slide. Short punchy copy designed for mobile readability (maximum 2-3 lines per block) and include a concrete takeaway.
 3. Slide ${slideCount} (role: cta_end): Single strong call to action (Save/Share/Follow).
-4. Provide visualDirection on every slide so designers know what visual/layout to place.
-5. Provide an accompanying caption that hooks into the carousel.
+4. Provide visualDirection and an optimized text-rendered image prompt (ideogramPrompt) on every slide so designers know exact composition and typography.
+5. Provide an accompanying caption that hooks into the carousel with line breaks and single CTA.
 `
     const systemPrompt = await buildSystemPrompt(supabase, clientId, "carousel-writer", instruction)
     if (!systemPrompt) return { error: "Gagal membangun prompt carousel" }

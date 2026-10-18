@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import type { Provider } from './providers'
 import { logger } from '@/lib/logger'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
-import { brandProfileToMarkdown } from '@/lib/brand-context'
+import { brandProfileToMarkdown, compileBrandContext } from '@/lib/brand-context'
 import fs from 'fs'
 import path from 'path'
 import { env } from '@/lib/env'
@@ -154,18 +154,36 @@ export async function loadClientFiles(
   const out: Record<string, string> = {}
   for (const r of data ?? []) out[r.path] = r.content
 
-  // Resilient fallback: jika brand-profile.md belum ada di client_files tapi clients.brand_profile ada di DB
-  if (!out['brand-profile.md']) {
+  // Resilient fallback: jika ada foundation files yang belum ada di client_files tapi clients.brand_profile ada di DB
+  const needsProfile = !out['brand-profile.md'] || !out['brand-profile.md'].trim()
+  const needsVoice = !out['voice.md'] || !out['voice.md'].trim()
+  const needsPillars = !out['content-pillars.md'] || !out['content-pillars.md'].trim()
+  const needsGuardrails = !out['guardrails.md'] || !out['guardrails.md'].trim()
+
+  if (needsProfile || needsVoice || needsPillars || needsGuardrails) {
     const { data: clientRow } = await admin
       .from('clients')
-      .select('brand_profile')
+      .select('name, brand_profile')
       .eq('id', clientId)
       .maybeSingle()
 
     if (clientRow?.brand_profile && typeof clientRow.brand_profile === 'object') {
       const bp = clientRow.brand_profile as Record<string, any>
-      if (bp.who || bp.voice || bp.audience || bp.pov || bp.guardrails) {
-        out['brand-profile.md'] = brandProfileToMarkdown(bp)
+      const cName = clientRow.name || 'Client'
+
+      if (needsProfile && (bp.who || bp.identity || bp.voice || bp.audience || bp.pov || bp.guardrails)) {
+        out['brand-profile.md'] = brandProfileToMarkdown(bp, cName)
+      }
+      if (needsVoice && bp.voice && typeof bp.voice === 'string' && bp.voice.trim()) {
+        out['voice.md'] = `# Brand Voice & Tone Guide — ${cName}\n\n## Tone of Voice\n${bp.voice.trim()}`
+      }
+      if (needsPillars && Array.isArray(bp.pillars) && bp.pillars.length > 0) {
+        out['content-pillars.md'] = `# Content Pillars & Focus Areas — ${cName}\n\n${bp.pillars
+          .map((p: string) => (p.startsWith('-') ? p : `- ${p}`))
+          .join('\n')}`
+      }
+      if (needsGuardrails && bp.guardrails && typeof bp.guardrails === 'string' && bp.guardrails.trim()) {
+        out['guardrails.md'] = `# Brand Guardrails & Never-List — ${cName}\n\n## Never-List & Restrictions\n${bp.guardrails.trim()}`
       }
     }
   }
@@ -174,26 +192,5 @@ export async function loadClientFiles(
 }
 
 export function brandContext(name: string, files: Record<string, string>): string {
-  const sections: string[] = []
-
-  const bp = files['brand-profile.md']
-  if (bp) {
-    sections.push(bp)
-  } else {
-    sections.push(`# Brand Profile — ${name}\n\n(belum ada brand-profile.md; buat dulu sebelum skill lain dijalankan)`)
-  }
-
-  if (files['voice.md']?.trim()) {
-    sections.push(`## Brand Voice & Tone Guide\n${files['voice.md']}`)
-  }
-
-  if (files['content-pillars.md']?.trim()) {
-    sections.push(`## Content Pillars & Focus Areas\n${files['content-pillars.md']}`)
-  }
-
-  if (files['guardrails.md']?.trim()) {
-    sections.push(`## Brand Guardrails & Never-List\n${files['guardrails.md']}`)
-  }
-
-  return sections.join('\n\n---\n\n')
+  return compileBrandContext(name, files)
 }
