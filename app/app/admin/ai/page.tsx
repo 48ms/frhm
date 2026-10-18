@@ -9,7 +9,7 @@ import AiStudioLoading from "./loading"
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'AI Studio & Content Intelligence | Frhm Studio',
+  title: 'AI Studio & Content Intelligence',
   description: 'AI Hook Generator, Batch Content Planner, Trend Radar, Brand Brain, dan Playbooks strategi pemasaran otomatis.',
 }
 
