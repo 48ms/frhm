@@ -7,8 +7,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Support & Help Center | Frahma",
-  description: "Pusat bantuan teknis, tiket prioritas, dan dokumentasi operasional platform Frahma.",
+  title: "Hotline Dukungan & Kemitraan",
+  description: "Pusat bantuan teknis, tiket prioritas, dan dokumentasi operasional platform Frhm.",
 }
 
 export default async function SupportPage(
