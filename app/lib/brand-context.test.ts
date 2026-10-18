@@ -219,6 +219,23 @@ Dilarang klaim menyembuhkan penyakit medis.
       expect(combined).toContain("## Brand Guardrails & Never-List\nDilarang hoax.")
     })
 
+    it("includes audience, strategy, goals, and calendar when present", () => {
+      const files = {
+        "brand-profile.md": "# Brand Profile\nTeh Taraju",
+        "voice.md": "Gaya bahasa santai.",
+        "audience.md": "Audiens: penikmat kopi yang ingin beralih ke teh.",
+        "social-strategy.md": "Fokus Instagram Reels dan TikTok.",
+        "goals-and-kpis.md": "North Star: 500 repeat orders per bulan.",
+        "content-calendar.md": "Posting 3x seminggu.",
+      }
+
+      const combined = compileBrandContext("Taraju", files)
+      expect(combined).toContain("## Audience Research & Voice of Customer\nAudiens: penikmat kopi")
+      expect(combined).toContain("## Social Media Strategy & Platform Choices\nFokus Instagram Reels")
+      expect(combined).toContain("## Goals, SMART Targets & North Star Metrics\nNorth Star: 500 repeat orders")
+      expect(combined).toContain("## Content Calendar & Recurring Cadence\nPosting 3x seminggu.")
+    })
+
     it("provides fallback if brand-profile.md is absent", () => {
       const combined = compileBrandContext("Pawon Sengon", {})
       expect(combined).toContain("# Brand Profile — Pawon Sengon")

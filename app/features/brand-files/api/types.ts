@@ -23,7 +23,15 @@ export interface DeleteClientFileInput {
   path: string
 }
 
-export type BrandFileKey = 'brand-profile.md' | 'voice.md' | 'content-pillars.md' | 'guardrails.md'
+export type BrandFileKey =
+  | 'brand-profile.md'
+  | 'voice.md'
+  | 'content-pillars.md'
+  | 'guardrails.md'
+  | 'audience.md'
+  | 'social-strategy.md'
+  | 'goals-and-kpis.md'
+  | 'content-calendar.md'
 
 export interface BrandFileMeta {
   path: BrandFileKey
@@ -204,4 +212,83 @@ export const STANDARD_BRAND_FILES: BrandFileMeta[] = [
 - Dilarang berdebat di kolom komentar terbuka dengan troll atau akun anonim provokatif.
 `,
   },
+  {
+    path: 'audience.md',
+    title: 'Audience Research & Voice of Customer',
+    shortLabel: 'Audience',
+    description: 'Profil target audiens, jobs-to-be-done, hambatan psikologis, dan bank kata/kalimat asli audiens.',
+    defaultTemplate: `# Audience Research & Voice of Customer
+<!-- version: 1.0 · review: quarterly or on audience expansion -->
+
+## Jobs-to-be-Done (JTBD)
+- **Primary Job:** [Apa yang ingin diselesaikan audiens dalam kesehariannya tanpa jargon]
+- **Emotional Job:** [Bagaimana perasaan yang ingin mereka rasakan atau hindari]
+
+## Pain Points & Objections (Hambatan Nyata)
+- [Masalah #1 yang paling sering dikeluhkan dan membuat mereka frustrasi]
+- [Keraguan atau skeptisisme utama sebelum memutuskan membeli/percaya]
+
+## Language Bank (Voice of Customer)
+- *"[Frasa verbatim asli yang sering diucapkan audiens di komentar/review/DM]"*
+- *"[Istilah yang mereka pakai untuk mendeskripsikan kebutuhan mereka]"*
+`,
+  },
+  {
+    path: 'social-strategy.md',
+    title: 'Social Media Strategy & Platform Choices',
+    shortLabel: 'Strategy',
+    description: 'Pilihan platform utama, fokus diferensiasi, apa yang sengaja TIDAK dilakukan, dan ritme eksekusi.',
+    defaultTemplate: `# Social Media Strategy
+<!-- version: 1.0 · review: quarterly -->
+
+## Channel Selection & Roles
+- **Primary Channel:** [Nama Platform] — [Peran utama: konversi / edukasi / brand authority]
+- **Secondary Channel:** [Nama Platform] — [Peran pendukung]
+- **Deliberately Ignored:** [Platform yang sengaja ditinggalkan agar fokus tidak terpecah]
+
+## Winning Angle & Positioning
+- [Sudut pandang tajam dan cara brand mendominasi perhatian di platform pilihan]
+
+## Operating Rhythm
+- Target posting konsisten mingguan dan alokasi waktu engagement harian.
+`,
+  },
+  {
+    path: 'goals-and-kpis.md',
+    title: 'Goals, SMART Targets & North Star Metrics',
+    shortLabel: 'Goals & KPIs',
+    description: 'Target bisnis non-vanity, metrik North Star per channel, dan batas intervensi (NORTH framework).',
+    defaultTemplate: `# Goals & North Star KPIs (NORTH Framework)
+<!-- version: 1.0 · review: quarterly -->
+
+## Business Objective
+- **Core Business Goal:** [Target bisnis riil: leads, revenue, repeat order, authority]
+
+## North Star Metrics per Channel
+- **[Channel #1]:** [1 Metrik Utama, misal: Engaged Accounts / Saves / DMs]
+- **Benchmark Target:** [Target angka realistis berdasarkan data riil]
+
+## Guardrail Metrics
+- [Metrik pelindung agar tidak mengejar vanity metric atau clickbait kosong]
+`,
+  },
+  {
+    path: 'content-calendar.md',
+    title: 'Content Calendar & Recurring Cadence',
+    shortLabel: 'Calendar',
+    description: 'Sistem ritme kalender, jadwal slot mingguan berulang per pilar, dan serial konten rutin.',
+    defaultTemplate: `# Content Calendar & Recurring Cadence
+<!-- version: 1.0 · review: monthly -->
+
+## Recurring Slot Architecture
+- **Senin:** [Pilar 1 — Edukasi / Problem Solving]
+- **Rabu:** [Pilar 2 — BTS / Brand Story]
+- **Jumat:** [Pilar 3 — Social Proof / Testimoni]
+- **Minggu (Opsional):** [Pilar 4 — Promo / Community Spotlight]
+
+## Named Recurring Series
+- [Nama Rubrik Rutin Mingguan, misal: #BongkarMitos atau #CeritaDapur]
+`,
+  },
 ]
+

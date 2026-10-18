@@ -248,5 +248,21 @@ export function compileBrandContext(clientName: string, files: Record<string, st
     sections.push(`## Brand Guardrails & Never-List\n${files["guardrails.md"]}`)
   }
 
+  if (files["audience.md"]?.trim()) {
+    sections.push(`## Audience Research & Voice of Customer\n${files["audience.md"]}`)
+  }
+
+  if (files["social-strategy.md"]?.trim()) {
+    sections.push(`## Social Media Strategy & Platform Choices\n${files["social-strategy.md"]}`)
+  }
+
+  if (files["goals-and-kpis.md"]?.trim()) {
+    sections.push(`## Goals, SMART Targets & North Star Metrics\n${files["goals-and-kpis.md"]}`)
+  }
+
+  if (files["content-calendar.md"]?.trim()) {
+    sections.push(`## Content Calendar & Recurring Cadence\n${files["content-calendar.md"]}`)
+  }
+
   return sections.join("\n\n---\n\n")
 }

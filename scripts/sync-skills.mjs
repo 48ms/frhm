@@ -1,14 +1,22 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load env from app/.env.local
-dotenv.config({ path: path.resolve(__dirname, '../app/.env.local') });
+const envPath = path.resolve(__dirname, '../app/.env.local');
+if (fs.existsSync(envPath)) {
+  const content = fs.readFileSync(envPath, 'utf8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [k, ...v] = trimmed.split('=');
+      process.env[k.trim()] = v.join('=').trim().replace(/^["']|["']$/g, '');
+    }
+  }
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,67 +26,79 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
+const supabaseJsPath = path.resolve(__dirname, '../app/node_modules/@supabase/supabase-js/dist/index.mjs');
+const { createClient } = await import(pathToFileURL(supabaseJsPath).href);
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const SMS_REPO_PATH = path.resolve(__dirname, '../social-media-skills/skills');
 const PACKS_JSON_PATH = path.resolve(__dirname, '../social-media-skills/scripts/packs.json');
 
-const CATEGORY_MAP = {
-  'Foundation & strategy': [
-    'brand-profile', 'voice-builder', 'writing-style-and-tone', 'audience-research',
-    'social-strategy', 'content-pillars', 'goals-and-kpis', 'profile-optimization', 'competitor-analysis'
-  ],
-  'Ideas & content angles': [
-    'idea-generation-and-ideation', 'content-research-and-sourcing', 'educational-content-and-how-to',
-    'storytelling-and-narrative', 'contrarian-and-opinion', 'before-after-and-transformation',
-    'social-proof-and-testimonials', 'listicle-and-roundup', 'behind-the-scenes-and-founder',
-    'interactive-content', 'meme-and-culture', 'trend-jacking', 'data-and-original-research',
-    'viral-reverse-engineering'
-  ],
-  'Copy & captions': [
-    'hook-writer', 'caption-writer', 'thread-writer', 'threads-post',
-    'text-post-and-microblog', 'carousel-writer', 'story-writer', 'reply-and-comment-writer'
-  ],
-  'Video scripts': [
-    'short-form-video-script', 'reels-script', 'tiktok-script', 'youtube-shorts',
-    'youtube-long-form', 'scripting-and-storyboarding', 'talking-head-and-piece-to-camera',
-    'podcast-and-audiograms', 'livestream-and-realtime'
-  ],
-  'AI video': ['ai-video', 'veo-3', 'kling', 'luma', 'heygen', 'synthesia', 'runway'],
-  'Visual & design': [
-    'design-and-templates', 'thumbnail-design', 'pinterest-pin-design',
-    'quote-cards-and-text-graphics', 'infographic-and-data-viz', 'image-prompt',
-    'nano-banana', 'ideogram', 'flux', 'ai-image-editing', 'canva'
-  ],
-  'Voice & music': ['ai-voiceover', 'suno', 'ai-music-and-sound'],
-  'Editing & clipping': ['capcut', 'descript', 'opus-clip', 'captions-and-clipping'],
-  'Platform growth': [
-    'instagram-growth', 'tiktok-growth', 'tiktok-photo-mode', 'linkedin-growth',
-    'linkedin-post-writer', 'linkedin-company-pages', 'x-growth', 'threads-growth',
-    'facebook-strategy', 'facebook-groups', 'pinterest-growth', 'pinterest-seo',
-    'youtube-publishing-and-metadata', 'reddit-marketing'
-  ],
-  'Distribution & monetization': [
-    'hashtag-strategy', 'social-seo', 'ai-search-optimization',
-    'cross-platform-repurposing', 'content-recycling', 'link-in-bio-and-traffic',
-    'lead-magnets-and-funnels', 'social-selling-and-dm', 'collabs-and-cross-promotion',
-    'ugc-and-influencer', 'creator-monetization', 'email-and-newsletter', 'instagram-seo'
-  ],
-  'Community & operations': ['engagement-routine', 'community-management', 'crisis-and-moderation'],
-  'Publishing & measurement': [
-    'scheduling-and-queue', 'platform-specs-and-validation', 'analytics-and-reporting',
-    'content-audit', 'experimentation-and-ab-testing', 'instagram-reels-publishing',
-    'tiktok-video-publishing'
-  ],
-  'Planning': [
-    'campaign-and-launch-planning', 'batch-content-plan', 'content-calendar',
-    'seasonal-and-moment-marketing'
-  ],
+const TAXONOMY_PATH = path.resolve(__dirname, '../social-media-skills/scripts/site-taxonomy.json');
+
+const STAGE_MAP = {
+  'Foundation & strategy': 'foundation',
+  'Ideas & content angles': 'plan',
+  'Copy & captions': 'create',
+  'Video scripts': 'create',
+  'AI video': 'media',
+  'Visual & design': 'media',
+  'Voice & music': 'media',
+  'Editing & clipping': 'media',
+  'Platform growth': 'grow',
+  'Plan, publish & schedule': 'publish',
+  'Hashtags & SEO': 'grow',
+  'Community & engagement': 'grow',
+  'Influencer, funnels & monetization': 'grow',
+  'Analytics & optimization': 'measure',
 };
 
+function deriveFileDependencies(skillId) {
+  const WRITES_MAP = {
+    'brand-profile': ['brand-profile.md'],
+    'voice-builder': ['voice.md'],
+    'writing-style-and-tone': ['voice.md'],
+    'content-pillars': ['content-pillars.md'],
+    'guardrails': ['guardrails.md'],
+    'audience-research': ['audience.md'],
+    'social-strategy': ['social-strategy.md'],
+    'goals-and-kpis': ['goals-and-kpis.md'],
+    'content-calendar': ['content-calendar.md'],
+    'batch-content-plan': ['content-calendar.md'],
+    'competitor-analysis': ['competitor-analysis.md'],
+    'campaign-and-launch-planning': ['campaign-plan.md'],
+  };
+
+  const READS_MAP = {
+    'brand-profile': [],
+    'voice-builder': ['brand-profile.md'],
+    'writing-style-and-tone': ['brand-profile.md'],
+    'audience-research': ['brand-profile.md'],
+    'social-strategy': ['brand-profile.md', 'audience.md'],
+    'content-pillars': ['brand-profile.md', 'social-strategy.md'],
+    'goals-and-kpis': ['brand-profile.md', 'social-strategy.md'],
+    'content-calendar': ['brand-profile.md', 'social-strategy.md', 'content-pillars.md'],
+    'batch-content-plan': ['brand-profile.md', 'voice.md', 'content-pillars.md'],
+    'competitor-analysis': ['brand-profile.md'],
+    'campaign-and-launch-planning': ['brand-profile.md', 'social-strategy.md', 'content-pillars.md'],
+  };
+
+  const writes = WRITES_MAP[skillId] || [];
+  const reads = READS_MAP[skillId] || ['brand-profile.md', 'voice.md'];
+  return { reads, writes };
+}
+
+function getTaxonomyMap() {
+  if (fs.existsSync(TAXONOMY_PATH)) {
+    return JSON.parse(fs.readFileSync(TAXONOMY_PATH, 'utf8'));
+  }
+  return {};
+}
+
+const TAXONOMY = getTaxonomyMap();
+
 function getCategory(skillName) {
-  for (const [cat, skills] of Object.entries(CATEGORY_MAP)) {
-    if (skills.includes(skillName)) return cat;
+  for (const [groupName, skills] of Object.entries(TAXONOMY)) {
+    if (skills.includes(skillName)) return groupName;
   }
   return 'uncategorized';
 }
@@ -150,9 +170,12 @@ async function sync() {
     if (!fs.existsSync(skillMdPath)) continue;
 
     const content = fs.readFileSync(skillMdPath, 'utf8');
-    const { name, description, allowedTools } = extractFrontmatter(content);
+    const files = loadSkillFiles(dir);
+    const { name, description, version, allowedTools } = extractFrontmatter(content);
     const category = getCategory(skillId);
     const job = description && description.length > 120 ? description.slice(0, 120) + '...' : description;
+    const { reads, writes } = deriveFileDependencies(skillId);
+    const stage = STAGE_MAP[category] || 'create';
 
     skillsData.push({
       id: skillId,
@@ -161,9 +184,14 @@ async function sync() {
       category,
       job,
       allowed_tools: allowedTools,
+      reads_files: reads,
+      writes_files: writes,
+      version: version || '1.0.0',
+      group_name: category,
+      stage,
+      file_count: Object.keys(files).length,
     });
 
-    const files = loadSkillFiles(dir);
     for (const [relPath, fileContent] of Object.entries(files)) {
       allFiles.push({
         skill_id: skillId,
@@ -172,6 +200,15 @@ async function sync() {
       });
     }
   }
+
+  // Sync skill groups
+  const groupsRows = Object.keys(TAXONOMY).map((groupName, idx) => ({
+    name: groupName,
+    sort_order: idx + 1,
+    stage: STAGE_MAP[groupName] || 'create',
+  }));
+  console.log(`Syncing ${groupsRows.length} skill groups into public.skill_groups...`);
+  await supabase.from('skill_groups').upsert(groupsRows, { onConflict: 'name' });
 
   console.log(`Upserting ${skillsData.length} skills into public.skills...`);
   const { error: skillErr } = await supabase.from('skills').upsert(skillsData, { onConflict: 'id' });
@@ -205,6 +242,8 @@ async function sync() {
       name: p.title,
       description: p.description || '',
       category: p.name,
+      tagline: p.tagline || '',
+      slug: p.name,
       sort_order: idx + 1,
     }));
 

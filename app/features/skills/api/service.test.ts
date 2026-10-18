@@ -653,6 +653,72 @@ Hangat dan bersahabat
         { onConflict: "client_id,path" }
       )
     })
+
+    it("auto-syncs audience-research output to client_files/audience.md", async () => {
+      const mockSingle = vi.fn().mockResolvedValue({ data: { id: "out-aud-1" }, error: null })
+      const mockSelect = vi.fn().mockReturnValue({ single: mockSingle })
+      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect })
+      const mockUpsertClientSkills = vi.fn().mockResolvedValue({ error: null })
+      const mockUpsertClientFiles = vi.fn().mockResolvedValue({ error: null })
+
+      mockServiceFrom.mockImplementation((table: string) => {
+        if (table === "skill_outputs") return { insert: mockInsert }
+        if (table === "client_skills") return { upsert: mockUpsertClientSkills }
+        if (table === "client_files") return { upsert: mockUpsertClientFiles }
+        return {}
+      })
+
+      const audienceContent = "# Audience Research\n## Jobs-to-be-Done\nDrink fresh organic tea"
+      const res = await saveSkillOutput({
+        clientId: "client-1",
+        skillId: "audience-research",
+        title: "Audience Persona",
+        content: audienceContent,
+      })
+
+      expect(res.success).toBe(true)
+      expect(mockUpsertClientFiles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          path: "audience.md",
+          content: audienceContent,
+        }),
+        { onConflict: "client_id,path" }
+      )
+    })
+
+    it("auto-syncs social-strategy output to client_files/social-strategy.md", async () => {
+      const mockSingle = vi.fn().mockResolvedValue({ data: { id: "out-strat-1" }, error: null })
+      const mockSelect = vi.fn().mockReturnValue({ single: mockSingle })
+      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect })
+      const mockUpsertClientSkills = vi.fn().mockResolvedValue({ error: null })
+      const mockUpsertClientFiles = vi.fn().mockResolvedValue({ error: null })
+
+      mockServiceFrom.mockImplementation((table: string) => {
+        if (table === "skill_outputs") return { insert: mockInsert }
+        if (table === "client_skills") return { upsert: mockUpsertClientSkills }
+        if (table === "client_files") return { upsert: mockUpsertClientFiles }
+        return {}
+      })
+
+      const strategyContent = "# Social Strategy\n## Primary Channel\nInstagram"
+      const res = await saveSkillOutput({
+        clientId: "client-1",
+        skillId: "social-strategy",
+        title: "Strategy Document",
+        content: strategyContent,
+      })
+
+      expect(res.success).toBe(true)
+      expect(mockUpsertClientFiles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          path: "social-strategy.md",
+          content: strategyContent,
+        }),
+        { onConflict: "client_id,path" }
+      )
+    })
   })
 })
 

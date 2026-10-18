@@ -243,7 +243,7 @@ export async function saveSkillOutput(
   const service = createSupabaseServiceClient()
 
   try {
-    const { clientId, skillId, title, content, status = "draft", stage } = input
+    const { clientId, skillId, title, content, status = "draft", stage, path: customPath } = input
 
     const { data, error } = await service
       .from("skill_outputs")
@@ -327,45 +327,44 @@ export async function saveSkillOutput(
           error: syncErr instanceof Error ? syncErr.message : String(syncErr),
         })
       }
-    } else if (skillId === "voice-builder" || skillId === "writing-style-and-tone") {
-      await service
-        .from("client_files")
-        .upsert(
-          {
-            client_id: clientId,
-            path: "voice.md",
-            content,
-            updated_at: nowIso,
-            needs_verification: hasVerifyQuarterly,
-          },
-          { onConflict: "client_id,path" }
-        )
-    } else if (skillId === "content-pillars") {
-      await service
-        .from("client_files")
-        .upsert(
-          {
-            client_id: clientId,
-            path: "content-pillars.md",
-            content,
-            updated_at: nowIso,
-            needs_verification: hasVerifyQuarterly,
-          },
-          { onConflict: "client_id,path" }
-        )
-    } else if (skillId === "guardrails") {
-      await service
-        .from("client_files")
-        .upsert(
-          {
-            client_id: clientId,
-            path: "guardrails.md",
-            content,
-            updated_at: nowIso,
-            needs_verification: hasVerifyQuarterly,
-          },
-          { onConflict: "client_id,path" }
-        )
+    } else {
+      const CANONICAL_SKILL_FILE_MAP: Record<string, string> = {
+        "voice-builder": "voice.md",
+        "writing-style-and-tone": "voice.md",
+        "content-pillars": "content-pillars.md",
+        "guardrails": "guardrails.md",
+        "audience-research": "audience.md",
+        "social-strategy": "social-strategy.md",
+        "goals-and-kpis": "goals-and-kpis.md",
+        "content-calendar": "content-calendar.md",
+        "batch-content-plan": "content-calendar.md",
+        "competitor-analysis": "competitor-analysis.md",
+        "campaign-and-launch-planning": "campaign-plan.md",
+      }
+
+      const targetPath = customPath || CANONICAL_SKILL_FILE_MAP[skillId]
+      if (targetPath) {
+        const { error: fileErr } = await service
+          .from("client_files")
+          .upsert(
+            {
+              client_id: clientId,
+              path: targetPath,
+              content,
+              updated_at: nowIso,
+              needs_verification: hasVerifyQuarterly,
+            },
+            { onConflict: "client_id,path" }
+          )
+
+        if (fileErr) {
+          logger.warn("skills.saveSkillOutput.client_files_failed", {
+            clientId,
+            targetPath,
+            error: fileErr.message,
+          })
+        }
+      }
     }
 
     void logAudit({

@@ -141,6 +141,22 @@ export function BrandBrainEditorDialog({
     if (activePath === "guardrails.md") {
       return skillOutputs.find((o) => o.skill_id === "guardrails") || null
     }
+    if (activePath === "audience.md") {
+      return skillOutputs.find((o) => o.skill_id === "audience-research") || null
+    }
+    if (activePath === "social-strategy.md") {
+      return skillOutputs.find((o) => o.skill_id === "social-strategy") || null
+    }
+    if (activePath === "goals-and-kpis.md") {
+      return skillOutputs.find((o) => o.skill_id === "goals-and-kpis") || null
+    }
+    if (activePath === "content-calendar.md") {
+      return (
+        skillOutputs.find(
+          (o) => o.skill_id === "content-calendar" || o.skill_id === "batch-content-plan"
+        ) || null
+      )
+    }
     return null
   }, [skillOutputs, activePath])
 

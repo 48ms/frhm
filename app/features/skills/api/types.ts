@@ -80,6 +80,7 @@ export const SaveSkillOutputSchema = z.object({
   content: z.string().min(1, "Content required"),
   status: z.string().optional(),
   stage: z.string().optional(),
+  path: z.string().optional(),
 })
 
 export type SaveSkillOutputInput = z.infer<typeof SaveSkillOutputSchema>
