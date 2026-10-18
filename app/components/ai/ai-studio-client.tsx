@@ -31,6 +31,7 @@ import { useCreateScheduledPostsBatch } from "@/features/scheduled-posts/api/que
 import type { GeneratedIdea, TrendEvaluation } from "@/features/copilot/api/types"
 import type { BrandProfile } from "@/features/social-accounts/api/types"
 import { BrandBrainEditorDialog } from "@/components/ai/brand-brain-editor-dialog"
+import { useClientFiles } from "@/features/brand-files/api/queries"
 import type { BrandFileKey } from "@/features/brand-files/api/types"
 import { SkillCatalogView } from "@/components/skills/skill-catalog-view"
 import { SkillInterviewModal } from "@/components/skills/skill-interview-modal"
@@ -115,6 +116,17 @@ const TREND_VIRAL_FORMATS = [
 export function AiStudioClient() {
   const router = useRouter()
   const { clientId, client } = useActiveDashboard()
+  const { data: clientFiles = [] } = useClientFiles(clientId || "")
+
+  const filesMap = React.useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const f of clientFiles) {
+      if (f.content?.trim()) {
+        map[f.path] = f.content.trim()
+      }
+    }
+    return map
+  }, [clientFiles])
 
   const [currentTab, setCurrentTab] = useQueryState(
     "tab",
@@ -330,17 +342,31 @@ export function AiStudioClient() {
     setIsSavingBatch(true)
     try {
       const posts = await createScheduledPostsBatch(
-        selected.map((post) => ({
-          client_id: clientId,
-          title: post.title,
-          content: post.content,
-          platform: post.platform,
-          scheduled_at: post.scheduled_at,
-          status: "draft",
-          notes: post.notes,
-          is_reserved: false,
-          is_placeholder: false,
-        }))
+        selected.map((post) => {
+          const strategicNotes = [
+            post.notes,
+            post.pillar ? `[Pilar: ${post.pillar}]` : null,
+            post.intent ? `[Intent: ${post.intent}]` : null,
+            post.hook ? `[Hook: ${post.hook}]` : null,
+            post.visualBrief ? `[Visual: ${post.visualBrief}]` : null,
+            post.cta ? `[CTA: ${post.cta}]` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")
+
+          return {
+            client_id: clientId,
+            title: post.title,
+            content: post.content,
+            platform: post.platform,
+            scheduled_at: post.scheduled_at,
+            status: "draft" as const,
+            notes: strategicNotes || null,
+            campaign_tag: post.pillar || batchPeriod || null,
+            is_reserved: false,
+            is_placeholder: false,
+          }
+        })
       )
 
       const successCount = Array.isArray(posts) ? posts.length : 1
@@ -426,20 +452,46 @@ export function AiStudioClient() {
   // ==========================================
   const bp = client?.brand_profile as Partial<BrandProfile> | undefined
 
+  const extractedPillars = React.useMemo(() => {
+    if (bp?.pillars && bp.pillars.length > 0) {
+      return bp.pillars
+    }
+    const mdPillars = filesMap["content-pillars.md"]
+    if (mdPillars) {
+      return mdPillars
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.startsWith("- ") || l.startsWith("* "))
+        .map((l) => l.replace(/^[-*]\s+/, "").trim())
+        .filter(Boolean)
+    }
+    return []
+  }, [bp?.pillars, filesMap])
+
   const dnaMetrics = React.useMemo(() => {
+    const whoFilled = Boolean(bp?.who?.trim() || bp?.identity?.trim() || filesMap["brand-profile.md"])
+    const audienceFilled = Boolean(bp?.audience?.trim() || filesMap["audience.md"])
+    const voiceFilled = Boolean(bp?.voice?.trim() || filesMap["voice.md"])
+    const povFilled = Boolean(bp?.pov?.trim() || bp?.positioning?.trim())
+    const proofFilled = Boolean(bp?.proof?.trim())
+    const guardrailsFilled = Boolean(bp?.guardrails?.trim() || filesMap["guardrails.md"])
+    const pillarsFilled = Boolean(extractedPillars.length > 0 || filesMap["content-pillars.md"])
+    const strategyFilled = Boolean(filesMap["social-strategy.md"])
+
     const checks = [
-      { key: "who", label: "Siapa Kami (Who)", filled: Boolean(bp?.who?.trim() || bp?.identity?.trim()), file: "brand-profile.md" as BrandFileKey },
-      { key: "audience", label: "Target Audiens", filled: Boolean(bp?.audience?.trim()), file: "brand-profile.md" as BrandFileKey },
-      { key: "voice", label: "Gaya Bahasa (Voice)", filled: Boolean(bp?.voice?.trim()), file: "voice.md" as BrandFileKey },
-      { key: "pov", label: "Sudut Pandang (POV)", filled: Boolean(bp?.pov?.trim() || bp?.positioning?.trim()), file: "brand-profile.md" as BrandFileKey },
-      { key: "proof", label: "Bukti Kredibilitas", filled: Boolean(bp?.proof?.trim()), file: "brand-profile.md" as BrandFileKey },
-      { key: "guardrails", label: "Pantangan (Guardrails)", filled: Boolean(bp?.guardrails?.trim()), file: "guardrails.md" as BrandFileKey },
-      { key: "pillars", label: "Pilar Konten", filled: Boolean(bp?.pillars && bp.pillars.length > 0), file: "content-pillars.md" as BrandFileKey },
+      { key: "who", label: "Siapa Kami (Who)", filled: whoFilled, file: "brand-profile.md" as BrandFileKey },
+      { key: "audience", label: "Target Audiens", filled: audienceFilled, file: "audience.md" as BrandFileKey },
+      { key: "voice", label: "Gaya Bahasa (Voice)", filled: voiceFilled, file: "voice.md" as BrandFileKey },
+      { key: "pov", label: "Sudut Pandang (POV)", filled: povFilled, file: "brand-profile.md" as BrandFileKey },
+      { key: "proof", label: "Bukti Kredibilitas", filled: proofFilled, file: "brand-profile.md" as BrandFileKey },
+      { key: "guardrails", label: "Pantangan (Guardrails)", filled: guardrailsFilled, file: "guardrails.md" as BrandFileKey },
+      { key: "pillars", label: "Pilar Konten", filled: pillarsFilled, file: "content-pillars.md" as BrandFileKey },
+      { key: "strategy", label: "Strategi Medsos", filled: strategyFilled, file: "social-strategy.md" as BrandFileKey },
     ]
     const filledCount = checks.filter((c) => c.filled).length
     const score = Math.round((filledCount / checks.length) * 100)
     return { checks, filledCount, score }
-  }, [bp])
+  }, [bp, filesMap, extractedPillars])
 
   return (
     <PageContainer
@@ -1025,6 +1077,26 @@ export function AiStudioClient() {
                                   <Icons.palette className="size-2.5" />
                                   <span>Prompt Visual</span>
                                 </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    router.push(
+                                      serializeComposerParams("/admin/composer", {
+                                        clientId: clientId || null,
+                                        title: post.title || null,
+                                        content: post.hook ? `${post.hook}\n\n${post.content || ""}` : (post.content || null),
+                                        platform: post.platform || null,
+                                      })
+                                    )
+                                  }}
+                                  className="h-5 px-1.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary rounded shrink-0 flex items-center gap-1 cursor-pointer"
+                                  title="Edit draf di Composer"
+                                >
+                                  <Icons.edit className="size-2.5" />
+                                  <span>Composer</span>
+                                </Button>
                               </div>
                             )}
                             {post.cta && (
@@ -1234,18 +1306,64 @@ export function AiStudioClient() {
               </div>
 
               {trendResult.remixAngle && (
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
-                  <span className="text-2xs font-bold text-primary uppercase tracking-wider">
-                    Rekomendasi Sudut Pandang Unik Brand
-                  </span>
-                  <p className="text-xs font-semibold text-foreground">
-                    "{trendResult.remixAngle}"
-                  </p>
-                  {trendResult.draftPremise && (
-                    <p className="text-2xs text-muted-foreground italic mt-1">
-                      Premis: {trendResult.draftPremise}
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                  <div className="space-y-1">
+                    <span className="text-2xs font-bold text-primary uppercase tracking-wider">
+                      Rekomendasi Sudut Pandang Unik Brand
+                    </span>
+                    <p className="text-xs font-semibold text-foreground">
+                      "{trendResult.remixAngle}"
                     </p>
-                  )}
+                    {trendResult.draftPremise && (
+                      <p className="text-2xs text-muted-foreground italic mt-1">
+                        Premis: {trendResult.draftPremise}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-primary/10">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setIdeaTopic(trendResult.remixAngle || "")
+                        handleTabChange("ideas")
+                        toast.info("Sudut pandang tren dialihkan ke Idea Engine!")
+                      }}
+                      className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-7"
+                    >
+                      <Icons.sparkles className="size-3 text-primary" />
+                      <span>Jadikan Topik Ide</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setActiveScriptTopic(trendResult.remixAngle || "")
+                        setIsReelsScriptOpen(true)
+                      }}
+                      className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-7"
+                    >
+                      <Icons.clapperboard className="size-3 text-primary" />
+                      <span>Buat Reels Script</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        router.push(
+                          serializeComposerParams("/admin/composer", {
+                            clientId: clientId || null,
+                            title: trendDesc || null,
+                            content: `${trendResult.remixAngle}\n\n${trendResult.draftPremise || ""}`,
+                            platform: trendPlatform.toLowerCase() || null,
+                          })
+                        )
+                      }}
+                      className="rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer h-7 bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Icons.rocket className="size-3" />
+                      <span>Buka di Composer</span>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1418,15 +1536,15 @@ export function AiStudioClient() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleOpenBrandEditor("brand-profile.md")}
+                    onClick={() => handleOpenBrandEditor("audience.md")}
                     className="h-6 text-2xs text-muted-foreground hover:text-primary cursor-pointer px-1.5"
                   >
                     <Icons.edit className="size-3 mr-1" />
-                    Edit .md
+                    Edit audience.md
                   </Button>
                 </div>
-                <p className="text-xs text-foreground font-medium">
-                  {bp?.audience || "Belum dikonfigurasi. Tentukan target audiens di Settings."}
+                <p className="text-xs text-foreground font-medium line-clamp-3">
+                  {filesMap["audience.md"] || bp?.audience || "Belum dikonfigurasi. Tentukan target audiens di audience.md."}
                 </p>
               </div>
 
@@ -1446,8 +1564,8 @@ export function AiStudioClient() {
                     Edit voice.md
                   </Button>
                 </div>
-                <p className="text-xs text-foreground font-medium">
-                  {bp?.voice || "Belum dikonfigurasi. Tulis panduan lengkap di voice.md."}
+                <p className="text-xs text-foreground font-medium line-clamp-3">
+                  {filesMap["voice.md"] || bp?.voice || "Belum dikonfigurasi. Tulis panduan lengkap di voice.md."}
                 </p>
               </div>
 
@@ -1467,7 +1585,7 @@ export function AiStudioClient() {
                     Edit .md
                   </Button>
                 </div>
-                <p className="text-xs text-foreground font-medium">
+                <p className="text-xs text-foreground font-medium line-clamp-3">
                   {bp?.pov || bp?.positioning || "Belum dikonfigurasi."}
                 </p>
               </div>
@@ -1488,7 +1606,7 @@ export function AiStudioClient() {
                     Edit .md
                   </Button>
                 </div>
-                <p className="text-xs text-foreground font-medium">
+                <p className="text-xs text-foreground font-medium line-clamp-3">
                   {bp?.proof || "Belum dikonfigurasi."}
                 </p>
               </div>
@@ -1509,8 +1627,8 @@ export function AiStudioClient() {
                     Edit guardrails.md
                   </Button>
                 </div>
-                <p className="text-xs text-foreground font-medium">
-                  {bp?.guardrails || "Belum ada pantangan yang dispesifikasikan."}
+                <p className="text-xs text-foreground font-medium line-clamp-3">
+                  {filesMap["guardrails.md"] || bp?.guardrails || "Belum ada pantangan yang dispesifikasikan."}
                 </p>
               </div>
             </div>
@@ -1532,8 +1650,8 @@ export function AiStudioClient() {
                 </Button>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {bp?.pillars && bp.pillars.length > 0 ? (
-                  bp.pillars.map((pillar, idx) => (
+                {extractedPillars.length > 0 ? (
+                  extractedPillars.map((pillar, idx) => (
                     <Badge
                       key={idx}
                       variant="outline"
@@ -1547,6 +1665,92 @@ export function AiStudioClient() {
                     Belum ada pilar konten terdaftar.
                   </span>
                 )}
+              </div>
+            </div>
+
+            {/* Strategic Deliverables & Playbook Outputs */}
+            <div className="pt-4 border-t border-border/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Icons.bookOpen className="size-3.5 text-primary" />
+                    Fondasi Strategi & Deliverable Acuan (.md)
+                  </h3>
+                  <p className="text-2xs text-muted-foreground">
+                    Dokumen hasil eksekusi 106 Playbooks AI yang melengkapi Brand DNA untuk eksekusi jangka panjang.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* social-strategy.md */}
+                <div className="p-3.5 rounded-xl bg-secondary/20 border border-border/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xs font-extrabold text-primary uppercase tracking-wider flex items-center gap-1">
+                      <Icons.rocket className="size-3" />
+                      Strategi Medsos
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenBrandEditor("social-strategy.md")}
+                      className="h-5 text-2xs text-primary font-bold cursor-pointer px-1"
+                    >
+                      <Icons.edit className="size-2.5 mr-1" />
+                      social-strategy.md
+                    </Button>
+                  </div>
+                  <p className="text-2xs text-muted-foreground line-clamp-3">
+                    {filesMap["social-strategy.md"] || "Belum dibuat. Jalankan playbook social-strategy atau buka Markdown Studio."}
+                  </p>
+                </div>
+
+                {/* goals-and-kpis.md */}
+                <div className="p-3.5 rounded-xl bg-secondary/20 border border-border/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xs font-extrabold text-primary uppercase tracking-wider flex items-center gap-1">
+                      <Icons.trendingUp className="size-3" />
+                      Target KPI & Goals
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenBrandEditor("goals-and-kpis.md")}
+                      className="h-5 text-2xs text-primary font-bold cursor-pointer px-1"
+                    >
+                      <Icons.edit className="size-2.5 mr-1" />
+                      goals-and-kpis.md
+                    </Button>
+                  </div>
+                  <p className="text-2xs text-muted-foreground line-clamp-3">
+                    {filesMap["goals-and-kpis.md"] || "Belum dibuat. Tentukan North Star Metrics di goals-and-kpis.md."}
+                  </p>
+                </div>
+
+                {/* content-calendar.md */}
+                <div className="p-3.5 rounded-xl bg-secondary/20 border border-border/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xs font-extrabold text-primary uppercase tracking-wider flex items-center gap-1">
+                      <Icons.calendar className="size-3" />
+                      Kalender Konten
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenBrandEditor("content-calendar.md")}
+                      className="h-5 text-2xs text-primary font-bold cursor-pointer px-1"
+                    >
+                      <Icons.edit className="size-2.5 mr-1" />
+                      content-calendar.md
+                    </Button>
+                  </div>
+                  <p className="text-2xs text-muted-foreground line-clamp-3">
+                    {filesMap["content-calendar.md"] || "Belum dibuat. Rancang jadwal slot rutin di content-calendar.md."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1598,23 +1802,35 @@ export function AiStudioClient() {
 
       <StitchAiHookModal
         open={isHookModalOpen}
-        onOpenChange={setIsHookModalOpen}
+        onOpenChange={(open) => {
+          setIsHookModalOpen(open)
+          if (!open) setActiveScriptTopic("")
+        }}
         clientId={clientId || ""}
         clientName={client?.name || "Klien"}
+        initialPrompt={activeScriptTopic || ideaTopic || ""}
       />
 
       <ReelsScriptDialog
         open={isReelsScriptOpen}
-        onOpenChange={setIsReelsScriptOpen}
+        onOpenChange={(open) => {
+          setIsReelsScriptOpen(open)
+          if (!open) setActiveScriptTopic("")
+        }}
         clientId={clientId || ""}
         clientName={client?.name || "Klien"}
+        initialTopic={activeScriptTopic}
       />
 
       <CarouselDialog
         open={isCarouselOpen}
-        onOpenChange={setIsCarouselOpen}
+        onOpenChange={(open) => {
+          setIsCarouselOpen(open)
+          if (!open) setActiveScriptTopic("")
+        }}
         clientId={clientId || ""}
         clientName={client?.name || "Klien"}
+        initialTopic={activeScriptTopic}
       />
 
       <VisualPromptDialog

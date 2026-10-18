@@ -26,6 +26,7 @@ interface ReelsScriptDialogProps {
   onOpenChange: (open: boolean) => void
   clientId: string
   clientName: string
+  initialTopic?: string
 }
 
 export function ReelsScriptDialog({
@@ -33,6 +34,7 @@ export function ReelsScriptDialog({
   onOpenChange,
   clientId,
   clientName,
+  initialTopic,
 }: ReelsScriptDialogProps) {
   const router = useRouter()
   const [topic, setTopic] = React.useState("")
@@ -40,6 +42,12 @@ export function ReelsScriptDialog({
   const [lengthTier, setLengthTier] = React.useState<ReelLengthTier>("15-30s")
   const [audioType, setAudioType] = React.useState<ReelAudioType>("original_voice")
   const [result, setResult] = React.useState<ReelsScriptResult | null>(null)
+
+  React.useEffect(() => {
+    if (open && initialTopic) {
+      setTopic(initialTopic)
+    }
+  }, [open, initialTopic])
 
   const { mutateAsync: generateScript, isPending: isGenerating } = useGenerateReelsScript()
 

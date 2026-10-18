@@ -22,6 +22,13 @@ vi.mock("@/features/skills/api/queries", () => ({
   useExecuteGenericSkill: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }))
 
+vi.mock("@/features/deliverables/api/queries", () => ({
+  usePromoteSkillOutputToDeliverable: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}))
+
 vi.mock("nuqs", async () => {
   const React = await import("react")
   return {

@@ -12,6 +12,8 @@ import type {
   VerifyClientFileInput,
   DeleteClientFileInput,
 } from "./types"
+import { socialKeys } from "@/features/social-accounts/api/queries"
+import { clientKeys } from "@/features/clients/api/queries"
 
 export const brandFilesKeys = {
   all: ["brand-files"] as const,
@@ -100,15 +102,35 @@ export function useUpsertClientFile() {
     },
     onSettled: (_data, _err, vars) => {
       void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.all,
+      })
+      void queryClient.invalidateQueries({
         queryKey: brandFilesKeys.list(vars.clientId),
       })
       void queryClient.invalidateQueries({
         queryKey: brandFilesKeys.detail(vars.clientId, vars.path),
       })
-      // Invalidate client queries if brand-profile.md was updated
-      if (vars.path === "brand-profile.md") {
-        void queryClient.invalidateQueries({ queryKey: ["social", "clients"] })
-      }
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "brand-profile.md"),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "voice.md"),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "audience.md"),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "guardrails.md"),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "content-pillars.md"),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: brandFilesKeys.detail(vars.clientId, "offers.md"),
+      })
+      // Invalidate client and social queries
+      void queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
+      void queryClient.invalidateQueries({ queryKey: clientKeys.detail(vars.clientId) })
     },
   })
 }

@@ -8,7 +8,7 @@ import type {
   VerifyClientFileInput,
   DeleteClientFileInput,
 } from "./types"
-import { markdownToBrandProfile } from "@/lib/brand-context"
+import { markdownToBrandProfile, brandProfileToMarkdown } from "@/lib/brand-context"
 import type { BrandProfile } from "@/features/social-accounts/api/types"
 
 /**
@@ -82,32 +82,160 @@ export async function upsertClientFile(input: UpdateClientFileInput): Promise<Cl
     throw new Error(`Gagal menyimpan file ${path}: ${error.message}`)
   }
 
-  // 2. Jika ini adalah brand-profile.md, sync ke JSONB clients.brand_profile
-  if (path === "brand-profile.md") {
+  // 2. Dual-write sync ke JSONB clients.brand_profile agar UI dashboard dan AI studio selalu tersinkronisasi
+  const syncableBrandFiles = [
+    "brand-profile.md",
+    "voice.md",
+    "guardrails.md",
+    "audience.md",
+    "content-pillars.md",
+    "offers.md",
+    "social-strategy.md",
+  ]
+
+  if (syncableBrandFiles.includes(path)) {
     try {
-      const parsed = markdownToBrandProfile(content)
-      // Ambil profile yang sudah ada agar tidak menghapus field yang tidak ada di format md
       const { data: clientRow } = await supabase
         .from("clients")
-        .select("brand_profile")
+        .select("name, brand_profile")
         .eq("id", clientId)
         .maybeSingle()
 
+      const clientName = clientRow?.name || "Client"
       const existingProfile = (clientRow?.brand_profile as Partial<BrandProfile>) || {}
-      const mergedProfile: BrandProfile = {
-        who: parsed.who ?? existingProfile.who ?? "",
-        audience: parsed.audience ?? existingProfile.audience ?? "",
-        voice: parsed.voice ?? existingProfile.voice ?? "",
-        pov: parsed.pov ?? existingProfile.pov ?? "",
-        proof: parsed.proof ?? existingProfile.proof ?? "",
-        guardrails: parsed.guardrails ?? existingProfile.guardrails ?? "",
-        pillars: parsed.pillars ?? existingProfile.pillars ?? [],
+      let mergedProfile: BrandProfile = {
+        who: existingProfile.who ?? "",
+        audience: existingProfile.audience ?? "",
+        voice: existingProfile.voice ?? "",
+        pov: existingProfile.pov ?? "",
+        proof: existingProfile.proof ?? "",
+        guardrails: existingProfile.guardrails ?? "",
+        pillars: existingProfile.pillars ?? [],
+        ...existingProfile,
+      }
+
+      if (path === "brand-profile.md") {
+        const parsed = markdownToBrandProfile(content)
+        mergedProfile = {
+          ...mergedProfile,
+          who: parsed.who ?? mergedProfile.who ?? "",
+          audience: parsed.audience ?? mergedProfile.audience ?? "",
+          voice: parsed.voice ?? mergedProfile.voice ?? "",
+          pov: parsed.pov ?? mergedProfile.pov ?? "",
+          proof: parsed.proof ?? mergedProfile.proof ?? "",
+          guardrails: parsed.guardrails ?? mergedProfile.guardrails ?? "",
+          pillars: parsed.pillars && parsed.pillars.length > 0 ? parsed.pillars : mergedProfile.pillars ?? [],
+          ...(parsed.identity ? { identity: parsed.identity } : {}),
+          ...(parsed.positioning ? { positioning: parsed.positioning } : {}),
+          ...(parsed.offers_ctas ? { offers_ctas: parsed.offers_ctas } : {}),
+          ...(parsed.channels ? { channels: parsed.channels } : {}),
+          ...(parsed.operational_defaults ? { operational_defaults: parsed.operational_defaults } : {}),
+          ...(parsed.examples ? { examples: parsed.examples } : {}),
+          ...(parsed.notes ? { notes: parsed.notes } : {}),
+        }
+
+        // Bi-directional Fan-Out: sinkronkan sub-files di client_files
+        const subFilesToUpsert: Array<{ path: string; content: string }> = []
+        if (parsed.voice) {
+          subFilesToUpsert.push({
+            path: "voice.md",
+            content: `# Brand Voice & Tone Guide — ${clientName}\n\n## Tone of Voice\n${parsed.voice}`,
+          })
+        }
+        if (parsed.audience) {
+          subFilesToUpsert.push({
+            path: "audience.md",
+            content: `# Target Audience & ICP — ${clientName}\n\n## Audience Persona\n${parsed.audience}`,
+          })
+        }
+        if (parsed.guardrails) {
+          subFilesToUpsert.push({
+            path: "guardrails.md",
+            content: `# Brand Guardrails & Never-List — ${clientName}\n\n## Never-List & Restrictions\n${parsed.guardrails}`,
+          })
+        }
+        if (parsed.pillars && parsed.pillars.length > 0) {
+          subFilesToUpsert.push({
+            path: "content-pillars.md",
+            content: `# Content Pillars & Focus Areas — ${clientName}\n\n${parsed.pillars
+              .map((p) => (p.startsWith("-") ? p : `- ${p}`))
+              .join("\n")}`,
+          })
+        }
+        if (parsed.offers_ctas) {
+          subFilesToUpsert.push({
+            path: "offers.md",
+            content: `# Offers & Product Catalog — ${clientName}\n\n## Offers & CTAs\n${parsed.offers_ctas}`,
+          })
+        }
+
+        for (const sub of subFilesToUpsert) {
+          try {
+            await supabase.from("client_files").upsert(
+              {
+                client_id: clientId,
+                path: sub.path,
+                content: sub.content,
+                updated_at: now,
+                needs_verification: sub.content.includes("(verify-quarterly)"),
+              },
+              { onConflict: "client_id,path" }
+            )
+          } catch {
+            // Non-blocking fan-out
+          }
+        }
+      } else if (path === "voice.md") {
+        if (content.trim()) {
+          mergedProfile.voice = content.trim()
+        }
+      } else if (path === "guardrails.md") {
+        if (content.trim()) {
+          mergedProfile.guardrails = content.trim()
+        }
+      } else if (path === "audience.md") {
+        if (content.trim()) {
+          mergedProfile.audience = content.trim()
+        }
+      } else if (path === "offers.md") {
+        if (content.trim()) {
+          mergedProfile.offers_ctas = content.trim()
+        }
+      } else if (path === "content-pillars.md") {
+        const lines = content
+          .split("\n")
+          .map((l) => l.trim())
+          .filter((l) => l.startsWith("- ") || l.startsWith("* "))
+          .map((l) => l.replace(/^[-*]\s+/, "").trim())
+          .filter(Boolean)
+        if (lines.length > 0) {
+          mergedProfile.pillars = lines
+        }
       }
 
       await supabase
         .from("clients")
         .update({ brand_profile: mergedProfile, updated_at: now })
         .eq("id", clientId)
+
+      // Bi-directional Master Sync: jika sub-file yang di-update, re-generate master brand-profile.md
+      if (path !== "brand-profile.md") {
+        try {
+          const masterContent = brandProfileToMarkdown(mergedProfile, clientName)
+          await supabase.from("client_files").upsert(
+            {
+              client_id: clientId,
+              path: "brand-profile.md",
+              content: masterContent,
+              updated_at: now,
+              needs_verification: masterContent.includes("(verify-quarterly)"),
+            },
+            { onConflict: "client_id,path" }
+          )
+        } catch {
+          // Non-blocking master sync
+        }
+      }
     } catch (syncErr) {
       console.warn("Dual-write sync to clients.brand_profile failed silently:", syncErr)
     }

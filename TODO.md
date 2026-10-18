@@ -1,7 +1,7 @@
 # 📝 Frhm Master Bug & Gap Elimination Plan (TODO)
 
-**Terakhir diperbarui:** 2026-10-17 oleh Antigravity (Siklus Verifikasi ECC)  
-**Status Repositori:** Clean, 100 test suites passed (567/567 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
+**Terakhir diperbarui:** 2026-10-18 oleh Antigravity (Siklus Verifikasi ECC)  
+**Status Repositori:** Clean, 117 test suites passed (660/660 tests), `tsc --noEmit` 0 error, Vitest 100% pass, Turbopack Next.js build sukses 100%.
 
 ---
 
@@ -524,9 +524,32 @@ Pillar 5: E2E Playwright Suite      ──► Pillar 6: Dedicated Client Portal 
   - Mengamankan endpoint [app/api/support/submit/route.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/support/submit/route.ts) dengan `escapeTelegramHtml` untuk seluruh input pengguna (subjek, pesan, pengirim, klien) dan mengisolasi impersonasi `client_id` non-admin.
   - Ditunjang unit test komprehensif baru: [lib/telegram/service.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/lib/telegram/service.test.ts) (7 tests) dan [app/api/support/submit/route.test.ts](file:///c:/Users/bimam/Downloads/Tools%20Frahma/app/app/api/support/submit/route.test.ts) (3 tests).
 
-- 🔄 **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
-  - `npx tsc --noEmit`: 0 error (100% clean typecheck).
-  - `npx vitest run`: 100/100 test suites PASS (567 tests passed, 0 failed).
-  - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
+- [x] **Penyelarasan AI Studio & Integrasi 106 Playbooks Upstream (social-media-skills) & Sinkronisasi Dua Arah (2026-10-18)**:
+  - **Penyelarasan Taksonomi Playbooks Library (Tab 5)**:
+    - Menyelaraskan seluruh filter kategori playbooks dengan 14 kelompok taksonomi resmi `site-taxonomy.json` (Platform, Content & Format, Strategy & Planning, Growth & Distribution, Paid & Performance, Operations & Systems, Creative & Production, Community & Engagement, Lifecycle & Retention, Sales & Conversion, Analytics & Measurement, Industry & Niche, General/Foundations, Specialized).
+    - Memperbaiki bug `createSerializer` tanda tanya ganda (`??`) saat pengalihan draf playbook ke Composer di `skill-interview-modal.tsx`.
+    - Menambahkan badge status deliverable dinamis dan aksi langsung *"Kirim ke Review"* (`usePromoteSkillOutputToDeliverable`).
+    - Menginjeksi izin perkakas resmi (`allowed_tools`) dan instruksi kanonikal upstream ke dalam prompt `executeSkillChat`.
+  - **Sinkronisasi Dua Arah Master Brand Profile (`brand-profile.md` ↔ Sub-files ↔ JSONB)**:
+    - Mengimplementasikan *Bi-directional Fan-Out Sync* di `features/skills/api/service.ts` (`saveSkillOutput`) dan `features/brand-files/api/service.ts` (`upsertClientFile`).
+    - Menyimpan master `brand-profile.md` otomatis memperbarui dokumen modular (`voice.md`, `audience.md`, `guardrails.md`, `content-pillars.md`, `offers.md`) di `client_files` dan field JSONB `clients.brand_profile`.
+    - Menyimpan salah satu file modular otomatis merekompilasi ulang dan memperbarui master `brand-profile.md`.
+  - **Inklusi Kanonikal `offers.md` (Katalog Penawaran & CTAs)**:
+    - Mendaftarkan `offers.md` ke `syncableFiles` dan menambahkan sintesis fallback otomatis dari `brand_profile.offers_ctas` di `lib/ai/server.ts` (`loadClientFiles`).
+  - **Jembatan Parameter Kreatif Antara Studio Tabs & Modal Dialogs**:
+    - Menambahkan dukungan prop `initialTopic` pada `ReelsScriptDialog` dan `CarouselDialog`.
+    - Menambahkan prop `initialPrompt` pada `StitchAiHookModal`.
+    - Menghubungkan parameter topik dan remix angle dari Trend Radar dan Idea Engine ke dialog-dialog tersebut di `ai-studio-client.tsx` (topik otomatis terisi saat modal dibuka).
+  - **Pemberdayaan Upstream `reads_files` (Playbook Prerequisite Ingestion)**:
+    - `executeSkillChat` dan `executeGenericSkill` kini membaca metadata `reads_files` dari upstream skills, memverifikasi ketersediaan artefak pada `client_files`, dan memberikan arahan kontekstual prasyarat dokumen kepada AI.
+  - **Ketahanan Local Fallback Multi-Path Playbooks**:
+    - `getSkillDetail` dan `loadSkillBundle` kini memiliki multi-path resolution (`../social-media-skills/skills` dan `./social-media-skills/skills`) jika database `skill_files` belum terisi.
+  - **Granular Cache Invalidation TanStack React Query**:
+    - Menyelaraskan seluruh invalidasi query cache di `features/brand-files/api/queries.ts` dan `features/skills/api/queries.ts`, mencakup `brandFilesKeys.all`, detail per file individual, serta query klien.
+  - **Looping Check & Hasil Verifikasi Menyeluruh (Verification Loop Result)**:
+    - `npx tsc --noEmit`: 0 error (100% clean typecheck).
+    - `npx vitest run`: 117/117 test suites PASS (660 tests passed, 0 failed).
+    - Kepatuhan Desain Sistem: 100% Radix UI, Animate UI, semantic HSL tokens, antislop-layoutmobile.
+
 
 

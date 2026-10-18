@@ -217,6 +217,180 @@ describe("Skills Feature Service Layer", () => {
     expect(res.id).toBe("out-999")
   })
 
+  it("saveSkillOutput resolves targetPath via skill writes_files if not in canonical map", async () => {
+    const mockUpsert = vi.fn().mockResolvedValue({ error: null })
+    mockServiceFrom.mockImplementation((table: string) => {
+      if (table === "skills") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { writes_files: ["custom-output.md"] } }),
+            }),
+          }),
+        }
+      }
+      if (table === "client_files") {
+        return { upsert: mockUpsert }
+      }
+      return {
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: "out-1001" }, error: null }),
+          }),
+        }),
+        upsert: vi.fn().mockResolvedValue({ error: null }),
+      }
+    })
+
+    const res = await saveSkillOutput({
+      clientId: "11111111-1111-1111-1111-111111111111",
+      skillId: "custom-specialist-skill",
+      title: "Custom Output",
+      content: "## Custom Strategy",
+    })
+
+    expect(res.success).toBe(true)
+    expect(res.id).toBe("out-1001")
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: "custom-output.md",
+        content: "## Custom Strategy",
+      }),
+      expect.any(Object)
+    )
+  })
+
+  it("saveSkillOutput fans out to sub-files when brand-profile is saved", async () => {
+    const upsertedFiles: Array<{ path: string; content: string }> = []
+    const mockUpsert = vi.fn((file) => {
+      upsertedFiles.push(file)
+      return Promise.resolve({ error: null })
+    })
+
+    mockServiceFrom.mockImplementation((table: string) => {
+      if (table === "client_files") {
+        return { upsert: mockUpsert }
+      }
+      if (table === "clients") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  name: "Pawon Sengon",
+                  brand_profile: {},
+                },
+              }),
+            }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        }
+      }
+      return {
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: "out-bp-1" }, error: null }),
+          }),
+        }),
+        upsert: vi.fn().mockResolvedValue({ error: null }),
+      }
+    })
+
+    const bpMarkdown = `# Brand Profile — Pawon Sengon
+
+## Identity
+Resto khas Jawa Timur.
+
+## Voice
+Hangat, bersahabat, medok santun.
+
+## Audience
+Keluarga dan pecinta rawon.
+
+## Guardrails
+Dilarang membandingkan negatif dengan resto lain.
+
+## Offers & CTAs
+Diskon makan siang keluarga 15%.
+
+## Content Pillars
+- Resep Rawon Legendaris
+- Suasana Makan Keluarga
+`
+
+    const res = await saveSkillOutput({
+      clientId: "11111111-1111-1111-1111-111111111111",
+      skillId: "brand-profile",
+      title: "Master Brand Profile Pawon Sengon",
+      content: bpMarkdown,
+    })
+
+    expect(res.success).toBe(true)
+    const paths = upsertedFiles.map((f) => f.path)
+    expect(paths).toContain("brand-profile.md")
+    expect(paths).toContain("voice.md")
+    expect(paths).toContain("audience.md")
+    expect(paths).toContain("guardrails.md")
+    expect(paths).toContain("content-pillars.md")
+    expect(paths).toContain("offers.md")
+  })
+
+  it("saveSkillOutput re-generates master brand-profile.md when voice.md is saved", async () => {
+    const upsertedFiles: Array<{ path: string; content: string }> = []
+    const mockUpsert = vi.fn((file) => {
+      upsertedFiles.push(file)
+      return Promise.resolve({ error: null })
+    })
+
+    mockServiceFrom.mockImplementation((table: string) => {
+      if (table === "client_files") {
+        return { upsert: mockUpsert }
+      }
+      if (table === "clients") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  name: "Pawon Sengon",
+                  brand_profile: {
+                    who: "Resto Pawon Sengon",
+                    audience: "Keluarga",
+                  },
+                },
+              }),
+            }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        }
+      }
+      return {
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: "out-voice-1" }, error: null }),
+          }),
+        }),
+        upsert: vi.fn().mockResolvedValue({ error: null }),
+      }
+    })
+
+    const res = await saveSkillOutput({
+      clientId: "11111111-1111-1111-1111-111111111111",
+      skillId: "voice-builder",
+      title: "Voice Guide",
+      content: "Hangat, bersahabat, dan mengayomi.",
+    })
+
+    expect(res.success).toBe(true)
+    const masterFile = upsertedFiles.find((f) => f.path === "brand-profile.md")
+    expect(masterFile).toBeDefined()
+    expect(masterFile?.content).toContain("Hangat, bersahabat, dan mengayomi.")
+  })
+
   it("executeSkillChat manages interactive interview turn with live preview", async () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({

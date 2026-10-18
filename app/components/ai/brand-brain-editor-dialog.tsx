@@ -107,8 +107,25 @@ export function BrandBrainEditorDialog({
     }
   }, [initialPath])
 
+  const allTabs = React.useMemo(() => {
+    const list = [...STANDARD_BRAND_FILES]
+    for (const sf of serverFiles) {
+      if (!list.some((item) => item.path === sf.path)) {
+        list.push({
+          path: sf.path as any,
+          title: sf.path.replace(/\.md$/, "").replace(/[-_]/g, " ").toUpperCase(),
+          shortLabel: sf.path.replace(/\.md$/, "").replace(/[-_]/g, " "),
+          description: "Dokumen strategi & playbook klien",
+          defaultTemplate: "",
+        })
+      }
+    }
+    return list
+  }, [serverFiles])
+
   const activeMeta =
-    STANDARD_BRAND_FILES.find((f) => f.path === activePath) || STANDARD_BRAND_FILES[0]
+    allTabs.find((f) => f.path === activePath) ||
+    STANDARD_BRAND_FILES[0]
   const serverFile = serverFiles.find((f) => f.path === activePath)
 
   // Konten saat ini: ambil dari buffer jika ada, atau server, atau default kosong
@@ -157,6 +174,13 @@ export function BrandBrainEditorDialog({
         ) || null
       )
     }
+    if (activePath === "offers.md") {
+      return (
+        skillOutputs.find(
+          (o) => o.skill_id === "lead-magnets-and-funnels" || o.skill_id === "creator-monetization"
+        ) || null
+      )
+    }
     return null
   }, [skillOutputs, activePath])
 
@@ -196,6 +220,8 @@ export function BrandBrainEditorDialog({
       onOpenChange(false)
     }
   }
+
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Quick AI Brand DNA Audit Logic — Upstream Ground Truth
   const auditDna = React.useMemo(() => {
@@ -246,6 +272,48 @@ export function BrandBrainEditorDialog({
         issues.push("Negative Space (Hard Nevers) disarankan untuk didefinisikan secara tegas.")
         score -= 10
       }
+    } else if (activePath === "audience.md") {
+      if (!text.includes("audiens") && !text.includes("audience") && !text.includes("icp") && !text.includes("persona")) {
+        issues.push("Definisi ICP / Persona audiens utama belum terdeteksi.")
+        score -= 20
+      }
+      if (!text.includes("jtbd") && !text.includes("pain") && !text.includes("masalah") && !text.includes("kebutuhan")) {
+        issues.push("Pain points & Jobs-To-Be-Done (JTBD) audiens disarankan untuk dilengkapi.")
+        score -= 15
+      }
+    } else if (activePath === "social-strategy.md") {
+      if (!text.includes("channel") && !text.includes("platform") && !text.includes("reels") && !text.includes("instagram")) {
+        issues.push("Fokus channel media sosial utama belum tercantum.")
+        score -= 20
+      }
+      if (!text.includes("target") && !text.includes("goal") && !text.includes("fase") && !text.includes("roadmap")) {
+        issues.push("Roadmap bertahap atau objektif strategi disarankan untuk ditambahkan.")
+        score -= 10
+      }
+    } else if (activePath === "content-pillars.md") {
+      if (!text.includes("-") && !text.includes("*") && !text.includes("pillar") && !text.includes("pilar")) {
+        issues.push("Daftar pilar konten (bullet list) belum terdeteksi.")
+        score -= 25
+      }
+      if (!text.includes("%") && !text.includes("alokasi") && !text.includes("frekuensi")) {
+        issues.push("Persentase alokasi pilar konten disarankan untuk dicantumkan.")
+        score -= 10
+      }
+    } else if (activePath === "goals-and-kpis.md") {
+      if (!text.includes("kpi") && !text.includes("metric") && !text.includes("target") && !text.includes("north star")) {
+        issues.push("North Star Metric atau target KPI kuantitatif belum terdeteksi.")
+        score -= 25
+      }
+    } else if (activePath === "content-calendar.md") {
+      if (!text.includes("jadwal") && !text.includes("hari") && !text.includes("jam") && !text.includes("slot") && !text.includes("|")) {
+        issues.push("Jadwal tayang rutin atau tabel slot konten belum terdeteksi.")
+        score -= 20
+      }
+    } else if (activePath === "offers.md") {
+      if (!text.includes("cta") && !text.includes("penawaran") && !text.includes("offer") && !text.includes("promo")) {
+        issues.push("Hierarki tawaran (Offers) atau call-to-action belum dicantumkan.")
+        score -= 20
+      }
     }
 
     score = Math.max(20, score)
@@ -265,9 +333,26 @@ export function BrandBrainEditorDialog({
   }
 
   const handleInsertSyntax = (prefix: string, suffix: string = "") => {
-    const addition = `${prefix}teks panduan${suffix}`
-    const updated = currentContent ? `${currentContent}\n${addition}` : addition
-    handleContentChange(updated)
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart ?? 0
+      const end = textarea.selectionEnd ?? 0
+      const selectedText = currentContent.slice(start, end)
+      const insertion = selectedText
+        ? `${prefix}${selectedText}${suffix}`
+        : `${prefix}teks panduan${suffix}`
+      const updated = currentContent.slice(0, start) + insertion + currentContent.slice(end)
+      handleContentChange(updated)
+      setTimeout(() => {
+        textarea.focus()
+        const newCursor = start + insertion.length
+        textarea.setSelectionRange(newCursor, newCursor)
+      }, 0)
+    } else {
+      const addition = `${prefix}teks panduan${suffix}`
+      const updated = currentContent ? `${currentContent}\n${addition}` : addition
+      handleContentChange(updated)
+    }
   }
 
   const handleSave = async () => {
@@ -330,6 +415,86 @@ export function BrandBrainEditorDialog({
     }
   }
 
+  const markdownComponents = React.useMemo(() => ({
+    h1: ({ children }: { children?: React.ReactNode }) => (
+      <h1 className="text-xl font-black text-foreground mb-4 border-b border-border/40 pb-2">
+        {children}
+      </h1>
+    ),
+    h2: ({ children }: { children?: React.ReactNode }) => (
+      <h2 className="text-base font-bold text-primary mb-2 mt-5 flex items-center gap-1.5">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: { children?: React.ReactNode }) => (
+      <h3 className="text-sm font-semibold text-foreground mb-1.5 mt-3">
+        {children}
+      </h3>
+    ),
+    p: ({ children }: { children?: React.ReactNode }) => (
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+        {children}
+      </p>
+    ),
+    ul: ({ children }: { children?: React.ReactNode }) => (
+      <ul className="list-disc list-inside space-y-1.5 mb-3 text-xs text-muted-foreground pl-1">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }: { children?: React.ReactNode }) => (
+      <ol className="list-decimal list-inside space-y-1.5 mb-3 text-xs text-muted-foreground pl-1">
+        {children}
+      </ol>
+    ),
+    li: ({ children }: { children?: React.ReactNode }) => <li className="leading-relaxed">{children}</li>,
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+      <blockquote className="border-l-3 border-primary/50 pl-3 italic text-xs text-muted-foreground my-3">
+        {children}
+      </blockquote>
+    ),
+    code: ({ children }: { children?: React.ReactNode }) => (
+      <code className="bg-muted px-1.5 py-0.5 rounded text-2xs font-mono text-foreground font-semibold">
+        {children}
+      </code>
+    ),
+    strong: ({ children }: { children?: React.ReactNode }) => (
+      <strong className="font-bold text-foreground">{children}</strong>
+    ),
+    table: ({ children }: { children?: React.ReactNode }) => (
+      <div className="overflow-x-auto my-3 rounded-xl border border-border/40 bg-card/50">
+        <table className="w-full text-xs border-collapse text-left">
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }: { children?: React.ReactNode }) => (
+      <thead className="bg-muted/50 text-foreground font-semibold border-b border-border/40">
+        {children}
+      </thead>
+    ),
+    tbody: ({ children }: { children?: React.ReactNode }) => (
+      <tbody className="divide-y divide-border/20 text-foreground">
+        {children}
+      </tbody>
+    ),
+    tr: ({ children }: { children?: React.ReactNode }) => (
+      <tr className="hover:bg-muted/20 transition-colors">
+        {children}
+      </tr>
+    ),
+    th: ({ children }: { children?: React.ReactNode }) => (
+      <th className="px-3.5 py-2 text-2xs font-bold uppercase tracking-wider text-primary">
+        {children}
+      </th>
+    ),
+    td: ({ children }: { children?: React.ReactNode }) => (
+      <td className="px-3.5 py-2 text-xs text-foreground font-medium">
+        {children}
+      </td>
+    ),
+    hr: () => <hr className="my-4 border-border/30" />,
+  }), [])
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleSafeClose()}>
       <DialogContent
@@ -358,7 +523,7 @@ export function BrandBrainEditorDialog({
                 </Badge>
               </div>
               <DialogDescription id="brand-brain-editor-desc" className="text-xs text-muted-foreground">
-                Kelola 4 dokumen acuan Copilot (<code className="text-foreground">.md</code>) yang menjadi dasar setiap ide, caption, hook, dan evaluasi tren.
+                Kelola 8 dokumen acuan Copilot & AI Playbook (<code className="text-foreground">.md</code>) yang menjadi dasar setiap ide, caption, hook, dan evaluasi tren.
               </DialogDescription>
             </div>
 
@@ -410,7 +575,7 @@ export function BrandBrainEditorDialog({
 
         {/* File Tabs Strip */}
         <div className="flex items-center gap-2 px-6 py-2.5 border-b border-border/30 bg-muted/20 overflow-x-auto shrink-0">
-          {STANDARD_BRAND_FILES.map((f) => {
+          {allTabs.map((f) => {
             const isSelected = activePath === f.path
             const existing = serverFiles.find((sf) => sf.path === f.path)
             const hasData = existing && existing.content.trim().length > 0
@@ -712,6 +877,7 @@ export function BrandBrainEditorDialog({
                   </div>
                 </div>
                 <Textarea
+                  ref={textareaRef}
                   value={currentContent}
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder={`Mulai tulis dokumen ${activePath} di sini dalam format Markdown...`}
@@ -726,54 +892,7 @@ export function BrandBrainEditorDialog({
                 </span>
                 <div className="flex-1 min-h-[380px] p-5 rounded-xl bg-secondary/15 border border-border/30 overflow-y-auto">
                   {currentContent.trim() ? (
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ children }) => (
-                          <h1 className="text-lg font-black text-foreground mb-3 mt-2 border-b border-border/40 pb-1">
-                            {children}
-                          </h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 className="text-sm font-bold text-primary mb-2 mt-4 flex items-center gap-1.5">
-                            {children}
-                          </h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="text-xs font-semibold text-foreground mb-1.5 mt-3">
-                            {children}
-                          </h3>
-                        ),
-                        p: ({ children }) => (
-                          <p className="text-xs text-muted-foreground leading-relaxed mb-2.5">
-                            {children}
-                          </p>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-disc list-inside space-y-1 mb-2.5 text-xs text-muted-foreground pl-1">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-decimal list-inside space-y-1 mb-2.5 text-xs text-muted-foreground pl-1">
-                            {children}
-                          </ol>
-                        ),
-                        li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                        blockquote: ({ children }) => (
-                          <blockquote className="border-l-2 border-primary/50 pl-3 italic text-xs text-muted-foreground my-2">
-                            {children}
-                          </blockquote>
-                        ),
-                        code: ({ children }) => (
-                          <code className="bg-muted px-1.5 py-0.5 rounded text-2xs font-mono text-foreground font-semibold">
-                            {children}
-                          </code>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="font-bold text-foreground">{children}</strong>
-                        ),
-                      }}
-                    >
+                    <ReactMarkdown components={markdownComponents}>
                       {currentContent}
                     </ReactMarkdown>
                   ) : (
@@ -865,6 +984,7 @@ export function BrandBrainEditorDialog({
                 )}
               </div>
               <Textarea
+                ref={textareaRef}
                 value={currentContent}
                 onChange={(e) => handleContentChange(e.target.value)}
                 placeholder={`Tulis panduan ${activePath} di sini...`}
@@ -875,50 +995,7 @@ export function BrandBrainEditorDialog({
             /* FULL PREVIEW */
             <div className="p-6 rounded-2xl bg-secondary/15 border border-border/30 min-h-[420px] overflow-y-auto">
               {currentContent.trim() ? (
-                <ReactMarkdown
-                  components={{
-                    h1: ({ children }) => (
-                      <h1 className="text-xl font-black text-foreground mb-4 border-b border-border/40 pb-2">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-base font-bold text-primary mb-2 mt-5">{children}</h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-sm font-semibold text-foreground mb-1.5 mt-3">
-                        {children}
-                      </h3>
-                    ),
-                    p: ({ children }) => (
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{children}</p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc list-inside space-y-1.5 mb-3 text-xs text-muted-foreground pl-1">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal list-inside space-y-1.5 mb-3 text-xs text-muted-foreground pl-1">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-3 border-primary/50 pl-3 italic text-xs text-muted-foreground my-3">
-                        {children}
-                      </blockquote>
-                    ),
-                    code: ({ children }) => (
-                      <code className="bg-muted px-1.5 py-0.5 rounded text-2xs font-mono text-foreground font-semibold">
-                        {children}
-                      </code>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-bold text-foreground">{children}</strong>
-                    ),
-                  }}
-                >
+                <ReactMarkdown components={markdownComponents}>
                   {currentContent}
                 </ReactMarkdown>
               ) : (

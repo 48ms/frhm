@@ -30,6 +30,14 @@ vi.mock("@/features/skills/api/queries", () => ({
   }),
 }))
 
+const mockMutatePromote = vi.fn()
+vi.mock("@/features/deliverables/api/queries", () => ({
+  usePromoteSkillOutputToDeliverable: () => ({
+    mutate: mockMutatePromote,
+    isPending: false,
+  }),
+}))
+
 
 describe("SkillInterviewModal Component", () => {
   const fakeSkill = {
@@ -255,6 +263,47 @@ describe("SkillInterviewModal Component", () => {
       }),
       expect.any(Object)
     )
+  })
+
+  it("shows 'Kirim ke Review' button and triggers promotion when output is saved", () => {
+    mockMutateChat.mockImplementation(({}, { onSuccess }) => {
+      onSuccess({
+        reply: "Wawancara selesai.",
+        done: true,
+        output: {
+          title: "Blueprint Final",
+          content: "### Blueprint Lengkap",
+        },
+      })
+    })
+
+    mockMutateSave.mockImplementation(({}, { onSuccess }) => {
+      onSuccess({
+        id: "output-abc-123",
+        success: true,
+      })
+    })
+
+    render(
+      <SkillInterviewModal
+        open={true}
+        onOpenChange={vi.fn()}
+        skill={fakeSkill}
+        clientId="c-100"
+        clientName="Taraju Coffee"
+      />
+    )
+
+    const promoteBtn = screen.getByRole("button", { name: /Kirim ke Review/i })
+    expect(promoteBtn).toBeDefined()
+
+    fireEvent.click(promoteBtn)
+
+    expect(mockMutatePromote).toHaveBeenCalledWith({
+      outputId: "output-abc-123",
+      clientId: "c-100",
+      type: "brief",
+    })
   })
 })
 

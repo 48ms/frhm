@@ -32,6 +32,7 @@ export type BrandFileKey =
   | 'social-strategy.md'
   | 'goals-and-kpis.md'
   | 'content-calendar.md'
+  | 'offers.md'
 
 export interface BrandFileMeta {
   path: BrandFileKey
@@ -288,6 +289,21 @@ export const STANDARD_BRAND_FILES: BrandFileMeta[] = [
 
 ## Named Recurring Series
 - [Nama Rubrik Rutin Mingguan, misal: #BongkarMitos atau #CeritaDapur]
+`,
+  },
+  {
+    path: 'offers.md',
+    title: 'Offers, CTAs & Product Catalog',
+    shortLabel: 'Offers & CTAs',
+    description: 'Katalog penawaran, lead magnet, hierarki CTA, dan batas promosi (aturan promosi maks 20%).',
+    defaultTemplate: `# Offers & Product Catalog
+<!-- version: 1.0 · review: quarterly or on new launch -->
+
+## Offers & CTAs
+- **Primary CTA:** [Aksi utama: Hubungi WhatsApp / Kunjungi Web]
+- **Secondary CTAs:** [Aksi engagement: Simpan postingan, share via DM]
+- **Lead Magnets:** [Panduan gratis, sampel gratis, checklist, atau konsultasi]
+- **Promotional Guardrails:** [Maksimal 20% konten promosi langsung]
 `,
   },
 ]

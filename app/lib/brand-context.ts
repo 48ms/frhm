@@ -264,5 +264,39 @@ export function compileBrandContext(clientName: string, files: Record<string, st
     sections.push(`## Content Calendar & Recurring Cadence\n${files["content-calendar.md"]}`)
   }
 
+  if (files["offers.md"]?.trim()) {
+    sections.push(`## Offers & Product Catalog\n${files["offers.md"]}`)
+  }
+
+  if (files["style-guide.md"]?.trim()) {
+    sections.push(`## Visual Style Guide & Creative Rules\n${files["style-guide.md"]}`)
+  }
+
+  if (files["campaign-plan.md"]?.trim()) {
+    sections.push(`## Active Campaigns & Launch Plans\n${files["campaign-plan.md"]}`)
+  }
+
+  // Include any other specialized strategic client documents (e.g., competitor-analysis.md, etc.)
+  const knownKeys = new Set([
+    "brand-profile.md",
+    "voice.md",
+    "content-pillars.md",
+    "guardrails.md",
+    "audience.md",
+    "social-strategy.md",
+    "goals-and-kpis.md",
+    "content-calendar.md",
+    "offers.md",
+    "style-guide.md",
+    "campaign-plan.md",
+  ])
+
+  for (const [key, content] of Object.entries(files)) {
+    if (!knownKeys.has(key) && content?.trim() && key.endsWith(".md")) {
+      const heading = key.replace(/\.md$/, "").replace(/[-_]/g, " ").toUpperCase()
+      sections.push(`## Specialized Strategic Document: ${heading}\n${content.trim()}`)
+    }
+  }
+
   return sections.join("\n\n---\n\n")
 }

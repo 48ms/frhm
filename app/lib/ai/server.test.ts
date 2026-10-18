@@ -57,6 +57,7 @@ describe("lib/ai/server", () => {
                   { path: "voice.md", content: "# Voice" },
                   { path: "content-pillars.md", content: "# Pillars" },
                   { path: "guardrails.md", content: "# Guardrails" },
+                  { path: "audience.md", content: "# Audience" },
                 ],
               }),
             }),
@@ -70,6 +71,7 @@ describe("lib/ai/server", () => {
       expect(files["voice.md"]).toBe("# Voice")
       expect(files["content-pillars.md"]).toBe("# Pillars")
       expect(files["guardrails.md"]).toBe("# Guardrails")
+      expect(files["audience.md"]).toBe("# Audience")
     })
 
     it("falls back to clients.brand_profile for missing foundation documents", async () => {

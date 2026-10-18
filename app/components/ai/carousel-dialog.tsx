@@ -25,6 +25,7 @@ interface CarouselDialogProps {
   onOpenChange: (open: boolean) => void
   clientId: string
   clientName: string
+  initialTopic?: string
 }
 
 export function CarouselDialog({
@@ -32,6 +33,7 @@ export function CarouselDialog({
   onOpenChange,
   clientId,
   clientName,
+  initialTopic,
 }: CarouselDialogProps) {
   const router = useRouter()
   const [topic, setTopic] = React.useState("")
@@ -40,6 +42,12 @@ export function CarouselDialog({
   const [platform, setPlatform] = React.useState<CarouselPlatform>("instagram")
   const [result, setResult] = React.useState<CarouselResult | null>(null)
   const [activeSlideIndex, setActiveSlideIndex] = React.useState(0)
+
+  React.useEffect(() => {
+    if (open && initialTopic) {
+      setTopic(initialTopic)
+    }
+  }, [open, initialTopic])
 
   const { mutateAsync: generateCarouselMutate, isPending: isGenerating } = useGenerateCarousel()
 

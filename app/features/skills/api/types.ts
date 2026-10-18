@@ -7,7 +7,30 @@ export interface Skill {
   category: string
   job: string | null
   allowed_tools: string | null
+  stage?: string | null
+  reads_files?: string[]
+  writes_files?: string[]
+  version?: string | null
+  group_name?: string | null
+  file_count?: number
   created_at?: string
+}
+
+export const CANONICAL_SKILL_FILE_MAP: Record<string, string> = {
+  "brand-profile": "brand-profile.md",
+  "voice-builder": "voice.md",
+  "writing-style-and-tone": "voice.md",
+  "content-pillars": "content-pillars.md",
+  "guardrails": "guardrails.md",
+  "audience-research": "audience.md",
+  "social-strategy": "social-strategy.md",
+  "goals-and-kpis": "goals-and-kpis.md",
+  "content-calendar": "content-calendar.md",
+  "batch-content-plan": "content-calendar.md",
+  "competitor-analysis": "competitor-analysis.md",
+  "campaign-and-launch-planning": "campaign-plan.md",
+  "lead-magnets-and-funnels": "offers.md",
+  "creator-monetization": "offers.md",
 }
 
 export interface SkillFile {

@@ -176,11 +176,14 @@ export function useSaveSkillOutput() {
         toast.success("Dokumen berhasil disimpan ke klien!")
         void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
         void queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.all })
         void queryClient.invalidateQueries({ queryKey: brandFilesKeys.list(vars.clientId) })
         void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "brand-profile.md") })
         void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "voice.md") })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "audience.md") })
         void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "content-pillars.md") })
         void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "guardrails.md") })
+        void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "offers.md") })
         void queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
       } else {
         toast.error(res.error || "Gagal menyimpan dokumen")
@@ -217,7 +220,14 @@ export function useExecuteGenericSkill() {
         void queryClient.invalidateQueries({ queryKey: skillKeys.clientSkills(vars.clientId) })
         if (vars.autoSave) {
           void queryClient.invalidateQueries({ queryKey: skillKeys.outputs(vars.clientId) })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.all })
           void queryClient.invalidateQueries({ queryKey: brandFilesKeys.list(vars.clientId) })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "brand-profile.md") })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "voice.md") })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "audience.md") })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "content-pillars.md") })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "guardrails.md") })
+          void queryClient.invalidateQueries({ queryKey: brandFilesKeys.detail(vars.clientId, "offers.md") })
           void queryClient.invalidateQueries({ queryKey: socialKeys.clients() })
         }
       } else {

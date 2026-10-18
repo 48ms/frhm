@@ -147,19 +147,35 @@ describe("AiStudioClient", () => {
     ).toBeInTheDocument()
   })
 
-  it("switches to Trend Radar tab and displays 3-gate audit form", () => {
+  it("switches to Trend Radar tab, displays 3-gate audit form, and renders bridge action buttons when evaluated", async () => {
+    mockEvaluateTrend.mockResolvedValueOnce({
+      evaluation: {
+        overallApproved: true,
+        gateFit: { pass: true, reason: "Sangat selaras dengan pilar edukasi teh" },
+        gateSafety: { pass: true, reason: "Aman tanpa isu kontroversial" },
+        gateTiming: { status: "emerging", verdict: "Tren sedang naik daun" },
+        remixAngle: "Seduh santai ala mindful morning",
+        draftPremise: "Tunjukkan ritual seduh teh artisan 3 menit tanpa distraksi",
+      },
+    })
+
     renderWithProviders(<AiStudioClient />)
 
     const trendTab = screen.getByRole("tab", { name: /Trend Radar/i })
     fireEvent.click(trendTab)
 
     expect(screen.getByText(/Trend Radar & 3-Gate Vetting Engine/i)).toBeInTheDocument()
-    expect(
-      screen.getByPlaceholderText(/Tren format video 'A Day in My Life/i)
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: /Audit Kelayakan Tren Sekarang/i })
-    ).toBeInTheDocument()
+    const input = screen.getByPlaceholderText(/Tren format video 'A Day in My Life/i)
+    expect(input).toBeInTheDocument()
+    fireEvent.change(input, { target: { value: "Format video ritual pagi" } })
+
+    const auditBtn = screen.getByRole("button", { name: /Audit Kelayakan Tren Sekarang/i })
+    fireEvent.click(auditBtn)
+
+    expect(await screen.findByText(/Seduh santai ala mindful morning/i)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Jadikan Topik Ide/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Buat Reels Script/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Buka di Composer/i })).toBeInTheDocument()
   })
 
   it("switches to Brand Brain tab and displays active client profile DNA", () => {

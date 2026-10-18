@@ -14,25 +14,30 @@ import {
   useClientSkills,
   useAssignPackToClient,
 } from "@/features/skills/api/queries"
-import type { Skill, SkillPack } from "@/features/skills/api/types"
+import {
+  type Skill,
+  type SkillPack,
+  CANONICAL_SKILL_FILE_MAP,
+} from "@/features/skills/api/types"
 import { SkillInterviewModal } from "./skill-interview-modal"
 import { cn } from "@/lib/utils"
 
 const CATEGORIES = [
   { id: "all", label: "Semua Kategori" },
   { id: "Foundation & strategy", label: "Fondasi & Strategi" },
-  { id: "Planning", label: "Perencanaan Konten" },
+  { id: "Plan, publish & schedule", label: "Perencanaan & Jadwal" },
   { id: "Ideas & content angles", label: "Ide & Sudut Pandang" },
   { id: "Copy & captions", label: "Penulisan Copy & Hook" },
   { id: "Video scripts", label: "Naskah Video" },
-  { id: "Visual & design", label: "Desain Visual & Prompt" },
   { id: "AI video", label: "Produksi Video AI" },
-  { id: "Voice & music", label: "Audio & Voiceover" },
-  { id: "Distribution & monetization", label: "Distribusi & Monetisasi" },
-  { id: "Platform growth", label: "Pertumbuhan Saluran" },
-  { id: "Publishing & measurement", label: "Publikasi & Metrik" },
+  { id: "Visual & design", label: "Desain Visual & Prompt" },
+  { id: "Voice & music", label: "Audio & Musik" },
   { id: "Editing & clipping", label: "Editing & Klip" },
-  { id: "Community & operations", label: "Komunitas & Operasional" },
+  { id: "Platform growth", label: "Pertumbuhan Saluran" },
+  { id: "Hashtags & SEO", label: "Hashtags & SEO" },
+  { id: "Community & engagement", label: "Komunitas & Interaksi" },
+  { id: "Influencer, funnels & monetization", label: "Monetisasi & Funnel" },
+  { id: "Analytics & optimization", label: "Analitik & Optimasi" },
 ]
 
 interface SkillCatalogViewProps {
@@ -277,6 +282,10 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {skills.map((skill) => {
                 const clientStatus = clientSkillMap.get(skill.id)
+                const canonicalFile =
+                  CANONICAL_SKILL_FILE_MAP[skill.id] ||
+                  (skill.writes_files && skill.writes_files.length > 0 ? skill.writes_files[0] : null)
+
                 return (
                   <div
                     key={skill.id}
@@ -306,13 +315,18 @@ export function SkillCatalogView({ clientId, clientName }: SkillCatalogViewProps
                         {skill.job || skill.description || "Playbook spesialis pemasaran media sosial."}
                       </p>
 
-                      {skill.allowed_tools && (
-                        <div className="pt-1">
+                      <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                        {canonicalFile && (
+                          <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 inline-flex items-center gap-1 font-medium">
+                            <Icons.fileText className="size-2.5" /> {canonicalFile}
+                          </span>
+                        )}
+                        {skill.allowed_tools && (
                           <span className="text-2xs text-primary/80 font-mono bg-primary/5 px-2 py-0.5 rounded-md border border-primary/20 inline-block">
                             🔧 {skill.allowed_tools}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
 
                     <div className="pt-3 mt-3 border-t border-border/30 flex items-center justify-between">

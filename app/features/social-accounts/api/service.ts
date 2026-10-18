@@ -304,15 +304,56 @@ export async function updateBrandProfile(clientId: string, profile: any): Promis
     summary: `Updated brand profile for ${clientId}`,
   })
 
+  const nowIso = new Date().toISOString()
   const markdown = brandProfileToMarkdown(profile)
-  const { error: fileError } = await supabase
-    .from("client_files")
-    .upsert(
-      { client_id: clientId, path: "brand-profile.md", content: markdown, updated_at: new Date().toISOString() },
-      { onConflict: "client_id,path" }
-    )
+  const filesToUpsert: Array<{ client_id: string; path: string; content: string; updated_at: string }> = [
+    { client_id: clientId, path: "brand-profile.md", content: markdown, updated_at: nowIso },
+  ]
 
-  if (fileError) throw new Error(fileError.message)
+  if (profile.voice && typeof profile.voice === "string" && profile.voice.trim()) {
+    filesToUpsert.push({
+      client_id: clientId,
+      path: "voice.md",
+      content: `# Brand Voice & Tone Guide\n\n## Tone of Voice\n${profile.voice.trim()}`,
+      updated_at: nowIso,
+    })
+  }
+
+  if (profile.guardrails && typeof profile.guardrails === "string" && profile.guardrails.trim()) {
+    filesToUpsert.push({
+      client_id: clientId,
+      path: "guardrails.md",
+      content: `# Brand Guardrails & Never-List\n\n## Never-List & Restrictions\n${profile.guardrails.trim()}`,
+      updated_at: nowIso,
+    })
+  }
+
+  if (profile.audience && typeof profile.audience === "string" && profile.audience.trim()) {
+    filesToUpsert.push({
+      client_id: clientId,
+      path: "audience.md",
+      content: `# Target Audience & ICP\n\n## Audience Persona\n${profile.audience.trim()}`,
+      updated_at: nowIso,
+    })
+  }
+
+  if (Array.isArray(profile.pillars) && profile.pillars.length > 0) {
+    filesToUpsert.push({
+      client_id: clientId,
+      path: "content-pillars.md",
+      content: `# Content Pillars & Focus Areas\n\n${profile.pillars.map((p: string) => p.startsWith("-") ? p : `- ${p}`).join("\n")}`,
+      updated_at: nowIso,
+    })
+  }
+
+  for (const f of filesToUpsert) {
+    const { error: fileError } = await supabase
+      .from("client_files")
+      .upsert(f, { onConflict: "client_id,path" })
+    if (fileError) {
+      logger.warn("updateBrandProfile client_files sync warning", { path: f.path, error: fileError.message })
+    }
+  }
 }
 
 export async function generateBrandProfile(input: GenerateBrandProfileInput) {

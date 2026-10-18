@@ -57,8 +57,10 @@ export function ComposerClient() {
 
   const [step, setStep] = useState(1)
   const [contentParam, setContentParam] = useQueryState("content", parseAsString.withDefault(""))
+  const [captionParam, setCaptionParam] = useQueryState("caption", parseAsString.withDefault(""))
   const [mediaUrlParam, setMediaUrlParam] = useQueryState("mediaUrl", parseAsString.withDefault(""))
   const [titleParam, setTitleParam] = useQueryState("title", parseAsString.withDefault(""))
+  const [platformParam, setPlatformParam] = useQueryState("platform", parseAsString.withDefault(""))
 
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
@@ -67,13 +69,15 @@ export function ComposerClient() {
   const [mediaType, setMediaType] = useState<AssetFileType>("image")
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  // Sync content / mediaUrl / title from cross-module deep links
+  // Sync content / mediaUrl / title / platform from cross-module deep links
   useEffect(() => {
-    if (contentParam) {
-      setContent(contentParam)
-      void setContentParam("")
+    const rawContent = contentParam || captionParam
+    if (rawContent) {
+      setContent(rawContent)
+      if (contentParam) void setContentParam("")
+      if (captionParam) void setCaptionParam("")
     }
-  }, [contentParam, setContentParam])
+  }, [contentParam, captionParam, setContentParam, setCaptionParam])
 
   useEffect(() => {
     if (mediaUrlParam) {
@@ -89,6 +93,15 @@ export function ComposerClient() {
       void setTitleParam("")
     }
   }, [titleParam, setTitleParam])
+
+  useEffect(() => {
+    if (platformParam) {
+      const p = platformParam.toLowerCase()
+      setPlatforms((prev) => (prev.includes(p) ? prev : [...prev, p]))
+      setCopilotPlatform(p)
+      void setPlatformParam("")
+    }
+  }, [platformParam, setPlatformParam])
   const connectedChannels = activeClient?.channels?.filter(c => c.status === "terhubung") || []
   const [platforms, setPlatforms] = useState<string[]>([])
   const [dateStr, setDateStr] = useState("")

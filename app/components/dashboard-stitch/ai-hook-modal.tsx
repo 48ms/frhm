@@ -24,11 +24,13 @@ export function StitchAiHookModal({
   onOpenChange,
   clientName = "the active client",
   clientId,
+  initialPrompt,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   clientName?: string
   clientId: string
+  initialPrompt?: string
 }) {
   const router = useRouter()
   const [prompt, setPrompt] = useState("")
@@ -52,8 +54,11 @@ export function StitchAiHookModal({
       setError(null)
       setCopied(null)
       setSendsQuestion(null)
+      if (initialPrompt) {
+        setPrompt(initialPrompt)
+      }
     }
-  }, [open])
+  }, [open, initialPrompt])
 
   async function generate() {
     setError(null)

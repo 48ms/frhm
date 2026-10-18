@@ -232,6 +232,17 @@ Informasi penawaran berkala, produk unggulan, dan ajakan bertindak (CTA) jelas.
 - Verifikasi promo dan penawaran setiap kuartal (verify-quarterly).
 `
 
+  const initialAudienceMd = `# Target Audience & ICP — ${input.name}
+
+## Segment 1 — Target Utama
+- **Who:** Target audiens utama untuk ${input.name}.
+- **Demographics:** Dewasa muda, profesional, atau keluarga di Indonesia.
+- **Pain Points:** Memerlukan solusi terpercaya, hemat waktu, dan bernilai sepadan dengan biaya.
+- **Goals:** Mendapatkan hasil nyata dengan proses yang mudah, ramah, dan transparan.
+- **Cares about:** Kualitas layanan, respons cepat, reputasi terpercaya, dan kemudahan transaksi.
+- **Where:** Instagram, TikTok.
+`
+
   const nowIso = new Date().toISOString()
   const { error: fileErr } = await supabase
     .from("client_files")
@@ -247,6 +258,13 @@ Informasi penawaran berkala, produk unggulan, dan ajakan bertindak (CTA) jelas.
         client_id: clientData.id,
         path: "voice.md",
         content: initialVoiceMd,
+        updated_at: nowIso,
+        needs_verification: false,
+      },
+      {
+        client_id: clientData.id,
+        path: "audience.md",
+        content: initialAudienceMd,
         updated_at: nowIso,
         needs_verification: false,
       },

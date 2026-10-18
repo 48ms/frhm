@@ -23,6 +23,7 @@ import {
   useExecuteSkillTool,
   useExecuteGenericSkill,
 } from "@/features/skills/api/queries"
+import { usePromoteSkillOutputToDeliverable } from "@/features/deliverables/api/queries"
 import type { Skill, SkillChatTurn } from "@/features/skills/api/types"
 import { serializeComposerParams } from "@/lib/searchparams"
 import { cn } from "@/lib/utils"
@@ -79,6 +80,7 @@ export function SkillInterviewModal({
   const saveMutation = useSaveSkillOutput()
   const mcpMutation = useExecuteSkillTool()
   const genericMutation = useExecuteGenericSkill()
+  const promoteMutation = usePromoteSkillOutputToDeliverable()
 
   const [messages, setMessages] = React.useState<SkillChatTurn[]>([])
   const [inputVal, setInputVal] = React.useState("")
@@ -86,6 +88,7 @@ export function SkillInterviewModal({
   const [finalOutput, setFinalOutput] = React.useState<{ title: string; content: string } | null>(null)
   const [isDone, setIsDone] = React.useState(false)
   const [isSaved, setIsSaved] = React.useState(false)
+  const [savedOutputId, setSavedOutputId] = React.useState<string | null>(null)
   const [mcpFeedback, setMcpFeedback] = React.useState<string | null>(null)
   const [viewMode, setViewMode] = React.useState<"preview" | "markdown">("preview")
   const [copied, setCopied] = React.useState(false)
@@ -143,6 +146,7 @@ export function SkillInterviewModal({
       setFinalOutput(null)
       setIsDone(false)
       setIsSaved(false)
+      setSavedOutputId(null)
       setViewMode("preview")
 
       // Trigger automatic opening greeting
@@ -180,8 +184,9 @@ export function SkillInterviewModal({
           status: isFinal ? "selesai" : "draft",
         },
         {
-          onSuccess: () => {
+          onSuccess: (res) => {
             setIsSaved(true)
+            if (res?.id) setSavedOutputId(res.id)
           },
         }
       )
@@ -281,13 +286,22 @@ export function SkillInterviewModal({
   const handleSendToComposer = () => {
     const doc = finalOutput || livePreview
     if (!doc) return
-    const url = `/admin/composer?${serializeComposerParams({
+    const url = serializeComposerParams("/admin/composer", {
       clientId,
       title: doc.title,
       content: doc.content,
-    })}`
+    })
     onOpenChange(false)
     router.push(url)
+  }
+
+  const handlePromoteToDeliverable = () => {
+    if (!savedOutputId || !clientId) return
+    promoteMutation.mutate({
+      clientId,
+      outputId: savedOutputId,
+      type: "brief",
+    })
   }
 
   const handleCopyContent = () => {
@@ -621,6 +635,20 @@ export function SkillInterviewModal({
                       <Icons.share className="size-3" />
                     )}
                     Cek Akun MCP
+                  </Button>
+                )}
+
+                {isSaved && savedOutputId && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handlePromoteToDeliverable}
+                    disabled={promoteMutation.isPending}
+                    isLoading={promoteMutation.isPending}
+                    className="h-7 text-xs gap-1.5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg cursor-pointer font-medium"
+                    title="Kirim dokumen ini ke Hub Review Klien sebagai Deliverable resmi"
+                  >
+                    <Icons.checks className="size-3" /> Kirim ke Review
                   </Button>
                 )}
 

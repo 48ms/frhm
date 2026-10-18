@@ -241,5 +241,17 @@ Dilarang klaim menyembuhkan penyakit medis.
       expect(combined).toContain("# Brand Profile — Pawon Sengon")
       expect(combined).toContain("(belum ada brand-profile.md; buat dulu sebelum skill lain dijalankan)")
     })
+
+    it("automatically includes extra strategic playbook files in client_files", () => {
+      const files = {
+        "brand-profile.md": "# Brand Profile\nTeh Taraju",
+        "competitor-analysis.md": "Kompetitor utama: Brand A & Brand B.",
+        "hashtag-vault.md": "Pilihan hashtag: #TehLokal #ArtisanTea.",
+      }
+
+      const combined = compileBrandContext("Taraju", files)
+      expect(combined).toContain("## Specialized Strategic Document: COMPETITOR ANALYSIS\nKompetitor utama: Brand A & Brand B.")
+      expect(combined).toContain("## Specialized Strategic Document: HASHTAG VAULT\nPilihan hashtag: #TehLokal #ArtisanTea.")
+    })
   })
 })

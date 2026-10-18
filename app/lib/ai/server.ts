@@ -90,8 +90,12 @@ export async function loadSkillBundle(
   if (!data || data.length === 0) {
     // Resilient fallback to local cloned social-media-skills repository
     try {
-      const localDir = path.resolve(process.cwd(), '..', 'social-media-skills', 'skills', skillId)
-      if (fs.existsSync(localDir)) {
+      const candidateDirs = [
+        path.resolve(process.cwd(), '..', 'social-media-skills', 'skills', skillId),
+        path.resolve(process.cwd(), 'social-media-skills', 'skills', skillId),
+      ]
+      const localDir = candidateDirs.find((d) => fs.existsSync(d))
+      if (localDir) {
         const skillMdPath = path.join(localDir, 'SKILL.md')
         const skillMd = fs.existsSync(skillMdPath) ? fs.readFileSync(skillMdPath, 'utf8') : ''
         const refDir = path.join(localDir, 'references')
@@ -159,32 +163,47 @@ export async function loadClientFiles(
   const needsVoice = !out['voice.md'] || !out['voice.md'].trim()
   const needsPillars = !out['content-pillars.md'] || !out['content-pillars.md'].trim()
   const needsGuardrails = !out['guardrails.md'] || !out['guardrails.md'].trim()
+  const needsAudience = !out['audience.md'] || !out['audience.md'].trim()
+  const needsOffers = !out['offers.md'] || !out['offers.md'].trim()
 
-  if (needsProfile || needsVoice || needsPillars || needsGuardrails) {
-    const { data: clientRow } = await admin
-      .from('clients')
-      .select('name, brand_profile')
-      .eq('id', clientId)
-      .maybeSingle()
+  if (needsProfile || needsVoice || needsPillars || needsGuardrails || needsAudience || needsOffers) {
+    try {
+      const { data: clientRow } = await admin
+        .from('clients')
+        .select('name, brand_profile')
+        .eq('id', clientId)
+        .maybeSingle()
 
-    if (clientRow?.brand_profile && typeof clientRow.brand_profile === 'object') {
-      const bp = clientRow.brand_profile as Record<string, any>
-      const cName = clientRow.name || 'Client'
+      if (clientRow?.brand_profile && typeof clientRow.brand_profile === 'object') {
+        const bp = clientRow.brand_profile as Record<string, any>
+        const cName = clientRow.name || 'Client'
 
-      if (needsProfile && (bp.who || bp.identity || bp.voice || bp.audience || bp.pov || bp.guardrails)) {
-        out['brand-profile.md'] = brandProfileToMarkdown(bp, cName)
+        if (needsProfile && (bp.who || bp.identity || bp.voice || bp.audience || bp.pov || bp.guardrails)) {
+          out['brand-profile.md'] = brandProfileToMarkdown(bp, cName)
+        }
+        if (needsVoice && bp.voice && typeof bp.voice === 'string' && bp.voice.trim()) {
+          out['voice.md'] = `# Brand Voice & Tone Guide — ${cName}\n\n## Tone of Voice\n${bp.voice.trim()}`
+        }
+        if (needsAudience && bp.audience && typeof bp.audience === 'string' && bp.audience.trim()) {
+          out['audience.md'] = `# Target Audience & ICP — ${cName}\n\n## Audience Persona\n${bp.audience.trim()}`
+        }
+        if (needsPillars && Array.isArray(bp.pillars) && bp.pillars.length > 0) {
+          out['content-pillars.md'] = `# Content Pillars & Focus Areas — ${cName}\n\n${bp.pillars
+            .map((p: string) => (p.startsWith('-') ? p : `- ${p}`))
+            .join('\n')}`
+        }
+        if (needsGuardrails && bp.guardrails && typeof bp.guardrails === 'string' && bp.guardrails.trim()) {
+          out['guardrails.md'] = `# Brand Guardrails & Never-List — ${cName}\n\n## Never-List & Restrictions\n${bp.guardrails.trim()}`
+        }
+        if (needsOffers && bp.offers_ctas && typeof bp.offers_ctas === 'string' && bp.offers_ctas.trim()) {
+          out['offers.md'] = `# Offers & Product Catalog — ${cName}\n\n## Offers & CTAs\n${bp.offers_ctas.trim()}`
+        }
       }
-      if (needsVoice && bp.voice && typeof bp.voice === 'string' && bp.voice.trim()) {
-        out['voice.md'] = `# Brand Voice & Tone Guide — ${cName}\n\n## Tone of Voice\n${bp.voice.trim()}`
-      }
-      if (needsPillars && Array.isArray(bp.pillars) && bp.pillars.length > 0) {
-        out['content-pillars.md'] = `# Content Pillars & Focus Areas — ${cName}\n\n${bp.pillars
-          .map((p: string) => (p.startsWith('-') ? p : `- ${p}`))
-          .join('\n')}`
-      }
-      if (needsGuardrails && bp.guardrails && typeof bp.guardrails === 'string' && bp.guardrails.trim()) {
-        out['guardrails.md'] = `# Brand Guardrails & Never-List — ${cName}\n\n## Never-List & Restrictions\n${bp.guardrails.trim()}`
-      }
+    } catch (fallbackErr: unknown) {
+      logger.warn('loadClientFiles.fallback_failed', {
+        clientId,
+        error: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
+      })
     }
   }
 

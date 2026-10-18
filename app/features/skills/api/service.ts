@@ -1,28 +1,31 @@
 'use server'
 
+import fs from "fs"
+import path from "path"
 import { createClient } from "@/lib/supabase/server"
 import { createSupabaseServiceClient } from "@/lib/supabase/service"
 import { logger } from "@/lib/logger"
 import { assertClientAccess } from "@/lib/auth/guard"
 import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from "@/lib/ai/server"
-import { markdownToBrandProfile } from "@/lib/brand-context"
+import { markdownToBrandProfile, brandProfileToMarkdown } from "@/lib/brand-context"
 import { logAudit } from "@/lib/audit/log"
 import { chatJson, chatJsonDetailed } from "@/lib/ai/providers"
 import { logAiUsage } from "@/lib/ai/usage"
 import { executeWoopSocialTool, type McpExecutionResult } from "@/lib/mcp/woopsocial-mcp"
-import type {
-  Skill,
-  SkillFile,
-  SkillPack,
-  ClientSkill,
-  ClientSkillStatus,
-  SkillOutput,
-  SkillFilters,
-  SkillChatTurn,
-  SkillChatResponse,
-  SaveSkillOutputInput,
-  ExecuteGenericSkillInput,
-  GenericSkillRunResult,
+import {
+  type Skill,
+  type SkillFile,
+  type SkillPack,
+  type ClientSkill,
+  type ClientSkillStatus,
+  type SkillOutput,
+  type SkillFilters,
+  type SkillChatTurn,
+  type SkillChatResponse,
+  type SaveSkillOutputInput,
+  type ExecuteGenericSkillInput,
+  type GenericSkillRunResult,
+  CANONICAL_SKILL_FILE_MAP,
 } from "./types"
 
 export type { McpExecutionResult, GenericSkillRunResult, ExecuteGenericSkillInput }
@@ -110,9 +113,48 @@ export async function getSkillDetail(
 
   if (!skillRes.data) return null
 
+  let files = (filesRes.data as SkillFile[]) ?? []
+  if (files.length === 0) {
+    try {
+      const candidateDirs = [
+        path.resolve(process.cwd(), "..", "social-media-skills", "skills", skillId),
+        path.resolve(process.cwd(), "social-media-skills", "skills", skillId),
+      ]
+      const localDir = candidateDirs.find((d) => fs.existsSync(d))
+      if (localDir) {
+        const localFiles: SkillFile[] = []
+        const skillMdPath = path.join(localDir, "SKILL.md")
+        if (fs.existsSync(skillMdPath)) {
+          localFiles.push({
+            skill_id: skillId,
+            path: "SKILL.md",
+            content: fs.readFileSync(skillMdPath, "utf8"),
+          })
+        }
+        const refDir = path.join(localDir, "references")
+        if (fs.existsSync(refDir)) {
+          for (const f of fs.readdirSync(refDir)) {
+            if (f.endsWith(".md")) {
+              localFiles.push({
+                skill_id: skillId,
+                path: `references/${f}`,
+                content: fs.readFileSync(path.join(refDir, f), "utf8"),
+              })
+            }
+          }
+        }
+        if (localFiles.length > 0) {
+          files = localFiles
+        }
+      }
+    } catch {
+      // Non-blocking fallback
+    }
+  }
+
   return {
     skill: skillRes.data as Skill,
-    files: (filesRes.data as SkillFile[]) ?? [],
+    files,
   }
 }
 
@@ -294,10 +336,11 @@ export async function saveSkillOutput(
         const parsed = markdownToBrandProfile(content)
         const { data: clientRow } = await service
           .from("clients")
-          .select("brand_profile")
+          .select("name, brand_profile")
           .eq("id", clientId)
           .maybeSingle()
 
+        const clientName = clientRow?.name || "Client"
         const existingProfile = (clientRow?.brand_profile as Record<string, any>) || {}
         const mergedProfile = {
           ...existingProfile,
@@ -321,6 +364,58 @@ export async function saveSkillOutput(
           .from("clients")
           .update({ brand_profile: mergedProfile, updated_at: nowIso })
           .eq("id", clientId)
+
+        // 3. Bi-directional Fan-Out: sinkronkan sub-files di client_files
+        const subFilesToUpsert: Array<{ path: string; content: string }> = []
+        if (parsed.voice) {
+          subFilesToUpsert.push({
+            path: "voice.md",
+            content: `# Brand Voice & Tone Guide — ${clientName}\n\n## Tone of Voice\n${parsed.voice}`,
+          })
+        }
+        if (parsed.audience) {
+          subFilesToUpsert.push({
+            path: "audience.md",
+            content: `# Target Audience & ICP — ${clientName}\n\n## Audience Persona\n${parsed.audience}`,
+          })
+        }
+        if (parsed.guardrails) {
+          subFilesToUpsert.push({
+            path: "guardrails.md",
+            content: `# Brand Guardrails & Never-List — ${clientName}\n\n## Never-List & Restrictions\n${parsed.guardrails}`,
+          })
+        }
+        if (parsed.pillars && parsed.pillars.length > 0) {
+          subFilesToUpsert.push({
+            path: "content-pillars.md",
+            content: `# Content Pillars & Focus Areas — ${clientName}\n\n${parsed.pillars
+              .map((p) => (p.startsWith("-") ? p : `- ${p}`))
+              .join("\n")}`,
+          })
+        }
+        if (parsed.offers_ctas) {
+          subFilesToUpsert.push({
+            path: "offers.md",
+            content: `# Offers & Product Catalog — ${clientName}\n\n## Offers & CTAs\n${parsed.offers_ctas}`,
+          })
+        }
+
+        for (const sub of subFilesToUpsert) {
+          try {
+            await service.from("client_files").upsert(
+              {
+                client_id: clientId,
+                path: sub.path,
+                content: sub.content,
+                updated_at: nowIso,
+                needs_verification: sub.content.includes("(verify-quarterly)"),
+              },
+              { onConflict: "client_id,path" }
+            )
+          } catch {
+            // Non-blocking fan-out
+          }
+        }
       } catch (syncErr: unknown) {
         logger.warn("skills.saveSkillOutput.brand_profile_sync_failed", {
           clientId,
@@ -328,21 +423,26 @@ export async function saveSkillOutput(
         })
       }
     } else {
-      const CANONICAL_SKILL_FILE_MAP: Record<string, string> = {
-        "voice-builder": "voice.md",
-        "writing-style-and-tone": "voice.md",
-        "content-pillars": "content-pillars.md",
-        "guardrails": "guardrails.md",
-        "audience-research": "audience.md",
-        "social-strategy": "social-strategy.md",
-        "goals-and-kpis": "goals-and-kpis.md",
-        "content-calendar": "content-calendar.md",
-        "batch-content-plan": "content-calendar.md",
-        "competitor-analysis": "competitor-analysis.md",
-        "campaign-and-launch-planning": "campaign-plan.md",
+      let targetPath = customPath || CANONICAL_SKILL_FILE_MAP[skillId]
+      if (!targetPath) {
+        try {
+          const { data: skillRow } = await service
+            .from("skills")
+            .select("writes_files")
+            .eq("id", skillId)
+            .maybeSingle()
+          if (
+            skillRow?.writes_files &&
+            Array.isArray(skillRow.writes_files) &&
+            skillRow.writes_files.length > 0 &&
+            typeof skillRow.writes_files[0] === "string"
+          ) {
+            targetPath = skillRow.writes_files[0]
+          }
+        } catch {
+          // Non-blocking query fallback
+        }
       }
-
-      const targetPath = customPath || CANONICAL_SKILL_FILE_MAP[skillId]
       if (targetPath) {
         const { error: fileErr } = await service
           .from("client_files")
@@ -363,6 +463,77 @@ export async function saveSkillOutput(
             targetPath,
             error: fileErr.message,
           })
+        } else {
+          // Dual-write sync ke clients.brand_profile jika file ini memengaruhi pilar identitas brand
+          const syncableFiles = [
+            "voice.md",
+            "guardrails.md",
+            "audience.md",
+            "content-pillars.md",
+            "offers.md",
+            "social-strategy.md",
+          ]
+          if (syncableFiles.includes(targetPath)) {
+            try {
+              const { data: clientRow } = await service
+                .from("clients")
+                .select("name, brand_profile")
+                .eq("id", clientId)
+                .maybeSingle()
+
+              const clientName = clientRow?.name || "Client"
+              const existingProfile = (clientRow?.brand_profile as Record<string, any>) || {}
+              const updatedProfile = { ...existingProfile }
+
+              if (targetPath === "voice.md") {
+                updatedProfile.voice = content.trim()
+              } else if (targetPath === "guardrails.md") {
+                updatedProfile.guardrails = content.trim()
+              } else if (targetPath === "audience.md") {
+                updatedProfile.audience = content.trim()
+              } else if (targetPath === "offers.md") {
+                updatedProfile.offers_ctas = content.trim()
+              } else if (targetPath === "content-pillars.md") {
+                const lines = content
+                  .split("\n")
+                  .map((l) => l.trim())
+                  .filter((l) => l.startsWith("- ") || l.startsWith("* "))
+                  .map((l) => l.replace(/^[-*]\s+/, "").trim())
+                  .filter(Boolean)
+                if (lines.length > 0) {
+                  updatedProfile.pillars = lines
+                }
+              }
+
+              await service
+                .from("clients")
+                .update({ brand_profile: updatedProfile, updated_at: nowIso })
+                .eq("id", clientId)
+
+              // Bi-directional Master Sync: re-generate master brand-profile.md
+              try {
+                const masterContent = brandProfileToMarkdown(updatedProfile, clientName)
+                await service.from("client_files").upsert(
+                  {
+                    client_id: clientId,
+                    path: "brand-profile.md",
+                    content: masterContent,
+                    updated_at: nowIso,
+                    needs_verification: masterContent.includes("(verify-quarterly)"),
+                  },
+                  { onConflict: "client_id,path" }
+                )
+              } catch {
+                // Non-blocking master sync
+              }
+            } catch (syncErr: unknown) {
+              logger.warn("skills.saveSkillOutput.targetPath_profile_sync_failed", {
+                clientId,
+                targetPath,
+                error: syncErr instanceof Error ? syncErr.message : String(syncErr),
+              })
+            }
+          }
         }
       }
     }
@@ -424,19 +595,37 @@ export async function executeSkillChat(input: {
     }
   }
 
-  const [skillBundle, clientFiles, clientData] = await Promise.all([
+  const [skillBundle, clientFiles, clientData, skillData] = await Promise.all([
     loadSkillBundle(supabase, skillId),
     loadClientFiles(supabase, clientId),
     supabase.from("clients").select("name").eq("id", clientId).maybeSingle(),
+    supabase.from("skills").select("name, allowed_tools, reads_files").eq("id", skillId).maybeSingle(),
   ])
 
-  const clientName = clientData.data?.name || "Klien"
+  const clientName = clientData?.data?.name || "Klien"
+  const skillName = skillData?.data?.name || skillId
+  const allowedTools = skillData?.data?.allowed_tools
+  const readsFiles: string[] = Array.isArray(skillData?.data?.reads_files)
+    ? (skillData.data.reads_files as string[])
+    : []
   const brandCtx = brandContext(clientName, clientFiles)
+
+  const toolsPrompt = allowedTools
+    ? `\n[AUTHORIZATION & MCP TOOLS]\nThis playbook has access to the following connected tools and capabilities:\n${allowedTools}\nWhen recommending actions or executing steps, you may leverage or reference these capabilities.\n`
+    : ""
+
+  const missingPrereqs = readsFiles.filter((rf) => !clientFiles[rf] || !clientFiles[rf].trim())
+  const prereqPrompt = readsFiles.length > 0
+    ? `\n[PLAYBOOK PREREQUISITE ARTIFACTS]\nExpected input files: ${readsFiles.join(", ")}.\n` +
+      (missingPrereqs.length > 0
+        ? `Note: ${missingPrereqs.join(", ")} are not yet formally documented. Explore or clarify these aspects with the user as needed.\n`
+        : "All prerequisite documents are present in brand context.\n")
+    : ""
 
   const systemPrompt = `
 [ROLE & EXPERTISE]
 You are an expert Social Media & Marketing Consultant acting on behalf of ${clientName}.
-You are executing the specialized playbook "${skillId}".
+You are executing the specialized playbook "${skillName}" (${skillId}).
 You conduct an interactive interview step-by-step with the user in INDONESIAN (Bahasa Indonesia yang profesional, ramah, dan solutif).
 
 [BRAND CONTEXT]
@@ -448,9 +637,9 @@ ${brandCtx}
 [AUTHORITATIVE SKILL PLAYBOOK & INSTRUCTIONS]
 Follow the guidelines, frameworks, and requirements from this official playbook:
 ---
-${skillBundle || "Execute standard industry best practices for " + skillId}
+${skillBundle || "Execute standard industry best practices for " + skillName}
 ---
-
+${toolsPrompt}${prereqPrompt}
 [INTERVIEW & LIVE DRAFT SPECIFICATION (CRITICAL)]
 You MUST output valid JSON ONLY, strictly following this schema:
 {
@@ -489,7 +678,7 @@ RULES & INTERVIEW HYGIENE (SOCIAL-MEDIA-SKILLS FOUNDATION):
         content:
           skillId === "brand-profile"
             ? `Halo! Saya ingin merancang Brand Profile untuk klien "${clientName}". Sudah ada data awal klien. Tolong telaah ringkas apa yang sudah diketahui dari konteks dalam 1-2 kalimat, lalu ajukan 1 atau 2 pertanyaan terfokus pertama untuk membedah positioning dan diferensiasi unik brand ini.`
-            : `Halo! Saya ingin memulai playbook ${skillId} untuk klien "${clientName}". Tolong perkenalkan tujuan playbook ini dan ajukan pertanyaan pertama.`,
+            : `Halo! Saya ingin memulai playbook ${skillName} (${skillId}) untuk klien "${clientName}". Tolong telaah ringkas konteks brand yang sudah diketahui dalam 1 kalimat ramah, perkenalkan tujuan playbook ini, dan ajukan pertanyaan terfokus pertama.`,
       })
     }
 
@@ -604,6 +793,17 @@ export async function executeGenericSkill(
   const clientName = clientData?.data?.name || "Klien"
   const brandCtx = brandContext(clientName, clientFiles)
 
+  const readsFiles: string[] = Array.isArray(skill.reads_files)
+    ? (skill.reads_files as string[])
+    : []
+  const missingPrereqs = readsFiles.filter((rf) => !clientFiles[rf] || !clientFiles[rf].trim())
+  const prereqPrompt = readsFiles.length > 0
+    ? `\n[PLAYBOOK PREREQUISITE ARTIFACTS]\nExpected input files: ${readsFiles.join(", ")}.\n` +
+      (missingPrereqs.length > 0
+        ? `Note: ${missingPrereqs.join(", ")} are not yet formally documented. Rely on available brand context and expert inference.\n`
+        : "All prerequisite documents are present in brand context.\n")
+    : ""
+
   // Tandai skill berstatus 'jalan'
   await updateClientSkillStatus(clientId, skillId, "jalan")
 
@@ -624,6 +824,7 @@ Follow the guidelines, frameworks, and requirements from this official playbook:
 ---
 ${skillBundle || "Execute standard industry best practices for " + skill.name}
 ---
+${prereqPrompt}
 
 ${parameters && Object.keys(parameters).length > 0 ? `[PARAMETERS]\n${JSON.stringify(parameters, null, 2)}\n` : ""}
 [OUTPUT SPECIFICATION (CRITICAL)]
