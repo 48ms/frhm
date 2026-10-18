@@ -7,8 +7,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Media Library | Frahma",
-  description: "Manage client media assets, storage, and visual deliverables.",
+  title: "Media Library",
+  description: "Kelola aset media kreatif klien, penyimpanan cloud drive, dan deliverable visual multi-kanal.",
 }
 
 export default async function LibraryPage(props: {

@@ -72,9 +72,9 @@ describe("LibraryClient URL State & Filtering", () => {
     renderWithProviders()
     expect(screen.getByText("Media Library")).toBeInTheDocument()
     expect(screen.getByPlaceholderText("Cari file, caption, tag...")).toBeInTheDocument()
-    expect(screen.getByText("All Assets")).toBeInTheDocument()
-    expect(screen.getAllByText("Images").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Videos").length).toBeGreaterThan(0)
+    expect(screen.getByText("Semua Aset")).toBeInTheDocument()
+    expect(screen.getAllByText("Foto / Gambar").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Video").length).toBeGreaterThan(0)
   })
 
   it("displays assets loaded from service", async () => {

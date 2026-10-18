@@ -304,7 +304,7 @@ export function LibraryClient() {
       pageDescription={
         isClientPortal
           ? `Gudang penyimpanan foto dan video promosi resmi untuk ${activeClient.name}. Anda dapat mengunduh materi resolusi penuh kapan pun diperlukan.`
-          : `Aset media untuk ${activeClient.name}. File diupload ke Cloudinary dan tersimpan di storage client ini.`
+          : `Gudang aset kreatif, visual, dan video promosi resmi untuk ${activeClient.name}. File tersimpan aman di cloud storage klien.`
       }
       pageHeaderAction={
         isClientPortal ? (
@@ -365,7 +365,7 @@ export function LibraryClient() {
                 onClick={() => void setLibraryState({ fileType: f })}
                 className="px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer whitespace-nowrap data-[state=active]:text-foreground text-muted-foreground hover:text-foreground min-h-11"
               >
-                {f === "all" ? "All Assets" : f === "image" ? "Images" : "Videos"}
+                {f === "all" ? "Semua Aset" : f === "image" ? "Foto / Gambar" : "Video"}
               </TabsTrigger>
             ))}
           </TabsList>
