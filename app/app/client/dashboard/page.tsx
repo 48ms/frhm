@@ -8,8 +8,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Client Overview | Frhm Partner Portal",
-  description: "Executive summary, scheduled content publications, and pending deliverable approvals.",
+  title: "Client Overview",
+  description: "Ringkasan performa konten, jadwal publikasi media sosial, dan persetujuan draf materi promosi klien.",
 }
 
 export default async function ClientDashboardPage(props: {
