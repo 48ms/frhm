@@ -55,9 +55,7 @@ export function UserApprovalDialog({
     if (initialSelectedUserId && pendingUsers.some((u) => u.id === initialSelectedUserId)) {
       setSelectedUserId(initialSelectedUserId)
     } else if (!selectedUserId || !pendingUsers.some((u) => u.id === selectedUserId)) {
-      // Default to bebekbek9191 if present, otherwise first user
-      const target = pendingUsers.find((u) => u.email.includes('bebekbek9191')) || pendingUsers[0]
-      setSelectedUserId(target.id)
+      setSelectedUserId(pendingUsers[0].id)
     }
   }, [pendingUsers, initialSelectedUserId, selectedUserId])
 

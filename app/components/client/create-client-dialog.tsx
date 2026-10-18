@@ -4,6 +4,8 @@ import { z } from 'zod'
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/animate-ui/components/radix/dialog'
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/icons'
@@ -182,14 +184,17 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
       >
         {!createdCredentials ? (
           <>
+            <DialogDescription className="sr-only">
+              Formulir wizard pendaftaran workspace brand klien baru di Frhm.
+            </DialogDescription>
             {/* Header Progress Bar */}
             <div className="bg-muted/40 border-b p-6 pb-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <DialogTitle className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                   {/* Icons.sparkles = Brand creation wizard AI assistant indicator (R-04 exception) */}
                   <Icons.sparkles className="size-3.5 text-primary" />
                   Tambah Client Baru
-                </span>
+                </DialogTitle>
                 <span className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20">
                   Langkah {step} dari 2
                 </span>
@@ -368,10 +373,10 @@ export function CreateClientWizard({ open, onOpenChange, onCreated }: CreateClie
                 <Icons.check className="size-7 stroke-[3]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold tracking-tight">Workspace Client Siap!</h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <DialogTitle className="text-lg font-bold tracking-tight">Workspace Client Siap!</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground mt-1">
                   Klien <strong className="text-foreground">{createdCredentials?.clientName}</strong> berhasil didaftarkan.
-                </p>
+                </DialogDescription>
               </div>
             </div>
 

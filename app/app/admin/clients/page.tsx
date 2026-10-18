@@ -19,8 +19,8 @@ import type { InfobarContent } from "@/components/ui/infobar"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Client Workspaces | Frahma",
-  description: "Kelola portofolio klien, profil brand, dan workspace multi-tenant Frahma.",
+  title: "Client Workspaces",
+  description: "Kelola portofolio klien, profil brand, dan workspace multi-tenant Frhm.",
 }
 
 const clientsInfoContent: InfobarContent = {
@@ -79,7 +79,7 @@ export default async function ClientsPage(
   return (
     <PageContainer
       pageTitle="Client Workspaces"
-      pageDescription="Manage your client portfolio, brand profiles, and workspace settings."
+      pageDescription="Kelola portofolio klien, profil brand, dan pengaturan workspace multi-tenant."
       infoContent={clientsInfoContent}
       pageHeaderAction={
         <div className="flex items-center gap-2.5">
