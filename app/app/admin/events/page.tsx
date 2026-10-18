@@ -9,8 +9,8 @@ import { PageContainer } from "@/components/layout/page-container"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Events Management | Frhm Studio",
-  description: "Kelola jadwal event, aktivasi offline, dan kalender kegiatan klien.",
+  title: "Events & Aktivasi",
+  description: "Kelola jadwal event, pameran, aktivasi offline, dan kalender kegiatan pemasaran klien.",
 }
 
 export default async function EventsPage(
@@ -24,7 +24,7 @@ export default async function EventsPage(
       <DashboardPrefetcher clientId={clientId}>
         <PageContainer
           pageTitle="Events & Aktivasi"
-          pageDescription="Jadwal event dan aktivasi offline klien"
+          pageDescription="Kelola jadwal event, pameran, aktivasi offline, dan kalender kegiatan pemasaran klien."
           className="flex flex-col gap-6 max-w-[1440px] w-full mx-auto"
         >
           <EventsBoard clientId={clientId} />
