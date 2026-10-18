@@ -113,8 +113,8 @@ export function ErpDashboardClient() {
 
   return (
     <PageContainer
-      pageTitle="Dashboard"
-      pageDescription="Ringkasan deliverable dan performa konten klien"
+      pageTitle="Marketing ERP & Deliverables"
+      pageDescription="Ringkasan deliverable klien, alur kerja review konten, persetujuan aset, dan pelacakan anggaran pemasaran."
       pageHeaderAction={
         <div className="flex items-center gap-2.5">
           <Button

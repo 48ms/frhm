@@ -95,7 +95,7 @@ describe("ErpDashboardClient URL State & Filtering", () => {
 
   it("renders page header, status filter tabs, and search input", async () => {
     renderWithProviders()
-    expect(screen.getByText("Dashboard")).toBeInTheDocument()
+    expect(screen.getByText("Marketing ERP & Deliverables")).toBeInTheDocument()
     expect(screen.getByPlaceholderText("Cari deliverable...")).toBeInTheDocument()
     expect(screen.getByRole("tab", { name: /Semua/ })).toBeInTheDocument()
     expect(screen.getByRole("tab", { name: /Menunggu Review/ })).toBeInTheDocument()

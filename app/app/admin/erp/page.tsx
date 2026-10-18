@@ -13,7 +13,7 @@ import { ErpDashboardClient } from "./erp-client"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Marketing ERP & Deliverables | Frhm Studio",
+  title: "Marketing ERP & Deliverables",
   description: "Manajemen alur kerja konten, peninjauan deliverable klien, persetujuan aset, dan pipeline publikasi pemasaran.",
 }
 
