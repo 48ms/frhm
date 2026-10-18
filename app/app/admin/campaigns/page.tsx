@@ -8,7 +8,7 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Campaigns Management | Frhm Studio",
+  title: "Campaigns Management",
   description: "Kelola kampanye pemasaran, monitor progres target konten, dan sinkronisasi kampanye media sosial.",
 }
 

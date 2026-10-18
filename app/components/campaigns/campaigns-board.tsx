@@ -594,7 +594,7 @@ export function CampaignsBoard() {
   return (
     <PageContainer
       pageTitle="Campaigns Orchestration"
-      pageDescription={`Manage multi-channel brand campaigns, creator partnerships, deliverable flighting schedules, and cross-platform ROI telemetry for ${activeClient.name}.`}
+      pageDescription={`Kelola kampanye multi-kanal, kolaborasi kreator, jadwal peluncuran deliverable, dan telemetri performa untuk ${activeClient.name}.`}
       pageHeaderAction={
         <div className="flex flex-wrap items-center gap-3">
           <DropdownMenu>
@@ -622,7 +622,7 @@ export function CampaignsBoard() {
             className="admin-pill admin-pill-ghost flex items-center gap-2 border cursor-pointer hover:bg-muted/60"
           >
             <Icons.download className="size-4" />
-            Export Campaign Deck
+            Ekspor Campaign Deck
           </Button>
           <Button
             type="button"
@@ -630,7 +630,7 @@ export function CampaignsBoard() {
             className="admin-pill admin-pill-primary flex items-center gap-2 shadow-md cursor-pointer border-0"
           >
             <Icons.rocket className="size-4 text-[hsl(var(--admin-lime))]" />
-            Launch Campaign
+            Luncurkan Kampanye
           </Button>
         </div>
       }
@@ -646,11 +646,11 @@ export function CampaignsBoard() {
           >
             {(
               [
-                ["all", "All Campaigns", tabCounts.all],
-                ["active", "Active & Flighting", tabCounts.active],
-                ["review", "Upcoming", tabCounts.review],
-                ["completed", "Completed", tabCounts.completed],
-                ["draft", "Draft", tabCounts.draft],
+                ["all", "Semua Kampanye", tabCounts.all],
+                ["active", "Aktif Berjalan", tabCounts.active],
+                ["review", "Mendatang", tabCounts.review],
+                ["completed", "Selesai", tabCounts.completed],
+                ["draft", "Draf", tabCounts.draft],
               ] as const
             ).map(([key, label, count]) => (
               <TabsTrigger
