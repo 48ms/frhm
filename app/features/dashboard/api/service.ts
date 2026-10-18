@@ -42,12 +42,23 @@ export async function createNewClient(input: CreateClientInput): Promise<CreateC
       telegram_chat_id: input.telegram_chat_id || null,
       brand_profile: {
         who: input.name,
-        audience: "",
+        identity: `${input.name} adalah brand${input.niche ? ` di industri ${input.niche}` : ""}.`,
+        positioning: "Memberikan solusi relevan dan berdampak bagi audiens.",
+        audience: `Target audiens utama untuk ${input.name}.`,
         voice: "Profesional, terpercaya, dan solutif",
         pov: "Memberikan dampak dan nilai terbaik bagi audiens",
-        proof: "",
-        guardrails: "Hindari klaim berlebihan tanpa bukti",
-        pillars: [],
+        proof: "Komitmen mutu dan pelayanan prima",
+        offers_ctas: "Hubungi kami via DM atau WhatsApp untuk konsultasi dan pemesanan.",
+        channels: ["Instagram", "TikTok"],
+        operational_defaults: "AI sebagai asisten riset & draf; kurasi final oleh tim manusia.",
+        guardrails: "Hindari klaim berlebihan tanpa bukti; dilarang komparasi negatif.",
+        examples: "Loves: Konten edukasi dan cerita di balik layar. Hates: Clickbait palsu.",
+        pillars: [
+          "Edukasi & Otoritas",
+          "Cerita & Di Balik Layar",
+          "Bukti Sosial & Transformasi",
+          "Penawaran & Promosi",
+        ],
         ...(input.niche ? { niche: input.niche } : {}),
       },
     })
@@ -127,40 +138,133 @@ export async function createNewClient(input: CreateClientInput): Promise<CreateC
     logger.warn("createNewClient profile error", { error: profileErr.message || profileErr })
   }
 
-  // 3. Seed initial Brand Profile markdown file in client_files
-  const initialBrandProfileMd = `# Brand Profile: ${input.name}
+  // 3. Seed 4 foundation markdown files in client_files
+  const initialBrandProfileMd = `# Brand Profile — ${input.name}
+<!-- version: 1.0 · review: quarterly or on rebrand/pivot/new offer -->
 
-## Who We Are
-${input.name} adalah brand terpercaya${input.niche ? ` di industri ${input.niche}` : ""}.
+## Identity
+- **What it is (one sentence):** ${input.name} adalah brand${input.niche ? ` di industri ${input.niche}` : ""}.
+- **Category:** ${input.niche || "Bisnis / Layanan"}
+- **Founded / location:** Indonesia
 
-## Audience Persona
-Target audiens utama untuk ${input.name}.
+## Positioning
+- **What's different:** Memberikan solusi relevan dan berdampak bagi audiens sasaran.
+- **Why believe it:** Komitmen mutu dan pelayanan prima teruji.
+- **Point of view:** Memberikan solusi dan nilai terbaik bagi audiens.
+- **Won't say:** Klaim tanpa dasar atau komparasi negatif terhadap pihak lain.
 
-## Voice & Guardrails
-### Tone of Voice
-Profesional, terpercaya, dan solutif.
+## Audience
+### Segment 1 — Target Utama
+- **Who:** Target audiens utama untuk ${input.name}.
+- **Cares about:** Solusi terpercaya, pelayanan cepat, dan mutu produk.
+- **Where:** Instagram, TikTok.
 
-### Point of View
-Memberikan solusi relevan dan berdampak bagi audiens.
+## Voice
+- **Dimensions:** Formality 3/5 · Warmth 4/5 · Authority 4/5 · Energy 3/5 · Humor 2/5 · Polish 4/5
+- **We sound:** Profesional, terpercaya, dan solutif, never arogan atau kaku.
+- **Words we use:** Kualitas, solusi, terpercaya, transparan, kepuasan.
+- **Words we ban:** Instan tanpa proses, termurah sedunia, overpromising.
 
-### Proof & Credibility
-- Komitmen mutu dan pelayanan prima
+## Proof
+- **Credentials / track record:** Komitmen mutu dan pelayanan prima.
+- **Social proof:** Ulasan positif pelanggan setia.
 
-### Do's and Don'ts (Guardrails)
-- Do: Komunikasi transparan, edukatif, dan ramah
-- Don't: Klaim tanpa dasar atau komparasi negatif
+## Offers & CTAs
+- **Primary CTA:** Hubungi kami via DM atau WhatsApp untuk konsultasi dan pemesanan.
+- **Secondary CTAs:** Simpan postingan ini, ikuti akun kami untuk pembaruan terkini.
+
+## Channels
+- Instagram
+- TikTok
+
+## Operational defaults
+- **AI policy:** AI sebagai asisten perencana dan draf; kurasi final oleh tim manusia.
+- **Accessibility defaults:** Alt-text deskriptif dan teks mudah dibaca.
+
+## Guardrails
+- Komunikasi transparan, edukatif, dan ramah.
+- Dilarang klaim tanpa dasar atau komparasi negatif.
+
+## Show, don't tell — example posts
+- **Loves:** Konten edukasi solutif, testimoni tulus, dan cerita di balik layar.
+- **Hates:** Clickbait sensasional tanpa substansi nilai.
+
+## Content Pillars
+- Edukasi & Otoritas
+- Cerita & Di Balik Layar
+- Bukti Sosial & Transformasi
+- Penawaran & Promosi
+`
+
+  const initialVoiceMd = `# Brand Voice & Tone Guide — ${input.name}
+
+## Karakter Suara Utama
+- **Profesional & Terpercaya:** Menyapa audiens secara lugas, santun, dan solutif.
+- **Edukatif & Solutif:** Memberikan panduan praktis dan wawasan bermanfaat tanpa nada menggurui.
+
+## Prinsip Penulisan
+1. Menggunakan Bahasa Indonesia yang komunikatif dan bersahabat.
+2. Fokus pada masalah nyata audiens dan bagaimana ${input.name} memberikan solusinya.
+3. Hindari klaim bombastis tanpa verifikasi faktual.
+`
+
+  const initialContentPillarsMd = `# Content Pillars — ${input.name}
+
+## 1. Edukasi & Otoritas (40%)
+Tips praktis, panduan, edukasi industri, dan wawasan seputar ${input.niche || "solusi produk"}.
+
+## 2. Cerita & Di Balik Layar (30%)
+Proses kerja, kisah di balik produk/layanan, budaya tim, dan dedikasi mutu.
+
+## 3. Bukti Sosial & Transformasi (20%)
+Testimoni pelanggan, studi kasus, ulasan kepuasan, dan hasil nyata.
+
+## 4. Penawaran & Promosi (10%)
+Informasi penawaran berkala, produk unggulan, dan ajakan bertindak (CTA) jelas.
+`
+
+  const initialGuardrailsMd = `# Brand Guardrails & Never-List — ${input.name}
+
+## Daftar Pantangan (Never-List)
+- Dilarang membuat klaim kesehatan atau hasil instan tanpa bukti ilmiah.
+- Dilarang membandingkan atau menjelekkan kompetitor secara langsung.
+- Dilarang menggunakan clickbait palsu atau tren yang bertentangan dengan etika brand.
+- Verifikasi promo dan penawaran setiap kuartal (verify-quarterly).
 `
 
   const nowIso = new Date().toISOString()
   const { error: fileErr } = await supabase
     .from("client_files")
-    .insert({
-      client_id: clientData.id,
-      path: "brand-profile.md",
-      content: initialBrandProfileMd,
-      updated_at: nowIso,
-      needs_verification: false,
-    })
+    .insert([
+      {
+        client_id: clientData.id,
+        path: "brand-profile.md",
+        content: initialBrandProfileMd,
+        updated_at: nowIso,
+        needs_verification: false,
+      },
+      {
+        client_id: clientData.id,
+        path: "voice.md",
+        content: initialVoiceMd,
+        updated_at: nowIso,
+        needs_verification: false,
+      },
+      {
+        client_id: clientData.id,
+        path: "content-pillars.md",
+        content: initialContentPillarsMd,
+        updated_at: nowIso,
+        needs_verification: false,
+      },
+      {
+        client_id: clientData.id,
+        path: "guardrails.md",
+        content: initialGuardrailsMd,
+        updated_at: nowIso,
+        needs_verification: true,
+      },
+    ])
 
   if (fileErr) {
     logger.warn("createNewClient client_files error", { error: fileErr.message || fileErr })

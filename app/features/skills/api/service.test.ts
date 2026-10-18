@@ -22,6 +22,10 @@ vi.mock("@/lib/mcp/woopsocial-mcp", () => ({
   executeWoopSocialTool: (...args: unknown[]) => mockExecuteWoopSocialTool(...args),
 }))
 
+vi.mock("@/lib/audit/log", () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined),
+}))
+
 const mockFrom = vi.fn()
 const mockServiceFrom = vi.fn()
 
@@ -484,6 +488,171 @@ describe("Skills Feature Service Layer", () => {
         prompt: "Test",
       })
     ).rejects.toThrow("Forbidden: Anda tidak memiliki akses ke klien ini")
+  })
+
+  describe("saveSkillOutput", () => {
+    beforeEach(() => {
+      mockServiceFrom.mockReset()
+    })
+
+    it("saves regular skill output and marks client_skills as selesai", async () => {
+      const mockSingle = vi.fn().mockResolvedValue({ data: { id: "out-123" }, error: null })
+      const mockSelect = vi.fn().mockReturnValue({ single: mockSingle })
+      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect })
+      const mockUpsertClientSkills = vi.fn().mockResolvedValue({ error: null })
+
+      mockServiceFrom.mockImplementation((table: string) => {
+        if (table === "skill_outputs") {
+          return { insert: mockInsert }
+        }
+        if (table === "client_skills") {
+          return { upsert: mockUpsertClientSkills }
+        }
+        return {}
+      })
+
+      const res = await saveSkillOutput({
+        clientId: "client-1",
+        skillId: "hook-writer",
+        title: "Daftar Hook",
+        content: "1. Rahasia seduh teh Ciwidey",
+      })
+
+      expect(res.success).toBe(true)
+      expect(res.id).toBe("out-123")
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          skill_id: "hook-writer",
+          title: "Daftar Hook",
+          content: "1. Rahasia seduh teh Ciwidey",
+        })
+      )
+      expect(mockUpsertClientSkills).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          skill_id: "hook-writer",
+          status: "selesai",
+        }),
+        expect.anything()
+      )
+    })
+
+    it("auto-syncs brand-profile output to client_files and clients.brand_profile", async () => {
+      const mockSingle = vi.fn().mockResolvedValue({ data: { id: "out-bp-1" }, error: null })
+      const mockSelect = vi.fn().mockReturnValue({ single: mockSingle })
+      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect })
+      const mockUpsertClientSkills = vi.fn().mockResolvedValue({ error: null })
+      const mockUpsertClientFiles = vi.fn().mockResolvedValue({ error: null })
+      const mockClientMaybeSingle = vi.fn().mockResolvedValue({
+        data: { brand_profile: { who: "Old Taraju", audience: "Old Audience" } },
+        error: null,
+      })
+      const mockClientUpdate = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      })
+
+      mockServiceFrom.mockImplementation((table: string) => {
+        if (table === "skill_outputs") {
+          return { insert: mockInsert }
+        }
+        if (table === "client_skills") {
+          return { upsert: mockUpsertClientSkills }
+        }
+        if (table === "client_files") {
+          return { upsert: mockUpsertClientFiles }
+        }
+        if (table === "clients") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: mockClientMaybeSingle,
+              }),
+            }),
+            update: mockClientUpdate,
+          }
+        }
+        return {}
+      })
+
+      const bpContent = `# Brand Profile — Taraju
+## Identity
+Produsen teh organik artisan Jawa Barat
+
+## Positioning
+100% dipetik tangan
+
+## Voice
+Hangat dan bersahabat
+`
+
+      const res = await saveSkillOutput({
+        clientId: "client-1",
+        skillId: "brand-profile",
+        title: "Brand Profile Final",
+        content: bpContent,
+      })
+
+      expect(res.success).toBe(true)
+      expect(mockUpsertClientFiles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          path: "brand-profile.md",
+          content: bpContent,
+        }),
+        { onConflict: "client_id,path" }
+      )
+      expect(mockClientUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          brand_profile: expect.objectContaining({
+            who: "Produsen teh organik artisan Jawa Barat",
+            identity: "Produsen teh organik artisan Jawa Barat",
+            positioning: "100% dipetik tangan",
+            voice: "Hangat dan bersahabat",
+          }),
+        })
+      )
+    })
+
+    it("auto-syncs voice-builder output to client_files/voice.md", async () => {
+      const mockSingle = vi.fn().mockResolvedValue({ data: { id: "out-voice-1" }, error: null })
+      const mockSelect = vi.fn().mockReturnValue({ single: mockSingle })
+      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect })
+      const mockUpsertClientSkills = vi.fn().mockResolvedValue({ error: null })
+      const mockUpsertClientFiles = vi.fn().mockResolvedValue({ error: null })
+
+      mockServiceFrom.mockImplementation((table: string) => {
+        if (table === "skill_outputs") {
+          return { insert: mockInsert }
+        }
+        if (table === "client_skills") {
+          return { upsert: mockUpsertClientSkills }
+        }
+        if (table === "client_files") {
+          return { upsert: mockUpsertClientFiles }
+        }
+        return {}
+      })
+
+      const voiceContent = "# Brand Voice\nHangat dan solutif (verify-quarterly)"
+      const res = await saveSkillOutput({
+        clientId: "client-1",
+        skillId: "voice-builder",
+        title: "Voice Guide",
+        content: voiceContent,
+      })
+
+      expect(res.success).toBe(true)
+      expect(mockUpsertClientFiles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: "client-1",
+          path: "voice.md",
+          content: voiceContent,
+          needs_verification: true,
+        }),
+        { onConflict: "client_id,path" }
+      )
+    })
   })
 })
 

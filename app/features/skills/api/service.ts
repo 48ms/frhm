@@ -5,6 +5,8 @@ import { createSupabaseServiceClient } from "@/lib/supabase/service"
 import { logger } from "@/lib/logger"
 import { assertClientAccess } from "@/lib/auth/guard"
 import { resolveProvider, loadSkillBundle, loadClientFiles, brandContext } from "@/lib/ai/server"
+import { markdownToBrandProfile } from "@/lib/brand-context"
+import { logAudit } from "@/lib/audit/log"
 import { chatJson, chatJsonDetailed } from "@/lib/ai/providers"
 import { logAiUsage } from "@/lib/ai/usage"
 import { executeWoopSocialTool, type McpExecutionResult } from "@/lib/mcp/woopsocial-mcp"
@@ -263,6 +265,117 @@ export async function saveSkillOutput(
 
     // Update status client_skills menjadi 'selesai'
     await updateClientSkillStatus(clientId, skillId, "selesai")
+
+    // Auto-sync output ke client_files dan clients.brand_profile berdasarkan skillId
+    const nowIso = new Date().toISOString()
+    const hasVerifyQuarterly = content.includes("(verify-quarterly)")
+
+    if (skillId === "brand-profile") {
+      // 1. Upsert ke client_files/brand-profile.md
+      const { error: fileErr } = await service
+        .from("client_files")
+        .upsert(
+          {
+            client_id: clientId,
+            path: "brand-profile.md",
+            content,
+            updated_at: nowIso,
+            needs_verification: hasVerifyQuarterly,
+          },
+          { onConflict: "client_id,path" }
+        )
+
+      if (fileErr) {
+        logger.warn("skills.saveSkillOutput.client_files_failed", { clientId, error: fileErr.message })
+      }
+
+      // 2. Parse canonical/legacy structure dan sync ke clients.brand_profile (JSONB)
+      try {
+        const parsed = markdownToBrandProfile(content)
+        const { data: clientRow } = await service
+          .from("clients")
+          .select("brand_profile")
+          .eq("id", clientId)
+          .maybeSingle()
+
+        const existingProfile = (clientRow?.brand_profile as Record<string, any>) || {}
+        const mergedProfile = {
+          ...existingProfile,
+          who: parsed.who || parsed.identity || existingProfile.who || "",
+          identity: parsed.identity || parsed.who || existingProfile.identity || "",
+          positioning: parsed.positioning || parsed.pov || existingProfile.positioning || "",
+          audience: parsed.audience || existingProfile.audience || "",
+          voice: parsed.voice || existingProfile.voice || "",
+          pov: parsed.pov || parsed.positioning || existingProfile.pov || "",
+          proof: parsed.proof || existingProfile.proof || "",
+          offers_ctas: parsed.offers_ctas || existingProfile.offers_ctas || "",
+          channels: parsed.channels || existingProfile.channels || [],
+          operational_defaults: parsed.operational_defaults || existingProfile.operational_defaults || "",
+          guardrails: parsed.guardrails || existingProfile.guardrails || "",
+          examples: parsed.examples || existingProfile.examples || "",
+          notes: parsed.notes || existingProfile.notes || "",
+          pillars: parsed.pillars && parsed.pillars.length > 0 ? parsed.pillars : existingProfile.pillars || [],
+        }
+
+        await service
+          .from("clients")
+          .update({ brand_profile: mergedProfile, updated_at: nowIso })
+          .eq("id", clientId)
+      } catch (syncErr: unknown) {
+        logger.warn("skills.saveSkillOutput.brand_profile_sync_failed", {
+          clientId,
+          error: syncErr instanceof Error ? syncErr.message : String(syncErr),
+        })
+      }
+    } else if (skillId === "voice-builder" || skillId === "writing-style-and-tone") {
+      await service
+        .from("client_files")
+        .upsert(
+          {
+            client_id: clientId,
+            path: "voice.md",
+            content,
+            updated_at: nowIso,
+            needs_verification: hasVerifyQuarterly,
+          },
+          { onConflict: "client_id,path" }
+        )
+    } else if (skillId === "content-pillars") {
+      await service
+        .from("client_files")
+        .upsert(
+          {
+            client_id: clientId,
+            path: "content-pillars.md",
+            content,
+            updated_at: nowIso,
+            needs_verification: hasVerifyQuarterly,
+          },
+          { onConflict: "client_id,path" }
+        )
+    } else if (skillId === "guardrails") {
+      await service
+        .from("client_files")
+        .upsert(
+          {
+            client_id: clientId,
+            path: "guardrails.md",
+            content,
+            updated_at: nowIso,
+            needs_verification: hasVerifyQuarterly,
+          },
+          { onConflict: "client_id,path" }
+        )
+    }
+
+    void logAudit({
+      action: "skill.output_saved",
+      entityType: "skill_output",
+      entityId: data.id,
+      clientId,
+      summary: `Saved output for skill ${skillId} and synced foundation documents`,
+      metadata: { skillId, title, status },
+    })
 
     return { success: true, id: data.id }
   } catch (err: unknown) {

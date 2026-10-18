@@ -88,8 +88,8 @@ Dilarang klaim menyembuhkan penyakit medis.
       }
 
       const md = brandProfileToMarkdown(original)
-      expect(md).toContain("## Who We Are\nPawon Sengon adalah resto kuliner khas Jawa Timur.")
-      expect(md).toContain("### Tone of Voice\nHangat, ramah, dan berselera.")
+      expect(md).toContain("## Identity\nPawon Sengon adalah resto kuliner khas Jawa Timur.")
+      expect(md).toContain("## Voice\nHangat, ramah, dan berselera.")
       expect(md).toContain("## Content Pillars\n- Menu Favorit\n- Resep Warisan\n- Promo Akhir Pekan")
 
       const roundTrip = markdownToBrandProfile(md)

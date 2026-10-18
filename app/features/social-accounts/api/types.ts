@@ -27,6 +27,7 @@ export type ConnectDirectChannelInput = z.infer<typeof ConnectDirectChannelInput
 
 
 export const BrandProfileSchema = z.object({
+  // Legacy fields (kept for 100% backward compatibility & direct UI usage)
   who: z.string(),
   audience: z.string(),
   voice: z.string(),
@@ -34,6 +35,15 @@ export const BrandProfileSchema = z.object({
   proof: z.string(),
   guardrails: z.string(),
   pillars: z.array(z.string()),
+
+  // Upstream Social-Media-Skills 10 Canonical Pillars
+  identity: z.string().optional(),
+  positioning: z.string().optional(),
+  offers_ctas: z.string().optional(),
+  channels: z.union([z.string(), z.array(z.string())]).optional(),
+  operational_defaults: z.string().optional(),
+  examples: z.string().optional(),
+  notes: z.string().optional(),
 })
 export type BrandProfile = z.infer<typeof BrandProfileSchema>
 
