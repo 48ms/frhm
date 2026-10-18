@@ -9,7 +9,7 @@ import { PageContainer } from "@/components/layout/page-container"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Social Accounts & Multi-Channel Sync | Frhm Studio",
+  title: "Social Accounts & Multi-Channel Sync",
   description: "Kelola akun media sosial terhubung, monitor sinkronisasi token OAuth, dan integrasi multi-kanal pemasaran.",
 }
 
@@ -22,7 +22,7 @@ export default async function SocialAccountsPage() {
   return (
     <PageContainer
       pageTitle="Social Accounts"
-      pageDescription="Manage connected accounts, monitor data sync, and resolve access issues."
+      pageDescription="Kelola akun media sosial terhubung, monitor sinkronisasi token OAuth, dan integrasi multi-kanal pemasaran."
     >
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense fallback={

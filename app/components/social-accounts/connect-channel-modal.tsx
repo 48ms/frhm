@@ -175,9 +175,9 @@ export function ConnectChannelModal({
         aria-label="Connect social account"
       >
         <DialogHeader className="p-6 border-b shrink-0">
-          <DialogTitle className="text-xl font-bold">Connect social account</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Hubungkan Akun Sosial</DialogTitle>
           <DialogDescription className="text-xs">
-            Link an account to this workspace by signing in securely through the platform.
+            Tautkan akun media sosial ke workspace ini secara aman melalui otorisasi platform resmi.
           </DialogDescription>
         </DialogHeader>
 
@@ -255,7 +255,7 @@ export function ConnectChannelModal({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-muted-foreground">
-                Choose a platform to connect
+                Pilih platform untuk dihubungkan
               </p>
               <span className="text-2xs text-muted-foreground">via OAuth Bridge</span>
             </div>

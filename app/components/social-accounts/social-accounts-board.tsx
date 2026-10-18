@@ -235,10 +235,10 @@ export function ClientChannelsBoard() {
               isLoading={syncing}
               variant="outline"
               className="admin-pill admin-pill-ghost px-4 py-2.5 sm:px-5 border-none"
-              title="Refresh all accounts data"
+              title="Segarkan data seluruh akun"
             >
               <Icons.refresh className="size-4 mr-2" />
-              <span className="hidden sm:inline">Refresh data</span>
+              <span className="hidden sm:inline">Segarkan Data</span>
             </Button>
 
             <Button
@@ -246,8 +246,8 @@ export function ClientChannelsBoard() {
               className="admin-pill admin-pill-lime px-4 py-2.5 sm:px-6 shadow-md hover:shadow-lg flex items-center gap-2"
             >
                 <Icons.add className="size-4" /> 
-                <span className="hidden sm:inline">Connect account</span>
-                <span className="sm:hidden">Connect</span>
+                <span className="hidden sm:inline">Hubungkan Akun</span>
+                <span className="sm:hidden">Hubungkan</span>
             </Button>
         </div>
       <div 
@@ -287,34 +287,34 @@ export function ClientChannelsBoard() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
-          label="Connected Accounts"
+          label="Akun Terhubung"
           value={String(activeClient.channels.length)}
-          badge="Active"
-          sub="Across IG & TikTok"
+          badge="Aktif"
+          sub="Melintasi Instagram, TikTok & Lainnya"
           icon="hub"
           tone="secondary"
         />
         <KPICard
-          label="Combined Audience"
+          label="Total Audiens"
           value={totalFollowers}
           badge="Followers"
-          sub="Followers & Subscribers"
+          sub="Pengikut & Pelanggan Akumulatif"
           icon="teams"
           tone="primary"
         />
         <KPICard
-          label="Token & API Status"
+          label="Status Token & API"
           value={`${syncedCount} / ${activeClient.channels.length}`}
-          badge={actionNeededCount > 0 ? `${actionNeededCount} Failed` : "All Secure"}
-          sub={actionNeededCount > 0 ? "Re-authentication required" : "Automated Sync Active"}
+          badge={actionNeededCount > 0 ? `${actionNeededCount} Gagal` : "Semua Aman"}
+          sub={actionNeededCount > 0 ? "Perlu autentikasi ulang" : "Sinkronisasi otomatis aktif"}
           icon="key"
           tone={actionNeededCount > 0 ? "error" : "primary"}
         />
         <KPICard
-          label="Needs Attention"
+          label="Perlu Perhatian"
           value={String(actionNeededCount)}
-          badge={actionNeededCount > 0 ? "Action" : "Clear"}
-          sub={actionNeededCount > 0 ? "Reconnect to resume posting" : "No tokens expiring"}
+          badge={actionNeededCount > 0 ? "Tindakan" : "Aman"}
+          sub={actionNeededCount > 0 ? "Hubungkan ulang untuk melanjutkan posting" : "Tidak ada token kedaluwarsa"}
           icon="playCircle"
           tone={actionNeededCount > 0 ? "error" : "tertiary"}
           onClick={() => setTab("Action Required")}
@@ -325,11 +325,11 @@ export function ClientChannelsBoard() {
       <div className="space-y-8">
         <AccountSection
             title="Instagram"
-            subtitle="Connected through the Meta Graph API"
+            subtitle="Terhubung via Meta Instagram Graph API resmi"
             accounts={filteredAccounts.filter(a => a.platform.toLowerCase() === "instagram")}
             icon="instagram"
             iconClass="bg-gradient-to-tr from-warning via-destructive to-brand-lavender text-destructive-foreground"
-            bulkLabel="Refresh data"
+            bulkLabel="Segarkan Data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
             onBulkRefresh={handleBulkRefresh}
@@ -337,23 +337,23 @@ export function ClientChannelsBoard() {
           />
           <AccountSection
             title="TikTok"
-            subtitle="Connected through the TikTok Business API"
+            subtitle="Terhubung via TikTok Content Posting API resmi"
             accounts={filteredAccounts.filter(a => a.platform.toLowerCase() === "tiktok")}
             icon="tiktok"
             iconClass="bg-foreground text-background"
-            bulkLabel="Refresh data"
+            bulkLabel="Segarkan Data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
             onBulkRefresh={handleBulkRefresh}
             onRefreshOne={handleRefreshOne}
           />
           <AccountSection
-            title="Other platforms"
-            subtitle="YouTube, LinkedIn and other connected accounts"
+            title="Platform Lainnya"
+            subtitle="YouTube, LinkedIn, dan akun terhubung lainnya"
             accounts={filteredAccounts.filter(a => a.platform.toLowerCase() !== "instagram" && a.platform.toLowerCase() !== "tiktok")}
             icon="smart_display"
             iconClass="bg-primary text-primary-foreground"
-            bulkLabel="Refresh data"
+            bulkLabel="Segarkan Data"
             onDisconnect={handleDisconnect}
             onReconnect={handleReconnect}
             onBulkRefresh={handleBulkRefresh}
@@ -481,8 +481,8 @@ function AccountSection({ title, subtitle, accounts, icon, iconClass, bulkLabel,
                   <Icons.link className="size-5 text-muted-foreground" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-foreground">No accounts connected</p>
-                  <p className="text-xs text-muted-foreground max-w-[250px]">Connect a {title} account to start syncing analytics and messages.</p>
+                  <p className="text-sm font-bold text-foreground">Belum ada akun terhubung</p>
+                  <p className="text-xs text-muted-foreground max-w-[280px]">Hubungkan akun {title} untuk mulai menyinkronkan analitik dan jadwal publikasi.</p>
                 </div>
               </div>
             ) : (
