@@ -49,9 +49,6 @@ const nextConfig = {
     // Prevents V8 heap out-of-memory on 2GB VPS servers during parallel bundling.
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   // React Compiler — memoize derived values automatically where types allow.
   // `infer` mode only compiles what the type checker can prove is safe, so the
   // opt-in is conservative and won't break existing component behaviour.
