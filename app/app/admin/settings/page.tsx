@@ -7,8 +7,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Settings & Configuration | Frahma",
-  description: "Kelola konfigurasi agensi, integrasi AI provider, brand profile, dan akun workspace Frahma.",
+  title: "Pengaturan & Konfigurasi",
+  description: "Kelola konfigurasi agensi, integrasi AI provider, brand profile, dan akun workspace Frhm.",
 }
 
 export default async function SettingsPage(
