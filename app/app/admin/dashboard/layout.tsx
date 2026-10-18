@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import { PageContainer } from "@/components/layout/page-container"
 import type { InfobarContent } from "@/components/ui/infobar"
+
+export const metadata: Metadata = {
+  title: "Dashboard Overview",
+  description: "Pantau metrik, status akun, dan performa kampanye media sosial secara real-time.",
+}
 
 const dashboardInfoContent: InfobarContent = {
   title: "Panduan Dashboard Overview",
