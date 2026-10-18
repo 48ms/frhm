@@ -141,4 +141,56 @@ describe('updateSession (Middleware Auth & RBAC Gate)', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('X-Frame-Options')).toBe('DENY')
   })
+
+  it('uses public origin (frhm.web.id) when behind reverse proxy with x-forwarded-host', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const req = new NextRequest('http://localhost:3000/admin/dashboard', {
+      headers: {
+        'x-forwarded-host': 'frhm.web.id',
+        'x-forwarded-proto': 'https',
+      },
+    })
+
+    const res = await updateSession(req)
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe('https://frhm.web.id/auth/login?next=%2Fadmin%2Fdashboard')
+    expect(res.headers.get('X-Frame-Options')).toBe('DENY')
+    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
+  })
+
+  it('bypasses getUser() for public webhooks', async () => {
+    const req = new NextRequest('http://localhost:3000/api/webhooks/ayrshare')
+    const res = await updateSession(req)
+
+    expect(res.status).toBe(200)
+    expect(mockGetUser).not.toHaveBeenCalled()
+    expect(res.headers.get('X-Frame-Options')).toBe('DENY')
+  })
+
+  it('redirects approved admin accessing /waitlist to /admin/dashboard', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u-admin-1', email: 'bima@frhm.agency' } } })
+    mockSingle.mockResolvedValue({
+      data: { role: 'admin', client_id: null, full_name: 'Bima Maulana Saputra' },
+    })
+
+    const req = new NextRequest('http://localhost:3000/waitlist')
+    const res = await updateSession(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/admin/dashboard')
+  })
+
+  it('redirects approved client accessing /waitlist to /client/dashboard', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u-client-1', email: 'adit@taraju.com' } } })
+    mockSingle.mockResolvedValue({
+      data: { role: 'client', client_id: 'client-taraju-uuid', full_name: 'Pak Adit' },
+    })
+
+    const req = new NextRequest('http://localhost:3000/waitlist')
+    const res = await updateSession(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/client/dashboard')
+  })
 })
+

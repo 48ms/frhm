@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { USER_HEADERS } from './identity-headers'
 import { env } from '@/lib/env'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 /**
  * PERF: previously every /admin request paid FOUR sequential Supabase
@@ -25,10 +26,6 @@ export async function updateSession(request: NextRequest) {
     requestHeaders.delete(key)
   }
 
-  // Cookies queued by supabase's setAll() — applied to whichever response we
-  // finally return (next or redirect) so a refreshed session is never dropped.
-  let pendingCookies: { name: string; value: string; options?: Record<string, unknown> }[] = []
-
   const applySecurityHeaders = (res: NextResponse) => {
     res.headers.set('X-Frame-Options', 'DENY')
     res.headers.set('X-Content-Type-Options', 'nosniff')
@@ -48,6 +45,24 @@ export async function updateSession(request: NextRequest) {
     return res
   }
 
+  // Bypass session check for public webhooks & metadata assets to avoid unnecessary round-trips
+  const pathname = request.nextUrl.pathname
+  const isPublicBypass =
+    pathname.startsWith('/api/webhooks') ||
+    pathname.startsWith('/api/telegram') ||
+    pathname.startsWith('/api/whatsapp') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/manifest.webmanifest'
+
+  if (isPublicBypass) {
+    return applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }))
+  }
+
+  // Cookies queued by supabase's setAll() — applied to whichever response we
+  // finally return (next or redirect) so a refreshed session is never dropped.
+  let pendingCookies: { name: string; value: string; options?: Record<string, unknown> }[] = []
+
   const applyCookies = (res: NextResponse) => {
     for (const { name, value, options } of pendingCookies) {
       res.cookies.set(name, value, options as never)
@@ -57,6 +72,32 @@ export async function updateSession(request: NextRequest) {
 
   const buildNextResponse = () =>
     applyCookies(NextResponse.next({ request: { headers: requestHeaders } }))
+
+  /**
+   * Safely builds redirect responses using the public host (e.g. https://frhm.web.id)
+   * instead of internal loopback (http://localhost:3000), preventing ERR_CONNECTION_REFUSED.
+   * Also ensures pending cookies & security headers are preserved on 307/308 responses.
+   */
+  const createSafeRedirectResponse = (
+    targetPathname: string,
+    params?: Record<string, string> | URLSearchParams
+  ) => {
+    const origin = getRequestOrigin(request)
+    const targetUrl = new URL(targetPathname, origin)
+    if (params) {
+      if (params instanceof URLSearchParams) {
+        params.forEach((val, key) => targetUrl.searchParams.set(key, val))
+      } else {
+        for (const [key, value] of Object.entries(params)) {
+          if (value !== undefined && value !== null) {
+            targetUrl.searchParams.set(key, value)
+          }
+        }
+      }
+    }
+    const redirectRes = NextResponse.redirect(targetUrl)
+    return applySecurityHeaders(applyCookies(redirectRes))
+  }
 
   let supabaseResponse = buildNextResponse()
 
@@ -87,21 +128,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Define protected routes
-  const isProtectedAdmin = request.nextUrl.pathname.startsWith('/admin')
-  const isProtectedClient = request.nextUrl.pathname.startsWith('/client')
-  const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+  // Define protected & special routes
+  const isProtectedAdmin = pathname.startsWith('/admin')
+  const isProtectedClient = pathname.startsWith('/client')
+  const isAuthPage = pathname.startsWith('/auth')
+  const isWaitlistPage = pathname.startsWith('/waitlist')
 
   // If user is not logged in and tries to access /admin or /client, redirect to login
   if (!user && (isProtectedAdmin || isProtectedClient)) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    url.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search)
-    return applyCookies(NextResponse.redirect(url))
+    const nextPath = request.nextUrl.pathname + request.nextUrl.search
+    return createSafeRedirectResponse('/auth/login', { next: nextPath })
   }
 
   // Tenant Strict Guard & Identity Resolution
-  if (user && (isProtectedAdmin || isProtectedClient || isAuthPage)) {
+  if (user && (isProtectedAdmin || isProtectedClient || isAuthPage || isWaitlistPage)) {
     const requestedClientId = request.nextUrl.searchParams.get('clientId')
 
     // Ambil profile user dari public.users untuk cek role & binding.
@@ -127,24 +167,29 @@ export async function updateSession(request: NextRequest) {
     // If user is logged in and visits auth page, redirect based on role
     if (isAuthPage) {
       if (userProfile?.role === 'client' && userProfile.client_id) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/client/dashboard'
-        return applyCookies(NextResponse.redirect(url))
+        return createSafeRedirectResponse('/client/dashboard')
       } else if (userProfile?.role === 'admin') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/admin/dashboard'
-        return applyCookies(NextResponse.redirect(url))
+        return createSafeRedirectResponse('/admin/dashboard')
       }
       // User with no role or unbound client_id is allowed to view /auth/login
       // so they can log out, switch accounts, or log in with an authorized user.
       return applySecurityHeaders(supabaseResponse)
     }
 
+    // If user is logged in and visits waitlist page, redirect if already approved
+    if (isWaitlistPage) {
+      if (userProfile?.role === 'client' && userProfile.client_id) {
+        return createSafeRedirectResponse('/client/dashboard')
+      } else if (userProfile?.role === 'admin') {
+        return createSafeRedirectResponse('/admin/dashboard')
+      }
+      // User without role or unbound client stays on waitlist
+      return applySecurityHeaders(supabaseResponse)
+    }
+
     // User without role or profile in public.users -> redirect to waitlist
     if (!userProfile?.role) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/waitlist'
-      return applyCookies(NextResponse.redirect(url))
+      return createSafeRedirectResponse('/waitlist')
     }
 
     // Role: Client
@@ -152,24 +197,19 @@ export async function updateSession(request: NextRequest) {
       const ownClientId = userProfile.client_id
       // Client without bound client_id cannot access data -> waitlist
       if (!ownClientId) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/waitlist'
-        return applyCookies(NextResponse.redirect(url))
+        return createSafeRedirectResponse('/waitlist')
       }
 
       // Client attempting to access agency admin -> redirect to client portal
       if (isProtectedAdmin) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/client/dashboard'
-        url.searchParams.set('clientId', ownClientId)
-        return applyCookies(NextResponse.redirect(url))
+        return createSafeRedirectResponse('/client/dashboard', { clientId: ownClientId })
       }
 
       // Client in /client/* -> enforce clientId matches ownClientId strictly
       if (isProtectedClient && requestedClientId !== ownClientId) {
-        const url = request.nextUrl.clone()
-        url.searchParams.set('clientId', ownClientId)
-        return applyCookies(NextResponse.redirect(url))
+        const searchParams = new URLSearchParams(request.nextUrl.searchParams)
+        searchParams.set('clientId', ownClientId)
+        return createSafeRedirectResponse(request.nextUrl.pathname, searchParams)
       }
     }
 
