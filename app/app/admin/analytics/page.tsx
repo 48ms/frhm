@@ -11,7 +11,7 @@ import { Icons } from "@/components/icons"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Analytics & Multi-Channel Insights | Frhm Studio",
+  title: "Analytics & Multi-Channel Insights",
   description: "Pelacakan performa multi-akun, analisis sentimen NLP, perbandingan benchmark industri, dan proyeksi AI tren viral.",
 }
 
@@ -23,7 +23,7 @@ export default async function AnalyticsPage(
   return (
     <PageContainer
       pageTitle="Analytics & Performance"
-      pageDescription="Comprehensive performance tracking, METER evaluation, and campaign metrics."
+      pageDescription="Pelacakan komprehensif performa jangkauan, evaluasi metrik konten METER, dan efektivitas kampanye multi-kanal."
       pageHeaderAction={
         <div className="flex items-center gap-2">
           <Link
