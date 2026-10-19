@@ -7,6 +7,7 @@ import { ClientChannelsBoard } from "@/components/social-accounts/social-account
 import { PageContainer } from "@/components/layout/page-container"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 60  // Cache 60 detik - halaman ini tidak menggunakan clientId dinamis
 
 export const metadata: Metadata = {
   title: "Social Accounts & Multi-Channel Sync",
