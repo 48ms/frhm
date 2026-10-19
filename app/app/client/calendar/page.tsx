@@ -8,8 +8,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Content Calendar | Frhm Partner Portal",
-  description: "Kalender publikasi konten, peninjauan materi, dan status jadwal tayang sosial media.",
+  title: "Content Calendar",
+  description: "Jadwal kalender publikasi konten, peninjauan materi draf, dan status tayang postingan sosial media brand Anda.",
 }
 
 export default async function ClientCalendarPage(props: {
