@@ -8,7 +8,7 @@ import { supportParamsCache } from "@/lib/searchparams"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Agency Support Hotline | Frhm Partner Portal",
+  title: "Agency Support Hotline",
   description: "Pusat bantuan langsung, pengajuan tiket request mendesak, dan koordinasi dengan tim Frhm.",
 }
 
