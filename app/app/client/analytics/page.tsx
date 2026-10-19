@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Performance Analytics | Frhm Partner Portal",
+  title: "Performance Analytics",
   description: "Laporan pertumbuhan audiens, metrik jangkauan multi-platform, dan analisis konten terbaik brand Anda.",
 }
 
