@@ -6,7 +6,9 @@ import { libraryParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
-export const revalidate = 60  // Cache 60 detik untuk assets
+// Note: revalidate removed - halaman ini menggunakan dynamic clientId dari searchParams.
+// ISR dengan dynamic params akan menyebabkan cache contamination.
+// Biarkan force-dynamic agar selalu fetch data real-time per client.
 
 export const metadata: Metadata = {
   title: "Brand Media Assets",
