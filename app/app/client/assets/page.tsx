@@ -8,8 +8,8 @@ import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Brand Media Assets | Frhm Partner Portal",
-  description: "Gudang penyimpanan aset media resmi, foto produk resolusi tinggi, dan video promosi brand.",
+  title: "Brand Media Assets",
+  description: "Gudang penyimpanan aset media resmi, foto produk resolusi tinggi, dan materi promosi brand Anda.",
 }
 
 export default async function ClientAssetsPage(props: {
