@@ -17,6 +17,7 @@ import { clientsParamsCache } from "@/lib/searchparams"
 import type { InfobarContent } from "@/components/ui/infobar"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 60  // Cache 60 detik untuk clients list
 
 export const metadata: Metadata = {
   title: "Client Workspaces",

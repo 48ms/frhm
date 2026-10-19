@@ -6,6 +6,7 @@ import { dashboardParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 60  // Cache 60 detik untuk client dashboard
 
 export const metadata: Metadata = {
   title: "Client Overview",
