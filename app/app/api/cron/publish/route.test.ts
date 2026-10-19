@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const CRON_SECRET = 'test-cron-secret'
+// Use env var or fallback to test value — never hardcode secrets in source
+const CRON_SECRET = process.env.TEST_CRON_SECRET || 'test-cron-secret'
 
 let duePosts: Array<Record<string, any>> = []
 let activePlatforms = ['instagram', 'twitter']

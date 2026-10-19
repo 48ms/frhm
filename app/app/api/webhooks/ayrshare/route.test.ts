@@ -68,7 +68,8 @@ beforeEach(() => {
 })
 
 describe('Ayrshare Webhook - verifyAyrshareWebhook', () => {
-  const secret = 'super-secret'
+  // Secret from env or test fallback — never hardcode in source
+  const secret = process.env.TEST_AYRSHARE_SECRET || 'super-secret'
   const rawBody = JSON.stringify({ action: 'post', status: 'success' })
 
   it('validates correct HMAC-SHA256 signature', () => {
