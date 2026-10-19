@@ -6,7 +6,9 @@ import { dashboardParamsCache } from "@/lib/searchparams"
 import { resolveClientId } from "@/features/dashboard/lib/resolve-client-id"
 
 export const dynamic = "force-dynamic"
-export const revalidate = 60  // Cache 60 detik untuk client dashboard
+// Note: revalidate removed - halaman ini menggunakan dynamic clientId dari searchParams.
+// ISR dengan dynamic params akan menyebabkan cache contamination (Client A lihat data Client B).
+// Biarkan force-dynamic agar selalu fetch data real-time per client.
 
 export const metadata: Metadata = {
   title: "Client Overview",

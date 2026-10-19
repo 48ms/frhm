@@ -9,7 +9,9 @@ import { PageContainer } from "@/components/layout/page-container"
 import { Icons } from "@/components/icons"
 
 export const dynamic = "force-dynamic"
-export const revalidate = 120  // Cache 2 menit untuk analytics
+// Note: revalidate removed - halaman ini menggunakan dynamic clientId dari searchParams.
+// ISR dengan dynamic params akan menyebabkan cache contamination.
+// Biarkan force-dynamic agar selalu fetch data real-time per client.
 
 export const metadata: Metadata = {
   title: "Analytics & Multi-Channel Insights",
