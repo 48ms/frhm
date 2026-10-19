@@ -76,7 +76,7 @@ export function CarouselDialog({
       setActiveSlideIndex(0)
       toast.success("Storyboard Carousel Slide-by-Slide berhasil disusun!")
     } catch (err: unknown) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
       toast.error("Terjadi kendala saat menghubungkan ke AI Carousel Engine.")
     }
   }

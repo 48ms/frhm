@@ -105,7 +105,7 @@ export function VoiceBuilderDialog({
       setActiveTab("blueprint")
       toast.success("Karakteristik suara berhasil diekstraksi dari bukti nyata!")
     } catch (err: unknown) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
       toast.error("Terjadi kendala saat menghubungkan ke AI Voice Engine.")
     }
   }
@@ -128,7 +128,7 @@ export function VoiceBuilderDialog({
       if (onSaved) onSaved(result.markdown)
       onOpenChange(false)
     } catch (err: unknown) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
       toast.error("Gagal menyimpan dokumen ke server.")
     }
   }

@@ -112,7 +112,7 @@ export function VisualPromptDialog({
         description: `Dioptimalkan untuk mesin ${res.data.recommendedTool.toUpperCase()} (${res.data.aspectRatio}).`,
       })
     } catch (err: unknown) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
       toast.error("Terjadi kendala saat merumuskan prompt.")
     }
   }

@@ -368,7 +368,10 @@ export function BrandBrainEditorDialog({
       })
       toast.success(`File ${activePath} berhasil disimpan dan disinkronkan ke AI Brain.`)
     } catch (err: unknown) {
-      console.error(err)
+      // Only log errors in development to avoid leaking sensitive info
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Brand brain save error:', err)
+      }
       toast.error("Gagal menyimpan file brand.")
     }
   }
@@ -382,7 +385,10 @@ export function BrandBrainEditorDialog({
       })
       toast.success(`File ${activePath} telah ditandai terverifikasi untuk kuartal ini.`)
     } catch (err: unknown) {
-      console.error(err)
+      // Only log errors in development to avoid leaking sensitive info
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Brand brain verify error:', err)
+      }
       toast.error("Gagal memperbarui status verifikasi.")
     }
   }
@@ -399,7 +405,10 @@ export function BrandBrainEditorDialog({
       setConfirmDeleteOpen(false)
       toast.success(`Dokumen ${activePath} berhasil dihapus dari Brand Brain.`)
     } catch (err: unknown) {
-      console.error(err)
+      // Only log errors in development to avoid leaking sensitive info
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Brand brain delete error:', err)
+      }
       toast.error(err instanceof Error ? err.message : "Gagal menghapus dokumen.")
     }
   }

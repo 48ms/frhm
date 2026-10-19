@@ -19,8 +19,8 @@ export default function PublicError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Only log in production; suppress in tests
-    if (typeof window !== 'undefined') {
+    // Only log in development to avoid leaking sensitive info in production
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.error('[public error boundary]', error.message)
       Sentry.captureException(error, { tags: { boundary: 'PublicError' } })
     }

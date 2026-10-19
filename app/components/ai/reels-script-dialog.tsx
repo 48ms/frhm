@@ -75,7 +75,7 @@ export function ReelsScriptDialog({
       setResult(res.data)
       toast.success("Naskah produksi Reel 3-kolom berhasil dirancang!")
     } catch (err: unknown) {
-      console.error(err)
+      if (process.env.NODE_ENV === 'development') console.error(err)
       toast.error("Terjadi kendala saat menghubungkan ke AI Scripting Engine.")
     }
   }

@@ -221,8 +221,11 @@ export function AiStudioClient() {
         })
       }
     } catch (err: unknown) {
+      // Only log errors in development to avoid leaking sensitive info in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Gagal meracik ide konten:', err)
+      }
       toast.error("Gagal meracik ide konten.")
-      console.error(err)
     }
   }
 
@@ -326,8 +329,11 @@ export function AiStudioClient() {
         })
       }
     } catch (err: unknown) {
+      // Only log errors in development to avoid leaking sensitive info in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Gagal membuat batch plan:', err)
+      }
       toast.error(err instanceof Error ? err.message : "Gagal membuat batch plan.")
-      console.error(err)
     }
   }
 
@@ -376,8 +382,11 @@ export function AiStudioClient() {
       })
       setBatchPosts([])
     } catch (err: unknown) {
+      // Only log errors in development to avoid leaking sensitive info in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Gagal menjadwalkan postingan:', err)
+      }
       toast.error(err instanceof Error ? err.message : "Gagal menjadwalkan sebagian postingan.")
-      console.error(err)
     } finally {
       setIsSavingBatch(false)
     }
