@@ -7,47 +7,75 @@ import { logAudit } from '@/lib/audit/log'
 
 export const dynamic = 'force-dynamic'
 
-/**
- * Verify Ayrshare Webhook authenticity.
- * Checks HMAC-SHA256 signature or secret token in headers.
- */
-export function verifyAyrshareWebhook(
-  secret: string | undefined,
-  apiKey: string | undefined,
-  signature: string | null,
-  headerSecret: string | null,
+export const AYRSHARE_TIMESTAMP_TOLERANCE_SECONDS = 5 * 60
+
+type AyrshareVerificationInput = {
+  secret: string | undefined
+  timestamp: string | null
+  signature: string | null
+  signatureV2: string | null
   rawBody: string
-): { ok: boolean; reason?: string } {
-  // 1. If explicit webhook secret is configured
-  if (secret) {
-    if (headerSecret && headerSecret === secret) {
+  now?: number
+}
+
+function safeEqualHex(provided: string, expected: string): boolean {
+  if (!/^[a-f0-9]{64}$/i.test(provided)) return false
+  const providedBuf = Buffer.from(provided.toLowerCase(), 'utf8')
+  const expectedBuf = Buffer.from(expected, 'utf8')
+  return (
+    providedBuf.length === expectedBuf.length &&
+    crypto.timingSafeEqual(providedBuf, expectedBuf)
+  )
+}
+
+function getV2Signatures(value: string | null): string[] {
+  if (!value) return []
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.startsWith('v1='))
+    .map((part) => part.slice(3))
+}
+
+export function verifyAyrshareWebhook({
+  secret,
+  timestamp,
+  signature,
+  signatureV2,
+  rawBody,
+  now = Date.now(),
+}: AyrshareVerificationInput): { ok: boolean; reason?: string } {
+  if (!secret) {
+    if (env.server.NODE_ENV === 'development') {
       return { ok: true }
     }
-
-    if (signature) {
-      try {
-        const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-        const sigBuf = Buffer.from(signature)
-        const expBuf = Buffer.from(expected)
-        if (sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)) {
-          return { ok: true }
-        }
-      } catch {}
-    }
-    return { ok: false, reason: 'Invalid signature or secret' }
+    return { ok: false, reason: 'Webhook secret not configured' }
   }
 
-  // 2. Fall back to AYRSHARE_API_KEY match if header passed
-  if (apiKey && headerSecret && headerSecret === apiKey) {
+  if (!timestamp || !/^\d+$/.test(timestamp)) {
+    return { ok: false, reason: 'Missing or invalid timestamp' }
+  }
+
+  const timestampSeconds = Number(timestamp)
+  const nowSeconds = Math.floor(now / 1000)
+  if (
+    !Number.isSafeInteger(timestampSeconds) ||
+    Math.abs(nowSeconds - timestampSeconds) > AYRSHARE_TIMESTAMP_TOLERANCE_SECONDS
+  ) {
+    return { ok: false, reason: 'Timestamp outside tolerance window' }
+  }
+
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+  const candidates = [...getV2Signatures(signatureV2), ...(signature ? [signature] : [])]
+  if (candidates.length === 0) {
+    return { ok: false, reason: 'Missing signature' }
+  }
+
+  if (candidates.some((candidate) => safeEqualHex(candidate, expected))) {
     return { ok: true }
   }
 
-  // 3. In development/test environment without secret, allow safe bypass
-  if (env.server.NODE_ENV !== 'production') {
-    return { ok: true }
-  }
-
-  return { ok: false, reason: 'Webhook secret not configured in production' }
+  return { ok: false, reason: 'Invalid signature' }
 }
 
 export async function POST(request: Request) {
@@ -58,23 +86,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to read request body' }, { status: 400 })
   }
 
-  const signature =
-    request.headers.get('x-ayrshare-hmac-sha256') ||
-    request.headers.get('x-hub-signature-256') ||
-    null
+  const timestamp = request.headers.get('x-authorization-timestamp')
 
-  const headerSecret =
-    request.headers.get('x-webhook-secret') ||
-    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
-    null
-
-  const authResult = verifyAyrshareWebhook(
-    env.server.AYRSHARE_WEBHOOK_SECRET,
-    env.server.AYRSHARE_API_KEY,
-    signature,
-    headerSecret,
-    rawBody
-  )
+  const authResult = verifyAyrshareWebhook({
+    secret: env.server.AYRSHARE_WEBHOOK_SECRET,
+    timestamp,
+    signature: request.headers.get('x-authorization-content-sha256'),
+    signatureV2: request.headers.get('x-authorization-content-sha256-v2'),
+    rawBody,
+  })
 
   if (!authResult.ok) {
     logger.warn('webhooks.ayrshare.unauthorized', {
@@ -92,6 +112,24 @@ export async function POST(request: Request) {
   }
 
   const events: any[] = Array.isArray(parsed) ? parsed : [parsed]
+
+  const hasTimestampMismatch =
+    Boolean(env.server.AYRSHARE_WEBHOOK_SECRET) &&
+    events.some(
+      (event) =>
+        event &&
+        typeof event === 'object' &&
+        event.timeStamp !== undefined &&
+        String(event.timeStamp) !== timestamp
+    )
+  if (hasTimestampMismatch) {
+    logger.warn('webhooks.ayrshare.unauthorized', {
+      route: 'api/webhooks/ayrshare',
+      reason: 'Body timestamp mismatch',
+    })
+    return NextResponse.json({ error: 'Unauthorized webhook trigger' }, { status: 401 })
+  }
+
   const supabase = createSupabaseServiceClient()
   let processedCount = 0
 

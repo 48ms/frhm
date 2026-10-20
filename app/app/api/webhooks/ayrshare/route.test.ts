@@ -67,36 +67,91 @@ beforeEach(() => {
   upsertedMetrics.length = 0
 })
 
+const VERIFY_SECRET = process.env.TEST_AYRSHARE_SECRET || 'super-secret'
+const VERIFY_NOW = 1_760_000_000_000
+const VERIFY_TIMESTAMP = String(VERIFY_NOW / 1000)
+
+function hmac(body: string, secret = VERIFY_SECRET) {
+  return crypto.createHmac('sha256', secret).update(body).digest('hex')
+}
+
+function routeHeaders(body: string, timestamp = String(Math.floor(Date.now() / 1000))) {
+  const signature = hmac(body, 'test-webhook-secret')
+  return {
+    'Content-Type': 'application/json',
+    'x-authorization-timestamp': timestamp,
+    'x-authorization-content-sha256': signature,
+    'x-authorization-content-sha256-v2': `v1=${signature}`,
+  }
+}
+
 describe('Ayrshare Webhook - verifyAyrshareWebhook', () => {
-  // Secret from env or test fallback — never hardcode in source
-  const secret = process.env.TEST_AYRSHARE_SECRET || 'super-secret'
-  const rawBody = JSON.stringify({ action: 'post', status: 'success' })
+  const rawBody = JSON.stringify({ action: 'post', status: 'success', timeStamp: Number(VERIFY_TIMESTAMP) })
+  const signature = hmac(rawBody)
 
-  it('validates correct HMAC-SHA256 signature', () => {
-    const signature = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-    const result = verifyAyrshareWebhook(secret, undefined, signature, null, rawBody)
+  function verify(overrides: Partial<Parameters<typeof verifyAyrshareWebhook>[0]> = {}) {
+    return verifyAyrshareWebhook({
+      secret: VERIFY_SECRET,
+      timestamp: VERIFY_TIMESTAMP,
+      signature,
+      signatureV2: null,
+      rawBody,
+      now: VERIFY_NOW,
+      ...overrides,
+    })
+  }
+
+  it('validates the official HMAC-SHA256 signature', () => {
+    expect(verify().ok).toBe(true)
+  })
+
+  it('validates a V2 signature during secret rotation', () => {
+    const result = verify({
+      signature: null,
+      signatureV2: `v1=${'0'.repeat(64)},v1=${signature}`,
+    })
     expect(result.ok).toBe(true)
   })
 
-  it('validates correct secret header', () => {
-    const result = verifyAyrshareWebhook(secret, undefined, null, 'super-secret', rawBody)
-    expect(result.ok).toBe(true)
+  it('rejects a tampered signature', () => {
+    expect(verify({ signature: '0'.repeat(64) }).ok).toBe(false)
   })
 
-  it('rejects tampered or mismatched signature', () => {
-    const result = verifyAyrshareWebhook(secret, undefined, 'invalid-signature-hash', null, rawBody)
+  it('rejects malformed signatures', () => {
+    expect(verify({ signature: 'not-a-hash' }).ok).toBe(false)
+  })
+
+  it('rejects a stale timestamp outside the tolerance window', () => {
+    const result = verify({ timestamp: String(Number(VERIFY_TIMESTAMP) - 301) })
     expect(result.ok).toBe(false)
+    expect(result.reason).toBe('Timestamp outside tolerance window')
+  })
+
+  it('rejects a future timestamp outside the tolerance window', () => {
+    const result = verify({ timestamp: String(Number(VERIFY_TIMESTAMP) + 301) })
+    expect(result.ok).toBe(false)
+  })
+
+  it('rejects missing timestamps and signatures', () => {
+    expect(verify({ timestamp: null }).ok).toBe(false)
+    expect(verify({ signature: null, signatureV2: null }).ok).toBe(false)
+  })
+
+  it('rejects all deliveries when no secret is configured outside development', () => {
+    expect(verify({ secret: undefined }).ok).toBe(false)
   })
 })
 
 describe('Ayrshare Webhook Route - POST', () => {
-  it('rejects unauthorized requests with 401 when signature and secret are invalid', async () => {
+  it('rejects unauthorized requests with 401 when the signature is invalid', async () => {
     const body = JSON.stringify({ action: 'post', id: 'ayr-123' })
+    const timestamp = String(Math.floor(Date.now() / 1000))
     const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-webhook-secret': 'wrong-secret',
+        'x-authorization-timestamp': timestamp,
+        'x-authorization-content-sha256': '0'.repeat(64),
       },
       body,
     })
@@ -105,11 +160,38 @@ describe('Ayrshare Webhook Route - POST', () => {
     expect(res.status).toBe(401)
   })
 
+  it('rejects replayed requests with a stale timestamp', async () => {
+    const body = JSON.stringify({ action: 'post', id: 'ayr-123' })
+    const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
+      method: 'POST',
+      headers: routeHeaders(body, String(Math.floor(Date.now() / 1000) - 301)),
+      body,
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects a valid signature when the body timestamp does not match', async () => {
+    const timestamp = String(Math.floor(Date.now() / 1000))
+    const body = JSON.stringify({ action: 'post', id: 'ayr-123', timeStamp: Number(timestamp) - 60 })
+    const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
+      method: 'POST',
+      headers: routeHeaders(body, timestamp),
+      body,
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
   it('confirms published post with live URL when receiving success event', async () => {
+    const timestamp = String(Math.floor(Date.now() / 1000))
     const body = JSON.stringify({
       action: 'post',
       status: 'success',
       id: 'ayr-post-123',
+      timeStamp: Number(timestamp),
       postIds: {
         instagram: {
           id: 'ig-999',
@@ -120,10 +202,7 @@ describe('Ayrshare Webhook Route - POST', () => {
 
     const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': 'test-webhook-secret',
-      },
+      headers: routeHeaders(body, timestamp),
       body,
     })
 
@@ -151,10 +230,7 @@ describe('Ayrshare Webhook Route - POST', () => {
 
     const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': 'test-webhook-secret',
-      },
+      headers: routeHeaders(body),
       body,
     })
 
@@ -185,10 +261,7 @@ describe('Ayrshare Webhook Route - POST', () => {
 
     const req = new Request('http://localhost:3000/api/webhooks/ayrshare', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': 'test-webhook-secret',
-      },
+      headers: routeHeaders(body),
       body,
     })
 
