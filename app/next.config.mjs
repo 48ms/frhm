@@ -1,4 +1,12 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
+
+// The repo root keeps its own package-lock.json for the Supabase/openspec
+// tooling. Next treats that as a monorepo marker and guesses the wrong root,
+// which prints a "multiple lockfiles" warning and widens file tracing.
+// Pinning both roots to this folder keeps bundling and tracing inside `app/`.
+const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
@@ -53,6 +61,10 @@ const nextConfig = {
   // `infer` mode only compiles what the type checker can prove is safe, so the
   // opt-in is conservative and won't break existing component behaviour.
   reactCompiler: true,
+  turbopack: {
+    root: appRoot,
+  },
+  outputFileTracingRoot: appRoot,
   async headers() {
     return [
       {
