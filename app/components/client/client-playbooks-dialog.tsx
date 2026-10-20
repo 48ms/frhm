@@ -26,6 +26,7 @@ import {
   usePromoteSkillOutputToDeliverable,
   useUpdateDeliverableStatus,
 } from "@/features/deliverables/api/queries"
+import { createDeliverableReviewLink } from "@/features/deliverables/api/service"
 import type { Skill, SkillOutput } from "@/features/skills/api/types"
 import type { Deliverable } from "@/features/deliverables/api/types"
 import { ScheduleDeliverableDialog } from "@/components/deliverable/schedule-deliverable-dialog"
@@ -375,12 +376,21 @@ export function ClientPlaybooksDialog({
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => {
-                                    const reviewUrl = `${window.location.origin}/review/${doc.deliverable_id}`
-                                    navigator.clipboard.writeText(reviewUrl)
-                                    toast.success("Link Review Klien Disalin!", {
-                                      description: "Tautan siap dibagikan ke WhatsApp Pak Adit / Bunda.",
-                                    })
+                                  onClick={async () => {
+                                    if (!doc.deliverable_id) return
+                                    const link = await createDeliverableReviewLink(doc.deliverable_id)
+                                    if (!link.success || !link.url) {
+                                      toast.error("Gagal membuat link review", { description: link.error })
+                                      return
+                                    }
+                                    try {
+                                      await navigator.clipboard.writeText(link.url)
+                                      toast.success("Link Review Klien Disalin!", {
+                                        description: "Tautan siap dibagikan ke WhatsApp Pak Adit / Bunda.",
+                                      })
+                                    } catch {
+                                      toast.error("Gagal menyalin link ke clipboard.")
+                                    }
                                   }}
                                   className="h-7 text-xs rounded-lg gap-1 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
                                 >

@@ -12,7 +12,7 @@ import {
   sendTelegramMessage,
   TelegramButton,
 } from "@/lib/telegram/service"
-import { env } from "@/lib/env"
+import { buildReviewUrl } from "@/lib/review/token"
 import {
   dispatchReviewNotificationSchema,
   testNotificationSchema,
@@ -60,8 +60,10 @@ export async function getNotificationTargetForDeliverable(
     return null
   }
 
-  const appUrl = env.server.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const reviewUrl = `${appUrl}/review/${deliverable.id}`
+  const reviewUrl = buildReviewUrl(deliverable.id)
+  if (!reviewUrl) {
+    throw new Error("Tautan review belum dikonfigurasi di server.")
+  }
 
   const suggestedWhatsAppMessage = formatReviewNotificationMessage({
     clientName: client.name,

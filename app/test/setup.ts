@@ -82,4 +82,5 @@ if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !=
 beforeEach(() => {
   window.history.replaceState({}, '', '/')
   vi.stubEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000')
+  vi.stubEnv('REVIEW_LINK_SECRET', 'test-review-link-secret-0123456789abcdef')
 })

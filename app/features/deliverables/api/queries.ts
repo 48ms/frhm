@@ -35,10 +35,10 @@ export const deliverableQueries = {
     }),
 
   /** Query untuk mendapatkan detail deliverable beserta client, comments, dan feedback */
-  detail: (id: string) =>
+  detail: (id: string, reviewToken?: string) =>
     queryOptions({
       queryKey: deliverableKeys.detail(id),
-      queryFn: () => getDeliverableById(id),
+      queryFn: () => getDeliverableById(id, reviewToken),
       enabled: Boolean(id),
     }),
 }
@@ -47,8 +47,8 @@ export function useDeliverables(clientId: string) {
   return useQuery(deliverableQueries.listByClient(clientId))
 }
 
-export function useDeliverableDetail(id: string) {
-  return useQuery(deliverableQueries.detail(id))
+export function useDeliverableDetail(id: string, reviewToken?: string) {
+  return useQuery(deliverableQueries.detail(id, reviewToken))
 }
 
 export function usePromoteSkillOutputToDeliverable() {

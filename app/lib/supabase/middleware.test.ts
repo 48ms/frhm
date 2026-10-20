@@ -158,6 +158,18 @@ describe('updateSession (Middleware Auth & RBAC Gate)', () => {
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
+  it('hardens the public review portal against referrer and indexing leaks', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    const req = new NextRequest('http://localhost:3000/review/11111111-1111-1111-1111-111111111111?token=abc')
+
+    const res = await updateSession(req)
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Referrer-Policy')).toBe('no-referrer')
+    expect(res.headers.get('X-Robots-Tag')).toContain('noindex')
+    expect(res.headers.get('Cache-Control')).toContain('no-store')
+  })
+
   it('bypasses getUser() for public webhooks', async () => {
     const req = new NextRequest('http://localhost:3000/api/webhooks/ayrshare')
     const res = await updateSession(req)

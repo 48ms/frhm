@@ -5,6 +5,7 @@ import {
   promoteSkillOutputToDeliverable,
   updateDeliverableStatus,
   getDeliverableById,
+  createDeliverableReviewLink,
   submitDeliverableReview,
   scheduleApprovedDeliverable,
   deleteDeliverable,
@@ -24,6 +25,10 @@ vi.mock("@/lib/supabase/service", () => ({
 
 vi.mock("@/lib/audit/log", () => ({
   logAudit: vi.fn(),
+}))
+
+vi.mock("@/lib/review/access", () => ({
+  authorizeReviewAccess: vi.fn().mockResolvedValue(true),
 }))
 
 vi.mock("@/lib/telegram", () => ({
@@ -300,6 +305,13 @@ describe("Deliverables Service Layer", () => {
     expect(result?.comments[0].author_name).toBe("Pak Adit")
     expect(result?.feedback).toHaveLength(1)
     expect(result?.feedback[0].rating).toBe(5)
+  })
+
+  it("createDeliverableReviewLink returns a signed URL for an authorized user", async () => {
+    const result = await createDeliverableReviewLink("deliv-100")
+
+    expect(result.success).toBe(true)
+    expect(result.url).toContain("/review/deliv-100?token=v1.deliv-100.")
   })
 
   it("submitDeliverableReview records approval, creates comments/feedback, and triggers notification", async () => {

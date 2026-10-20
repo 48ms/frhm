@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { USER_HEADERS } from './identity-headers'
 import { env } from '@/lib/env'
 import { getRequestOrigin } from '@/lib/request-origin'
+import { checkRateLimit, getClientIp } from '@/lib/middleware/rate-limit'
 
 /**
  * PERF: previously every /admin request paid FOUR sequential Supabase
@@ -26,11 +27,20 @@ export async function updateSession(request: NextRequest) {
     requestHeaders.delete(key)
   }
 
+  const isReviewPath = request.nextUrl.pathname.startsWith('/review/')
+
   const applySecurityHeaders = (res: NextResponse) => {
     res.headers.set('X-Frame-Options', 'DENY')
     res.headers.set('X-Content-Type-Options', 'nosniff')
-    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    res.headers.set(
+      'Referrer-Policy',
+      isReviewPath ? 'no-referrer' : 'strict-origin-when-cross-origin'
+    )
     res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    if (isReviewPath) {
+      res.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+      res.headers.set('Cache-Control', 'private, no-store')
+    }
     res.headers.set(
       'Content-Security-Policy',
       [
@@ -47,6 +57,18 @@ export async function updateSession(request: NextRequest) {
 
   // Bypass session check for public webhooks & metadata assets to avoid unnecessary round-trips
   const pathname = request.nextUrl.pathname
+
+  if (isReviewPath) {
+    const reviewLimit = checkRateLimit(getClientIp(request.headers), 'review-portal', 60, 60_000)
+    if (reviewLimit.limited) {
+      const limited = new NextResponse('Too many requests', {
+        status: 429,
+        headers: { 'Retry-After': String(reviewLimit.retryAfter ?? 60) },
+      })
+      return applySecurityHeaders(limited)
+    }
+  }
+
   const isPublicBypass =
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/telegram') ||

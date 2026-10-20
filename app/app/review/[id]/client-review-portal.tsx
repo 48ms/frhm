@@ -12,6 +12,7 @@ import { ExportPdfDialog } from '@/components/deliverable/export-pdf-dialog';
 
 interface ClientReviewPortalProps {
   deliverableId: string;
+  reviewToken?: string;
   initialData: DeliverableDetailResponse;
 }
 
@@ -38,8 +39,8 @@ const RATING_LABELS: Record<number, string> = {
   5: 'Sempurna / Siap Tayang!',
 };
 
-export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewPortalProps) {
-  const { data: detailData } = useDeliverableDetail(deliverableId);
+export function ClientReviewPortal({ deliverableId, reviewToken, initialData }: ClientReviewPortalProps) {
+  const { data: detailData } = useDeliverableDetail(deliverableId, reviewToken);
   const data = detailData ?? initialData;
   const { deliverable, client, comments, feedback } = data;
 
@@ -67,6 +68,7 @@ export function ClientReviewPortal({ deliverableId, initialData }: ClientReviewP
 
     await submitReviewMutation.mutateAsync({
       deliverableId: deliverable.id,
+      reviewToken,
       status: newStatus,
       rating: rating > 0 ? rating : undefined,
       feedbackNote: feedbackNote.trim() || undefined,

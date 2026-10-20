@@ -11,29 +11,23 @@ import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata: Metadata = {
+  title: 'Review Materi - Frhm',
+  description: 'Portal review materi marketing Frhm.',
+  referrer: 'no-referrer',
+  robots: { index: false, follow: false, nocache: true },
+};
+
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-export async function generateMetadata(props: PageProps): Promise<Metadata> {
-  const { id } = await props.params;
-  const data = await getDeliverableById(id);
-
-  if (!data) {
-    return {
-      title: 'Dokumen Tidak Ditemukan',
-    };
-  }
-
-  return {
-    title: `${data.deliverable.title} - Review Materi`,
-    description: `Tinjau dan setujui deliverable ${data.deliverable.title} untuk ${data.client?.name ?? 'Klien'}.`,
-  };
+  searchParams: Promise<{ token?: string | string[] }>;
 }
 
 export default async function DeliverableReviewPage(props: PageProps) {
   const { id } = await props.params;
-  const data = await getDeliverableById(id);
+  const { token } = await props.searchParams;
+  const reviewToken = Array.isArray(token) ? token[0] : token;
+  const data = await getDeliverableById(id, reviewToken);
 
   if (!data) {
     return (
@@ -43,9 +37,9 @@ export default async function DeliverableReviewPage(props: PageProps) {
             <Icons.alertCircle className="size-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Dokumen Tidak Ditemukan</h1>
+            <h1 className="text-xl font-bold text-foreground">Tautan Review Tidak Valid</h1>
             <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-              Tautan review ini mungkin telah kadaluarsa, salah, atau dokumen telah dipindahkan oleh tim Frhm.
+              Tautan ini salah, sudah kedaluwarsa, atau Anda tidak memiliki akses ke dokumen tersebut.
             </p>
           </div>
           <div className="pt-2">
@@ -62,7 +56,7 @@ export default async function DeliverableReviewPage(props: PageProps) {
   }
 
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery(deliverableQueries.detail(id));
+  await queryClient.prefetchQuery(deliverableQueries.detail(id, reviewToken));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
@@ -75,7 +69,7 @@ export default async function DeliverableReviewPage(props: PageProps) {
           </div>
         }
       >
-        <ClientReviewPortal deliverableId={id} initialData={data} />
+        <ClientReviewPortal deliverableId={id} reviewToken={reviewToken} initialData={data} />
       </Suspense>
     </HydrationBoundary>
   );

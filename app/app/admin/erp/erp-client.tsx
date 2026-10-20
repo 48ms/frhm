@@ -7,6 +7,7 @@ import { Icons } from "@/components/icons"
 import { useQuery } from "@tanstack/react-query"
 import { scheduledPostQueries } from "@/features/scheduled-posts/api/queries"
 import { deliverableQueries, useUpdateDeliverableStatus, useDeleteDeliverable } from "@/features/deliverables/api/queries"
+import { createDeliverableReviewLink } from "@/features/deliverables/api/service"
 import { useSendTelegramTest } from "@/features/erp/api/queries"
 import { useActiveDashboard } from "@/components/dashboard-stitch/dashboard-data"
 import { CreateDeliverableDialog } from "@/components/deliverable/create-deliverable-dialog"
@@ -358,12 +359,20 @@ export function ErpDashboardClient() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        const reviewUrl = `${window.location.origin}/review/${d.id}`
-                        navigator.clipboard.writeText(reviewUrl)
-                        toast.success("Link Review Klien Disalin!", {
-                          description: "Tautan siap dibagikan ke WhatsApp Pak Adit / Bunda.",
-                        })
+                      onClick={async () => {
+                        const link = await createDeliverableReviewLink(d.id)
+                        if (!link.success || !link.url) {
+                          toast.error("Gagal membuat link review", { description: link.error })
+                          return
+                        }
+                        try {
+                          await navigator.clipboard.writeText(link.url)
+                          toast.success("Link Review Klien Disalin!", {
+                            description: "Tautan siap dibagikan ke WhatsApp Pak Adit / Bunda.",
+                          })
+                        } catch {
+                          toast.error("Gagal menyalin link ke clipboard.")
+                        }
                       }}
                       className="h-7 text-xs px-2.5 rounded-lg border-primary/30 text-primary hover:bg-primary/10 gap-1"
                     >

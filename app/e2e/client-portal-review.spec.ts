@@ -1,5 +1,27 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Browser } from '@playwright/test';
 import { loginAsAdmin } from './helpers/login';
+
+const SEEDED_CLIENT_ID = '5044af9e-0af1-4ec6-83ba-dacba4cfebf2';
+
+async function getSignedReviewUrl(browser: Browser): Promise<string> {
+  const context = await browser.newContext();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const page = await context.newPage();
+
+  await loginAsAdmin(page);
+  await page.goto(`/admin/erp?clientId=${SEEDED_CLIENT_ID}`);
+  await page.waitForLoadState('networkidle');
+
+  await page.getByRole('button', { name: /Link Review/i }).first().click();
+  await expect(page.getByText(/Link Review Klien Disalin!/i)).toBeVisible({ timeout: 10000 });
+
+  const reviewUrl = await page.evaluate(() => navigator.clipboard.readText());
+  await context.close();
+
+  expect(reviewUrl).toContain('/review/');
+  expect(reviewUrl).toContain('token=');
+  return reviewUrl;
+}
 
 test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
   test.setTimeout(120000);
@@ -12,7 +34,7 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
     // Navigate scoped to the client that owns the seeded deliverable
     // ("Frhm Alpha Tester"). The ERP defaults to the newest client, which has
     // no deliverables, so the Link Review button would never render.
-    await page.goto('/admin/erp?clientId=5044af9e-0af1-4ec6-83ba-dacba4cfebf2');
+    await page.goto(`/admin/erp?clientId=${SEEDED_CLIENT_ID}`);
     await page.waitForLoadState('networkidle');
 
     // Deliverables section exists
@@ -38,9 +60,9 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
     await page.goto('/review/00000000-0000-0000-0000-000000000000');
     await page.waitForLoadState('networkidle');
 
-    // Should render crisp 404 card without requiring login
-    await expect(page.getByRole('heading', { name: /Dokumen Tidak Ditemukan/i })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Tautan review ini mungkin telah kadaluarsa/i)).toBeVisible();
+    // Should render a generic invalid-link card without requiring login
+    await expect(page.getByRole('heading', { name: /Tautan Review Tidak Valid/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/sudah kedaluwarsa/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Kembali ke Beranda/i })).toBeVisible();
 
     await context.close();
@@ -51,7 +73,8 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
     const clientContext = await browser.newContext();
     const clientPage = await clientContext.newPage();
 
-    await clientPage.goto('/review/6b148453-5d1f-4085-9b72-0306097631ce');
+    const reviewUrl = await getSignedReviewUrl(browser);
+    await clientPage.goto(reviewUrl);
     await clientPage.waitForLoadState('networkidle');
 
     // Brand and portal verification
@@ -90,7 +113,8 @@ test.describe('Client Portal Review & Magic Link (End-to-End QA)', () => {
     const clientContext = await browser.newContext();
     const clientPage = await clientContext.newPage();
 
-    await clientPage.goto('/review/6b148453-5d1f-4085-9b72-0306097631ce');
+    const reviewUrl = await getSignedReviewUrl(browser);
+    await clientPage.goto(reviewUrl);
     await clientPage.waitForLoadState('networkidle');
 
     // Verify Star Rating interaction: click 4th star

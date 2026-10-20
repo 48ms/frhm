@@ -20,6 +20,8 @@ import {
 import type { Deliverable, DeliverableType, DeliverableDetailResponse } from "./types"
 import type { ScheduledPost } from "@/features/scheduled-posts/api/types"
 import { sendTelegramMessage } from "@/lib/telegram/service"
+import { authorizeReviewAccess } from "@/lib/review/access"
+import { buildReviewUrl } from "@/lib/review/token"
 
 /**
  * Service Layer untuk Deliverables.
@@ -240,9 +242,11 @@ export async function updateDeliverableStatus(
  * Digunakan untuk halaman review klien mandiri (/review/[id]).
  */
 export async function getDeliverableById(
-  deliverableId: string
+  deliverableId: string,
+  reviewToken?: string
 ): Promise<DeliverableDetailResponse | null> {
   if (!deliverableId) return null
+  if (!(await authorizeReviewAccess(deliverableId, reviewToken))) return null
   const service = createSupabaseServiceClient()
 
   try {
@@ -291,6 +295,23 @@ export async function getDeliverableById(
   }
 }
 
+export async function createDeliverableReviewLink(
+  deliverableId: string
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  if (!deliverableId) return { success: false, error: "Deliverable ID tidak valid." }
+  if (!(await authorizeReviewAccess(deliverableId))) {
+    return { success: false, error: "Anda tidak memiliki akses ke dokumen ini." }
+  }
+
+  const url = buildReviewUrl(deliverableId)
+  if (!url) {
+    logger.error("createDeliverableReviewLink.secretMissing")
+    return { success: false, error: "Tautan review belum dikonfigurasi di server." }
+  }
+
+  return { success: true, url }
+}
+
 /**
  * Menyimpan review langsung dari sisi klien (approval atau revision_requested).
  * - Mengupdate deliverables.status dan approved_at
@@ -303,6 +324,9 @@ export async function submitDeliverableReview(
 ): Promise<{ success: boolean; deliverable?: Deliverable; error?: string }> {
   try {
     const safe = submitDeliverableReviewSchema.parse(input)
+    if (!(await authorizeReviewAccess(safe.deliverableId, safe.reviewToken))) {
+      return { success: false, error: "Tautan review tidak valid atau sudah kedaluwarsa." }
+    }
     const service = createSupabaseServiceClient()
 
     // 1. Ambil deliverable saat ini

@@ -34,6 +34,7 @@ export type UpdateDeliverableStatusInput = z.infer<typeof updateDeliverableStatu
 
 export const submitDeliverableReviewSchema = z.object({
   deliverableId: z.string().min(1, "Deliverable ID tidak valid"),
+  reviewToken: z.string().optional(),
   status: z.enum(["approved", "revision_requested"]),
   feedbackNote: z.string().optional(),
   rating: z.number().int().min(1).max(5).optional(),
