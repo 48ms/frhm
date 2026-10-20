@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createSupabaseServiceClient } from "@/lib/supabase/service"
+import { logAudit } from "@/lib/audit/log"
 import {
   CreateAiProviderSchema,
   UpdateAiProviderSchema,
@@ -67,7 +68,7 @@ export async function getAiProviders(): Promise<AiProviderMasked[]> {
 }
 
 export async function createAiProvider(input: CreateAiProviderInput): Promise<AiProviderMasked> {
-  await assertAdmin()
+  const actorId = await assertAdmin()
   const validated = CreateAiProviderSchema.parse(input)
   const admin = createSupabaseServiceClient()
 
@@ -93,6 +94,22 @@ export async function createAiProvider(input: CreateAiProviderInput): Promise<Ai
 
   if (error) throw new Error(`Failed to create AI provider: ${error.message}`)
 
+  void logAudit({
+    actorId,
+    action: "ai_provider.create",
+    entityType: "ai_provider",
+    entityId: data.id,
+    summary: `Added AI provider ${data.label} (${data.kind}/${data.model})`,
+    // Never store the secret itself — only whether one was supplied.
+    metadata: {
+      kind: data.kind,
+      model: data.model,
+      base_url: data.base_url,
+      has_key: Boolean(data.api_key),
+      is_default: data.is_default,
+    },
+  })
+
   const { has_key, masked_key } = maskKey(data.api_key)
   return {
     id: data.id,
@@ -111,7 +128,7 @@ export async function updateAiProvider(
   id: string,
   input: UpdateAiProviderInput
 ): Promise<AiProviderMasked> {
-  await assertAdmin()
+  const actorId = await assertAdmin()
   const validated = UpdateAiProviderSchema.parse(input)
   const admin = createSupabaseServiceClient()
 
@@ -138,6 +155,19 @@ export async function updateAiProvider(
 
   if (error) throw new Error(`Failed to update AI provider: ${error.message}`)
 
+  void logAudit({
+    actorId,
+    action: "ai_provider.update",
+    entityType: "ai_provider",
+    entityId: data.id,
+    summary: `Updated AI provider ${data.label} (${data.kind}/${data.model})`,
+    metadata: {
+      changed_fields: Object.keys(updatePayload).filter((key) => key !== "api_key"),
+      api_key_changed: Object.prototype.hasOwnProperty.call(updatePayload, "api_key"),
+      is_default: data.is_default,
+    },
+  })
+
   const { has_key, masked_key } = maskKey(data.api_key)
   return {
     id: data.id,
@@ -153,38 +183,62 @@ export async function updateAiProvider(
 }
 
 export async function deleteAiProvider(id: string): Promise<void> {
-  await assertAdmin()
+  const actorId = await assertAdmin()
   const admin = createSupabaseServiceClient()
 
   const { data: target } = await admin
     .from("ai_providers")
-    .select("is_default")
+    .select("is_default, label, model")
     .eq("id", id)
     .single()
 
-  if (target?.is_default) {
-    const { count } = await admin
-      .from("ai_providers")
-      .select("*", { count: "exact", head: true })
+  const { count } = await admin
+    .from("ai_providers")
+    .select("*", { count: "exact", head: true })
 
-    if (count && count > 1) {
-      throw new Error(
-        "Tidak dapat menghapus provider default. Jadikan provider lain sebagai default terlebih dahulu."
-      )
-    }
+  // Never leave the workspace without a provider: every AI surface would fail
+  // with "provider not configured" and the operator would have to insert one by hand.
+  if (count !== null && count !== undefined && count <= 1) {
+    throw new Error(
+      "Tidak dapat menghapus satu-satunya provider AI. Tambahkan provider lain terlebih dahulu."
+    )
+  }
+
+  if (target?.is_default) {
+    throw new Error(
+      "Tidak dapat menghapus provider default. Jadikan provider lain sebagai default terlebih dahulu."
+    )
   }
 
   const { error } = await admin.from("ai_providers").delete().eq("id", id)
   if (error) throw new Error(`Failed to delete AI provider: ${error.message}`)
+
+  void logAudit({
+    actorId,
+    action: "ai_provider.delete",
+    entityType: "ai_provider",
+    entityId: id,
+    summary: `Deleted AI provider ${target?.label ?? id}`,
+    metadata: { label: target?.label ?? null, model: target?.model ?? null },
+  })
 }
 
 export async function setDefaultAiProvider(id: string): Promise<void> {
-  await assertAdmin()
+  const actorId = await assertAdmin()
   const admin = createSupabaseServiceClient()
 
   await admin.from("ai_providers").update({ is_default: false }).neq("id", id)
   const { error } = await admin.from("ai_providers").update({ is_default: true }).eq("id", id)
   if (error) throw new Error(`Failed to set default AI provider: ${error.message}`)
+
+  void logAudit({
+    actorId,
+    action: "ai_provider.set_default",
+    entityType: "ai_provider",
+    entityId: id,
+    summary: `Set AI provider ${id} as default`,
+    metadata: { is_default: true },
+  })
 }
 
 export async function testAiProviderConnection(

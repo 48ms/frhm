@@ -47,6 +47,28 @@ function extractUsage(j: AiResponse | undefined): AiUsage | null {
 
 const TIMEOUT_MS = 25_000
 
+/**
+ * Accept the base URL with or without its version segment.
+ *
+ * Operators paste `https://openrouter.ai/api/v1`, `https://api.openai.com/v1/` or a bare
+ * host. Appending `/v1/chat/completions` to the first two would request `/v1/v1/...`;
+ * lenient gateways (9router) tolerate it, strict ones answer 404. Strip the version (and a
+ * full endpoint path if someone pasted one) once, then append the canonical path.
+ */
+export function apiRoot(
+  baseUrl: string | null | undefined,
+  fallback: string,
+  suffixes: string[]
+): string {
+  let base = (baseUrl?.trim() || fallback).replace(/\/+$/, '')
+  for (const suffix of suffixes) {
+    if (base.toLowerCase().endsWith(suffix)) {
+      base = base.slice(0, -suffix.length)
+    }
+  }
+  return base.replace(/\/+$/, '')
+}
+
 /** Merge system into first user message when model ignores system prompt. */
 function mergeSystemIntoMessages(system: string, messages: ChatMessage[]): ChatMessage[] {
   if (!system || !messages.length) return messages
@@ -112,7 +134,7 @@ export async function chat(
 ): Promise<string> {
   const merged = mergeSystemIntoMessages(system, messages)
   if (p.kind === 'gemini') {
-    const base = p.base_url || 'https://generativelanguage.googleapis.com'
+    const base = apiRoot(p.base_url, 'https://generativelanguage.googleapis.com', ['/v1beta', '/v1'])
     const { ok, status, j } = await post(
       `${base}/v1beta/models/${p.model}:generateContent?key=${p.api_key ?? ''}`,
       {},
@@ -132,7 +154,7 @@ export async function chat(
   }
 
   if (p.kind === 'anthropic') {
-    const base = p.base_url || 'https://api.anthropic.com'
+    const base = apiRoot(p.base_url, 'https://api.anthropic.com', ['/messages', '/v1'])
     const { ok, status, j } = await post(
       `${base}/v1/messages`,
       { 'x-api-key': p.api_key ?? '', 'anthropic-version': '2023-06-01' },
@@ -143,7 +165,7 @@ export async function chat(
   }
 
   // openai + custom (9router) share the OpenAI-compatible shape
-  const base = (p.base_url || 'https://api.openai.com').replace(/\/$/, '')
+  const base = apiRoot(p.base_url, 'https://api.openai.com', ['/chat/completions', '/v1'])
   const res = await post(
     `${base}/v1/chat/completions`,
     { Authorization: `Bearer ${p.api_key ?? ''}` },
@@ -302,7 +324,7 @@ export async function chatDetailed(
 ): Promise<{ text: string; usage: AiUsage | null }> {
   const merged = mergeSystemIntoMessages(system, messages)
   if (p.kind === 'gemini') {
-    const base = p.base_url || 'https://generativelanguage.googleapis.com'
+    const base = apiRoot(p.base_url, 'https://generativelanguage.googleapis.com', ['/v1beta', '/v1'])
     const { ok, status, j } = await post(
       `${base}/v1beta/models/${p.model}:generateContent?key=${p.api_key ?? ''}`,
       {},
@@ -322,7 +344,7 @@ export async function chatDetailed(
   }
 
   if (p.kind === 'anthropic') {
-    const base = p.base_url || 'https://api.anthropic.com'
+    const base = apiRoot(p.base_url, 'https://api.anthropic.com', ['/messages', '/v1'])
     const { ok, status, j } = await post(
       `${base}/v1/messages`,
       { 'x-api-key': p.api_key ?? '', 'anthropic-version': '2023-06-01' },
@@ -334,7 +356,7 @@ export async function chatDetailed(
   }
 
   // openai + custom (9router) share the OpenAI-compatible shape
-  const base = (p.base_url || 'https://api.openai.com').replace(/\/$/, '')
+  const base = apiRoot(p.base_url, 'https://api.openai.com', ['/chat/completions', '/v1'])
   const res = await post(
     `${base}/v1/chat/completions`,
     { Authorization: `Bearer ${p.api_key ?? ''}` },

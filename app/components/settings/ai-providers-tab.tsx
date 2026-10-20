@@ -236,7 +236,8 @@ export function AiProvidersTab() {
             </div>
             <h3 className="text-sm font-bold text-foreground">Belum ada AI Provider tersimpan</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Saat ini Copilot menggunakan konfigurasi fallback dari environment server (.env). Tambahkan provider di sini untuk mengelola model dan endpoint kustom secara visual.
+              Belum ada provider default yang tersimpan. Tanpa provider, fitur AI (Copilot, AI Studio, Media Library)
+              akan menampilkan pesan bahwa provider belum dikonfigurasi. Tambahkan satu provider untuk mulai memakainya.
             </p>
             <Button
               type="button"
@@ -289,7 +290,7 @@ export function AiProvidersTab() {
                         </span>
                       ) : (
                         <span className="text-2xs text-warning font-medium">
-                          Fallback Server Env
+                          Belum ada kunci
                         </span>
                       )}
                     </td>
@@ -365,7 +366,7 @@ export function AiProvidersTab() {
                 {editingProvider ? "Edit AI Provider" : "Tambah AI Provider Baru"}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Konfigurasikan model LLM dan kunci otentikasi. Kunci disimpan dengan enkripsi server dan dilindungi RLS.
+                Konfigurasikan model LLM dan kunci otentikasi. Kunci hanya dibaca di server, tidak pernah dikirim ke browser, dan tabelnya dibatasi RLS untuk admin.
               </DialogDescription>
             </DialogHeader>
 
@@ -427,6 +428,10 @@ export function AiProvidersTab() {
                     placeholder="https://openrouter.ai/api/v1"
                     className="bg-background border-border/40 text-sm font-mono"
                   />
+                  <p className="text-2xs text-muted-foreground mt-1">
+                    Boleh dengan atau tanpa akhiran <code className="font-mono">/v1</code> — Frhm menormalkannya
+                    otomatis. Untuk 9Router: <code className="font-mono">http://host:20128</code>.
+                  </p>
                 </div>
               )}
 

@@ -6,6 +6,7 @@ import {
   deleteAiProvider,
   setDefaultAiProvider,
 } from "./service"
+import { logAudit } from "@/lib/audit/log"
 
 const mockGetUser = vi.fn()
 const mockSelect = vi.fn()
@@ -41,6 +42,10 @@ vi.mock("@/lib/supabase/service", () => ({
       delete: (...args: unknown[]) => mockDelete(...args),
     }),
   }),
+}))
+
+vi.mock("@/lib/audit/log", () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined),
 }))
 
 describe("AI Providers Service", () => {
@@ -112,6 +117,12 @@ describe("AI Providers Service", () => {
     expect(created.id).toBe("22222222-2222-2222-2222-222222222222")
     expect(created.has_key).toBe(true)
     expect(created.masked_key).toBe("••••••••1234")
+
+    const audit = vi.mocked(logAudit).mock.calls[0][0]
+    expect(audit.action).toBe("ai_provider.create")
+    expect(audit.metadata?.has_key).toBe(true)
+    // The audit trail must never contain the credential itself.
+    expect(JSON.stringify(audit)).not.toContain("sk-ant-secret1234")
   })
 
   it("updates an existing provider without replacing api_key if empty", async () => {
@@ -157,5 +168,25 @@ describe("AI Providers Service", () => {
 
     expect(mockNeq).toHaveBeenCalledWith("id", "22222222-2222-2222-2222-222222222222")
     expect(mockEq).toHaveBeenCalledWith("id", "22222222-2222-2222-2222-222222222222")
+  })
+
+  it("refuses to delete the last remaining provider", async () => {
+    mockSelect
+      .mockReturnValueOnce({
+        eq: () => ({
+          single: () =>
+            Promise.resolve({
+              data: { is_default: false, label: "Only provider", model: "m" },
+              error: null,
+            }),
+        }),
+      })
+      .mockReturnValueOnce(Promise.resolve({ count: 1, error: null }))
+
+    await expect(
+      deleteAiProvider("33333333-3333-3333-3333-333333333333")
+    ).rejects.toThrow(/satu-satunya/)
+
+    expect(mockDelete).not.toHaveBeenCalled()
   })
 })
