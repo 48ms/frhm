@@ -1,38 +1,30 @@
 -- Migration: 028_canonical_naming_fix.sql
 -- Canonical naming fix + new columns for analytics client report
--- Idempotent: safe to run repeatedly (ADD COLUMN IF NOT EXISTS, CREATE VIEW IF NOT EXISTS)
+-- Idempotent: safe to run repeatedly (guarded views, ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS)
 
--- 1. Compatibility views for legacy code referencing old table names
--- campaigns -> content_campaigns
-CREATE VIEW IF NOT EXISTS public.campaigns AS
-SELECT
-  id,
-  client_id,
-  name,
-  type,
-  start_date,
-  end_date,
-  color,
-  notes,
-  created_at
-FROM public.content_campaigns;
+-- 1. Compatibility views for legacy code referencing old table names.
+-- In this schema both names already exist as TABLES (campaigns, content_metrics),
+-- so a view can never be created under them. Guard keeps a legacy database
+-- working while staying a no-op where the tables already exist.
+DO $$
+BEGIN
+  IF to_regclass('public.campaigns') IS NULL THEN
+    EXECUTE $view$
+      CREATE VIEW public.campaigns AS
+      SELECT id, client_id, name, type, start_date, end_date, color, notes, created_at
+      FROM public.content_campaigns
+    $view$;
+  END IF;
 
--- content_metrics -> post_metrics
-CREATE VIEW IF NOT EXISTS public.content_metrics AS
-SELECT
-  id,
-  post_id,
-  client_id,
-  platform,
-  views,
-  reach,
-  likes,
-  comments,
-  shares,
-  saves,
-  clicks,
-  recorded_at
-FROM public.post_metrics;
+  IF to_regclass('public.content_metrics') IS NULL THEN
+    EXECUTE $view$
+      CREATE VIEW public.content_metrics AS
+      SELECT id, post_id, client_id, platform, views, reach, likes, comments,
+             shares, saves, clicks, recorded_at
+      FROM public.post_metrics
+    $view$;
+  END IF;
+END $$;
 
 -- 2. Add campaign_tag to deliverables (nullable, references content_campaigns.name)
 ALTER TABLE public.deliverables
