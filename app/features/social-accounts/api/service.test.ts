@@ -27,6 +27,7 @@ const makeBuilder = (table: string) => {
     b[m] = vi.fn(() => b)
   }
   b.single = vi.fn(() => next(table))
+  b.maybeSingle = vi.fn(() => next(table))
   b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => next(table).then(res, rej)
   return b
 }
@@ -154,19 +155,53 @@ describe('Social Accounts Service', () => {
   })
 
   describe('updateBrandProfile', () => {
-    it('writes JSONB on clients and upserts the markdown file', async () => {
+    it('merges into the stored JSONB and upserts the markdown files', async () => {
+      push('clients', {
+        data: {
+          name: 'Acme',
+          brand_profile: {
+            who: 'Acme',
+            identity: 'Acme builds things',
+            offers_ctas: 'Book a call',
+            niche: 'b2b',
+          },
+        },
+        error: null,
+      }) // select .maybeSingle()
       push('clients', { error: null }) // update .eq()
       push('client_files', { error: null }) // upsert .eq()
+      push('client_files', { error: null })
+      push('client_files', { error: null })
 
       await updateBrandProfile('c1', {
         who: 'Acme', audience: 'A', voice: 'V', pov: 'P', proof: 'Pr', guardrails: 'G', pillars: ['x'],
       })
 
-      expect(mockSupabase.from).toHaveBeenCalledWith('clients')
-      expect(mockSupabase.from).toHaveBeenCalledWith('client_files')
+      const clientBuilders = mockSupabase.from.mock.results
+        .filter((_, i) => mockSupabase.from.mock.calls[i][0] === 'clients')
+        .map((r) => r.value as { update: ReturnType<typeof vi.fn> })
+      const payload = clientBuilders[1].update.mock.calls[0][0] as { brand_profile: Record<string, unknown> }
+
+      // Canonical fields the form does not expose must survive the save.
+      expect(payload.brand_profile).toMatchObject({
+        identity: 'Acme builds things',
+        offers_ctas: 'Book a call',
+        niche: 'b2b',
+        who: 'Acme',
+        voice: 'V',
+      })
+
+      const upserts = mockSupabase.from.mock.results
+        .filter((_, i) => mockSupabase.from.mock.calls[i][0] === 'client_files')
+        .flatMap((r) => (r.value as { upsert: ReturnType<typeof vi.fn> }).upsert.mock.calls)
+        .map((call) => (call[0] as { path: string }).path)
+
+      expect(upserts).toContain('brand-profile.md')
+      expect(upserts).toContain('offers.md')
     })
 
     it('throws when the clients update fails', async () => {
+      push('clients', { data: { name: 'Acme', brand_profile: {} }, error: null })
       push('clients', { error: { message: 'rls' } })
       await expect(
         updateBrandProfile('c1', { who: '', audience: '', voice: '', pov: '', proof: '', guardrails: '', pillars: [] })

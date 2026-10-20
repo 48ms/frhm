@@ -8,6 +8,7 @@ import { resolveProvider } from "@/lib/ai/server"
 import { chatJson } from "@/lib/ai/providers"
 import { 
   BrandProfileSchema, 
+  type BrandProfile,
   type ClientWithChannels, 
   type GenerateBrandProfileInput,
   type ClientChannel,
@@ -286,12 +287,31 @@ export async function syncChannel(channelId: string): Promise<void> {
 }
 
 
-/** Update Brand Profile — writes BOTH the JSONB (Settings UI) and the markdown file (Copilot reads this). */
-export async function updateBrandProfile(clientId: string, profile: any): Promise<void> {
+/** Update Brand Profile — merges into the JSONB (Settings UI) and mirrors it to markdown (Copilot reads this). */
+export async function updateBrandProfile(
+  clientId: string,
+  profile: Partial<BrandProfile>
+): Promise<void> {
   const supabase = await createClient()
+
+  // The Settings form edits only a subset of the canonical fields. Merge with
+  // the stored row first, otherwise identity, positioning, offers_ctas,
+  // channels, operational_defaults, examples and niche are silently dropped.
+  const { data: current, error: readError } = await supabase
+    .from("clients")
+    .select("name, brand_profile")
+    .eq("id", clientId)
+    .maybeSingle()
+
+  if (readError) throw new Error(readError.message)
+
+  const previous = (current?.brand_profile ?? {}) as Partial<BrandProfile>
+  const merged: Partial<BrandProfile> = { ...previous, ...profile }
+  const clientName = current?.name || "Client"
+
   const { error } = await supabase
     .from("clients")
-    .update({ brand_profile: profile })
+    .update({ brand_profile: merged })
     .eq("id", clientId)
 
   if (error) throw new Error(error.message)
@@ -305,43 +325,52 @@ export async function updateBrandProfile(clientId: string, profile: any): Promis
   })
 
   const nowIso = new Date().toISOString()
-  const markdown = brandProfileToMarkdown(profile)
+  const markdown = brandProfileToMarkdown(merged, clientName)
   const filesToUpsert: Array<{ client_id: string; path: string; content: string; updated_at: string }> = [
     { client_id: clientId, path: "brand-profile.md", content: markdown, updated_at: nowIso },
   ]
 
-  if (profile.voice && typeof profile.voice === "string" && profile.voice.trim()) {
+  if (merged.voice && typeof merged.voice === "string" && merged.voice.trim()) {
     filesToUpsert.push({
       client_id: clientId,
       path: "voice.md",
-      content: `# Brand Voice & Tone Guide\n\n## Tone of Voice\n${profile.voice.trim()}`,
+      content: `# Brand Voice & Tone Guide\n\n## Tone of Voice\n${merged.voice.trim()}`,
       updated_at: nowIso,
     })
   }
 
-  if (profile.guardrails && typeof profile.guardrails === "string" && profile.guardrails.trim()) {
+  if (merged.guardrails && typeof merged.guardrails === "string" && merged.guardrails.trim()) {
     filesToUpsert.push({
       client_id: clientId,
       path: "guardrails.md",
-      content: `# Brand Guardrails & Never-List\n\n## Never-List & Restrictions\n${profile.guardrails.trim()}`,
+      content: `# Brand Guardrails & Never-List\n\n## Never-List & Restrictions\n${merged.guardrails.trim()}`,
       updated_at: nowIso,
     })
   }
 
-  if (profile.audience && typeof profile.audience === "string" && profile.audience.trim()) {
+  if (merged.audience && typeof merged.audience === "string" && merged.audience.trim()) {
     filesToUpsert.push({
       client_id: clientId,
       path: "audience.md",
-      content: `# Target Audience & ICP\n\n## Audience Persona\n${profile.audience.trim()}`,
+      content: `# Target Audience & ICP\n\n## Audience Persona\n${merged.audience.trim()}`,
       updated_at: nowIso,
     })
   }
 
-  if (Array.isArray(profile.pillars) && profile.pillars.length > 0) {
+  if (Array.isArray(merged.pillars) && merged.pillars.length > 0) {
     filesToUpsert.push({
       client_id: clientId,
       path: "content-pillars.md",
-      content: `# Content Pillars & Focus Areas\n\n${profile.pillars.map((p: string) => p.startsWith("-") ? p : `- ${p}`).join("\n")}`,
+      content: `# Content Pillars & Focus Areas\n\n${merged.pillars.map((p: string) => p.startsWith("-") ? p : `- ${p}`).join("\n")}`,
+      updated_at: nowIso,
+    })
+  }
+
+  if (merged.offers_ctas && typeof merged.offers_ctas === "string" && merged.offers_ctas.trim()) {
+    filesToUpsert.push({
+      client_id: clientId,
+      path: "offers.md",
+      content: `# Offers & Product Catalog — ${clientName}\n\n## Offers & CTAs\n${merged.offers_ctas.trim()}`,
       updated_at: nowIso,
     })
   }

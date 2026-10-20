@@ -25,7 +25,10 @@ export function BrandProfileTab() {
   // Ambil profil yang ada (jika ada) atau default kosong
   const bp = client?.brand_profile as Partial<BrandProfile> | undefined
   const defaultValues: BrandProfile = {
-    who: bp?.who || "",
+    // `who` stays the short brand name (used by search and dashboard headers).
+    // The long-form identity is what the AI actually reads, so the form edits it.
+    who: bp?.who || client?.name || "",
+    identity: bp?.identity || bp?.who || "",
     audience: bp?.audience || "",
     voice: bp?.voice || "",
     pov: bp?.pov || "",
@@ -61,7 +64,7 @@ export function BrandProfileTab() {
         toast.error(res.error)
       } else if (res.profile) {
         // Set form values
-        form.setFieldValue("who", res.profile.who)
+        form.setFieldValue("identity", res.profile.who)
         form.setFieldValue("audience", res.profile.audience)
         form.setFieldValue("voice", res.profile.voice)
         form.setFieldValue("pov", res.profile.pov)
@@ -184,11 +187,11 @@ export function BrandProfileTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <form.AppField
-                name="who"
+                name="identity"
                 children={(field) => (
                   <field.TextareaField
-                    label="Siapa Kami? (Who)"
-                    description="Penjelasan singkat tentang entitas, nilai-nilai, dan apa yang ditawarkan oleh klien ini."
+                    label="Siapa Kami? (Identity)"
+                    description="Penjelasan singkat tentang entitas, nilai-nilai, dan apa yang ditawarkan oleh klien ini. Teks ini yang dibaca AI."
                     placeholder="Contoh: Kami adalah kafe artisan yang mengutamakan bahan lokal..."
                   />
                 )}

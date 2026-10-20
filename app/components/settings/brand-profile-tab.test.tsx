@@ -49,7 +49,7 @@ describe('BrandProfileTab', () => {
 
   it('renders the prefilled brand profile form fields', () => {
     renderWithProviders(<BrandProfileTab />)
-    expect(screen.getByLabelText(/Siapa Kami\? \(Who\)/i)).toHaveValue('Produsen teh artisan premium Jawa Barat')
+    expect(screen.getByLabelText(/Siapa Kami\? \(Identity\)/i)).toHaveValue('Produsen teh artisan premium Jawa Barat')
     expect(screen.getByLabelText(/Target Audiens \(Audience\)/i)).toHaveValue('Pecinta teh dan gaya hidup sehat 25-45 tahun')
     expect(screen.getByLabelText(/Gaya Bahasa \(Voice\)/i)).toHaveValue('Hangat, edukatif, berakar tradisi')
     expect(screen.getByRole('button', { name: /Simpan Profil/i })).toBeInTheDocument()
