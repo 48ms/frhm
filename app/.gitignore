@@ -10,6 +10,7 @@ scripts/
 # Next.js
 node_modules/
 .next/
+.next.prev/
 out/
 build/
 .vercel
