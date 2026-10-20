@@ -24,9 +24,16 @@ export async function isFeatureEnabled(key: string): Promise<boolean> {
       .eq('key', key)
       .maybeSingle()
 
-    if (error || !data) {
-      console.warn(`Feature flag check failed: ${key}`, { error })
-      return false // Fail closed: if DB is down, disable risky features
+    if (error) {
+      console.warn(`Feature flag lookup failed: ${key}`, { error })
+      return false // Fail closed: a broken DB must not enable risky features.
+    }
+
+    if (!data) {
+      // A missing seed row is a data problem, not an outage. Logging it apart
+      // keeps an unseeded flag from looking like a database failure.
+      console.warn(`Feature flag not seeded: ${key} (treated as disabled)`)
+      return false
     }
 
     cache.set(key, { enabled: data.enabled, fetchedAt: now })
